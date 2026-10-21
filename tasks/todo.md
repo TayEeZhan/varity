@@ -38,9 +38,9 @@ Verity reads a tech developer's CV, forecasts which skills are rising or falling
 - [ ] E3. `data/exposure.csv`: hand-map the 40 skills to O*NET tasks / Anthropic Economic Index. Label it "team judgement, sources cited". Record licences (O*NET CC BY 4.0, AEI CC BY).
 - [x] E3 v2. Replace per-task usage with occupation-level AEI `collaboration_bucket_automation_pct` per taxonomy category, plus a `stance` column (AI-complement / AI-substitutable / neutral). v1 measured Claude.ai traffic volume, not exposure.
 - [ ] E4 rules from review: use `(mentions + 0.5) / (n_posts + 1)` before logit (zeros exist); fit on raw `share`, not `share_smooth` (smoothed residuals make bands too narrow); hide forecasts for skills under a minimum mention count; note posts per month fell from a mean of 703 (2019) to 310 (last 12 months).
-- [ ] E4. Forecast on logit(share): damped trend vs naive vs drift. Pick the model by backtest MAE. 80% intervals by split-conformal from backtest residuals.
-- [ ] E5. Backtest: fit to Dec 2023, predict 2024 to 2025. Report MAE vs naive and band coverage ("our band covered X% of actuals"). If the model does not beat naive, say so and ship naive with bands.
-- [ ] E6. Scenarios as one stated formula (from review): `e_s = automation_share/100 - mean over 40 skills`; `fast = moderate * (1 - k * e_s)` on the point and both band ends, floored at 0; `k = 2` shown in the UI as an assumption. Momentum term weight `b = 0` until a backtest supports it.
+- [x] E4. Forecast on logit(share): damped trend vs naive vs drift. Pick the model by backtest MAE. 80% intervals by split-conformal from backtest residuals.
+- [x] E5. Backtest: fit to Dec 2023, predict 2024 to 2025. Report MAE vs naive and band coverage ("our band covered X% of actuals"). If the model does not beat naive, say so and ship naive with bands.
+- [x] E6. Scenarios as one stated formula (from review): `e_s = automation_share/100 - mean over 40 skills`; `fast = moderate * (1 - k * e_s)` on the point and both band ends, floored at 0; `k = 2` shown in the UI as an assumption. Momentum term weight `b = 0` until a backtest supports it.
 - [ ] E7. `data/roles.json`: 8 future tech roles as weighted skill lists. Match score = weighted coverage x forecast demand. Output gap list and reason.
 - [ ] E8. Pathway order: no-regret skills first, then near-term demand, then future bet. Scenario toggle reorders. Each step: minutes, one real resource from `resources.json`, source, SDG tag.
 - [ ] E9. "What changed and why" diff between two runs. "As-of month" slider: rerun the engine on data up to a chosen month (cached).
@@ -92,4 +92,10 @@ Verity reads a tech developer's CV, forecasts which skills are rising or falling
 - Fixed today: 1, 2, 3 (exposure v2: occupation-level AEI automation share; ai_ml 47.4%, cloud_devops 64.9%), 4. Item 5 needs a team decision. 133 tests pass.
 - Limits to say in Q&A: exposure is per category (AEI publishes occupations, not languages), so skills in a category tie. "language" sits just over the AI-substitutable cut-off (e_s +0.022).
 - Open: check Algolia / HN terms of use for the HN data and add the result to SOURCES.md.
+
+### Thu 22 Oct (day 1, later)
+- Deployed on Replit (Pillow below 13 is blocked by Replit's firewall after the 20 Oct advisories; moved to Streamlit 1.66.1 + Pillow 13.0.0).
+- E4-E6 done. Forecast v1 band covered only 65.9% on held-out data; Opus review chose a rolling, volatility-scaled band (v2: 93.8% at 12 months, conservative). Trend-chasing models (drift, damped) lost to naive3 on held-out data, so the product forecasts the level and labels Rising/Falling only when a Welch test on the last 12 vs prior 12 months gives p < 0.05 (label held 67.2% of 720 cases).
+- Live refresh built (re-fetches the open HN thread, updates only that month).
+- Next: scores.py `data_dir` parameter (refresh on read-only Replit), app wiring (statuses, trend labels, scenario shift vs band, partial month, Refresh button, as-of slider from 2023-11), E7 roles, E8 pathway, E9 diff.
 - Note: the Oct 2026 thread was fetched on 22 Oct and is still open, so its counts will grow.
