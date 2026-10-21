@@ -1,0 +1,211 @@
+{
+  "generated_at": "2026-10-21T20:52:34Z",
+  "data_window": {
+    "from": "2019-01",
+    "to": "2026-10"
+  },
+  "origins": {
+    "calibration": [
+      "2021-12",
+      "2023-10"
+    ],
+    "test": [
+      "2023-11",
+      "2025-10"
+    ],
+    "n_calibration": 23,
+    "n_test": 24
+  },
+  "horizon_months": 12,
+  "min_mean_mentions_last_12m": 5,
+  "n_skills_total": 40,
+  "n_skills_used": 33,
+  "n_skills_eligible_at_last_origin": 26,
+  "excluded_skills_at_last_origin": [
+    "Airflow",
+    "AngularJS",
+    "Hadoop",
+    "Microservices",
+    "PHP",
+    "Perl",
+    "R",
+    "RAG",
+    "Snowflake",
+    "Spark",
+    "Swift",
+    "Vector Databases",
+    "dbt",
+    "jQuery"
+  ],
+  "skills_excluded_at_some_origin": [
+    "Airflow",
+    "AngularJS",
+    "Hadoop",
+    "Kafka",
+    "LLM / GenAI",
+    "Microservices",
+    "MongoDB",
+    "PHP",
+    "Perl",
+    "PyTorch",
+    "R",
+    "RAG",
+    "Snowflake",
+    "Spark",
+    "Swift",
+    "Vector Databases",
+    "dbt",
+    "jQuery"
+  ],
+  "n_skill_origin_pairs": {
+    "calibration": 689,
+    "test": 616,
+    "excluded": 575
+  },
+  "models": {
+    "naive": {
+      "calibration_mae_pp": {
+        "h1": 0.9634,
+        "h6": 1.3384,
+        "h12": 1.6121,
+        "mean_h1_12": 1.3499
+      },
+      "test_mae_pp": {
+        "h1": 1.4091,
+        "h6": 1.641,
+        "h12": 1.8059,
+        "mean_h1_12": 1.6321
+      }
+    },
+    "naive3": {
+      "calibration_mae_pp": {
+        "h1": 0.8923,
+        "h6": 1.258,
+        "h12": 1.5476,
+        "mean_h1_12": 1.2649
+      },
+      "test_mae_pp": {
+        "h1": 1.2536,
+        "h6": 1.4072,
+        "h12": 1.6613,
+        "mean_h1_12": 1.4504
+      },
+      "test_h12_vs_naive": {
+        "test_h12_mae_gain_pp": 0.1446,
+        "ci95_skill_bootstrap": [
+          0.0677,
+          0.2224
+        ]
+      }
+    },
+    "drift": {
+      "calibration_mae_pp": {
+        "h1": 0.9654,
+        "h6": 1.3651,
+        "h12": 1.7016,
+        "mean_h1_12": 1.3728
+      },
+      "test_mae_pp": {
+        "h1": 1.415,
+        "h6": 1.7157,
+        "h12": 2.1279,
+        "mean_h1_12": 1.7588
+      },
+      "test_h12_vs_naive": {
+        "test_h12_mae_gain_pp": -0.322,
+        "ci95_skill_bootstrap": [
+          -0.7464,
+          -0.0689
+        ]
+      }
+    },
+    "damped": {
+      "calibration_mae_pp": {
+        "h1": 0.952,
+        "h6": 1.3642,
+        "h12": 1.757,
+        "mean_h1_12": 1.3636
+      },
+      "test_mae_pp": {
+        "h1": 1.2897,
+        "h6": 1.6132,
+        "h12": 2.2662,
+        "mean_h1_12": 1.7174
+      },
+      "test_h12_vs_naive": {
+        "test_h12_mae_gain_pp": -0.4603,
+        "ci95_skill_bootstrap": [
+          -1.306,
+          -0.0024
+        ]
+      }
+    }
+  },
+  "chosen_model": "naive3",
+  "chosen_because": "naive3 has the lowest mean share-scale MAE at h=12 on calibration origins (2021-12 to 2023-10): naive 1.612 pp, naive3 1.548 pp, drift 1.702 pp, damped 1.757 pp.",
+  "beats_naive": true,
+  "models_beating_naive_on_test_h12": [
+    "naive3"
+  ],
+  "verdict": "On test origins naive3 beats naive at h=12 (1.661 vs 1.806 pp MAE).",
+  "conformal": {
+    "level": 0.8,
+    "scale": "logit; band = forecast + q, then inverse logit",
+    "q10_by_h": [
+      -0.30525,
+      -0.33847,
+      -0.38278,
+      -0.41226,
+      -0.44688,
+      -0.45487,
+      -0.48256,
+      -0.51044,
+      -0.54616,
+      -0.49555,
+      -0.53088,
+      -0.56395
+    ],
+    "q90_by_h": [
+      0.25646,
+      0.25604,
+      0.26667,
+      0.26426,
+      0.27072,
+      0.25428,
+      0.27149,
+      0.25351,
+      0.24196,
+      0.23229,
+      0.23633,
+      0.24417
+    ]
+  },
+  "coverage": {
+    "test_h12": 0.6591,
+    "test_mean_over_h": 0.7158,
+    "test_by_h": [
+      0.7143,
+      0.7192,
+      0.7468,
+      0.7305,
+      0.7468,
+      0.7532,
+      0.75,
+      0.7273,
+      0.7159,
+      0.6607,
+      0.6656,
+      0.6591
+    ],
+    "calibration_h12": 0.7997,
+    "calibration_mean_over_h": 0.7997,
+    "test_mean_band_width_h12_pp": 5.341,
+    "nominal": 0.8
+  },
+  "caveats": [
+    "Calibration targets run to 2024-10, so some calibration residuals were not yet known at the first test origins. The split is by origin month, as specified.",
+    "Test errors of one skill are correlated across origins and horizons, so the effective sample is much smaller than the raw count.",
+    "The last target month (2026-10) comes from an HN thread that was still open when fetched.",
+    "Posts per month fell from a mean of 703 (2019) to 310 (last 12 months), so recent months are noisier than early ones."
+  ]
+}
