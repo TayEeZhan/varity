@@ -1,0 +1,214 @@
+skill,onet_soc,task_id,task_text,rationale
+Python,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+Python,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+Python,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+Python,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+Python,15-2051.00,21838,Write new functions or applications in programming languages to conduct analyses.,analysis scripts
+Python,15-2051.00,21826,Clean and manipulate raw data using statistical software.,data cleaning
+JavaScript,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+JavaScript,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+JavaScript,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+JavaScript,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+JavaScript,15-1254.00,14707,Write supporting code for Web applications or Web sites.,web app code
+JavaScript,15-1254.00,14694,"Design, build, or maintain Web sites, using authoring or scripting languages, content creation tools, management tools, and digital media.",builds web sites
+TypeScript,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+TypeScript,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+TypeScript,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+TypeScript,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+TypeScript,15-1254.00,14707,Write supporting code for Web applications or Web sites.,web app code
+TypeScript,15-1252.00,21667,"Design, develop and modify software systems, using scientific analysis and mathematical models to predict and measure outcomes and consequences of design.",designs software systems
+Java,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+Java,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+Java,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+Java,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+Java,15-1252.00,21667,"Design, develop and modify software systems, using scientific analysis and mathematical models to predict and measure outcomes and consequences of design.",designs software systems
+Java,15-1299.08,14692,Develop application-specific software.,application software
+Go,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+Go,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+Go,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+Go,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+Go,15-1299.08,14682,"Develop system engineering, software engineering, system integration, or distributed system architectures.",distributed system design
+Go,15-1299.08,14692,Develop application-specific software.,application software
+Rust,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+Rust,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+Rust,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+Rust,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+Rust,15-1299.08,14693,Develop efficient and effective system controllers.,systems-level control code
+Rust,15-1299.08,14692,Develop application-specific software.,application software
+C,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+C,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+C,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+C,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+C,15-1299.08,14693,Develop efficient and effective system controllers.,systems-level control code
+C,15-1251.00,1275,"Investigate whether networks, workstations, the central processing unit of the system, or peripheral equipment are responding to a program's instructions.",low-level program behaviour
+C++,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+C++,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+C++,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+C++,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+C++,15-1299.08,14693,Develop efficient and effective system controllers.,systems-level control code
+C++,15-1299.08,14688,"Complete models and simulations, using manual or automated tools, to analyze or predict system performance under different operating conditions.",simulation work
+C#,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+C#,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+C#,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+C#,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+C#,15-1252.00,21667,"Design, develop and modify software systems, using scientific analysis and mathematical models to predict and measure outcomes and consequences of design.",designs software systems
+C#,15-1299.08,14692,Develop application-specific software.,application software
+Swift,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+Swift,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+Swift,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+Swift,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+Swift,15-1299.08,14692,Develop application-specific software.,app development
+PHP,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+PHP,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+PHP,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+PHP,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+PHP,15-1254.00,14707,Write supporting code for Web applications or Web sites.,web app code
+PHP,15-1251.00,21049,Develop Web sites.,develops web sites
+PHP,15-1254.00,14704,Develop databases that support Web applications and Web sites.,web databases
+Perl,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+Perl,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",maintains code
+Perl,15-1251.00,1272,"Perform or direct revision, repair, or expansion of existing programs to increase operating efficiency or adapt to new requirements.",revises existing programs
+Perl,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+Ruby,15-1251.00,1273,"Write, analyze, review, and rewrite programs, using workflow chart and diagram, and applying knowledge of computer capabilities, subject matter, and symbolic logic.",core coding
+Ruby,15-1251.00,1267,Correct errors by making appropriate changes and rechecking the program to ensure that the desired results are produced.,debugging
+Ruby,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+Ruby,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+Ruby,15-1254.00,14707,Write supporting code for Web applications or Web sites.,web app code
+Ruby,15-1251.00,21049,Develop Web sites.,develops web sites
+R,15-2051.00,21838,Write new functions or applications in programming languages to conduct analyses.,analysis code
+R,15-2051.00,21823,"Analyze, manipulate, or process large sets of data using statistical software.",statistical processing
+R,15-2051.00,21826,Clean and manipulate raw data using statistical software.,data cleaning
+R,15-2051.00,21828,"Create graphs, charts, or other visualizations to convey the results of data analysis using specialized software.",charts and visuals
+R,15-2051.00,21832,Identify relationships and trends or any factors that could affect the results of research.,finds trends
+R,15-2051.00,21834,"Propose solutions in engineering, the sciences, and other fields using mathematical theories and techniques.",applies statistics
+React,15-1254.00,14707,Write supporting code for Web applications or Web sites.,web app code
+React,15-1254.00,14694,"Design, build, or maintain Web sites, using authoring or scripting languages, content creation tools, management tools, and digital media.",builds web sites
+React,15-1251.00,21049,Develop Web sites.,develops web sites
+React,15-1254.00,14724,"Create Web models or prototypes that include physical, interface, logical, or data models.",interface prototypes
+React Native,15-1299.08,14692,Develop application-specific software.,app development
+React Native,15-1254.00,14707,Write supporting code for Web applications or Web sites.,app code
+React Native,15-1254.00,14724,"Create Web models or prototypes that include physical, interface, logical, or data models.",interface prototypes
+React Native,15-1252.00,21667,"Design, develop and modify software systems, using scientific analysis and mathematical models to predict and measure outcomes and consequences of design.",designs software systems
+AngularJS,15-1254.00,14707,Write supporting code for Web applications or Web sites.,web app code
+AngularJS,15-1254.00,14694,"Design, build, or maintain Web sites, using authoring or scripting languages, content creation tools, management tools, and digital media.",builds web sites
+AngularJS,15-1254.00,14695,Perform or direct Web site updates.,updates web sites
+AngularJS,15-1252.00,21670,"Modify existing software to correct errors, adapt it to new hardware, or upgrade interfaces and improve performance.",changes existing software
+jQuery,15-1254.00,14707,Write supporting code for Web applications or Web sites.,web app code
+jQuery,15-1254.00,14695,Perform or direct Web site updates.,updates web sites
+jQuery,15-1254.00,14714,Develop or implement procedures for ongoing Web site revision.,ongoing site revision
+jQuery,15-1254.00,14694,"Design, build, or maintain Web sites, using authoring or scripting languages, content creation tools, management tools, and digital media.",builds web sites
+Node.js,15-1254.00,14707,Write supporting code for Web applications or Web sites.,web back-end code
+Node.js,15-1299.08,14692,Develop application-specific software.,application software
+Node.js,15-1251.00,1270,"Write, update, and maintain computer programs or software packages to handle specific jobs such as tracking inventory, storing or retrieving data, or controlling other equipment.",writes and maintains code
+Node.js,15-1254.00,14704,Develop databases that support Web applications and Web sites.,web databases
+SQL,15-1242.00,1313,"Write and code logical and physical database descriptions and specify identifiers of database to management system, or direct others in coding descriptions.",writes database code
+SQL,15-1243.00,21660,"Write and code logical and physical database descriptions, and specify identifiers of database to management system or direct others in coding descriptions.",writes database code
+SQL,15-1242.00,1299,Modify existing databases and database management systems or direct programmers and analysts to make changes.,changes databases
+SQL,15-1243.00,16109,"Design databases to support business applications, ensuring system scalability, security, performance, and reliability.",designs databases
+SQL,15-1243.01,16123,"Perform system analysis, data analysis or programming, using a variety of computer languages and procedures.",data analysis code
+SQL,15-1243.01,16120,"Write new programs or modify existing programs to meet customer requirements, using current programming languages and technologies.",writes data programs
+PostgreSQL,15-1242.00,1299,Modify existing databases and database management systems or direct programmers and analysts to make changes.,changes databases
+PostgreSQL,15-1242.00,1313,"Write and code logical and physical database descriptions and specify identifiers of database to management system, or direct others in coding descriptions.",writes database code
+PostgreSQL,15-1243.00,16109,"Design databases to support business applications, ensuring system scalability, security, performance, and reliability.",designs databases
+PostgreSQL,15-1243.00,16100,"Set up database clusters, backup, or recovery processes.",sets up clusters and backup
+PostgreSQL,15-1243.00,16102,Plan and install upgrades of database management system software to enhance database performance.,upgrades DBMS
+MongoDB,15-1243.00,16108,"Develop data models for applications, metadata tables, views or related database structures.",data models
+MongoDB,15-1243.00,16110,"Design database applications, such as interfaces, data transfer mechanisms, global temporary tables, data partitions, and function-based indexes to enable efficient access of the generic database structure.",database applications
+MongoDB,15-1243.00,16109,"Design databases to support business applications, ensuring system scalability, security, performance, and reliability.",designs databases
+MongoDB,15-1243.00,16105,"Document and communicate database schemas, using accepted notations.",documents schemas
+Spark,15-2051.00,21823,"Analyze, manipulate, or process large sets of data using statistical software.",processes large data
+Spark,15-1243.01,16120,"Write new programs or modify existing programs to meet customer requirements, using current programming languages and technologies.",writes data programs
+Spark,15-1243.01,16123,"Perform system analysis, data analysis or programming, using a variety of computer languages and procedures.",data analysis code
+Spark,15-1243.01,16126,"Develop and implement data extraction procedures from other systems, such as administration, billing, or claims.",data extraction
+Hadoop,15-1243.01,16126,"Develop and implement data extraction procedures from other systems, such as administration, billing, or claims.",data extraction
+Hadoop,15-1243.01,16132,"Develop data warehouse process models, including sourcing, loading, transformation, and extraction.",warehouse process models
+Hadoop,15-2051.00,21823,"Analyze, manipulate, or process large sets of data using statistical software.",processes large data
+Hadoop,15-1243.01,16133,"Design, implement, or operate comprehensive data warehouse systems to balance optimization of data access with batch loading and resource utilization factors, according to customer requirements.",runs warehouse systems
+Hadoop,15-1243.01,16128,Design and implement warehouse database structures.,warehouse structures
+Hadoop,15-1243.01,16120,"Write new programs or modify existing programs to meet customer requirements, using current programming languages and technologies.",writes data programs
+Kafka,15-1243.01,16126,"Develop and implement data extraction procedures from other systems, such as administration, billing, or claims.",data extraction
+Kafka,15-1243.01,16124,"Map data between source systems, data warehouses, and data marts.",maps data between systems
+Kafka,15-1299.08,14682,"Develop system engineering, software engineering, system integration, or distributed system architectures.",distributed system design
+Kafka,15-1243.01,16125,"Implement business rules via stored procedures, middleware, or other technologies.",middleware rules
+Kafka,15-1299.08,14675,Monitor system operation to detect potential problems.,monitors systems
+Kafka,15-1243.01,16120,"Write new programs or modify existing programs to meet customer requirements, using current programming languages and technologies.",writes data programs
+Snowflake,15-1243.01,16128,Design and implement warehouse database structures.,warehouse structures
+Snowflake,15-1243.01,16133,"Design, implement, or operate comprehensive data warehouse systems to balance optimization of data access with batch loading and resource utilization factors, according to customer requirements.",runs warehouse systems
+Snowflake,15-1243.01,16132,"Develop data warehouse process models, including sourcing, loading, transformation, and extraction.",warehouse process models
+Snowflake,15-1243.01,16121,"Verify the structure, accuracy, or quality of warehouse data.",checks warehouse data
+Snowflake,15-1243.01,16118,Provide or coordinate troubleshooting support for data warehouses.,warehouse troubleshooting
+Snowflake,15-1243.01,16120,"Write new programs or modify existing programs to meet customer requirements, using current programming languages and technologies.",writes data programs
+dbt,15-1243.01,16120,"Write new programs or modify existing programs to meet customer requirements, using current programming languages and technologies.",writes data programs
+dbt,15-1243.01,16132,"Develop data warehouse process models, including sourcing, loading, transformation, and extraction.",warehouse process models
+dbt,15-1243.01,16121,"Verify the structure, accuracy, or quality of warehouse data.",checks warehouse data
+dbt,15-1243.01,16130,"Create plans, test files, and scripts for data warehouse testing, ranging from unit to integration testing.",warehouse test scripts
+dbt,15-1243.01,16119,Prepare functional or technical documentation for data warehouses.,warehouse documentation
+dbt,15-1243.01,16129,"Create supporting documentation, such as metadata and diagrams of entity relationships, business processes, and process flow.",metadata documentation
+Airflow,15-1243.01,16120,"Write new programs or modify existing programs to meet customer requirements, using current programming languages and technologies.",writes data programs
+Airflow,15-1243.01,16132,"Develop data warehouse process models, including sourcing, loading, transformation, and extraction.",warehouse process models
+Airflow,15-1243.01,16126,"Develop and implement data extraction procedures from other systems, such as administration, billing, or claims.",data extraction
+Airflow,15-1243.01,16133,"Design, implement, or operate comprehensive data warehouse systems to balance optimization of data access with batch loading and resource utilization factors, according to customer requirements.",runs warehouse systems
+Airflow,15-1299.08,14675,Monitor system operation to detect potential problems.,monitors systems
+AWS,15-1299.08,14679,Configure servers to meet functional specifications.,configures servers
+AWS,15-1299.08,14678,"Perform ongoing hardware and software maintenance operations, including installing or upgrading hardware or software.",maintains systems
+AWS,15-1299.08,14675,Monitor system operation to detect potential problems.,monitors systems
+AWS,15-1299.08,14669,"Verify stability, interoperability, portability, security, or scalability of system architecture.",scalability checks
+AWS,15-1299.08,14682,"Develop system engineering, software engineering, system integration, or distributed system architectures.",distributed system design
+AWS,15-1299.08,14671,"Evaluate current or emerging technologies to consider factors such as cost, portability, compatibility, or usability.",evaluates technologies
+GCP,15-1299.08,14679,Configure servers to meet functional specifications.,configures servers
+GCP,15-1299.08,14675,Monitor system operation to detect potential problems.,monitors systems
+GCP,15-1299.08,14682,"Develop system engineering, software engineering, system integration, or distributed system architectures.",distributed system design
+GCP,15-1299.08,14671,"Evaluate current or emerging technologies to consider factors such as cost, portability, compatibility, or usability.",evaluates technologies
+GCP,15-1299.08,14673,"Identify system data, hardware, or software components required to meet user needs.",picks system components
+Azure,15-1244.00,1318,"Maintain and administer computer networks and related computing environments, including computer hardware, systems software, applications software, and all configurations.",administers environments
+Azure,15-1244.00,1317,Perform data backups and disaster recovery operations.,backup and recovery
+Azure,15-1299.08,14679,Configure servers to meet functional specifications.,configures servers
+Azure,15-1299.08,14678,"Perform ongoing hardware and software maintenance operations, including installing or upgrading hardware or software.",maintains systems
+Azure,15-1244.00,15206,"Configure, monitor, and maintain email applications or virus protection software.",email app admin
+Kubernetes,15-1299.08,14682,"Develop system engineering, software engineering, system integration, or distributed system architectures.",distributed system design
+Kubernetes,15-1299.08,14679,Configure servers to meet functional specifications.,configures servers
+Kubernetes,15-1299.08,14675,Monitor system operation to detect potential problems.,monitors systems
+Kubernetes,15-1299.08,14669,"Verify stability, interoperability, portability, security, or scalability of system architecture.",scalability checks
+Kubernetes,15-1241.00,18956,Adjust network sizes to meet volume or capacity demands.,capacity scaling
+Kubernetes,15-1299.07,21807,Automate the deployment of software updates over geographically distributed network nodes.,automated rollouts
+Docker,15-1299.08,14679,Configure servers to meet functional specifications.,configures servers
+Docker,15-1299.08,14686,"Research, test, or verify proper functioning of software patches and fixes.",patches and fixes
+Docker,15-1299.07,21807,Automate the deployment of software updates over geographically distributed network nodes.,automated rollouts
+Docker,15-1299.08,14689,"Direct the installation of operating systems, network or application software, or computer or network hardware.",installs software
+Docker,15-1299.08,14672,Provide technical guidance or support for the development or troubleshooting of systems.,system troubleshooting
+Terraform,15-1299.08,14679,Configure servers to meet functional specifications.,configures servers
+Terraform,15-1299.08,14689,"Direct the installation of operating systems, network or application software, or computer or network hardware.",installs software
+Terraform,15-1244.00,1318,"Maintain and administer computer networks and related computing environments, including computer hardware, systems software, applications software, and all configurations.",administers environments
+Terraform,15-1299.08,14684,"Establish functional or system standards to address operational requirements, quality requirements, and design constraints.",system standards
+Terraform,15-1299.08,14673,"Identify system data, hardware, or software components required to meet user needs.",picks system components
+LLM / GenAI,15-1299.08,14692,Develop application-specific software.,application software
+LLM / GenAI,15-2051.00,21838,Write new functions or applications in programming languages to conduct analyses.,analysis code
+LLM / GenAI,15-1252.00,21667,"Design, develop and modify software systems, using scientific analysis and mathematical models to predict and measure outcomes and consequences of design.",designs software systems
+LLM / GenAI,15-1221.00,14626,"Apply theoretical expertise and innovation to create or apply new technology, such as adapting principles for applying computers to new uses.",applies new technology
+LLM / GenAI,15-1221.00,14623,Analyze problems to develop solutions involving computer hardware and software.,solves software problems
+RAG,15-1299.08,14692,Develop application-specific software.,application software
+RAG,15-1243.00,16106,"Develop or maintain archived procedures, procedural codes, or queries for applications.",queries for applications
+RAG,15-1299.07,21811,Design and implement data repositories to integrate data.,data repositories
+RAG,15-1243.00,16109,"Design databases to support business applications, ensuring system scalability, security, performance, and reliability.",designs databases
+RAG,15-2051.00,21838,Write new functions or applications in programming languages to conduct analyses.,analysis code
+Vector Databases,15-1243.00,16109,"Design databases to support business applications, ensuring system scalability, security, performance, and reliability.",designs databases
+Vector Databases,15-1243.00,16108,"Develop data models for applications, metadata tables, views or related database structures.",data models
+Vector Databases,15-1299.07,21811,Design and implement data repositories to integrate data.,data repositories
+Vector Databases,15-1243.00,16115,Develop and document database architectures.,database architecture
+Vector Databases,15-1243.00,16100,"Set up database clusters, backup, or recovery processes.",sets up clusters
+PyTorch,15-2051.00,21838,Write new functions or applications in programming languages to conduct analyses.,analysis code
+PyTorch,15-2051.00,21837,"Test, validate, and reformulate models to ensure accurate prediction of outcomes of interest.",tests models
+PyTorch,15-2051.00,21827,"Compare models using statistical performance metrics, such as loss functions or proportion of explained variance.",compares models
+PyTorch,15-2051.00,21824,"Apply feature selection algorithms to models predicting outcomes of interest, such as sales, attrition, and healthcare use.",feature selection
+PyTorch,15-1221.00,14629,"Conduct logical analyses of business, scientific, engineering, and other technical problems, formulating mathematical models of problems for solution by computers.",mathematical models
+Machine Learning / AI,15-2051.00,21837,"Test, validate, and reformulate models to ensure accurate prediction of outcomes of interest.",tests models
+Machine Learning / AI,15-2051.00,21827,"Compare models using statistical performance metrics, such as loss functions or proportion of explained variance.",compares models
+Machine Learning / AI,15-2051.00,21824,"Apply feature selection algorithms to models predicting outcomes of interest, such as sales, attrition, and healthcare use.",feature selection
+Machine Learning / AI,15-1221.00,14629,"Conduct logical analyses of business, scientific, engineering, and other technical problems, formulating mathematical models of problems for solution by computers.",mathematical models
+Machine Learning / AI,15-1221.00,14626,"Apply theoretical expertise and innovation to create or apply new technology, such as adapting principles for applying computers to new uses.",applies new technology
+Machine Learning / AI,15-2051.00,21823,"Analyze, manipulate, or process large sets of data using statistical software.",processes large data
+Microservices,15-1299.08,14682,"Develop system engineering, software engineering, system integration, or distributed system architectures.",distributed system design
+Microservices,15-1252.00,21667,"Design, develop and modify software systems, using scientific analysis and mathematical models to predict and measure outcomes and consequences of design.",designs software systems
+Microservices,15-1299.08,14692,Develop application-specific software.,application software
+Microservices,15-1299.08,14669,"Verify stability, interoperability, portability, security, or scalability of system architecture.",scalability checks
+Microservices,15-1299.07,21822,Update client and server applications responsible for integration and business logic.,service integration logic
