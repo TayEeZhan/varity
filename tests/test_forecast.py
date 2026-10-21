@@ -163,3 +163,195 @@ def test_forecast_all_hides_skills_with_too_little_data():
     out = fc.forecast_all("naive", demand=make_demand())
     assert out["Rare"] is None
     assert out["A"] is not None and out["A"].shape == (12,)
+
+
+# ---------------------------------------------------------------------------
+# v2: volatility, statuses, rolling conformal band, model choice, trend label
+# ---------------------------------------------------------------------------
+
+def make_noisy_demand(n_months=96, seed=3, n_posts=400):
+    """Four skills with noise and different shapes. 'Rare' never has enough mentions."""
+    rng = np.random.default_rng(seed)
+    t = np.arange(n_months)
+    series = {
+        "Up": 40 + 0.5 * t + rng.normal(0, 4, n_months),
+        "Flat": 60 + rng.normal(0, 5, n_months),
+        "Down": 110 - 0.6 * t + rng.normal(0, 4, n_months),
+        "Rare": np.ones(n_months),
+    }
+    months = [str(p) for p in pd.period_range("2019-01", periods=n_months, freq="M")]
+    rows = []
+    for skill, values in series.items():
+        for month, m in zip(months, np.clip(np.round(values), 0, n_posts)):
+            rows.append({"month": month, "skill": skill, "mentions": int(m), "n_posts": n_posts})
+    return pd.DataFrame(rows)
+
+
+@pytest.fixture(scope="module")
+def noisy():
+    return make_noisy_demand()
+
+
+@pytest.fixture(scope="module")
+def tables(noisy):
+    return fc.build_residual_tables(noisy)
+
+
+def test_volatility_is_sample_std_of_first_differences_over_24_months():
+    y = np.concatenate([np.full(10, 99.0), np.arange(24) ** 2 / 50.0])  # older months must not count
+    expected = np.std(np.diff(y[-24:]), ddof=1)
+    assert fc.volatility(y) == pytest.approx(expected)
+    assert np.isnan(fc.volatility(np.arange(23.0)))
+    assert fc.volatility(np.arange(24.0)) == pytest.approx(0.0)
+
+
+def test_status_ok_low_volume_rare():
+    assert fc.skill_status([5] * 12) == "ok"
+    assert fc.skill_status([1] * 12 + [3] * 12) == "low_volume"  # 48 mentions, 3 per month last year
+    assert fc.skill_status([1] * 24) == "rare"  # 24 mentions in 24 months
+    assert fc.skill_status([0] * 18 + [5] * 6) == "low_volume"  # exactly 30
+    assert fc.skill_status([0] * 18 + [4] * 6 + [0]) == "rare"  # 24 mentions in the last 24 months
+
+
+def test_residual_table_shapes_and_first_origin(tables, noisy):
+    t = tables["naive3"]
+    assert set(tables) == set(fc.PRODUCTION_MODELS)
+    assert t.origins[0] == "2020-12"  # 24 months of history are needed for sigma
+    assert t.forecast.shape == (96 - 23, 4, 12)
+    assert not t.eligible[:, t.skills.index("Rare")].any()
+    assert np.isnan(t.actual[-1]).all()  # the last origin has no targets
+    i = t.origin_pos("2022-06")
+    y = fc.logit_series(demand=noisy)
+    assert t.actual[i, 0, 0] == pytest.approx(y.iloc[t.months.index("2022-06") + 1, 0])
+
+
+def test_earliest_supported_as_of_is_58_months_after_the_start(tables):
+    t = tables["naive"]
+    assert fc.earliest_as_of(t) == "2023-11"  # 2019-01 + 58 months
+    assert fc.earliest_supported(t.months) == "2023-11"
+    with pytest.raises(ValueError, match="2023-11"):
+        fc.band_offsets(t, "2023-10", 12)
+    assert fc.band_offsets(t, "2023-11", 12) > 0
+    # a short horizon still needs 24 usable origins
+    with pytest.raises(ValueError):
+        fc.band_offsets(t, "2022-10", 1)
+
+
+def test_band_offsets_is_q80_of_scaled_residuals_of_the_last_24_origins(tables):
+    t = tables["naive3"]
+    as_of, h = "2024-12", 6
+    last = t.months.index(as_of) - h - t.first_origin
+    r = np.abs(t.scaled_residuals()[last - 23:last + 1, :, h - 1][t.eligible[last - 23:last + 1]])
+    assert fc.band_offsets(t, as_of, h) == pytest.approx(np.quantile(r[np.isfinite(r)], 0.8))
+    # a hand-made scaled residual for one cell
+    i, j = last, t.skills.index("Up")
+    expected = (t.actual[i, j, h - 1] - t.forecast[i, j, h - 1]) / t.sigma[i, j]
+    assert t.scaled_residuals()[i, j, h - 1] == pytest.approx(expected)
+
+
+def test_band_offsets_windows_differ_and_all_history_uses_everything(tables):
+    t = tables["naive3"]
+    a24 = fc.band_offsets(t, "2025-06", 3)
+    a36 = fc.band_offsets(t, "2025-06", 3, window=36)
+    aall = fc.band_offsets(t, "2025-06", 3, window=None)
+    assert len({a24, a36, aall}) == 3
+    # with exactly 24 usable origins all-history equals W=24
+    assert fc.band_offsets(t, "2023-11", 12, window=None) == fc.band_offsets(t, "2023-11", 12)
+
+
+def test_band_is_symmetric_on_the_logit_scale(tables):
+    q = fc.band_offsets(tables["naive"], "2024-06", 12)
+    point, sigma = -2.0, 0.3
+    low, high = point - q * sigma, point + q * sigma
+    assert (point - low) == pytest.approx(high - point)
+
+
+def _changed_after(demand, cutoff):
+    changed = demand.copy()
+    late = changed["month"] > cutoff
+    changed.loc[late & (changed["skill"] != "Rare"), "mentions"] = 7  # a very different future
+    return changed
+
+
+def test_changing_data_after_as_of_does_not_change_offsets_choice_or_points(noisy, tables):
+    as_of = "2024-06"
+    other = fc.build_residual_tables(_changed_after(noisy, as_of))
+    for m in fc.PRODUCTION_MODELS:
+        for h in range(1, 13):
+            assert fc.band_offsets(tables[m], as_of, h) == fc.band_offsets(other[m], as_of, h)
+    assert fc.choice_scores(tables, as_of) == fc.choice_scores(other, as_of)
+    assert fc.choose_model(tables, as_of) == fc.choose_model(other, as_of)
+    # point forecasts and sigma at every origin up to as_of are the same
+    n = tables["naive3"].origin_pos(as_of) + 1
+    for m in fc.PRODUCTION_MODELS:
+        np.testing.assert_array_equal(tables[m].forecast[:n], other[m].forecast[:n])
+        np.testing.assert_array_equal(tables[m].sigma[:n], other[m].sigma[:n])
+
+
+def test_changing_data_before_as_of_does_change_offsets(noisy, tables):
+    as_of = "2024-06"
+    changed = noisy.copy()
+    inside = (changed["month"] > "2023-12") & (changed["month"] <= as_of) & (changed["skill"] == "Up")
+    changed.loc[inside, "mentions"] = 5  # data that is allowed to be used
+    other = fc.build_residual_tables(changed)
+    assert fc.band_offsets(tables["naive3"], as_of, 1) != fc.band_offsets(other["naive3"], as_of, 1)
+
+
+def test_choose_model_picks_the_lower_h12_share_error_and_needs_a_target():
+    # a very noisy series: naive3 smooths it, so it beats naive at h=12
+    rng = np.random.default_rng(0)
+    n = 96
+    mentions = {"A": np.clip(np.round(80 + rng.normal(0, 25, n)), 1, 399).astype(int)}
+    tabs = fc.build_residual_tables(make_demand(n, mentions, n_posts=400, start="2019-01"))
+    scores = fc.choice_scores(tabs, "2026-12")
+    assert fc.choose_model(tabs, "2026-12") == min(scores, key=scores.get)
+    assert scores["naive3"] < scores["naive"]
+    with pytest.raises(ValueError):
+        fc.choose_model(tabs, "2020-12")  # no origin has a 12-month target yet
+
+
+# trend label
+
+def _y_from_shares(p):
+    return fc.logit(np.asarray(p, dtype=float))
+
+
+def test_trend_label_rising():
+    y = _y_from_shares(np.concatenate([np.linspace(0.05, 0.06, 12), np.linspace(0.09, 0.10, 12)]))
+    label, p = fc.trend_label(y, np.full(24, 20))
+    assert label == "Rising" and p < 0.05
+
+
+def test_trend_label_falling():
+    y = _y_from_shares(np.concatenate([np.linspace(0.10, 0.09, 12), np.linspace(0.06, 0.05, 12)]))
+    label, p = fc.trend_label(y, np.full(24, 20))
+    assert label == "Falling" and p < 0.05
+
+
+def test_trend_label_flat_noise_is_no_clear_change():
+    rng = np.random.default_rng(1)
+    y = _y_from_shares(0.08 + rng.normal(0, 0.003, 24) * np.tile([1, -1], 12))
+    label, p = fc.trend_label(y, np.full(24, 20))
+    assert label == "No clear change" and p >= 0.05
+
+
+def test_trend_label_is_none_with_too_few_mentions_or_months():
+    wobble = np.tile([0.9, 1.1], 12)
+    y = _y_from_shares(np.concatenate([np.full(12, 0.001), np.full(12, 0.01)]) * wobble)
+    assert fc.trend_label(y, np.ones(24)) == (None, None)  # 24 mentions < 30
+    assert fc.trend_label(y, [0] * 23 + [30])[0] is not None  # exactly 30 is labelled
+    assert fc.trend_label(y[:23], np.full(23, 20)) == (None, None)
+
+
+def test_trend_label_uses_only_the_last_24_months_and_the_welch_test():
+    from scipy import stats
+    rng = np.random.default_rng(2)
+    y = rng.normal(-2.5, 0.3, 40)
+    y[-12:] += 0.5
+    label, p = fc.trend_label(y, np.full(40, 20))
+    assert p == pytest.approx(stats.ttest_ind(y[-12:], y[-24:-12], equal_var=False).pvalue)
+    assert label == "Rising"
+
+
+def test_trend_label_on_a_constant_series_does_not_crash():
+    assert fc.trend_label(np.full(24, -3.0), np.full(24, 20)) == ("No clear change", 1.0)

@@ -1,10 +1,23 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-21T20:52:38Z",
+  "generated_at": "2026-10-21T21:09:03Z",
   "as_of": "2026-10",
+  "partial_month": true,
   "scenario_params": {
     "k": 2
   },
+  "interval": {
+    "label": "80% target band",
+    "level": 0.8,
+    "model": "naive3",
+    "window_origins": 24,
+    "q_h12": 1.4552406070065365,
+    "earliest_supported_as_of": "2023-11"
+  },
+  "notes": [
+    "exposure.csv (Anthropic Economic Index 2026-06) is not time-cut: the fast scenario uses the same exposure for every as_of.",
+    "trend_label is observed (last 12 months against the 12 before), not a forecast."
+  ],
   "data_window": {
     "from": "2019-01",
     "to": "2026-10"
@@ -16,24 +29,36 @@
         "4.4",
         "9.5"
       ],
-      "demand_share_latest": 0.261998,
+      "demand_share_latest": 0.2611036339165545,
+      "mentions_last3": 194,
+      "posts_last3": 743,
+      "level_now": 0.2626559690618852,
       "demand_slope": 2.1958617391304314,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.21350781622086515,
+      "mentions_last12": 923,
+      "posts_last12": 3714,
+      "mentions_prev12": 923,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.2626559690618852,
-          "low": 0.16851906110454057,
-          "high": 0.31258977980051994
+          "low": 0.22112604075952366,
+          "high": 0.3088923763978033
         },
         "fast": {
           "value_12m": 0.251165821039304,
-          "low": 0.16114702625746136,
-          "high": 0.2989152272933664
+          "low": 0.21145266098045756,
+          "high": 0.29537957049990504
         }
       },
+      "scenario_shift_pp": -1.1490148022581192,
+      "band_width_pp": 8.776633563827966,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -59,6 +84,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -68,24 +98,36 @@
         "4.4",
         "9.c"
       ],
-      "demand_share_latest": 0.24239333333333335,
+      "demand_share_latest": 0.24226110363391656,
+      "mentions_last3": 180,
+      "posts_last3": 743,
+      "level_now": 0.24342508755030934,
       "demand_slope": 0.8057973913043402,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.5845190377876311,
+      "mentions_last12": 979,
+      "posts_last12": 3714,
+      "mentions_prev12": 996,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.24342508755030934,
-          "low": 0.15473420275542737,
-          "high": 0.2911464984233649
+          "low": 0.2050388314119315,
+          "high": 0.28640866939708154
         },
         "fast": {
           "value_12m": 0.23277621367033352,
-          "low": 0.14796520032168844,
-          "high": 0.27841000370333635
+          "low": 0.19606920269298514,
+          "high": 0.27387943574563683
         }
       },
+      "scenario_shift_pp": -1.0648873879975818,
+      "band_width_pp": 8.136983798515004,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -111,6 +153,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -119,24 +166,36 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.21969333333333332,
+      "demand_share_latest": 0.2193808882907133,
+      "mentions_last3": 163,
+      "posts_last3": 743,
+      "level_now": 0.2206114711679773,
       "demand_slope": 1.439731826086948,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.20337722482458626,
+      "mentions_last12": 882,
+      "posts_last12": 3714,
+      "mentions_prev12": 863,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.2206114711679773,
-          "low": 0.1387087184635219,
-          "high": 0.2654295266037001
+          "low": 0.1786664885349334,
+          "high": 0.26917648439512676
         },
         "fast": {
           "value_12m": 0.210960601750263,
-          "low": 0.13264076686561668,
-          "high": 0.25381804653289464
+          "low": 0.1708505443274842,
+          "high": 0.2574010899087776
         }
       },
+      "scenario_shift_pp": -0.9650869417714314,
+      "band_width_pp": 9.050999586019337,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -162,6 +221,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -170,24 +234,36 @@
       "sdg": [
         "8.5"
       ],
-      "demand_share_latest": 0.03890533333333333,
+      "demand_share_latest": 0.039030955585464336,
+      "mentions_last3": 29,
+      "posts_last3": 743,
+      "level_now": 0.04043392648820614,
       "demand_slope": 0.1101349565217376,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.8567403637975923,
+      "mentions_last12": 128,
+      "posts_last12": 3714,
+      "mentions_prev12": 135,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.04043392648820614,
-          "low": 0.02341323866427405,
-          "high": 0.05104557178828176
+          "low": 0.02662989942945482,
+          "high": 0.0609454597217302
         },
         "fast": {
           "value_12m": 0.038665103940053076,
-          "low": 0.022389003125666718,
-          "high": 0.04881253220483159
+          "low": 0.025464947849013892,
+          "high": 0.05827933964074339
         }
       },
+      "scenario_shift_pp": -0.1768822548153061,
+      "band_width_pp": 3.4315560292275378,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -213,6 +289,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -221,24 +302,36 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.06891466666666667,
+      "demand_share_latest": 0.06864064602960969,
+      "mentions_last3": 51,
+      "posts_last3": 743,
+      "level_now": 0.07052470426133088,
       "demand_slope": -0.5303384347826123,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.32851881798978383,
+      "mentions_last12": 293,
+      "posts_last12": 3714,
+      "mentions_prev12": 326,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.07052470426133088,
-          "low": 0.04138356677448881,
-          "high": 0.08830673960449938
+          "low": 0.05250833111697714,
+          "high": 0.09410876755286925
         },
         "fast": {
           "value_12m": 0.06743953054871471,
-          "low": 0.03957320126237202,
-          "high": 0.08444367297376094
+          "low": 0.05021130166393386,
+          "high": 0.08999188540750143
         }
       },
+      "scenario_shift_pp": -0.3085173712616171,
+      "band_width_pp": 4.16004364358921,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -264,6 +357,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -273,24 +371,36 @@
         "7.3",
         "8.2"
       ],
-      "demand_share_latest": 0.080326,
+      "demand_share_latest": 0.08075370121130551,
+      "mentions_last3": 60,
+      "posts_last3": 743,
+      "level_now": 0.08173074040974951,
       "demand_slope": 1.4566706086956507,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "Rising",
+      "trend_p": 0.022351578784044614,
+      "mentions_last12": 309,
+      "posts_last12": 3714,
+      "mentions_prev12": 273,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.08173074040974951,
-          "low": 0.04819933202133938,
-          "high": 0.1020281038940439
+          "low": 0.060852268813486474,
+          "high": 0.10894167433452331
         },
         "fast": {
           "value_12m": 0.07815534743978461,
-          "low": 0.04609080404273387,
-          "high": 0.09756478246109507
+          "low": 0.058190225461971695,
+          "high": 0.10417591184908526
         }
       },
+      "scenario_shift_pp": -0.3575392969964897,
+      "band_width_pp": 4.808940552103684,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -316,6 +426,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -325,24 +440,36 @@
         "7.3",
         "9.5"
       ],
-      "demand_share_latest": 0.027037999999999996,
+      "demand_share_latest": 0.026917900403768506,
+      "mentions_last3": 20,
+      "posts_last3": 743,
+      "level_now": 0.028816629265479173,
       "demand_slope": 0.20028939130434753,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.5572775371699172,
+      "mentions_last12": 79,
+      "posts_last12": 3714,
+      "mentions_prev12": 82,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.028816629265479173,
-          "low": 0.016601642112920638,
-          "high": 0.03649534249527001
+          "low": 0.01796468836013822,
+          "high": 0.045917398648088435
         },
         "fast": {
           "value_12m": 0.027556017001631523,
-          "low": 0.01587538667704881,
-          "high": 0.03489881724247193
+          "low": 0.017178805103135616,
+          "high": 0.04390869612682916
         }
       },
+      "scenario_shift_pp": -0.12606122638476497,
+      "band_width_pp": 2.7952710287950215,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -368,6 +495,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -377,24 +509,36 @@
         "9.5",
         "7.3"
       ],
-      "demand_share_latest": 0.05261433333333334,
+      "demand_share_latest": 0.052489905787348586,
+      "mentions_last3": 39,
+      "posts_last3": 743,
+      "level_now": 0.054303949044043384,
       "demand_slope": 0.40040973913043465,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.8711716353817889,
+      "mentions_last12": 155,
+      "posts_last12": 3714,
+      "mentions_prev12": 169,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.054303949044043384,
-          "low": 0.031637166285426066,
-          "high": 0.06829661725818068
+          "low": 0.037801772409005875,
+          "high": 0.0774303509540192
         },
         "fast": {
           "value_12m": 0.051928368489162664,
-          "low": 0.03025316680910382,
-          "high": 0.06530891343960431
+          "low": 0.036148096073201505,
+          "high": 0.07404308282118469
         }
       },
+      "scenario_shift_pp": -0.237558055488072,
+      "band_width_pp": 3.962857854501333,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -420,6 +564,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -428,24 +577,36 @@
       "sdg": [
         "8.5"
       ],
-      "demand_share_latest": 0.019604666666666666,
+      "demand_share_latest": 0.020188425302826378,
+      "mentions_last3": 15,
+      "posts_last3": 743,
+      "level_now": 0.01774269928914165,
       "demand_slope": -0.024313565217391735,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.8219007149399313,
+      "mentions_last12": 72,
+      "posts_last12": 3714,
+      "mentions_prev12": 71,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.01774269928914165,
-          "low": 0.010172636106211806,
-          "high": 0.022539045910792376
+          "low": 0.005981159984186734,
+          "high": 0.05143571919467857
         },
         "fast": {
           "value_12m": 0.01696652716603886,
-          "low": 0.009727623967109465,
-          "high": 0.021553052808378853
+          "low": 0.005719508159518501,
+          "high": 0.049185612222788166
         }
       },
+      "scenario_shift_pp": -0.07761721231027904,
+      "band_width_pp": 4.545455921049184,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -471,6 +632,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -479,12 +645,22 @@
       "sdg": [
         "9.c"
       ],
-      "demand_share_latest": 0.015712,
+      "demand_share_latest": 0.016150740242261104,
+      "mentions_last3": 12,
+      "posts_last3": 743,
+      "level_now": 0.01627628979898493,
       "demand_slope": 0.24452921739130437,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
-      "status": "insufficient_data",
+      "status": "low_volume",
+      "note": "Too few posts to forecast; observed counts shown.",
+      "trend_label": "No clear change",
+      "trend_p": 0.15223484346891086,
+      "mentions_last12": 54,
+      "posts_last12": 3714,
+      "mentions_prev12": 46,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -497,6 +673,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -522,6 +700,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -531,12 +714,22 @@
         "9.c",
         "8.5"
       ],
-      "demand_share_latest": 0.006645666666666665,
+      "demand_share_latest": 0.006729475100942127,
+      "mentions_last3": 5,
+      "posts_last3": 743,
+      "level_now": 0.008497480061738423,
       "demand_slope": 0.12449739130434767,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
-      "status": "insufficient_data",
+      "status": "low_volume",
+      "note": "Too few posts to forecast; observed counts shown.",
+      "trend_label": "No clear change",
+      "trend_p": 0.12918186691808484,
+      "mentions_last12": 42,
+      "posts_last12": 3714,
+      "mentions_prev12": 34,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -549,6 +742,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -574,6 +769,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -583,11 +783,21 @@
         "8.5"
       ],
       "demand_share_latest": 0.0,
+      "mentions_last3": 0,
+      "posts_last3": 743,
+      "level_now": 0.0020146958625081954,
       "demand_slope": 0.0,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
-      "status": "insufficient_data",
+      "status": "rare",
+      "note": "Fewer than 30 mentions in 24 months; too rare to forecast or to label a trend.",
+      "trend_label": null,
+      "trend_p": null,
+      "mentions_last12": 0,
+      "posts_last12": 3714,
+      "mentions_prev12": 0,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -600,6 +810,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -625,6 +837,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -633,24 +850,36 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.027332333333333337,
+      "demand_share_latest": 0.026917900403768506,
+      "mentions_last3": 20,
+      "posts_last3": 743,
+      "level_now": 0.0284372632969707,
       "demand_slope": -0.7954481739130442,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "Falling",
+      "trend_p": 0.028370353684080488,
+      "mentions_last12": 115,
+      "posts_last12": 3714,
+      "mentions_prev12": 158,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.0284372632969707,
-          "low": 0.01638037209326838,
-          "high": 0.03601863671050338
+          "low": 0.01654734093558056,
+          "high": 0.04844967890102256
         },
         "fast": {
           "value_12m": 0.02719324677678142,
-          "low": 0.015663796335676262,
-          "high": 0.0344429654289657
+          "low": 0.015823460959012655,
+          "high": 0.04633019924781843
         }
       },
+      "scenario_shift_pp": -0.12440165201892776,
+      "band_width_pp": 3.190233796544199,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -676,6 +905,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -685,12 +919,22 @@
         "3.d",
         "9.5"
       ],
-      "demand_share_latest": 0.004053666666666666,
+      "demand_share_latest": 0.004037685060565276,
+      "mentions_last3": 3,
+      "posts_last3": 743,
+      "level_now": 0.0060441363445321574,
       "demand_slope": 0.14497565217391306,
       "momentum": null,
       "ai_exposure": 0.61835,
       "stance": "AI-substitutable",
-      "status": "insufficient_data",
+      "status": "rare",
+      "note": "Fewer than 30 mentions in 24 months; too rare to forecast or to label a trend.",
+      "trend_label": null,
+      "trend_p": null,
+      "mentions_last12": 9,
+      "posts_last12": 3714,
+      "mentions_prev12": 3,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -703,6 +947,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -728,6 +974,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -737,24 +988,36 @@
         "4.4",
         "8.5"
       ],
-      "demand_share_latest": 0.20285133333333336,
+      "demand_share_latest": 0.2032301480484522,
+      "mentions_last3": 151,
+      "posts_last3": 743,
+      "level_now": 0.20379532389245278,
       "demand_slope": 1.0423246956521712,
       "momentum": null,
       "ai_exposure": 0.5775,
       "stance": "neutral",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.12754750629444614,
+      "mentions_last12": 834,
+      "posts_last12": 3714,
+      "mentions_prev12": 813,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.20379532389245278,
-          "low": 0.12711738795414526,
-          "high": 0.24627661021578012
+          "low": 0.16791931550985215,
+          "high": 0.2450786482169469
         },
         "fast": {
           "value_12m": 0.21153017161546694,
-          "low": 0.1319420012965569,
-          "high": 0.25562379267990987
+          "low": 0.1742925252107131,
+          "high": 0.2543803632313729
         }
       },
+      "scenario_shift_pp": 0.7734847723014165,
+      "band_width_pp": 7.715933270709474,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -780,6 +1043,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -789,24 +1057,36 @@
         "9.c",
         "8.2"
       ],
-      "demand_share_latest": 0.03243066666666667,
+      "demand_share_latest": 0.03230148048452221,
+      "mentions_last3": 24,
+      "posts_last3": 743,
+      "level_now": 0.03425210528902665,
       "demand_slope": -0.052618956521740375,
       "momentum": null,
       "ai_exposure": 0.5775,
       "stance": "neutral",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.8458497945330421,
+      "mentions_last12": 109,
+      "posts_last12": 3714,
+      "mentions_prev12": 124,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.03425210528902665,
-          "low": 0.01978001782975209,
-          "high": 0.04331460209978469
+          "low": 0.019819421130309708,
+          "high": 0.05856681806217582
         },
         "fast": {
           "value_12m": 0.03555210969316637,
-          "low": 0.0205307486264625,
-          "high": 0.04495856450787992
+          "low": 0.020571647439889484,
+          "high": 0.06078966307490764
         }
       },
+      "scenario_shift_pp": 0.1300004404139722,
+      "band_width_pp": 3.8747396931866116,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -832,6 +1112,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -841,11 +1126,21 @@
         "8.5"
       ],
       "demand_share_latest": 0.0,
+      "mentions_last3": 0,
+      "posts_last3": 743,
+      "level_now": 0.0020146958625081954,
       "demand_slope": 0.0,
       "momentum": null,
       "ai_exposure": 0.5775,
       "stance": "neutral",
-      "status": "insufficient_data",
+      "status": "rare",
+      "note": "Fewer than 30 mentions in 24 months; too rare to forecast or to label a trend.",
+      "trend_label": null,
+      "trend_p": null,
+      "mentions_last12": 0,
+      "posts_last12": 3714,
+      "mentions_prev12": 0,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -858,6 +1153,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -883,6 +1180,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -892,11 +1194,21 @@
         "8.5"
       ],
       "demand_share_latest": 0.0,
+      "mentions_last3": 0,
+      "posts_last3": 743,
+      "level_now": 0.0020146958625081954,
       "demand_slope": -0.036759652173913075,
       "momentum": null,
       "ai_exposure": 0.5775,
       "stance": "neutral",
-      "status": "insufficient_data",
+      "status": "rare",
+      "note": "Fewer than 30 mentions in 24 months; too rare to forecast or to label a trend.",
+      "trend_label": null,
+      "trend_p": null,
+      "mentions_last12": 2,
+      "posts_last12": 3714,
+      "mentions_prev12": 3,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -909,6 +1221,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -934,6 +1248,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -942,24 +1261,36 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.06807933333333334,
+      "demand_share_latest": 0.06729475100942127,
+      "mentions_last3": 50,
+      "posts_last3": 743,
+      "level_now": 0.06874769267944547,
       "demand_slope": 1.1764267826086945,
       "momentum": null,
       "ai_exposure": 0.5775,
       "stance": "neutral",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.10478774520266392,
+      "mentions_last12": 247,
+      "posts_last12": 3714,
+      "mentions_prev12": 225,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.06874769267944547,
-          "low": 0.04030898128361144,
-          "high": 0.08612318965745637
+          "low": 0.045480942336615635,
+          "high": 0.10263718851530637
         },
         "fast": {
           "value_12m": 0.07135694260740115,
-          "low": 0.04183886835924963,
-          "high": 0.08939190919771547
+          "low": 0.047207126022059544,
+          "high": 0.10653268036821631
         }
       },
+      "scenario_shift_pp": 0.26092499279556786,
+      "band_width_pp": 5.715624617869073,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -985,6 +1316,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -994,24 +1330,36 @@
         "4.4",
         "16.6"
       ],
-      "demand_share_latest": 0.05223433333333333,
+      "demand_share_latest": 0.052489905787348586,
+      "mentions_last3": 39,
+      "posts_last3": 743,
+      "level_now": 0.053213271421512214,
       "demand_slope": 0.639166956521738,
       "momentum": null,
       "ai_exposure": 0.605125,
       "stance": "neutral",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.24034955269298003,
+      "mentions_last12": 150,
+      "posts_last12": 3714,
+      "mentions_prev12": 141,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.053213271421512214,
-          "low": 0.030986826855082566,
-          "high": 0.0669447957216
+          "low": 0.034856058443424064,
+          "high": 0.08043274775109803
         },
         "fast": {
           "value_12m": 0.05229289467900574,
-          "low": 0.030450878697797057,
-          "high": 0.0657869185347992
+          "low": 0.0342531880565866,
+          "high": 0.07904158294599505
         }
       },
+      "scenario_shift_pp": -0.09203767425064735,
+      "band_width_pp": 4.557668930767397,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1037,6 +1385,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1045,24 +1398,36 @@
       "sdg": [
         "9.c"
       ],
-      "demand_share_latest": 0.18959800000000002,
+      "demand_share_latest": 0.18842530282637954,
+      "mentions_last3": 140,
+      "posts_last3": 743,
+      "level_now": 0.18965006777761467,
       "demand_slope": 3.1897142608695606,
       "momentum": null,
       "ai_exposure": 0.605125,
       "stance": "neutral",
       "status": "ok",
+      "note": null,
+      "trend_label": "Rising",
+      "trend_p": 1.8885544341785582e-06,
+      "mentions_last12": 687,
+      "posts_last12": 3714,
+      "mentions_prev12": 564,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.18965006777761467,
-          "low": 0.11750880505464863,
-          "high": 0.2300346535668626
+          "low": 0.15172822154403084,
+          "high": 0.23443048534632768
         },
         "fast": {
           "value_12m": 0.18636988020533304,
-          "low": 0.11547637276242342,
-          "high": 0.22605597419877013
+          "low": 0.1491039302242053,
+          "high": 0.2303757756717776
         }
       },
+      "scenario_shift_pp": -0.32801875722816287,
+      "band_width_pp": 8.270226380229683,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1088,6 +1453,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1096,24 +1466,36 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.022984,
+      "demand_share_latest": 0.02288021534320323,
+      "mentions_last3": 17,
+      "posts_last3": 743,
+      "level_now": 0.024775858337033604,
       "demand_slope": 0.3425013913043474,
       "momentum": null,
       "ai_exposure": 0.605125,
       "stance": "neutral",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.10389585384708734,
+      "mentions_last12": 81,
+      "posts_last12": 3714,
+      "mentions_prev12": 70,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.024775858337033604,
-          "low": 0.014248570899885703,
-          "high": 0.03141266165957075
+          "low": 0.010827745553972748,
+          "high": 0.055680287759495004
         },
         "fast": {
           "value_12m": 0.02434733509123627,
-          "low": 0.01400212761760128,
-          "high": 0.03086934826350681
+          "low": 0.010640468866871235,
+          "high": 0.05471724150240678
         }
       },
+      "scenario_shift_pp": -0.0428523245797334,
+      "band_width_pp": 4.485254220552226,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1139,6 +1521,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1148,12 +1535,22 @@
         "9.5",
         "8.2"
       ],
-      "demand_share_latest": 0.006939999999999999,
+      "demand_share_latest": 0.006729475100942127,
+      "mentions_last3": 5,
+      "posts_last3": 743,
+      "level_now": 0.006605720985796632,
       "demand_slope": -0.18840052173913063,
       "momentum": null,
       "ai_exposure": 0.605125,
       "stance": "neutral",
-      "status": "insufficient_data",
+      "status": "low_volume",
+      "note": "Too few posts to forecast; observed counts shown.",
+      "trend_label": "No clear change",
+      "trend_p": 0.38431992583733326,
+      "mentions_last12": 22,
+      "posts_last12": 3714,
+      "mentions_prev12": 28,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -1166,6 +1563,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1191,6 +1590,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1200,11 +1604,21 @@
         "9.5"
       ],
       "demand_share_latest": 0.0,
+      "mentions_last3": 0,
+      "posts_last3": 743,
+      "level_now": 0.0020146958625081954,
       "demand_slope": 0.0759193043478261,
       "momentum": null,
       "ai_exposure": 0.605125,
       "stance": "neutral",
-      "status": "insufficient_data",
+      "status": "rare",
+      "note": "Fewer than 30 mentions in 24 months; too rare to forecast or to label a trend.",
+      "trend_label": null,
+      "trend_p": null,
+      "mentions_last12": 4,
+      "posts_last12": 3714,
+      "mentions_prev12": 1,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -1217,6 +1631,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1242,6 +1658,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1250,12 +1671,22 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.022909,
+      "demand_share_latest": 0.02288021534320323,
+      "mentions_last3": 17,
+      "posts_last3": 743,
+      "level_now": 0.023298317998160758,
       "demand_slope": -0.06206713043478327,
       "momentum": null,
       "ai_exposure": 0.605125,
       "stance": "neutral",
-      "status": "insufficient_data",
+      "status": "low_volume",
+      "note": "Too few posts to forecast; observed counts shown.",
+      "trend_label": "No clear change",
+      "trend_p": 0.2136627822810247,
+      "mentions_last12": 50,
+      "posts_last12": 3714,
+      "mentions_prev12": 66,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -1268,6 +1699,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1293,6 +1726,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1301,24 +1739,36 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.024788666666666664,
+      "demand_share_latest": 0.024226110363391656,
+      "mentions_last3": 18,
+      "posts_last3": 743,
+      "level_now": 0.022765076235427107,
       "demand_slope": 0.5003248695652173,
       "momentum": null,
       "ai_exposure": 0.605125,
       "stance": "neutral",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.09554811569504085,
+      "mentions_last12": 64,
+      "posts_last12": 3714,
+      "mentions_prev12": 45,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.022765076235427107,
-          "low": 0.013080712289776628,
-          "high": 0.028879194273215995
+          "low": 0.005250049754692805,
+          "high": 0.09323627313408613
         },
         "fast": {
           "value_12m": 0.02237133147685916,
-          "low": 0.012854468290012652,
-          "high": 0.02837969972906645
+          "low": 0.005159244894135638,
+          "high": 0.09162365855395897
         }
       },
+      "scenario_shift_pp": -0.0393744758567946,
+      "band_width_pp": 8.798622337939332,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1344,6 +1794,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1353,12 +1808,22 @@
         "8.2",
         "16.6"
       ],
-      "demand_share_latest": 0.004053666666666666,
+      "demand_share_latest": 0.004037685060565276,
+      "mentions_last3": 3,
+      "posts_last3": 743,
+      "level_now": 0.0060441363445321574,
       "demand_slope": 0.21838382608695642,
       "momentum": null,
       "ai_exposure": 0.605125,
       "stance": "neutral",
-      "status": "insufficient_data",
+      "status": "low_volume",
+      "note": "Too few posts to forecast; observed counts shown.",
+      "trend_label": "No clear change",
+      "trend_p": 0.7981225523797766,
+      "mentions_last12": 30,
+      "posts_last12": 3714,
+      "mentions_prev12": 22,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -1371,6 +1836,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1396,6 +1863,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1404,12 +1876,22 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.008192999999999999,
+      "demand_share_latest": 0.008075370121130552,
+      "mentions_last3": 6,
+      "posts_last3": 743,
+      "level_now": 0.009511145204959813,
       "demand_slope": 0.09302295652173906,
       "momentum": null,
       "ai_exposure": 0.605125,
       "stance": "neutral",
-      "status": "insufficient_data",
+      "status": "low_volume",
+      "note": "Too few posts to forecast; observed counts shown.",
+      "trend_label": "No clear change",
+      "trend_p": 0.13840482765574325,
+      "mentions_last12": 30,
+      "posts_last12": 3714,
+      "mentions_prev12": 25,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -1422,6 +1904,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1447,6 +1931,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1456,24 +1945,36 @@
         "9.c",
         "8.2"
       ],
-      "demand_share_latest": 0.14138,
+      "demand_share_latest": 0.13997308209959622,
+      "mentions_last3": 104,
+      "posts_last3": 743,
+      "level_now": 0.14137239861399684,
       "demand_slope": 0.37765460869565004,
       "momentum": null,
       "ai_exposure": 0.648775,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.38829490480909234,
+      "mentions_last12": 573,
+      "posts_last12": 3714,
+      "mentions_prev12": 574,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.14137239861399684,
-          "low": 0.08565441991246263,
-          "high": 0.17367997324101958
+          "low": 0.11383928316399845,
+          "high": 0.17425520167606723
         },
         "fast": {
           "value_12m": 0.12658541120856723,
-          "low": 0.07669531020729868,
-          "high": 0.1555137427599019
+          "low": 0.10193214950217687,
+          "high": 0.1560288046015573
         }
       },
+      "scenario_shift_pp": -1.4786987405429608,
+      "band_width_pp": 6.041591851206878,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1499,6 +2000,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1507,24 +2013,36 @@
       "sdg": [
         "9.c"
       ],
-      "demand_share_latest": 0.04476333333333333,
+      "demand_share_latest": 0.04441453566621804,
+      "mentions_last3": 33,
+      "posts_last3": 743,
+      "level_now": 0.04590104890107202,
       "demand_slope": -0.2017920000000011,
       "momentum": null,
       "ai_exposure": 0.648775,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.44633084630188663,
+      "mentions_last12": 197,
+      "posts_last12": 3714,
+      "mentions_prev12": 222,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.04590104890107202,
-          "low": 0.026642871623628352,
-          "high": 0.05786099018036589
+          "low": 0.03008613325339817,
+          "high": 0.06943402563151564
         },
         "fast": {
           "value_12m": 0.04109998279021549,
-          "low": 0.02385613382328332,
-          "high": 0.051808962051460336
+          "low": 0.026939244059625736,
+          "high": 0.06217150428656163
         }
       },
+      "scenario_shift_pp": -0.4801066110856532,
+      "band_width_pp": 3.934789237811747,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1550,6 +2068,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1558,24 +2081,36 @@
       "sdg": [
         "8.5"
       ],
-      "demand_share_latest": 0.027123333333333333,
+      "demand_share_latest": 0.026917900403768506,
+      "mentions_last3": 20,
+      "posts_last3": 743,
+      "level_now": 0.028819139489821528,
       "demand_slope": 0.5063582608695646,
       "momentum": null,
       "ai_exposure": 0.648775,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.07256545716887218,
+      "mentions_last12": 101,
+      "posts_last12": 3714,
+      "mentions_prev12": 86,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.028819139489821528,
-          "low": 0.016603106477184857,
-          "high": 0.03649849647634395
+          "low": 0.01647753112567885,
+          "high": 0.04993524015129085
         },
         "fast": {
           "value_12m": 0.025804772775744153,
-          "low": 0.014866487952097229,
-          "high": 0.03268089973890428
+          "low": 0.014754047280057345,
+          "high": 0.04471221377242643
         }
       },
+      "scenario_shift_pp": -0.30143667140773744,
+      "band_width_pp": 3.3457709025612,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1601,6 +2136,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1610,24 +2150,36 @@
         "8.2",
         "7.3"
       ],
-      "demand_share_latest": 0.10698433333333333,
+      "demand_share_latest": 0.1063257065948856,
+      "mentions_last3": 79,
+      "posts_last3": 743,
+      "level_now": 0.10807458493364666,
       "demand_slope": 0.3249547826086935,
       "momentum": null,
       "ai_exposure": 0.648775,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.840857842585341,
+      "mentions_last12": 341,
+      "posts_last12": 3714,
+      "mentions_prev12": 366,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.10807458493364666,
-          "low": 0.06449426785418433,
-          "high": 0.13395987531496867
+          "low": 0.08002049836444258,
+          "high": 0.1444200729881375
         },
         "fast": {
           "value_12m": 0.09677041564792695,
-          "low": 0.05774842541370806,
-          "high": 0.1199482081965242
+          "low": 0.07165067431751534,
+          "high": 0.12931431103387026
         }
       },
+      "scenario_shift_pp": -1.1304169285719714,
+      "band_width_pp": 6.439957462369492,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1653,6 +2205,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1662,24 +2219,36 @@
         "8.2",
         "4.4"
       ],
-      "demand_share_latest": 0.06854466666666668,
+      "demand_share_latest": 0.06729475100942127,
+      "mentions_last3": 50,
+      "posts_last3": 743,
+      "level_now": 0.06638568909785211,
       "demand_slope": 1.1559730434782607,
       "momentum": null,
       "ai_exposure": 0.648775,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.09653865000546281,
+      "mentions_last12": 222,
+      "posts_last12": 3714,
+      "mentions_prev12": 190,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.06638568909785211,
-          "low": 0.038883265734264025,
-          "high": 0.08321755290354284
+          "low": 0.03873706477898627,
+          "high": 0.11147992473255672
         },
         "fast": {
           "value_12m": 0.059442011560973174,
-          "low": 0.034816231671522944,
-          "high": 0.07451332974004386
+          "low": 0.03468532275136342,
+          "high": 0.09981957052523022
         }
       },
+      "scenario_shift_pp": -0.6943677536878939,
+      "band_width_pp": 7.274285995357044,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1705,6 +2274,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1713,24 +2287,36 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.062269,
+      "demand_share_latest": 0.06191117092866756,
+      "mentions_last3": 46,
+      "posts_last3": 743,
+      "level_now": 0.06378860611129791,
       "demand_slope": 0.5893601739130427,
       "momentum": null,
       "ai_exposure": 0.648775,
       "stance": "AI-substitutable",
       "status": "ok",
+      "note": null,
+      "trend_label": "Rising",
+      "trend_p": 0.04272921942234543,
+      "mentions_last12": 221,
+      "posts_last12": 3714,
+      "mentions_prev12": 199,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.06378860611129791,
-          "low": 0.03731910087216992,
-          "high": 0.08001842571171758
+          "low": 0.04107571353234232,
+          "high": 0.09777999973208996
         },
         "fast": {
           "value_12m": 0.057116573066480596,
-          "low": 0.03341567219734443,
-          "high": 0.07164881845597476
+          "low": 0.036779358199713445,
+          "high": 0.08755260288011228
         }
       },
+      "scenario_shift_pp": -0.6672033044817317,
+      "band_width_pp": 5.670428619974764,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1756,6 +2342,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1765,24 +2356,36 @@
         "8.2",
         "4.4"
       ],
-      "demand_share_latest": 0.159523,
+      "demand_share_latest": 0.15881561238223418,
+      "mentions_last3": 118,
+      "posts_last3": 743,
+      "level_now": 0.1605146272658256,
       "demand_slope": 1.5288208695652121,
       "momentum": null,
       "ai_exposure": 0.47405,
       "stance": "AI-complement",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.20681498178500915,
+      "mentions_last12": 566,
+      "posts_last12": 3714,
+      "mentions_prev12": 561,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.1605146272658256,
-          "low": 0.09811436101295448,
-          "high": 0.1961971544286947
+          "low": 0.12989804985653514,
+          "high": 0.19671596551219325
         },
         "fast": {
           "value_12m": 0.19981727581037206,
-          "low": 0.12213805476442043,
-          "high": 0.2442368124791783
+          "low": 0.16170410695610718,
+          "high": 0.24488265653171581
         }
       },
+      "scenario_shift_pp": 3.930264854454646,
+      "band_width_pp": 6.6817915655658116,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1808,6 +2411,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1817,24 +2425,36 @@
         "8.2",
         "16.6"
       ],
-      "demand_share_latest": 0.029126333333333334,
+      "demand_share_latest": 0.029609690444145357,
+      "mentions_last3": 22,
+      "posts_last3": 743,
+      "level_now": 0.02999459376772523,
       "demand_slope": 1.3135586086956519,
       "momentum": null,
       "ai_exposure": 0.47405,
       "stance": "AI-complement",
       "status": "ok",
+      "note": null,
+      "trend_label": "Rising",
+      "trend_p": 0.00440052477647211,
+      "mentions_last12": 92,
+      "posts_last12": 3714,
+      "mentions_prev12": 52,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.02999459376772523,
-          "low": 0.01728917212058954,
-          "high": 0.037974923358992566
+          "low": 0.013588083635285814,
+          "high": 0.06490714360520076
         },
         "fast": {
           "value_12m": 0.03733889003012782,
-          "low": 0.02152249507100437,
-          "high": 0.04727323524313533
+          "low": 0.016915180265720087,
+          "high": 0.08079991734550859
         }
       },
+      "scenario_shift_pp": 0.7344296262402593,
+      "band_width_pp": 5.131905996991495,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1860,6 +2480,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1868,12 +2493,22 @@
       "sdg": [
         "9.5"
       ],
-      "demand_share_latest": 0.014753333333333332,
+      "demand_share_latest": 0.014804845222072678,
+      "mentions_last3": 11,
+      "posts_last3": 743,
+      "level_now": 0.016675748026482543,
       "demand_slope": 0.2967819130434783,
       "momentum": null,
       "ai_exposure": 0.47405,
       "stance": "AI-complement",
-      "status": "insufficient_data",
+      "status": "low_volume",
+      "note": "Too few posts to forecast; observed counts shown.",
+      "trend_label": "No clear change",
+      "trend_p": 0.10248976699917611,
+      "mentions_last12": 44,
+      "posts_last12": 3714,
+      "mentions_prev12": 33,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -1886,6 +2521,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1911,6 +2548,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1920,24 +2562,36 @@
         "9.5",
         "4.3"
       ],
-      "demand_share_latest": 0.025908,
+      "demand_share_latest": 0.02557200538358008,
+      "mentions_last3": 19,
+      "posts_last3": 743,
+      "level_now": 0.027110049648864994,
       "demand_slope": 0.35751652173912996,
       "momentum": null,
       "ai_exposure": 0.47405,
       "stance": "AI-complement",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.4845441884116515,
+      "mentions_last12": 79,
+      "posts_last12": 3714,
+      "mentions_prev12": 78,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.027110049648864994,
-          "low": 0.015606834053603183,
-          "high": 0.034350097971184865
+          "low": 0.014501732275801696,
+          "high": 0.05012294392801923
         },
         "fast": {
           "value_12m": 0.03374805374558818,
-          "low": 0.019428229798964136,
-          "high": 0.04276085685982136
+          "low": 0.018052539430460843,
+          "high": 0.06239574724057044
         }
       },
+      "scenario_shift_pp": 0.6638004096723188,
+      "band_width_pp": 3.562121165221753,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -1963,6 +2617,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -1972,24 +2631,36 @@
         "9.5",
         "8.2"
       ],
-      "demand_share_latest": 0.21234533333333336,
+      "demand_share_latest": 0.21130551816958276,
+      "mentions_last3": 157,
+      "posts_last3": 743,
+      "level_now": 0.21302743576904423,
       "demand_slope": 1.4677450434782593,
       "momentum": null,
       "ai_exposure": 0.47405,
       "stance": "AI-complement",
       "status": "ok",
+      "note": null,
+      "trend_label": "No clear change",
+      "trend_p": 0.14524164051828636,
+      "mentions_last12": 747,
+      "posts_last12": 3714,
+      "mentions_prev12": 745,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": 0.21302743576904423,
-          "low": 0.13345815432855387,
-          "high": 0.2568124425115623
+          "low": 0.17521002881497674,
+          "high": 0.2564692229523263
         },
         "fast": {
           "value_12m": 0.2651880555268378,
-          "low": 0.1661359172485176,
-          "high": 0.3196939963102884
+          "low": 0.21811090521043905,
+          "high": 0.3192667380690952
         }
       },
+      "scenario_shift_pp": 5.216061975779354,
+      "band_width_pp": 8.125919413734959,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -2015,6 +2686,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     },
@@ -2023,12 +2699,22 @@
       "sdg": [
         "8.2"
       ],
-      "demand_share_latest": 0.00656,
+      "demand_share_latest": 0.006729475100942127,
+      "mentions_last3": 5,
+      "posts_last3": 743,
+      "level_now": 0.008020902501664422,
       "demand_slope": -0.5113904347826093,
       "momentum": null,
       "ai_exposure": 0.60565,
       "stance": "neutral",
-      "status": "insufficient_data",
+      "status": "low_volume",
+      "note": "Too few posts to forecast; observed counts shown.",
+      "trend_label": "Falling",
+      "trend_p": 0.04433033177042313,
+      "mentions_last12": 32,
+      "posts_last12": 3714,
+      "mentions_prev12": 55,
+      "posts_prev12": 3914,
       "forecast": {
         "moderate": {
           "value_12m": null,
@@ -2041,6 +2727,8 @@
           "high": null
         }
       },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
       "evidence": [
         "hn:49156683",
         "hn:49522897",
@@ -2066,6 +2754,11 @@
           "name": "Anthropic Economic Index (release 2026-06-26)",
           "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
           "date": "2026-06-26"
+        },
+        {
+          "name": "Verity backtest (rolling conformal, naive3)",
+          "url": "data/backtest.json",
+          "date": "2026-10-21"
         }
       ]
     }
