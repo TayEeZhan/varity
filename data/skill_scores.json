@@ -1,0 +1,2073 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-21T20:52:38Z",
+  "as_of": "2026-10",
+  "scenario_params": {
+    "k": 2
+  },
+  "data_window": {
+    "from": "2019-01",
+    "to": "2026-10"
+  },
+  "skills": [
+    {
+      "skill": "Python",
+      "sdg": [
+        "4.4",
+        "9.5"
+      ],
+      "demand_share_latest": 0.261998,
+      "demand_slope": 2.1958617391304314,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.2626559690618852,
+          "low": 0.16851906110454057,
+          "high": 0.31258977980051994
+        },
+        "fast": {
+          "value_12m": 0.251165821039304,
+          "low": 0.16114702625746136,
+          "high": 0.2989152272933664
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "JavaScript / TypeScript",
+      "sdg": [
+        "4.4",
+        "9.c"
+      ],
+      "demand_share_latest": 0.24239333333333335,
+      "demand_slope": 0.8057973913043402,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.24342508755030934,
+          "low": 0.15473420275542737,
+          "high": 0.2911464984233649
+        },
+        "fast": {
+          "value_12m": 0.23277621367033352,
+          "low": 0.14796520032168844,
+          "high": 0.27841000370333635
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "TypeScript",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.21969333333333332,
+      "demand_slope": 1.439731826086948,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.2206114711679773,
+          "low": 0.1387087184635219,
+          "high": 0.2654295266037001
+        },
+        "fast": {
+          "value_12m": 0.210960601750263,
+          "low": 0.13264076686561668,
+          "high": 0.25381804653289464
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Java",
+      "sdg": [
+        "8.5"
+      ],
+      "demand_share_latest": 0.03890533333333333,
+      "demand_slope": 0.1101349565217376,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.04043392648820614,
+          "low": 0.02341323866427405,
+          "high": 0.05104557178828176
+        },
+        "fast": {
+          "value_12m": 0.038665103940053076,
+          "low": 0.022389003125666718,
+          "high": 0.04881253220483159
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Go",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.06891466666666667,
+      "demand_slope": -0.5303384347826123,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.07052470426133088,
+          "low": 0.04138356677448881,
+          "high": 0.08830673960449938
+        },
+        "fast": {
+          "value_12m": 0.06743953054871471,
+          "low": 0.03957320126237202,
+          "high": 0.08444367297376094
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Rust",
+      "sdg": [
+        "7.3",
+        "8.2"
+      ],
+      "demand_share_latest": 0.080326,
+      "demand_slope": 1.4566706086956507,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.08173074040974951,
+          "low": 0.04819933202133938,
+          "high": 0.1020281038940439
+        },
+        "fast": {
+          "value_12m": 0.07815534743978461,
+          "low": 0.04609080404273387,
+          "high": 0.09756478246109507
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "C",
+      "sdg": [
+        "7.3",
+        "9.5"
+      ],
+      "demand_share_latest": 0.027037999999999996,
+      "demand_slope": 0.20028939130434753,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.028816629265479173,
+          "low": 0.016601642112920638,
+          "high": 0.03649534249527001
+        },
+        "fast": {
+          "value_12m": 0.027556017001631523,
+          "low": 0.01587538667704881,
+          "high": 0.03489881724247193
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "C++",
+      "sdg": [
+        "9.5",
+        "7.3"
+      ],
+      "demand_share_latest": 0.05261433333333334,
+      "demand_slope": 0.40040973913043465,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.054303949044043384,
+          "low": 0.031637166285426066,
+          "high": 0.06829661725818068
+        },
+        "fast": {
+          "value_12m": 0.051928368489162664,
+          "low": 0.03025316680910382,
+          "high": 0.06530891343960431
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "C#",
+      "sdg": [
+        "8.5"
+      ],
+      "demand_share_latest": 0.019604666666666666,
+      "demand_slope": -0.024313565217391735,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.01774269928914165,
+          "low": 0.010172636106211806,
+          "high": 0.022539045910792376
+        },
+        "fast": {
+          "value_12m": 0.01696652716603886,
+          "low": 0.009727623967109465,
+          "high": 0.021553052808378853
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Swift",
+      "sdg": [
+        "9.c"
+      ],
+      "demand_share_latest": 0.015712,
+      "demand_slope": 0.24452921739130437,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "PHP",
+      "sdg": [
+        "9.c",
+        "8.5"
+      ],
+      "demand_share_latest": 0.006645666666666665,
+      "demand_slope": 0.12449739130434767,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Perl",
+      "sdg": [
+        "8.5"
+      ],
+      "demand_share_latest": 0.0,
+      "demand_slope": 0.0,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Ruby",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.027332333333333337,
+      "demand_slope": -0.7954481739130442,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.0284372632969707,
+          "low": 0.01638037209326838,
+          "high": 0.03601863671050338
+        },
+        "fast": {
+          "value_12m": 0.02719324677678142,
+          "low": 0.015663796335676262,
+          "high": 0.0344429654289657
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "R",
+      "sdg": [
+        "3.d",
+        "9.5"
+      ],
+      "demand_share_latest": 0.004053666666666666,
+      "demand_slope": 0.14497565217391306,
+      "momentum": null,
+      "ai_exposure": 0.61835,
+      "stance": "AI-substitutable",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "React",
+      "sdg": [
+        "4.4",
+        "8.5"
+      ],
+      "demand_share_latest": 0.20285133333333336,
+      "demand_slope": 1.0423246956521712,
+      "momentum": null,
+      "ai_exposure": 0.5775,
+      "stance": "neutral",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.20379532389245278,
+          "low": 0.12711738795414526,
+          "high": 0.24627661021578012
+        },
+        "fast": {
+          "value_12m": 0.21153017161546694,
+          "low": 0.1319420012965569,
+          "high": 0.25562379267990987
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "React Native",
+      "sdg": [
+        "9.c",
+        "8.2"
+      ],
+      "demand_share_latest": 0.03243066666666667,
+      "demand_slope": -0.052618956521740375,
+      "momentum": null,
+      "ai_exposure": 0.5775,
+      "stance": "neutral",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.03425210528902665,
+          "low": 0.01978001782975209,
+          "high": 0.04331460209978469
+        },
+        "fast": {
+          "value_12m": 0.03555210969316637,
+          "low": 0.0205307486264625,
+          "high": 0.04495856450787992
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "AngularJS",
+      "sdg": [
+        "8.5"
+      ],
+      "demand_share_latest": 0.0,
+      "demand_slope": 0.0,
+      "momentum": null,
+      "ai_exposure": 0.5775,
+      "stance": "neutral",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "jQuery",
+      "sdg": [
+        "8.5"
+      ],
+      "demand_share_latest": 0.0,
+      "demand_slope": -0.036759652173913075,
+      "momentum": null,
+      "ai_exposure": 0.5775,
+      "stance": "neutral",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Node.js",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.06807933333333334,
+      "demand_slope": 1.1764267826086945,
+      "momentum": null,
+      "ai_exposure": 0.5775,
+      "stance": "neutral",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.06874769267944547,
+          "low": 0.04030898128361144,
+          "high": 0.08612318965745637
+        },
+        "fast": {
+          "value_12m": 0.07135694260740115,
+          "low": 0.04183886835924963,
+          "high": 0.08939190919771547
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "SQL",
+      "sdg": [
+        "4.4",
+        "16.6"
+      ],
+      "demand_share_latest": 0.05223433333333333,
+      "demand_slope": 0.639166956521738,
+      "momentum": null,
+      "ai_exposure": 0.605125,
+      "stance": "neutral",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.053213271421512214,
+          "low": 0.030986826855082566,
+          "high": 0.0669447957216
+        },
+        "fast": {
+          "value_12m": 0.05229289467900574,
+          "low": 0.030450878697797057,
+          "high": 0.0657869185347992
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "PostgreSQL",
+      "sdg": [
+        "9.c"
+      ],
+      "demand_share_latest": 0.18959800000000002,
+      "demand_slope": 3.1897142608695606,
+      "momentum": null,
+      "ai_exposure": 0.605125,
+      "stance": "neutral",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.18965006777761467,
+          "low": 0.11750880505464863,
+          "high": 0.2300346535668626
+        },
+        "fast": {
+          "value_12m": 0.18636988020533304,
+          "low": 0.11547637276242342,
+          "high": 0.22605597419877013
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "MongoDB",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.022984,
+      "demand_slope": 0.3425013913043474,
+      "momentum": null,
+      "ai_exposure": 0.605125,
+      "stance": "neutral",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.024775858337033604,
+          "low": 0.014248570899885703,
+          "high": 0.03141266165957075
+        },
+        "fast": {
+          "value_12m": 0.02434733509123627,
+          "low": 0.01400212761760128,
+          "high": 0.03086934826350681
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Spark",
+      "sdg": [
+        "9.5",
+        "8.2"
+      ],
+      "demand_share_latest": 0.006939999999999999,
+      "demand_slope": -0.18840052173913063,
+      "momentum": null,
+      "ai_exposure": 0.605125,
+      "stance": "neutral",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Hadoop",
+      "sdg": [
+        "9.5"
+      ],
+      "demand_share_latest": 0.0,
+      "demand_slope": 0.0759193043478261,
+      "momentum": null,
+      "ai_exposure": 0.605125,
+      "stance": "neutral",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Kafka",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.022909,
+      "demand_slope": -0.06206713043478327,
+      "momentum": null,
+      "ai_exposure": 0.605125,
+      "stance": "neutral",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Snowflake",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.024788666666666664,
+      "demand_slope": 0.5003248695652173,
+      "momentum": null,
+      "ai_exposure": 0.605125,
+      "stance": "neutral",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.022765076235427107,
+          "low": 0.013080712289776628,
+          "high": 0.028879194273215995
+        },
+        "fast": {
+          "value_12m": 0.02237133147685916,
+          "low": 0.012854468290012652,
+          "high": 0.02837969972906645
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "dbt",
+      "sdg": [
+        "8.2",
+        "16.6"
+      ],
+      "demand_share_latest": 0.004053666666666666,
+      "demand_slope": 0.21838382608695642,
+      "momentum": null,
+      "ai_exposure": 0.605125,
+      "stance": "neutral",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Airflow",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.008192999999999999,
+      "demand_slope": 0.09302295652173906,
+      "momentum": null,
+      "ai_exposure": 0.605125,
+      "stance": "neutral",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "AWS",
+      "sdg": [
+        "9.c",
+        "8.2"
+      ],
+      "demand_share_latest": 0.14138,
+      "demand_slope": 0.37765460869565004,
+      "momentum": null,
+      "ai_exposure": 0.648775,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.14137239861399684,
+          "low": 0.08565441991246263,
+          "high": 0.17367997324101958
+        },
+        "fast": {
+          "value_12m": 0.12658541120856723,
+          "low": 0.07669531020729868,
+          "high": 0.1555137427599019
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "GCP",
+      "sdg": [
+        "9.c"
+      ],
+      "demand_share_latest": 0.04476333333333333,
+      "demand_slope": -0.2017920000000011,
+      "momentum": null,
+      "ai_exposure": 0.648775,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.04590104890107202,
+          "low": 0.026642871623628352,
+          "high": 0.05786099018036589
+        },
+        "fast": {
+          "value_12m": 0.04109998279021549,
+          "low": 0.02385613382328332,
+          "high": 0.051808962051460336
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Azure",
+      "sdg": [
+        "8.5"
+      ],
+      "demand_share_latest": 0.027123333333333333,
+      "demand_slope": 0.5063582608695646,
+      "momentum": null,
+      "ai_exposure": 0.648775,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.028819139489821528,
+          "low": 0.016603106477184857,
+          "high": 0.03649849647634395
+        },
+        "fast": {
+          "value_12m": 0.025804772775744153,
+          "low": 0.014866487952097229,
+          "high": 0.03268089973890428
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Kubernetes",
+      "sdg": [
+        "8.2",
+        "7.3"
+      ],
+      "demand_share_latest": 0.10698433333333333,
+      "demand_slope": 0.3249547826086935,
+      "momentum": null,
+      "ai_exposure": 0.648775,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.10807458493364666,
+          "low": 0.06449426785418433,
+          "high": 0.13395987531496867
+        },
+        "fast": {
+          "value_12m": 0.09677041564792695,
+          "low": 0.05774842541370806,
+          "high": 0.1199482081965242
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Docker",
+      "sdg": [
+        "8.2",
+        "4.4"
+      ],
+      "demand_share_latest": 0.06854466666666668,
+      "demand_slope": 1.1559730434782607,
+      "momentum": null,
+      "ai_exposure": 0.648775,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.06638568909785211,
+          "low": 0.038883265734264025,
+          "high": 0.08321755290354284
+        },
+        "fast": {
+          "value_12m": 0.059442011560973174,
+          "low": 0.034816231671522944,
+          "high": 0.07451332974004386
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Terraform",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.062269,
+      "demand_slope": 0.5893601739130427,
+      "momentum": null,
+      "ai_exposure": 0.648775,
+      "stance": "AI-substitutable",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.06378860611129791,
+          "low": 0.03731910087216992,
+          "high": 0.08001842571171758
+        },
+        "fast": {
+          "value_12m": 0.057116573066480596,
+          "low": 0.03341567219734443,
+          "high": 0.07164881845597476
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "LLM / GenAI",
+      "sdg": [
+        "8.2",
+        "4.4"
+      ],
+      "demand_share_latest": 0.159523,
+      "demand_slope": 1.5288208695652121,
+      "momentum": null,
+      "ai_exposure": 0.47405,
+      "stance": "AI-complement",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.1605146272658256,
+          "low": 0.09811436101295448,
+          "high": 0.1961971544286947
+        },
+        "fast": {
+          "value_12m": 0.19981727581037206,
+          "low": 0.12213805476442043,
+          "high": 0.2442368124791783
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "RAG",
+      "sdg": [
+        "8.2",
+        "16.6"
+      ],
+      "demand_share_latest": 0.029126333333333334,
+      "demand_slope": 1.3135586086956519,
+      "momentum": null,
+      "ai_exposure": 0.47405,
+      "stance": "AI-complement",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.02999459376772523,
+          "low": 0.01728917212058954,
+          "high": 0.037974923358992566
+        },
+        "fast": {
+          "value_12m": 0.03733889003012782,
+          "low": 0.02152249507100437,
+          "high": 0.04727323524313533
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Vector Databases",
+      "sdg": [
+        "9.5"
+      ],
+      "demand_share_latest": 0.014753333333333332,
+      "demand_slope": 0.2967819130434783,
+      "momentum": null,
+      "ai_exposure": 0.47405,
+      "stance": "AI-complement",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "PyTorch",
+      "sdg": [
+        "9.5",
+        "4.3"
+      ],
+      "demand_share_latest": 0.025908,
+      "demand_slope": 0.35751652173912996,
+      "momentum": null,
+      "ai_exposure": 0.47405,
+      "stance": "AI-complement",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.027110049648864994,
+          "low": 0.015606834053603183,
+          "high": 0.034350097971184865
+        },
+        "fast": {
+          "value_12m": 0.03374805374558818,
+          "low": 0.019428229798964136,
+          "high": 0.04276085685982136
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Machine Learning",
+      "sdg": [
+        "9.5",
+        "8.2"
+      ],
+      "demand_share_latest": 0.21234533333333336,
+      "demand_slope": 1.4677450434782593,
+      "momentum": null,
+      "ai_exposure": 0.47405,
+      "stance": "AI-complement",
+      "status": "ok",
+      "forecast": {
+        "moderate": {
+          "value_12m": 0.21302743576904423,
+          "low": 0.13345815432855387,
+          "high": 0.2568124425115623
+        },
+        "fast": {
+          "value_12m": 0.2651880555268378,
+          "low": 0.1661359172485176,
+          "high": 0.3196939963102884
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    },
+    {
+      "skill": "Microservices",
+      "sdg": [
+        "8.2"
+      ],
+      "demand_share_latest": 0.00656,
+      "demand_slope": -0.5113904347826093,
+      "momentum": null,
+      "ai_exposure": 0.60565,
+      "stance": "neutral",
+      "status": "insufficient_data",
+      "forecast": {
+        "moderate": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        },
+        "fast": {
+          "value_12m": null,
+          "low": null,
+          "high": null
+        }
+      },
+      "evidence": [
+        "hn:49156683",
+        "hn:49522897",
+        "hn:49922569"
+      ],
+      "sources": [
+        {
+          "name": "Ask HN: Who is hiring? (August 2026)",
+          "url": "https://news.ycombinator.com/item?id=49156683",
+          "date": "2026-08-03"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (September 2026)",
+          "url": "https://news.ycombinator.com/item?id=49522897",
+          "date": "2026-09-01"
+        },
+        {
+          "name": "Ask HN: Who is hiring? (October 2026)",
+          "url": "https://news.ycombinator.com/item?id=49922569",
+          "date": "2026-10-01"
+        },
+        {
+          "name": "Anthropic Economic Index (release 2026-06-26)",
+          "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+          "date": "2026-06-26"
+        }
+      ]
+    }
+  ]
+}
