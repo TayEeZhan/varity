@@ -1,7 +1,12 @@
+modules = ["python-3.12"]
 run = "streamlit run app.py --server.port 8080 --server.address 0.0.0.0 --server.headless true"
-language = "python3"
+
+[nix]
+channel = "stable-24_05"
 
 [deployment]
+deploymentTarget = "cloudrun"
+build = ["sh", "-c", "pip install -r requirements.txt"]
 run = ["sh", "-c", "streamlit run app.py --server.port 8080 --server.address 0.0.0.0 --server.headless true"]
 
 [[ports]]

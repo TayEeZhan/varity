@@ -17,4 +17,14 @@ streamlit run app.py
 
 ## Data and AI disclosure
 
-Data sources and models will be listed here.
+Current data sources:
+
+- Hacker News "Who is hiring?" threads, read through the Algolia HN API. Used for skill demand.
+- Anthropic Economic Index (release 2026-06-26), data licensed CC BY. Used for the AI exposure index.
+- O*NET 31.0 Database, Task Statements, licensed CC BY 4.0. Used to map skills to tasks.
+
+Full sources and licences: data/SOURCES.md
+
+This product includes information from O*NET OnLine by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). Used under the CC BY 4.0 license.
+
+AI tools used in development: Claude Code (Anthropic).

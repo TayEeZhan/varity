@@ -31,12 +31,14 @@ Verity reads a tech developer's CV, forecasts which skills are rising or falling
 | Pitch video | Both, Sat 14:00 |
 
 ## Engine tasks (EZ)
-- [ ] E1. `data/taxonomy.json`: 40 tech skills, synonyms, word-boundary regex, SDG tag. Handle ambiguous names (Go, R, C, Swift, Spark, React vs React Native).
-- [ ] E2. HN backfill: list threads with `search_by_date?tags=story,author_whoishiring`, then fetch each with `/api/v1/items/<id>`. Use top-level comments only. Output `data/demand_monthly.csv` = month, skill, share, n. Use share, not count. 3-month smoothing. Strip names and emails.
+- [x] E1. `data/taxonomy.json`: 40 tech skills, synonyms, word-boundary regex, SDG tag. Handle ambiguous names (Go, R, C, Swift, Spark, React vs React Native).
+- [x] E2. HN backfill: list threads with `search_by_date?tags=story,author_whoishiring`, then fetch each with `/api/v1/items/<id>`. Use top-level comments only. Output `data/demand_monthly.csv` = month, skill, share, n. Use share, not count. 3-month smoothing. Strip names and emails.
 - [ ] E3. `data/exposure.csv`: hand-map the 40 skills to O*NET tasks / Anthropic Economic Index. Label it "team judgement, sources cited". Record licences (O*NET CC BY 4.0, AEI CC BY).
+- [ ] E3 v2. Replace per-task usage with occupation-level AEI `collaboration_bucket_automation_pct` per taxonomy category, plus a `stance` column (AI-complement / AI-substitutable / neutral). v1 measured Claude.ai traffic volume, not exposure.
+- [ ] E4 rules from review: use `(mentions + 0.5) / (n_posts + 1)` before logit (zeros exist); fit on raw `share`, not `share_smooth` (smoothed residuals make bands too narrow); hide forecasts for skills under a minimum mention count; note posts per month fell from about 750 to about 250.
 - [ ] E4. Forecast on logit(share): damped trend vs naive vs drift. Pick the model by backtest MAE. 80% intervals by split-conformal from backtest residuals.
 - [ ] E5. Backtest: fit to Dec 2023, predict 2024 to 2025. Report MAE vs naive and band coverage ("our band covered X% of actuals"). If the model does not beat naive, say so and ship naive with bands.
-- [ ] E6. Scenarios as one stated formula: `fast = forecast * (1 - k * exposure_z) + momentum bump`. Show k as an assumption.
+- [ ] E6. Scenarios as one stated formula (from review): `e_s = automation_share/100 - mean over 40 skills`; `fast = moderate * (1 - k * e_s)` on the point and both band ends, floored at 0; `k = 2` shown in the UI as an assumption. Momentum term weight `b = 0` until a backtest supports it.
 - [ ] E7. `data/roles.json`: 8 future tech roles as weighted skill lists. Match score = weighted coverage x forecast demand. Output gap list and reason.
 - [ ] E8. Pathway order: no-regret skills first, then near-term demand, then future bet. Scenario toggle reorders. Each step: minutes, one real resource from `resources.json`, source, SDG tag.
 - [ ] E9. "What changed and why" diff between two runs. "As-of month" slider: rerun the engine on data up to a chosen month (cached).
@@ -82,4 +84,8 @@ Verity reads a tech developer's CV, forecasts which skills are rising or falling
 - [ ] Declaration lists every tool, model, API, dataset with licence, including Claude Code (extent: major) and how we reviewed its output
 
 ## Review
-(Fill in after each day.)
+### Thu 22 Oct (day 1)
+- Done: plan and contract; 40-skill taxonomy and tagger; HN fetch (94 threads, 48,508 posts, 2019-01 to 2026-10, no gaps); monthly demand series; exposure v1; Streamlit prototype on fixture data.
+- Opus review found: (1) bare "AI" inflated Machine Learning to 55%; (2) JavaScript looked dead because posts now say TypeScript; (3) exposure v1 measured traffic, not exposure; (4) app cache never refreshed; (5) commit author email will be public; all commits are from one member.
+- Fixed today: 1, 2, 4. Exposure v2 next. Items 5 need a team decision.
+- Note: the Oct 2026 thread was fetched on 22 Oct and is still open, so its counts will grow.

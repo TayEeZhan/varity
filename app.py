@@ -17,25 +17,60 @@ ENGINE_PATH = BASE_DIR / "data" / "skill_scores.json"
 FIXTURE_PATH = BASE_DIR / "data" / "fixtures" / "skill_scores.json"
 
 SCENARIOS = {"Moderate": "moderate", "Fast disruption": "fast"}
+NA = "n/a"
 
 
 @st.cache_data
-def load_scores() -> tuple[dict, str]:
-    """Return (scores, relative file path). Prefer engine output, fall back to fixture."""
-    path = ENGINE_PATH if ENGINE_PATH.exists() else FIXTURE_PATH
-    with path.open(encoding="utf-8") as fh:
-        scores = json.load(fh)
-    return scores, path.relative_to(BASE_DIR).as_posix()
+def load_scores(path: str, mtime: float) -> dict:
+    """Read the scores file at `path`.
+
+    `mtime` is not used in the body. It is an argument so that the cache key
+    changes when the file is rewritten, which makes the cache refresh itself.
+    """
+    with Path(path).open(encoding="utf-8") as fh:
+        return json.load(fh)
 
 
-def pct(value: float) -> str:
-    return f"{value:.1%}"
+def active_scores_path() -> Path:
+    """Prefer engine output, fall back to the fixture."""
+    return ENGINE_PATH if ENGINE_PATH.exists() else FIXTURE_PATH
 
 
-scores, source_file = load_scores()
-skills = scores["skills"]
+def _is_number(value) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def pct(value) -> str:
+    """Format a share (0 to 1) as a percent with 1 decimal."""
+    return f"{value:.1%}" if _is_number(value) else NA
+
+
+def index_value(value) -> str:
+    """Format an index (0 to 1) as a number with 2 decimals."""
+    return f"{value:.2f}" if _is_number(value) else NA
+
+
+def get_forecast(skill: dict, scenario: str) -> dict:
+    """Return the forecast block for one scenario, or {} if it is missing."""
+    forecast = skill.get("forecast")
+    if not isinstance(forecast, dict):
+        return {}
+    fc = forecast.get(scenario)
+    return fc if isinstance(fc, dict) else {}
+
 
 # Sidebar
+# The button is read before the data is loaded, so a click clears the cache
+# first and the rerun reads the file again.
+if st.sidebar.button("Reload data"):
+    st.cache_data.clear()
+    st.rerun()
+
+path = active_scores_path()
+source_file = path.relative_to(BASE_DIR).as_posix()
+scores = load_scores(str(path), path.stat().st_mtime)
+skills = scores.get("skills") or []
+
 scenario_label = st.sidebar.radio("Scenario", list(SCENARIOS), index=0)
 scenario = SCENARIOS[scenario_label]
 st.sidebar.markdown("Predictions are estimates. You decide.")
@@ -44,28 +79,31 @@ st.sidebar.markdown("LLM: not used yet")
 # Main page
 st.title("Verity")
 st.subheader("Future-ready skills for tech developers")
+st.markdown(
+    f"**Data as of:** {scores.get('as_of') or NA} | "
+    f"generated {scores.get('generated_at') or NA}"
+)
 
 if scores.get("fixture") is True:
     st.warning("Prototype: showing sample data, not real forecasts.")
 
-st.caption(
-    f"File: {source_file} | as of {scores['as_of']} | "
-    f"generated {scores['generated_at']} | k = {scores.get('scenario_params', {}).get('k')}"
-)
+params = scores.get("scenario_params") or {}
+st.caption(f"File: {source_file} | k = {params.get('k', NA)}")
 
 st.header(f"Skills: {scenario_label} scenario")
 rows = []
 for s in skills:
-    fc = s["forecast"][scenario]
+    fc = get_forecast(s, scenario)
+    sdg = s.get("sdg") or []
     rows.append(
         {
-            "Skill": s["skill"],
-            "Latest demand share": pct(s["demand_share_latest"]),
-            "12-month forecast": pct(fc["value_12m"]),
-            "Low": pct(fc["low"]),
-            "High": pct(fc["high"]),
-            "AI exposure": pct(s["ai_exposure"]),
-            "SDG tags": ", ".join(s["sdg"]),
+            "Skill": s.get("skill") or NA,
+            "Latest demand share": pct(s.get("demand_share_latest")),
+            "12-month forecast": pct(fc.get("value_12m")),
+            "Low": pct(fc.get("low")),
+            "High": pct(fc.get("high")),
+            "AI exposure index (0-1)": index_value(s.get("ai_exposure")),
+            "SDG tags": ", ".join(str(tag) for tag in sdg) if sdg else NA,
         }
     )
 st.dataframe(pd.DataFrame(rows), hide_index=True)
@@ -73,15 +111,33 @@ st.caption("Low and High are the forecast range for the chosen scenario.")
 
 st.header("Sources")
 if skills:
-    choice = st.selectbox("Pick a skill", [s["skill"] for s in skills])
-    selected = next(s for s in skills if s["skill"] == choice)
-    fc = selected["forecast"][scenario]
-    st.write(
-        f"{choice}: {pct(fc['value_12m'])} in 12 months ({scenario_label}), "
-        f"range {pct(fc['low'])} to {pct(fc['high'])}."
+    names = [s.get("skill") or NA for s in skills]
+    idx = st.selectbox(
+        "Pick a skill",
+        range(len(skills)),
+        format_func=lambda i: names[i],
     )
-    for src in selected["sources"]:
-        st.markdown(f"- [{src['name']}]({src['url']}), {src['date']}")
-    st.caption("Evidence IDs: " + ", ".join(selected["evidence"]))
+    selected = skills[idx]
+    choice = names[idx]
+    fc = get_forecast(selected, scenario)
+    st.write(
+        f"{choice}: {pct(fc.get('value_12m'))} in 12 months ({scenario_label}), "
+        f"range {pct(fc.get('low'))} to {pct(fc.get('high'))}."
+    )
+
+    sources = [src for src in (selected.get("sources") or []) if isinstance(src, dict)]
+    if sources:
+        for src in sources:
+            name = src.get("name") or NA
+            date = src.get("date") or NA
+            url = src.get("url")
+            link = f"[{name}]({url})" if url else name
+            st.markdown(f"- {link}, {date}")
+    else:
+        st.write(f"Sources: {NA}")
+
+    evidence = selected.get("evidence") or []
+    evidence_text = ", ".join(str(e) for e in evidence) if evidence else NA
+    st.caption("Evidence IDs: " + evidence_text)
 else:
     st.info("No skills in the data file.")
