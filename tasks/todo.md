@@ -67,12 +67,12 @@ Verity reads a tech developer's CV, forecasts which skills are rising or falling
 | Sat 24 | 12:00 feature freeze. Fixes. Method section, diagram, backtest chart | SDG table, deck | 14:00 record video. 18:00 upload. 21:00 submit |
 | Sun 25 | Buffer only. No commits after 07:59 | | |
 
-## Open questions (ask on Discord today)
-- [ ] Does a team with zero GPU use still need RunPod proof?
-- [ ] Mandatory GenAI / Database / Cloud workshops: dates, and are they done?
-- [ ] Committee GitHub accounts to add (video #3)
-- [ ] Mentor booking method (video #6)
-- [ ] Team name for the file names
+## Open questions
+- [x] RunPod proof without GPU use: not needed (answered 22 Oct). We use no GPU.
+- [ ] Mandatory GenAI / Database / Cloud workshops: recordings exist. Both members watch them before Sat, so the readiness tick box is true.
+- [ ] Committee GitHub accounts to add as collaborators before submit (GitHub guide video / submission site). Needed on Sat only.
+- [x] Mentor booking: done.
+- [x] Team name: Hokkien Mee Is Purple.
 
 ## Before submit (checklist)
 - [ ] Repo private while building, public at submission. Apache 2.0 LICENSE. Committee accounts added
