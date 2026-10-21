@@ -12,22 +12,24 @@
       "4.4",
       "9.5"
     ],
-    "sdg_reason": "Free to learn and the default language of data and research work, so it builds job skills and research capacity."
+    "sdg_reason": "Free to learn, so it links to job skills (4.4), and it is used for data and research work (9.5)."
   },
   {
-    "skill": "JavaScript",
+    "skill": "JavaScript / TypeScript",
     "category": "language",
     "synonyms": [
       "JS",
-      "ECMAScript"
+      "ECMAScript",
+      "TypeScript"
     ],
-    "pattern": "(?<![\\w.-])(?:java ?script|ecmascript|js)(?!\\w)",
+    "pattern": "(?<![\\w.-])(?:java ?script|typescript|ecmascript|js)(?!\\w)",
     "case_sensitive": false,
     "sdg": [
       "4.4",
       "9.c"
     ],
-    "sdg_reason": "Runs in every browser with no install, so it is a cheap path into web jobs and web access."
+    "sdg_reason": "Browser-based work needs no install, so it links to web job skills (4.4) and to access to web tools (9.c).",
+    "note": "Combined row is used for role matching; the TypeScript row shows the language shift. Posts that say TypeScript count in both rows."
   },
   {
     "skill": "TypeScript",
@@ -38,7 +40,8 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Static types catch bugs early in large web codebases, which raises team productivity."
+    "sdg_reason": "Static types help teams find bugs earlier in web code, which links to team productivity (8.2).",
+    "note": "Kept as a separate row so the shift from JavaScript to TypeScript stays visible. The combined JavaScript / TypeScript row is used for role matching."
   },
   {
     "skill": "Java",
@@ -51,7 +54,7 @@
     "sdg": [
       "8.5"
     ],
-    "sdg_reason": "Long-lived enterprise language with a large employer base, so it supports steady developer jobs, though demand is mature."
+    "sdg_reason": "Used in enterprise systems, so it links to steady developer employment (8.5)."
   },
   {
     "skill": "Go",
@@ -64,7 +67,7 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Simple compiled language for cloud services, which lets small teams build efficient back ends."
+    "sdg_reason": "Suited to cloud services, which links to productive back-end work by small teams (8.2)."
   },
   {
     "skill": "Rust",
@@ -78,7 +81,7 @@
       "7.3",
       "8.2"
     ],
-    "sdg_reason": "Compiled code uses less energy per task than interpreted languages in published benchmarks, and memory safety removes a class of bugs."
+    "sdg_reason": "Memory-safety checks link to fewer memory bugs (8.2), and efficient compiled code links to energy efficiency (7.3)."
   },
   {
     "skill": "C",
@@ -90,7 +93,7 @@
       "7.3",
       "9.5"
     ],
-    "sdg_reason": "Low-level, energy-efficient code runs embedded and systems software that upgrades industrial technology."
+    "sdg_reason": "Low-level code runs embedded and systems software, which links to industrial technology (9.5) and efficient energy use (7.3)."
   },
   {
     "skill": "C++",
@@ -102,7 +105,7 @@
       "9.5",
       "7.3"
     ],
-    "sdg_reason": "Used in simulation, engines and embedded systems, with low energy use per task."
+    "sdg_reason": "Used in simulation, engines and embedded systems, which links to research and industry tooling (9.5) and efficient energy use (7.3)."
   },
   {
     "skill": "C#",
@@ -115,7 +118,7 @@
     "sdg": [
       "8.5"
     ],
-    "sdg_reason": "Mainstream enterprise and game language with a steady job market, mostly tied to the .NET ecosystem."
+    "sdg_reason": "Used for enterprise and game software, which links to developer jobs (8.5)."
   },
   {
     "skill": "Swift",
@@ -128,7 +131,7 @@
     "sdg": [
       "9.c"
     ],
-    "sdg_reason": "Main language for Apple phone apps, so it gives users access to mobile services, but the market is narrow and platform-bound."
+    "sdg_reason": "Used for Apple phone apps, which links to access to mobile services (9.c)."
   },
   {
     "skill": "PHP",
@@ -140,7 +143,7 @@
       "9.c",
       "8.5"
     ],
-    "sdg_reason": "Cheap hosting and a large installed base keep many small-business sites on PHP, so it supports low-cost web access and maintenance jobs."
+    "sdg_reason": "Low-cost web hosting links to web access (9.c), and older PHP sites need maintenance jobs (8.5)."
   },
   {
     "skill": "Perl",
@@ -151,7 +154,7 @@
     "sdg": [
       "8.5"
     ],
-    "sdg_reason": "Legacy scripting language; the skill mostly keeps old systems running and demand is shrinking."
+    "sdg_reason": "Used to keep older systems running, which links to maintenance jobs (8.5)."
   },
   {
     "skill": "Ruby",
@@ -165,7 +168,7 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Ruby on Rails lets very small teams ship web products fast."
+    "sdg_reason": "Ruby on Rails lets small teams build web products, which links to productivity (8.2)."
   },
   {
     "skill": "R",
@@ -177,7 +180,7 @@
       "3.d",
       "9.5"
     ],
-    "sdg_reason": "Standard tool in statistics and epidemiology, which supports health-risk analysis and research capacity."
+    "sdg_reason": "Used in statistics and epidemiology, which links to health-risk analysis (3.d) and research capacity (9.5)."
   },
   {
     "skill": "React",
@@ -192,7 +195,7 @@
       "4.4",
       "8.5"
     ],
-    "sdg_reason": "Very widely used web UI library, so it has a large pool of front-end jobs and free learning material."
+    "sdg_reason": "Used to build web interfaces, which links to front-end jobs (8.5) and to learning web skills (4.4)."
   },
   {
     "skill": "React Native",
@@ -204,7 +207,7 @@
       "9.c",
       "8.2"
     ],
-    "sdg_reason": "One codebase for iOS and Android lets small teams reach phone users, the main way many people get online."
+    "sdg_reason": "One codebase for iOS and Android links to access to mobile services (9.c) and to small-team productivity (8.2)."
   },
   {
     "skill": "AngularJS",
@@ -218,7 +221,7 @@
     "sdg": [
       "8.5"
     ],
-    "sdg_reason": "Google ended long-term support in 2021, so the skill only supports maintenance of old apps."
+    "sdg_reason": "Used to maintain older web apps, which links to maintenance jobs (8.5)."
   },
   {
     "skill": "jQuery",
@@ -229,7 +232,7 @@
     "sdg": [
       "8.5"
     ],
-    "sdg_reason": "Legacy front-end library kept alive in older sites, so the skill mainly serves maintenance work."
+    "sdg_reason": "Used in older sites, which links to maintenance work (8.5)."
   },
   {
     "skill": "Node.js",
@@ -243,7 +246,7 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Lets web developers use one language on front end and back end, so small teams ship faster."
+    "sdg_reason": "One language on the front end and back end links to small-team productivity (8.2)."
   },
   {
     "skill": "SQL",
@@ -258,7 +261,7 @@
       "4.4",
       "16.6"
     ],
-    "sdg_reason": "Learnable in weeks and needed in most data jobs, and queryable records support accountable reporting."
+    "sdg_reason": "Used to query records, which links to job skills (4.4) and to accountable reporting (16.6)."
   },
   {
     "skill": "PostgreSQL",
@@ -271,7 +274,7 @@
     "sdg": [
       "9.c"
     ],
-    "sdg_reason": "Free and open source, so small organisations can run a production database without licence fees."
+    "sdg_reason": "Free and open source, which links to low-cost access to production databases (9.c)."
   },
   {
     "skill": "MongoDB",
@@ -284,7 +287,7 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Flexible document store that speeds early product work, though loose schemas can hurt data quality."
+    "sdg_reason": "Document stores link to faster early product work (8.2)."
   },
   {
     "skill": "Spark",
@@ -299,7 +302,7 @@
       "9.5",
       "8.2"
     ],
-    "sdg_reason": "Processes data too large for one machine, which supports research and industry analytics at scale."
+    "sdg_reason": "Processes data across many machines, which links to research analytics (9.5) and industry analytics (8.2)."
   },
   {
     "skill": "Hadoop",
@@ -312,7 +315,7 @@
     "sdg": [
       "9.5"
     ],
-    "sdg_reason": "Early big-data platform used in research and legacy firms; cloud warehouses are replacing it, so it signals maintenance work."
+    "sdg_reason": "Used in research and older big-data systems, which links to research work (9.5)."
   },
   {
     "skill": "Kafka",
@@ -325,7 +328,7 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Moves event data between systems in real time, which helps firms automate and raise throughput."
+    "sdg_reason": "Moves event data between systems, which links to automation of firm workflows (8.2)."
   },
   {
     "skill": "Snowflake",
@@ -336,7 +339,7 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Managed cloud data warehouse that lets small teams run analytics without running servers."
+    "sdg_reason": "A managed data warehouse links to analytics without server upkeep (8.2)."
   },
   {
     "skill": "dbt",
@@ -351,7 +354,7 @@
       "8.2",
       "16.6"
     ],
-    "sdg_reason": "Tested, version-controlled SQL models make reported numbers traceable and save analyst time."
+    "sdg_reason": "Version-controlled SQL models link to traceable reported numbers (16.6) and to analyst productivity (8.2)."
   },
   {
     "skill": "Airflow",
@@ -364,7 +367,7 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Schedules and monitors data pipelines, which replaces manual data chores with automated jobs."
+    "sdg_reason": "Schedules data pipelines, which links to automation of data chores (8.2)."
   },
   {
     "skill": "AWS",
@@ -378,7 +381,7 @@
       "9.c",
       "8.2"
     ],
-    "sdg_reason": "Pay-as-you-go computing lowers the cost of starting an online service."
+    "sdg_reason": "Pay-as-you-go computing links to a lower cost of starting an online service (9.c) and to productivity (8.2)."
   },
   {
     "skill": "GCP",
@@ -392,7 +395,7 @@
     "sdg": [
       "9.c"
     ],
-    "sdg_reason": "Pay-as-you-go cloud computing lowers the cost of starting an online service; its market share is smaller than AWS or Azure."
+    "sdg_reason": "Pay-as-you-go cloud computing links to a lower cost of starting an online service (9.c)."
   },
   {
     "skill": "Azure",
@@ -405,7 +408,7 @@
     "sdg": [
       "8.5"
     ],
-    "sdg_reason": "Common in enterprise and public-sector IT, so it opens jobs in large organisations and government systems."
+    "sdg_reason": "Used in enterprise and public-sector IT, which links to jobs in large organisations (8.5)."
   },
   {
     "skill": "Kubernetes",
@@ -419,7 +422,7 @@
       "8.2",
       "7.3"
     ],
-    "sdg_reason": "Packs workloads onto fewer machines, which raises utilisation and can cut energy use, but needs scarce operations skill."
+    "sdg_reason": "Packs workloads onto fewer machines, which links to productivity (8.2) and to energy efficiency (7.3)."
   },
   {
     "skill": "Docker",
@@ -433,7 +436,7 @@
       "8.2",
       "4.4"
     ],
-    "sdg_reason": "The same environment on every machine cuts setup time and makes projects easier for learners to run."
+    "sdg_reason": "The same environment on every machine links to less setup time (8.2) and to easier learning (4.4)."
   },
   {
     "skill": "Terraform",
@@ -446,7 +449,7 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Describes infrastructure as code, so teams reproduce and review cloud setups instead of clicking by hand."
+    "sdg_reason": "Infrastructure as code links to reviewable, repeatable cloud setups (8.2)."
   },
   {
     "skill": "LLM / GenAI",
@@ -464,7 +467,7 @@
       "8.2",
       "4.4"
     ],
-    "sdg_reason": "Speeds up writing, coding and support work, and it changes which tasks people do, so workers need reskilling."
+    "sdg_reason": "Tools for writing, coding and support work link to productivity (8.2) and to reskilling needs (4.4)."
   },
   {
     "skill": "RAG",
@@ -478,7 +481,7 @@
       "8.2",
       "16.6"
     ],
-    "sdg_reason": "Grounds model answers in source documents that can be cited, which makes AI output checkable."
+    "sdg_reason": "Answers grounded in cited documents link to checkable AI output (16.6) and to productivity (8.2)."
   },
   {
     "skill": "Vector Databases",
@@ -498,7 +501,7 @@
     "sdg": [
       "9.5"
     ],
-    "sdg_reason": "Search by meaning over large document sets, used in research tools and knowledge systems."
+    "sdg_reason": "Search by meaning links to research tools and knowledge systems (9.5)."
   },
   {
     "skill": "PyTorch",
@@ -510,24 +513,30 @@
       "9.5",
       "4.3"
     ],
-    "sdg_reason": "Open-source framework used in a large share of deep-learning research, and free to learn."
+    "sdg_reason": "Open-source and free to learn, which links to research capacity (9.5) and to technical education (4.3)."
   },
   {
-    "skill": "Machine Learning / AI",
+    "skill": "Machine Learning",
     "category": "ai_ml",
     "synonyms": [
       "ML",
-      "AI",
+      "MLOps",
+      "AI engineer",
       "Deep Learning",
-      "Artificial Intelligence"
+      "Computer Vision",
+      "NLP",
+      "Reinforcement Learning",
+      "TensorFlow",
+      "scikit-learn"
     ],
-    "pattern": "(?<![\\w-])(?:(?<!Generative )(?<!generative )(?<!Gen )AI|ML|A\\.I\\.|(?i:machine[ -]learning|deep[ -]learning|artificial intelligence))(?!\\w)",
+    "pattern": "(?<![\\w-])(?:ML(?:Ops)?|AI[ -](?:engineers?|engineering|researchers?|research|scientists?|infra(?:structure)?|platform|models?|training|evals?)|(?i:machine[ -]learning|deep[ -]learning|computer vision|NLP|reinforcement learning|tensorflow|scikit-learn|sklearn|xgboost))(?!\\w)",
     "case_sensitive": true,
     "sdg": [
       "9.5",
       "8.2"
     ],
-    "sdg_reason": "Core skill for building prediction and automation systems that raise productivity and drive research."
+    "sdg_reason": "Building prediction and automation systems links to productivity (8.2) and to research (9.5).",
+    "note": "Counts ML skill phrases only. A bare 'AI' in a company blurb is not counted; see data/ai_context_monthly.csv for that context series."
   },
   {
     "skill": "Microservices",
@@ -540,6 +549,6 @@
     "sdg": [
       "8.2"
     ],
-    "sdg_reason": "Lets large teams ship parts of a system independently, though it adds operations cost that pays off mainly at scale."
+    "sdg_reason": "Lets teams ship parts of a system independently, which links to productivity (8.2)."
   }
 ]

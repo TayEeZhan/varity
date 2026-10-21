@@ -45,6 +45,15 @@ def test_taxonomy_entries_are_well_formed(taxonomy):
         re.compile(e["pattern"])
 
 
+def test_sdg_reasons_state_links_not_statistics(taxonomy):
+    for e in taxonomy:
+        reason = e["sdg_reason"]
+        # Digits are allowed only inside SDG codes such as "(8.2)".
+        stripped = re.sub(r"\(\d+\.\w+\)", "", reason)
+        assert not re.search(r"\d", stripped), (e["skill"], reason)
+        assert "studies show" not in reason.lower(), e["skill"]
+
+
 def test_taxonomy_file_is_valid_utf8_json():
     path = Path(__file__).resolve().parent.parent / "data" / "taxonomy.json"
     assert isinstance(json.loads(path.read_text(encoding="utf-8")), list)
@@ -265,28 +274,54 @@ def test_swift_negative(text, taxonomy):
 # --------------------------------------------------------- Java vs JavaScript
 
 
+JS_TS = "JavaScript / TypeScript"
+
+
 def test_java_is_not_javascript(taxonomy):
     found = tags("Backend in Java 17 and Spring.", taxonomy)
     assert "Java" in found
-    assert "JavaScript" not in found
+    assert JS_TS not in found
 
 
 def test_javascript_is_not_java(taxonomy):
     found = tags("Full stack JavaScript and Node.js", taxonomy)
-    assert "JavaScript" in found
+    assert JS_TS in found
     assert "Java" not in found
     assert "Node.js" in found
 
 
 def test_java_and_javascript_both(taxonomy):
-    assert {"Java", "JavaScript"} <= tags("Java, JavaScript, SQL", taxonomy)
+    assert {"Java", JS_TS} <= tags("Java, JavaScript, SQL", taxonomy)
 
 
 def test_nodejs_does_not_count_as_javascript(taxonomy):
     # "Node.js" is its own skill. The ".js" must not leak into JavaScript.
     found = tags("We run Node.js and Express.", taxonomy)
     assert "Node.js" in found
-    assert "JavaScript" not in found
+    assert JS_TS not in found
+
+
+def test_typescript_counts_in_both_rows(taxonomy):
+    found = tags("Frontend in TypeScript.", taxonomy)
+    assert {JS_TS, "TypeScript"} <= found
+
+
+def test_javascript_counts_only_in_combined_row(taxonomy):
+    found = tags("Frontend in JavaScript.", taxonomy)
+    assert JS_TS in found
+    assert "TypeScript" not in found
+
+
+def test_java_counts_in_neither_js_row(taxonomy):
+    found = tags("Backend in Java.", taxonomy)
+    assert JS_TS not in found
+    assert "TypeScript" not in found
+
+
+def test_js_and_ts_rows_explain_themselves(taxonomy):
+    by_name = {e["skill"]: e for e in taxonomy}
+    assert by_name[JS_TS]["note"].strip()
+    assert by_name["TypeScript"]["note"].strip()
 
 
 # ------------------------------------------------- SQL, NoSQL and PostgreSQL
@@ -320,7 +355,7 @@ def test_sql_variants(taxonomy):
 
 # ---------------------------------------------------------------------- AI
 
-ML_AI = "Machine Learning / AI"
+ML_AI = "Machine Learning"
 
 
 @pytest.mark.parametrize(
@@ -339,15 +374,38 @@ def test_ai_not_inside_words(text, taxonomy):
 @pytest.mark.parametrize(
     "text",
     [
-        "We build AI products for banks.",
         "AI/ML engineer wanted",
         "Strong machine learning background",
         "ML and deep learning experience",
-        "AI-powered search",
+        "ML engineer",
+        "We run MLOps on Kubernetes.",
+        "AI engineer for our platform team",
+        "machine learning",
+        "PyTorch or TensorFlow",
+        "Experience with computer vision",
     ],
 )
-def test_ai_positive(text, taxonomy):
+def test_ml_positive(text, taxonomy):
     assert ML_AI in tags(text, taxonomy)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "We build AI products",
+        "We build AI products for banks.",
+        "AI-powered search",
+        "We are an AI startup.",
+    ],
+)
+def test_bare_ai_is_not_ml(text, taxonomy):
+    # A bare "AI" in a company blurb is context, not an ML skill.
+    assert ML_AI not in tags(text, taxonomy)
+
+
+def test_tensorflow_is_machine_learning(taxonomy):
+    assert ML_AI in tags("PyTorch or TensorFlow", taxonomy)
+    assert "PyTorch" in tags("PyTorch or TensorFlow", taxonomy)
 
 
 # --------------------------------------------------------------- LLM forms
@@ -370,6 +428,9 @@ def test_llm_forms(text, taxonomy):
 
 def test_generative_ai_is_not_also_ml_ai(taxonomy):
     found = tags("We are a Generative AI startup.", taxonomy)
+    assert "LLM / GenAI" in found
+    assert ML_AI not in found
+    found = tags("GenAI experience is a plus.", taxonomy)
     assert "LLM / GenAI" in found
     assert ML_AI not in found
 
