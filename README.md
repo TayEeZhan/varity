@@ -2,6 +2,8 @@
 
 Verity reads a tech developer's CV, forecasts which skills are rising or falling from dated public data, and gives ranked future roles and a learning plan. Every claim shows its source and date, and the plan changes when the data changes. The app currently shows sample data from `data/fixtures/`, not real forecasts.
 
+**Live prototype:** https://verity--eezhan0805.replit.app
+
 ## Run locally
 
 ```

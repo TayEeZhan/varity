@@ -5,6 +5,8 @@ Domain 1: Aiversecity Future-Ready Workforce. Team: Ee Zhan (EZ) + Sheng Kuan (S
 Brief: `C:\Users\eezha\sdc-hackathon\BRIEF.md`. Idea doc: `SKidea.md` (SK).
 Plan v2, 22 Oct. Reviewed by a second model; changes from v1 are folded in.
 
+**Live prototype (Replit Autoscale): https://verity--eezhan0805.replit.app** (deployed 22 Oct; checked logged out).
+
 ## Product in one line
 Verity reads a tech developer's CV, forecasts which skills are rising or falling from dated public data, and gives ranked future roles plus a daily learning plan. Every claim shows its source and date. The plan changes when the data changes.
 
