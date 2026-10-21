@@ -1,0 +1,545 @@
+[
+  {
+    "skill": "Python",
+    "category": "language",
+    "synonyms": [
+      "Python3",
+      "Python 3"
+    ],
+    "pattern": "(?<![\\w-])python3?(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "4.4",
+      "9.5"
+    ],
+    "sdg_reason": "Free to learn and the default language of data and research work, so it builds job skills and research capacity."
+  },
+  {
+    "skill": "JavaScript",
+    "category": "language",
+    "synonyms": [
+      "JS",
+      "ECMAScript"
+    ],
+    "pattern": "(?<![\\w.-])(?:java ?script|ecmascript|js)(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "4.4",
+      "9.c"
+    ],
+    "sdg_reason": "Runs in every browser with no install, so it is a cheap path into web jobs and web access."
+  },
+  {
+    "skill": "TypeScript",
+    "category": "language",
+    "synonyms": [],
+    "pattern": "(?<![\\w-])typescript(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Static types catch bugs early in large web codebases, which raises team productivity."
+  },
+  {
+    "skill": "Java",
+    "category": "language",
+    "synonyms": [
+      "J2EE"
+    ],
+    "pattern": "(?<![\\w.-])(?:java|j2ee)(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.5"
+    ],
+    "sdg_reason": "Long-lived enterprise language with a large employer base, so it supports steady developer jobs, though demand is mature."
+  },
+  {
+    "skill": "Go",
+    "category": "language",
+    "synonyms": [
+      "Golang"
+    ],
+    "pattern": "(?<![\\w.-])(?:Go(?![\\w-])(?![ \\t]+(?i:to[ \\t]+market|ahead|live|beyond|the[ \\t]+extra)\\b)|(?i:golang)(?!\\w))",
+    "case_sensitive": true,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Simple compiled language for cloud services, which lets small teams build efficient back ends."
+  },
+  {
+    "skill": "Rust",
+    "category": "language",
+    "synonyms": [
+      "rustlang"
+    ],
+    "pattern": "(?<![\\w-])(?:Rust(?!\\w)(?![ \\t]+Belt\\b)|(?i:rustlang)(?!\\w))",
+    "case_sensitive": true,
+    "sdg": [
+      "7.3",
+      "8.2"
+    ],
+    "sdg_reason": "Compiled code uses less energy per task than interpreted languages in published benchmarks, and memory safety removes a class of bugs."
+  },
+  {
+    "skill": "C",
+    "category": "language",
+    "synonyms": [],
+    "pattern": "(?<![\\w+#.&-])(?<!Series )(?<!Round )(?<!Plan )(?<!Type )(?<!Class )(?<!Grade )(?<!Option )(?<!Phase )(?<!Vitamin )(?<!Hepatitis )C(?![\\w+#&])(?!\\.\\w)(?!\\s*-?\\s*(?i:level|suite)\\b)",
+    "case_sensitive": true,
+    "sdg": [
+      "7.3",
+      "9.5"
+    ],
+    "sdg_reason": "Low-level, energy-efficient code runs embedded and systems software that upgrades industrial technology."
+  },
+  {
+    "skill": "C++",
+    "category": "language",
+    "synonyms": [],
+    "pattern": "(?<![\\w+#])c\\+\\+(?!\\+)",
+    "case_sensitive": false,
+    "sdg": [
+      "9.5",
+      "7.3"
+    ],
+    "sdg_reason": "Used in simulation, engines and embedded systems, with low energy use per task."
+  },
+  {
+    "skill": "C#",
+    "category": "language",
+    "synonyms": [
+      "C Sharp"
+    ],
+    "pattern": "(?<![\\w+#.])(?:c#|c[ -]sharp\\b|csharp\\b)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.5"
+    ],
+    "sdg_reason": "Mainstream enterprise and game language with a steady job market, mostly tied to the .NET ecosystem."
+  },
+  {
+    "skill": "Swift",
+    "category": "language",
+    "synonyms": [
+      "SwiftUI"
+    ],
+    "pattern": "(?<![\\w-])(?<!Taylor )(?:Swift(?!\\w)(?![ \\t]+(?i:delivery|response|responses|turnaround|growth|action|resolution|execution|decisions?|learner|learners|moving|progress)\\b)(?![ \\t]+(?!(?:UI|Package|Packages|Concurrency|Developer|Developers|Engineer|Engineers|Playgrounds?|Programming|Language|Code|Experience|Combine|Core|Data)\\b)[A-Z]\\w*)|SwiftUI(?!\\w))",
+    "case_sensitive": true,
+    "sdg": [
+      "9.c"
+    ],
+    "sdg_reason": "Main language for Apple phone apps, so it gives users access to mobile services, but the market is narrow and platform-bound."
+  },
+  {
+    "skill": "PHP",
+    "category": "language",
+    "synonyms": [],
+    "pattern": "(?<![\\w-])php(?:\\d(?:\\.\\d+)?)?(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "9.c",
+      "8.5"
+    ],
+    "sdg_reason": "Cheap hosting and a large installed base keep many small-business sites on PHP, so it supports low-cost web access and maintenance jobs."
+  },
+  {
+    "skill": "Perl",
+    "category": "language",
+    "synonyms": [],
+    "pattern": "(?<![\\w-])perl\\d?(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.5"
+    ],
+    "sdg_reason": "Legacy scripting language; the skill mostly keeps old systems running and demand is shrinking."
+  },
+  {
+    "skill": "Ruby",
+    "category": "language",
+    "synonyms": [
+      "RoR",
+      "Ruby on Rails"
+    ],
+    "pattern": "(?<![\\w-])(?:(?i:ruby|jruby)|RoR)(?!\\w)",
+    "case_sensitive": true,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Ruby on Rails lets very small teams ship web products fast."
+  },
+  {
+    "skill": "R",
+    "category": "language",
+    "synonyms": [],
+    "pattern": "(?<![\\w+#.&'-])R(?![\\w+#&'-])(?!\\.\\s*[A-Z]\\.)(?!\\s*-?\\s*(?i:rated)\\b)",
+    "case_sensitive": true,
+    "sdg": [
+      "3.d",
+      "9.5"
+    ],
+    "sdg_reason": "Standard tool in statistics and epidemiology, which supports health-risk analysis and research capacity."
+  },
+  {
+    "skill": "React",
+    "category": "framework",
+    "synonyms": [
+      "ReactJS",
+      "React.js"
+    ],
+    "pattern": "(?<![\\w.-])(?:React(?!\\w)(?!\\s*-?\\s*Native\\b)(?![ \\t]+(?i:to|quickly|fast|swiftly)\\b)|(?i:react[ .]?js)(?!\\w))",
+    "case_sensitive": true,
+    "sdg": [
+      "4.4",
+      "8.5"
+    ],
+    "sdg_reason": "Very widely used web UI library, so it has a large pool of front-end jobs and free learning material."
+  },
+  {
+    "skill": "React Native",
+    "category": "framework",
+    "synonyms": [],
+    "pattern": "(?<![\\w.-])react[ -]?native(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "9.c",
+      "8.2"
+    ],
+    "sdg_reason": "One codebase for iOS and Android lets small teams reach phone users, the main way many people get online."
+  },
+  {
+    "skill": "AngularJS",
+    "category": "framework",
+    "synonyms": [
+      "Angular.js",
+      "Angular 1.x"
+    ],
+    "pattern": "(?<![\\w.-])angular(?:[ .-]?js|[ -]?1(?!\\d))(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.5"
+    ],
+    "sdg_reason": "Google ended long-term support in 2021, so the skill only supports maintenance of old apps."
+  },
+  {
+    "skill": "jQuery",
+    "category": "framework",
+    "synonyms": [],
+    "pattern": "(?<![\\w.-])jquery(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.5"
+    ],
+    "sdg_reason": "Legacy front-end library kept alive in older sites, so the skill mainly serves maintenance work."
+  },
+  {
+    "skill": "Node.js",
+    "category": "framework",
+    "synonyms": [
+      "NodeJS",
+      "Node JS"
+    ],
+    "pattern": "(?<![\\w.-])node[ .-]?js(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Lets web developers use one language on front end and back end, so small teams ship faster."
+  },
+  {
+    "skill": "SQL",
+    "category": "data",
+    "synonyms": [
+      "T-SQL",
+      "PL/SQL"
+    ],
+    "pattern": "(?<!\\w)sql(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "4.4",
+      "16.6"
+    ],
+    "sdg_reason": "Learnable in weeks and needed in most data jobs, and queryable records support accountable reporting."
+  },
+  {
+    "skill": "PostgreSQL",
+    "category": "data",
+    "synonyms": [
+      "Postgres"
+    ],
+    "pattern": "(?<!\\w)(?:postgres(?:ql)?|psql)(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "9.c"
+    ],
+    "sdg_reason": "Free and open source, so small organisations can run a production database without licence fees."
+  },
+  {
+    "skill": "MongoDB",
+    "category": "data",
+    "synonyms": [
+      "Mongo"
+    ],
+    "pattern": "(?<!\\w)mongo(?: ?db)?(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Flexible document store that speeds early product work, though loose schemas can hurt data quality."
+  },
+  {
+    "skill": "Spark",
+    "category": "data",
+    "synonyms": [
+      "Apache Spark",
+      "PySpark"
+    ],
+    "pattern": "(?i:\\bpyspark\\b|\\bapache[ -]spark\\b)|(?<![\\w-])Spark(?!\\w)(?![ \\t]+(?i:joy|your|the|a|an|in|up|change|growth|curiosity|ideas?|innovation|creativity|interest|conversations?|fire)\\b)(?![ \\t]+(?!(?:SQL|Streaming|MLlib|Structured|Scala|Python|Java|Hadoop|Kafka|Hive|Flink|Databricks|Core|Connect|Cluster|Clusters|DataFrames?|Developer|Engineers?|Jobs?|Experience|Pipelines?)\\b)[A-Z]\\w*)",
+    "case_sensitive": true,
+    "sdg": [
+      "9.5",
+      "8.2"
+    ],
+    "sdg_reason": "Processes data too large for one machine, which supports research and industry analytics at scale."
+  },
+  {
+    "skill": "Hadoop",
+    "category": "data",
+    "synonyms": [
+      "HDFS"
+    ],
+    "pattern": "(?<!\\w)(?:hadoop|hdfs)(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "9.5"
+    ],
+    "sdg_reason": "Early big-data platform used in research and legacy firms; cloud warehouses are replacing it, so it signals maintenance work."
+  },
+  {
+    "skill": "Kafka",
+    "category": "data",
+    "synonyms": [
+      "Apache Kafka"
+    ],
+    "pattern": "(?<!\\w)kafka(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Moves event data between systems in real time, which helps firms automate and raise throughput."
+  },
+  {
+    "skill": "Snowflake",
+    "category": "data",
+    "synonyms": [],
+    "pattern": "(?<![\\w-])Snowflake(?!\\w)(?![ \\t]+(?i:schemas?|ids?)\\b)",
+    "case_sensitive": true,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Managed cloud data warehouse that lets small teams run analytics without running servers."
+  },
+  {
+    "skill": "dbt",
+    "category": "data",
+    "synonyms": [
+      "data build tool",
+      "dbt Core"
+    ],
+    "pattern": "(?<![\\w.-])(?:dbt(?!\\w)|(?i:data build tool)(?!\\w))",
+    "case_sensitive": true,
+    "sdg": [
+      "8.2",
+      "16.6"
+    ],
+    "sdg_reason": "Tested, version-controlled SQL models make reported numbers traceable and save analyst time."
+  },
+  {
+    "skill": "Airflow",
+    "category": "data",
+    "synonyms": [
+      "Apache Airflow"
+    ],
+    "pattern": "(?i:\\bapache airflow\\b)|(?<![\\w-])Airflow(?!\\w)",
+    "case_sensitive": true,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Schedules and monitors data pipelines, which replaces manual data chores with automated jobs."
+  },
+  {
+    "skill": "AWS",
+    "category": "cloud_devops",
+    "synonyms": [
+      "Amazon Web Services"
+    ],
+    "pattern": "(?<![\\w-])AWS(?!\\w)|(?i:\\bamazon web services\\b)",
+    "case_sensitive": true,
+    "sdg": [
+      "9.c",
+      "8.2"
+    ],
+    "sdg_reason": "Pay-as-you-go computing lowers the cost of starting an online service."
+  },
+  {
+    "skill": "GCP",
+    "category": "cloud_devops",
+    "synonyms": [
+      "Google Cloud",
+      "Google Cloud Platform"
+    ],
+    "pattern": "(?<![\\w-])GCP(?!\\w)|(?i:\\bgoogle cloud(?: platform)?(?!\\w))",
+    "case_sensitive": true,
+    "sdg": [
+      "9.c"
+    ],
+    "sdg_reason": "Pay-as-you-go cloud computing lowers the cost of starting an online service; its market share is smaller than AWS or Azure."
+  },
+  {
+    "skill": "Azure",
+    "category": "cloud_devops",
+    "synonyms": [
+      "Microsoft Azure"
+    ],
+    "pattern": "(?<![\\w-])Azure(?!\\w)",
+    "case_sensitive": true,
+    "sdg": [
+      "8.5"
+    ],
+    "sdg_reason": "Common in enterprise and public-sector IT, so it opens jobs in large organisations and government systems."
+  },
+  {
+    "skill": "Kubernetes",
+    "category": "cloud_devops",
+    "synonyms": [
+      "K8s"
+    ],
+    "pattern": "(?<![\\w-])(?:kubernetes|k8s)(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.2",
+      "7.3"
+    ],
+    "sdg_reason": "Packs workloads onto fewer machines, which raises utilisation and can cut energy use, but needs scarce operations skill."
+  },
+  {
+    "skill": "Docker",
+    "category": "cloud_devops",
+    "synonyms": [
+      "Dockerfile"
+    ],
+    "pattern": "(?<![\\w-])docker(?:file)?(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.2",
+      "4.4"
+    ],
+    "sdg_reason": "The same environment on every machine cuts setup time and makes projects easier for learners to run."
+  },
+  {
+    "skill": "Terraform",
+    "category": "cloud_devops",
+    "synonyms": [
+      "OpenTofu"
+    ],
+    "pattern": "(?<![\\w-])(?:terraform|opentofu)(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Describes infrastructure as code, so teams reproduce and review cloud setups instead of clicking by hand."
+  },
+  {
+    "skill": "LLM / GenAI",
+    "category": "ai_ml",
+    "synonyms": [
+      "LLMs",
+      "large language models",
+      "GenAI",
+      "Generative AI",
+      "ChatGPT"
+    ],
+    "pattern": "(?<![\\w-])(?:LLM(?:s|Ops)?|(?i:large[ -]language[ -]models?|gen[ -]?ai|generative[ -]ai|chat-?gpt|gpt-?[345]o?(?:\\.\\d)?|prompt engineering))(?!\\w)",
+    "case_sensitive": true,
+    "sdg": [
+      "8.2",
+      "4.4"
+    ],
+    "sdg_reason": "Speeds up writing, coding and support work, and it changes which tasks people do, so workers need reskilling."
+  },
+  {
+    "skill": "RAG",
+    "category": "ai_ml",
+    "synonyms": [
+      "Retrieval-Augmented Generation"
+    ],
+    "pattern": "(?<![\\w-])(?:RAG(?!\\w)(?![ \\t]+(?i:status|rating|ratings|report)\\b)|(?i:retrieval[ -]augmented(?: generation)?)(?!\\w))",
+    "case_sensitive": true,
+    "sdg": [
+      "8.2",
+      "16.6"
+    ],
+    "sdg_reason": "Grounds model answers in source documents that can be cited, which makes AI output checkable."
+  },
+  {
+    "skill": "Vector Databases",
+    "category": "ai_ml",
+    "synonyms": [
+      "vector DB",
+      "vector store",
+      "pgvector",
+      "Pinecone",
+      "Weaviate",
+      "Milvus",
+      "Qdrant",
+      "FAISS"
+    ],
+    "pattern": "(?<![\\w-])(?:vector[ -](?:databases?|dbs?|stores?|search|index|indexes)|pgvector|pinecone|weaviate|milvus|qdrant|faiss|chromadb)(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "9.5"
+    ],
+    "sdg_reason": "Search by meaning over large document sets, used in research tools and knowledge systems."
+  },
+  {
+    "skill": "PyTorch",
+    "category": "ai_ml",
+    "synonyms": [],
+    "pattern": "(?<![\\w-])py-?torch(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "9.5",
+      "4.3"
+    ],
+    "sdg_reason": "Open-source framework used in a large share of deep-learning research, and free to learn."
+  },
+  {
+    "skill": "Machine Learning / AI",
+    "category": "ai_ml",
+    "synonyms": [
+      "ML",
+      "AI",
+      "Deep Learning",
+      "Artificial Intelligence"
+    ],
+    "pattern": "(?<![\\w-])(?:(?<!Generative )(?<!generative )(?<!Gen )AI|ML|A\\.I\\.|(?i:machine[ -]learning|deep[ -]learning|artificial intelligence))(?!\\w)",
+    "case_sensitive": true,
+    "sdg": [
+      "9.5",
+      "8.2"
+    ],
+    "sdg_reason": "Core skill for building prediction and automation systems that raise productivity and drive research."
+  },
+  {
+    "skill": "Microservices",
+    "category": "practice",
+    "synonyms": [
+      "microservice"
+    ],
+    "pattern": "(?<![\\w-])micro-?services?(?!\\w)",
+    "case_sensitive": false,
+    "sdg": [
+      "8.2"
+    ],
+    "sdg_reason": "Lets large teams ship parts of a system independently, though it adds operations cost that pays off mainly at scale."
+  }
+]
