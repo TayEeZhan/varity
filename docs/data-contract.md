@@ -16,13 +16,13 @@ The ingestion side (Sheng Kuan) writes rows. The engine side (Ee Zhan) reads the
 ```
 A skill without an exact `evidence_quote` from the CV is dropped. The user can edit the list and set `target_role`.
 
-## `data/signals.jsonl`
+## `data/raw/signals.jsonl` (local only, gitignored: it holds raw text)
 One JSON object per line. One row = one dated item from one source.
 
 | Field | Type | Required | Example | Note |
 |---|---|---|---|---|
 | `id` | string | yes | `hn:41234567` | `<source>:<native id>`. Must be stable, so re-runs do not make duplicates. |
-| `source` | string | yes | `hn_hiring` | One of: `hn_hiring`, `hn_story`, `github`, `arxiv`, `hf`, `rss`, `bluesky` |
+| `source` | string | yes | `hn_hiring` | One of: `hn_hiring`, `hn_story`, `github`, `arxiv`, `hf`, `rss`. (No Bluesky, X, LinkedIn or JobStreet: personal data and terms of service.) |
 | `kind` | string | yes | `job_post` | One of: `job_post`, `news`, `release`, `repo`, `paper`, `post` |
 | `url` | string | yes | `https://news.ycombinator.com/item?id=41234567` | The citation shown to the user |
 | `title` | string | no | `Acme is hiring ML engineers` | |
@@ -72,5 +72,5 @@ Numbers above are examples only.
 ```
 
 ## Privacy and size
-- Commit monthly aggregates, IDs and URLs. Keep raw `text` local (`data/raw/` is in `.gitignore`).
+- Commit monthly aggregates, IDs and URLs. Keep raw `text` local (`data/raw/` is in `.gitignore`). The ingestion side commits only aggregates (for example `data/signals_weekly.csv` = week, skill, mentions, source, example ids).
 - Strip names, emails and phone numbers from job-post text before any processing.
