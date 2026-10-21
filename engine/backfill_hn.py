@@ -174,6 +174,134 @@ def missing_months(months: set[str], latest: str) -> list[str]:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Live refresh: newest thread only. The full backfill above does not use this.
+# ---------------------------------------------------------------------------
+
+# Newest first. The author "whoishiring" posts 3 threads a month (hiring,
+# freelancer, seeking freelancer), so 30 hits cover the last ~10 months.
+LATEST_URL = "https://hn.algolia.com/api/v1/search_by_date?tags=story,author_whoishiring&hitsPerPage=30"
+
+
+def make_session() -> requests.Session:
+    session = requests.Session()
+    session.headers.update({"User-Agent": USER_AGENT, "Accept": "application/json"})
+    return session
+
+
+def _atomic_write_bytes(path: Path, data: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, path)
+
+
+def find_latest_thread(session: requests.Session) -> dict:
+    """Return {"id", "title", "created"} for the newest "Who is hiring?" thread."""
+    _, data = fetch_json(session, LATEST_URL)
+    best = None
+    for hit in (data.get("hits") or []) if isinstance(data, dict) else []:
+        title = (hit.get("title") or "").strip()
+        if not title.startswith(TITLE_PREFIX):
+            continue
+        try:
+            thread_id = int(hit["objectID"])
+            created = datetime.fromtimestamp(int(hit["created_at_i"]), tz=timezone.utc)
+        except (KeyError, TypeError, ValueError):
+            continue
+        if best is None or created > best["created"]:
+            best = {"id": thread_id, "title": title, "created": created}
+    if best is None:
+        raise RuntimeError("no 'Ask HN: Who is hiring?' thread in the Algolia result")
+    return best
+
+
+def upsert_thread_row(csv_path: Path, row: dict) -> str:
+    """Add or update one row of hn_threads.csv. Return "added", "updated" or "unchanged".
+
+    Rows are matched by thread_id. A different thread for a month that already
+    has one raises RuntimeError: demand.py allows one thread per month.
+    """
+    csv_path = Path(csv_path)
+    rows: list[dict] = []
+    if csv_path.exists():
+        with csv_path.open(encoding="utf-8", newline="") as fh:
+            rows = list(csv.DictReader(fh))
+    new = {k: str(row[k]) for k in CSV_COLUMNS}
+    result = "added"
+    out = []
+    for r in rows:
+        if r["thread_id"] == new["thread_id"]:
+            result = "unchanged" if r == new else "updated"
+            continue
+        if r["month"] == new["month"]:
+            raise RuntimeError(f"month {new['month']} already has thread {r['thread_id']}, not {new['thread_id']}")
+        out.append(r)
+    if result == "unchanged":
+        return result
+    out.append(new)
+    out.sort(key=lambda r: (r["month"], int(r["thread_id"])))
+    tmp = csv_path.with_name(csv_path.name + ".tmp")
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    with tmp.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=CSV_COLUMNS)
+        writer.writeheader()
+        writer.writerows(out)
+    os.replace(tmp, csv_path)
+    return result
+
+
+def fetch_latest_thread(
+    force: bool = True,
+    raw_dir: str | Path = RAW_DIR,
+    session: requests.Session | None = None,
+    csv_path: str | Path | None = CSV_PATH,
+) -> tuple[int, str, int, str]:
+    """Fetch the newest "Ask HN: Who is hiring?" thread and return
+    (thread_id, month, n_top_level, fetched_at).
+
+    force=True ignores any cached raw JSON and downloads the thread again.
+    force=False reuses <raw_dir>/<id>.json when it exists (fetched_at is then
+    the file's modified time). The raw JSON is saved atomically, and only after
+    it passes a basic check. Pass csv_path=None to leave hn_threads.csv alone;
+    otherwise the thread's row is added or updated there (a new month adds a row).
+    Raises RuntimeError (or OSError) on failure. Nothing is written before the
+    download has succeeded.
+    """
+    raw_dir = Path(raw_dir)
+    session = session or make_session()
+    thread = find_latest_thread(session)
+    thread_id = thread["id"]
+    path = raw_dir / f"{thread_id}.json"
+
+    if path.exists() and not force:
+        item = json.loads(path.read_text(encoding="utf-8"))
+        fetched_at = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+    else:
+        raw, item = fetch_json(session, ITEM_URL.format(id=thread_id))
+        if not isinstance(item, dict) or not isinstance(item.get("children"), list):
+            raise RuntimeError(f"unexpected item JSON for thread {thread_id}")
+        fetched_at = datetime.now(timezone.utc)
+        _atomic_write_bytes(path, raw)
+
+    created = thread["created"]
+    month = month_from_title(thread["title"]) or created.strftime("%Y-%m")
+    n_top_level = count_top_level(item)
+    if csv_path is not None:
+        upsert_thread_row(
+            Path(csv_path),
+            {
+                "thread_id": thread_id,
+                "month": month,
+                "created_at": created.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "title": thread["title"],
+                "url": HN_ITEM_URL.format(id=thread_id),
+                "n_top_level": n_top_level,
+            },
+        )
+    return thread_id, month, n_top_level, fetched_at.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def main() -> int:
     RAW_DIR.mkdir(parents=True, exist_ok=True)
 

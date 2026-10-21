@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -168,6 +169,160 @@ def _add_trailing_mean(rows: list[dict], skills: list[str]) -> None:
         for i, r in enumerate(series):
             window = series[max(0, i - SMOOTH_WINDOW + 1) : i + 1]
             r["share_smooth"] = sum(w["share"] for w in window) / len(window)
+
+
+def _month_rows(thread: dict, item: dict, taxonomy: list[dict], skills: list[str]) -> tuple[list[dict], dict]:
+    """Skill rows and the AI context row for one thread. Same counting rules as build_all.
+
+    share_smooth is left at 0.0. update_months sets it.
+    """
+    counts = dict.fromkeys(skills, 0)
+    n_posts = 0
+    ai_mentions = 0
+    for text in _live_posts(item):
+        n_posts += 1
+        for skill in tag_text(text, taxonomy):
+            counts[skill] += 1
+        if AI_CONTEXT_PATTERN.search(clean_text(text)):
+            ai_mentions += 1
+
+    def row(skill: str, mentions: int) -> dict:
+        return {
+            "month": thread["month"],
+            "skill": skill,
+            "mentions": mentions,
+            "n_posts": n_posts,
+            "share": mentions / n_posts if n_posts else 0.0,
+            "share_smooth": 0.0,
+            "thread_id": thread["thread_id"],
+            "thread_url": thread["url"],
+        }
+
+    return [row(s, counts[s]) for s in skills], row("AI context", ai_mentions)
+
+
+def _exact_share(row: dict) -> float:
+    """mentions / n_posts from a CSV row. The 6-digit share column is rounded, so do not use it."""
+    n = int(row["n_posts"])
+    return int(row["mentions"]) / n if n else 0.0
+
+
+def _merge_months(
+    path: Path,
+    columns: list[str],
+    new_rows: list[dict],
+    targets: set[str],
+    skill_order: list[str],
+    fixed_skill: str | None = None,
+) -> tuple[int, int]:
+    """Replace the rows of `targets` in the CSV at `path` with `new_rows`. Return (changed, added).
+
+    Rows of other months are written back as the exact strings that were read.
+    share_smooth is recomputed only for the target months and the months right
+    after them (a trailing window reaches forward SMOOTH_WINDOW-1 months).
+    """
+    old_rows: list[dict] = []
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as fh:
+            old_rows = list(csv.DictReader(fh))
+    if fixed_skill is not None:
+        for r in old_rows:
+            r["skill"] = fixed_skill
+    old_target = {(r["month"], r["skill"]): r for r in old_rows if r["month"] in targets}
+
+    def as_text(r: dict) -> dict:
+        return {
+            **r,
+            "mentions": str(r["mentions"]),
+            "n_posts": str(r["n_posts"]),
+            "share": f"{r['share']:.6f}",
+            "share_smooth": f"{r['share_smooth']:.6f}",
+            "thread_id": str(r["thread_id"]),
+        }
+
+    order = {s: i for i, s in enumerate(skill_order)}
+    rows = [r for r in old_rows if r["month"] not in targets] + [as_text(r) for r in new_rows]
+    rows.sort(key=lambda r: (r["month"], order.get(r["skill"], len(order)), r["skill"]))
+
+    by_skill: dict[str, list[dict]] = {}
+    for r in rows:
+        by_skill.setdefault(r["skill"], []).append(r)
+    for series in by_skill.values():
+        hit = [i for i, r in enumerate(series) if r["month"] in targets]
+        if not hit:
+            continue
+        redo = {j for i in hit for j in range(i, min(len(series), i + SMOOTH_WINDOW))}
+        for j in sorted(redo):
+            window = series[max(0, j - SMOOTH_WINDOW + 1) : j + 1]
+            series[j]["share_smooth"] = f"{sum(_exact_share(w) for w in window) / len(window):.6f}"
+
+    changed = added = 0
+    old_all = {(r["month"], r["skill"]): r for r in old_rows}
+    for r in rows:
+        key = (r["month"], r["skill"])
+        if key not in old_all:
+            added += 1
+        elif any(old_all[key].get(c) != r.get(c) for c in columns):
+            changed += 1
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    with tmp.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=columns, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+    os.replace(tmp, path)
+    return changed, added
+
+
+def update_months(
+    months: list[str] | str,
+    threads_csv: str | Path = THREADS_CSV,
+    raw_dir: str | Path = RAW_DIR,
+    out_csv: str | Path = OUT_CSV,
+    ai_context_csv: str | Path | None = None,
+    taxonomy_path: str | Path | None = None,
+) -> dict:
+    """Recompute only `months` from their raw JSON and merge them into the monthly tables.
+
+    Fast path for a live refresh: it reads one raw thread per month, not all
+    ~90, and it needs no raw JSON for other months. Other months keep their
+    rows byte for byte. Result for the months equals build_demand, which is the
+    slow full rebuild. Months need a row in threads_csv and a raw file in raw_dir.
+    ai_context_csv is merged too when given.
+    Return {"months", "rows_changed", "rows_added", "ai_rows_changed", "ai_rows_added"}.
+    """
+    targets = {months} if isinstance(months, str) else set(months)
+    threads = {r["month"]: r for r in _read_threads(Path(threads_csv))}
+    missing = sorted(targets - threads.keys())
+    if missing:
+        raise ValueError(f"no thread in {threads_csv} for month(s): {', '.join(missing)}")
+
+    taxonomy = load_taxonomy(taxonomy_path)
+    skills = [e["skill"] for e in taxonomy]
+    raw_dir = Path(raw_dir)
+    skill_rows: list[dict] = []
+    ai_rows: list[dict] = []
+    for month in sorted(targets):
+        thread = threads[month]
+        item = json.loads((raw_dir / f"{thread['thread_id']}.json").read_text(encoding="utf-8"))
+        s_rows, ai_row = _month_rows(thread, item, taxonomy, skills)
+        skill_rows += s_rows
+        ai_rows.append(ai_row)
+
+    changed, added = _merge_months(Path(out_csv), COLUMNS, skill_rows, targets, skills)
+    ai_changed = ai_added = 0
+    if ai_context_csv is not None:
+        ai_changed, ai_added = _merge_months(
+            Path(ai_context_csv), AI_CONTEXT_COLUMNS, ai_rows, targets, ["AI context"], fixed_skill="AI context"
+        )
+    return {
+        "months": sorted(targets),
+        "rows_changed": changed,
+        "rows_added": added,
+        "ai_rows_changed": ai_changed,
+        "ai_rows_added": ai_added,
+    }
 
 
 def summarise(rows: list[dict]) -> None:
