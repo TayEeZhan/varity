@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-10-21T20:52:34Z",
+  "generated_at": "2026-10-21T21:08:59Z",
   "data_window": {
     "from": "2019-01",
     "to": "2026-10"
   },
   "origins": {
-    "calibration": [
+    "early": [
       "2021-12",
       "2023-10"
     ],
@@ -13,7 +13,7 @@
       "2023-11",
       "2025-10"
     ],
-    "n_calibration": 23,
+    "n_early": 23,
     "n_test": 24
   },
   "horizon_months": 12,
@@ -58,13 +58,13 @@
     "jQuery"
   ],
   "n_skill_origin_pairs": {
-    "calibration": 689,
+    "early": 689,
     "test": 616,
     "excluded": 575
   },
   "models": {
     "naive": {
-      "calibration_mae_pp": {
+      "early_mae_pp": {
         "h1": 0.9634,
         "h6": 1.3384,
         "h12": 1.6121,
@@ -75,10 +75,11 @@
         "h6": 1.641,
         "h12": 1.8059,
         "mean_h1_12": 1.6321
-      }
+      },
+      "in_production": true
     },
     "naive3": {
-      "calibration_mae_pp": {
+      "early_mae_pp": {
         "h1": 0.8923,
         "h6": 1.258,
         "h12": 1.5476,
@@ -90,6 +91,7 @@
         "h12": 1.6613,
         "mean_h1_12": 1.4504
       },
+      "in_production": true,
       "test_h12_vs_naive": {
         "test_h12_mae_gain_pp": 0.1446,
         "ci95_skill_bootstrap": [
@@ -99,7 +101,7 @@
       }
     },
     "drift": {
-      "calibration_mae_pp": {
+      "early_mae_pp": {
         "h1": 0.9654,
         "h6": 1.3651,
         "h12": 1.7016,
@@ -111,6 +113,7 @@
         "h12": 2.1279,
         "mean_h1_12": 1.7588
       },
+      "in_production": false,
       "test_h12_vs_naive": {
         "test_h12_mae_gain_pp": -0.322,
         "ci95_skill_bootstrap": [
@@ -120,7 +123,7 @@
       }
     },
     "damped": {
-      "calibration_mae_pp": {
+      "early_mae_pp": {
         "h1": 0.952,
         "h6": 1.3642,
         "h12": 1.757,
@@ -132,6 +135,7 @@
         "h12": 2.2662,
         "mean_h1_12": 1.7174
       },
+      "in_production": false,
       "test_h12_vs_naive": {
         "test_h12_mae_gain_pp": -0.4603,
         "ci95_skill_bootstrap": [
@@ -141,71 +145,205 @@
       }
     }
   },
+  "production_models": [
+    "naive",
+    "naive3"
+  ],
+  "dropped_from_production": [
+    "drift",
+    "damped"
+  ],
+  "model_choice": {
+    "rule": "naive or naive3, lowest mean share-scale |error| at h=12 over origins whose 12-month target is <= the forecast date",
+    "scores_at_forecast_date_pp": {
+      "naive": 1.598,
+      "naive3": 1.5004
+    },
+    "model_used_at_test_origins": {
+      "naive": 0,
+      "naive3": 24
+    }
+  },
   "chosen_model": "naive3",
-  "chosen_because": "naive3 has the lowest mean share-scale MAE at h=12 on calibration origins (2021-12 to 2023-10): naive 1.612 pp, naive3 1.548 pp, drift 1.702 pp, damped 1.757 pp.",
+  "chosen_because": "naive3 has the lower mean share-scale |error| at h=12 over origins whose 12-month target is <= 2026-10: naive 1.598 pp, naive3 1.500 pp.",
   "beats_naive": true,
   "models_beating_naive_on_test_h12": [
     "naive3"
   ],
   "verdict": "On test origins naive3 beats naive at h=12 (1.661 vs 1.806 pp MAE).",
-  "conformal": {
+  "interval": {
+    "label": "80% target band",
     "level": 0.8,
-    "scale": "logit; band = forecast + q, then inverse logit",
-    "q10_by_h": [
-      -0.30525,
-      -0.33847,
-      -0.38278,
-      -0.41226,
-      -0.44688,
-      -0.45487,
-      -0.48256,
-      -0.51044,
-      -0.54616,
-      -0.49555,
-      -0.53088,
-      -0.56395
-    ],
-    "q90_by_h": [
-      0.25646,
-      0.25604,
-      0.26667,
-      0.26426,
-      0.27072,
-      0.25428,
-      0.27149,
-      0.25351,
-      0.24196,
-      0.23229,
-      0.23633,
-      0.24417
+    "type": "rolling, symmetric, volatility-scaled conformal band",
+    "scale": "logit; band = inv_logit(point +/- q_h * sigma), q_h = 80th percentile of |scaled residual|",
+    "sigma": "sample std (ddof=1) of first differences of the logit series over 24 months up to the origin",
+    "window_origins": 24,
+    "window_note": "W=24 set a priori to match the 24-month windows",
+    "earliest_supported_as_of": "2023-11",
+    "q_by_h_at_forecast_date": [
+      1.10176,
+      1.17234,
+      1.20393,
+      1.23599,
+      1.26411,
+      1.23211,
+      1.25614,
+      1.30119,
+      1.3554,
+      1.40224,
+      1.41695,
+      1.45524
     ]
   },
   "coverage": {
-    "test_h12": 0.6591,
-    "test_mean_over_h": 0.7158,
+    "label": "80% target band",
+    "nominal": 0.8,
+    "evaluation": "TEST origins only. At each test origin the model choice and q use only residuals with target <= that origin.",
+    "test_h12": 0.9383,
+    "test_mean_over_h": 0.9106,
     "test_by_h": [
-      0.7143,
-      0.7192,
-      0.7468,
-      0.7305,
-      0.7468,
-      0.7532,
-      0.75,
-      0.7273,
-      0.7159,
-      0.6607,
-      0.6656,
-      0.6591
+      0.8571,
+      0.8718,
+      0.8718,
+      0.9042,
+      0.9091,
+      0.9221,
+      0.9286,
+      0.9351,
+      0.9205,
+      0.9334,
+      0.9351,
+      0.9383
     ],
-    "calibration_h12": 0.7997,
-    "calibration_mean_over_h": 0.7997,
-    "test_mean_band_width_h12_pp": 5.341,
-    "nominal": 0.8
+    "by_share_group": {
+      "lt_3pct": {
+        "n_skill_origins": 154,
+        "h12": 0.9545,
+        "mean_over_h": 0.9259,
+        "mean_band_width_h12_pp": 5.215
+      },
+      "3_to_10pct": {
+        "n_skill_origins": 270,
+        "h12": 0.937,
+        "mean_over_h": 0.8997,
+        "mean_band_width_h12_pp": 7.056
+      },
+      "gt_10pct": {
+        "n_skill_origins": 192,
+        "h12": 0.9271,
+        "mean_over_h": 0.9136,
+        "mean_band_width_h12_pp": 12.766
+      }
+    },
+    "share_group_definition": "raw share over the 3 months up to the origin: <3%, 3-10%, >10%",
+    "test_mean_band_width_h12_pp": 8.376,
+    "n_skill_origins": 616
+  },
+  "interval_sensitivity": {
+    "note": "Sensitivity only, not used to choose W. W=24 set a priori to match the 24-month windows. Where fewer origins than the window exist, all available origins are used.",
+    "W36": {
+      "test_by_h": [
+        0.8279,
+        0.8344,
+        0.8523,
+        0.8782,
+        0.8912,
+        0.914,
+        0.914,
+        0.9156,
+        0.9107,
+        0.9091,
+        0.9205,
+        0.9286
+      ],
+      "test_mean_over_h": 0.8914,
+      "test_h12": 0.9286,
+      "mean_band_width_h12_pp": 7.884,
+      "n_skill_origins": 616
+    },
+    "all_history": {
+      "test_by_h": [
+        0.8101,
+        0.8182,
+        0.8328,
+        0.8604,
+        0.8782,
+        0.901,
+        0.8961,
+        0.9091,
+        0.901,
+        0.8977,
+        0.9188,
+        0.9188
+      ],
+      "test_mean_over_h": 0.8785,
+      "test_h12": 0.9188,
+      "mean_band_width_h12_pp": 7.582,
+      "n_skill_origins": 616
+    },
+    "naive3_fixed_W24": {
+      "test_by_h": [
+        0.8571,
+        0.8718,
+        0.8718,
+        0.9042,
+        0.9091,
+        0.9221,
+        0.9286,
+        0.9351,
+        0.9205,
+        0.9334,
+        0.9351,
+        0.9383
+      ],
+      "test_mean_over_h": 0.9106,
+      "test_h12": 0.9383,
+      "mean_band_width_h12_pp": 8.376,
+      "n_skill_origins": 616
+    },
+    "naive_fixed_W24": {
+      "test_by_h": [
+        0.8734,
+        0.8864,
+        0.862,
+        0.8847,
+        0.8847,
+        0.9075,
+        0.9172,
+        0.9172,
+        0.914,
+        0.9123,
+        0.9075,
+        0.9286
+      ],
+      "test_mean_over_h": 0.8996,
+      "test_h12": 0.9286,
+      "mean_band_width_h12_pp": 8.83,
+      "n_skill_origins": 616
+    }
+  },
+  "trend_label_hit_rate": 0.6722,
+  "trend_label_backtest": {
+    "trend_label_hit_rate": 0.6722,
+    "n": 720,
+    "n_rising": 296,
+    "n_falling": 424,
+    "hit_rate_rising": 0.6047,
+    "hit_rate_falling": 0.7193,
+    "n_no_clear_change": 995,
+    "n_unlabelled_under_30_mentions": 165,
+    "origins": [
+      "2021-12",
+      "2025-10"
+    ],
+    "definition": "Labelled skill-origins (Rising or Falling): the fraction where the pooled share (sum mentions / sum posts) over the next 12 months moved from the last 12 months in the labelled direction.",
+    "caveat": "Consecutive origins overlap and the same skill appears at many origins, so the skill-origins are correlated. n is not the number of independent tests."
   },
   "caveats": [
-    "Calibration targets run to 2024-10, so some calibration residuals were not yet known at the first test origins. The split is by origin month, as specified.",
     "Test errors of one skill are correlated across origins and horizons, so the effective sample is much smaller than the raw count.",
+    "The trend-label hit rate uses overlapping origins, so its skill-origins are correlated.",
     "The last target month (2026-10) comes from an HN thread that was still open when fetched.",
-    "Posts per month fell from a mean of 703 (2019) to 310 (last 12 months), so recent months are noisier than early ones."
+    "Posts per month fell from a mean of 703 (2019) to 310 (last 12 months), so recent months are noisier than early ones.",
+    "exposure.csv (Anthropic Economic Index 2026-06) is not time-cut: the fast scenario uses the same exposure for every as_of."
   ]
 }

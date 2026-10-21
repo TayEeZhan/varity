@@ -43,27 +43,109 @@ Rules:
   "schema_version": 1,
   "generated_at": "2026-10-23T10:00:00Z",
   "as_of": "2026-10",
-  "scenario_params": {"k": 0.5},
+  "partial_month": true,
+  "scenario_params": {"k": 2},
+  "interval": {"label": "80% target band", "level": 0.8, "model": "naive3", "window_origins": 24,
+               "q_h12": 1.455, "earliest_supported_as_of": "2023-11"},
+  "notes": ["exposure.csv (Anthropic Economic Index 2026-06) is not time-cut: the fast scenario uses the same exposure for every as_of.",
+            "trend_label is observed (last 12 months against the 12 before), not a forecast."],
   "data_window": {"from": "2019-01", "to": "2026-10"},
   "skills": [
     {
       "skill": "Kubernetes",
       "sdg": ["8.2"],
       "demand_share_latest": 0.071,
-      "demand_slope": 0.0012,
-      "momentum": 0.34,
+      "mentions_last3": 53,
+      "posts_last3": 743,
+      "level_now": 0.069,
+      "demand_slope": 0.12,
+      "momentum": null,
       "ai_exposure": 0.41,
+      "stance": "neutral",
+      "status": "ok",
+      "note": null,
+      "trend_label": "Rising",
+      "trend_p": 0.004,
+      "mentions_last12": 210,
+      "posts_last12": 3714,
+      "mentions_prev12": 150,
+      "posts_prev12": 3914,
       "forecast": {
-        "moderate": {"value_12m": 0.078, "low": 0.066, "high": 0.090},
-        "fast":     {"value_12m": 0.072, "low": 0.058, "high": 0.087}
+        "moderate": {"value_12m": 0.069, "low": 0.052, "high": 0.091},
+        "fast":     {"value_12m": 0.064, "low": 0.048, "high": 0.084}
       },
-      "evidence": ["hn:41234567", "arxiv:2410.01234"],
-      "sources": [{"name": "HN Who is hiring", "url": "...", "date": "2026-10-01"}]
+      "scenario_shift_pp": -0.5,
+      "band_width_pp": 3.9,
+      "evidence": ["hn:41234567"],
+      "sources": [
+        {"name": "Ask HN: Who is hiring? (October 2026)", "url": "https://news.ycombinator.com/item?id=41234567", "date": "2026-10-01"},
+        {"name": "Anthropic Economic Index (release 2026-06-26)", "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex", "date": "2026-06-26"},
+        {"name": "Verity backtest (rolling conformal, naive3)", "url": "data/backtest.json", "date": "2026-10-21"}
+      ]
+    },
+    {
+      "skill": "Kafka",
+      "sdg": ["8.2"],
+      "demand_share_latest": 0.023,
+      "mentions_last3": 17,
+      "posts_last3": 743,
+      "level_now": 0.023,
+      "demand_slope": -0.06,
+      "momentum": null,
+      "ai_exposure": 0.61,
+      "stance": "neutral",
+      "status": "low_volume",
+      "note": "Too few posts to forecast; observed counts shown.",
+      "trend_label": "No clear change",
+      "trend_p": 0.21,
+      "mentions_last12": 50,
+      "posts_last12": 3714,
+      "mentions_prev12": 66,
+      "posts_prev12": 3914,
+      "forecast": {
+        "moderate": {"value_12m": null, "low": null, "high": null},
+        "fast":     {"value_12m": null, "low": null, "high": null}
+      },
+      "scenario_shift_pp": null,
+      "band_width_pp": null,
+      "evidence": ["hn:41234567"],
+      "sources": []
     }
   ]
 }
 ```
-Numbers above are examples only.
+Numbers above are examples only. `sources` is shortened in the example. A real file has the last 3 HN threads, then AEI, then the backtest entry. `schema_version` is still 1. The value `insufficient_data` of `status` no longer exists: it is now `low_volume` or `rare`.
+
+Fields (per skill, all always present):
+| Field | Meaning |
+|---|---|
+| `status` | `ok`: mean >= 5 mentions per month over the last 12 months, so a forecast exists. `low_volume`: below that, but >= 30 mentions in the last 24 months: no forecast, no scenario, no band. Show the observed counts and the trend label, with `note` ("Too few posts to forecast; observed counts shown."). `rare`: < 30 mentions in 24 months: nothing reliable to show, `trend_label` is null. |
+| `demand_share_latest` | RAW share for display: `mentions_last3 / posts_last3` (pooled over the last 3 months). |
+| `mentions_last3`, `posts_last3` | The two counts behind `demand_share_latest`. |
+| `level_now` | MODEL-scale level today: `inv_logit(mean(y[-3:]))`, y = logit of the smoothed share. |
+| `demand_slope` | Straight-line slope of the raw monthly share over the last 24 months, in percentage points per year. Observed. |
+| `forecast.moderate` | `value_12m` = the chosen model's 12-month point forecast (naive or naive3), `low` / `high` = the 80% target band. Shares between 0 and 1. All null unless `status` is `ok`. |
+| `forecast.fast` | `moderate * (1 - 2 * e_s)` on the value and both band ends, clipped to [0, 1]. `e_s` = the skill's AI exposure minus the mean over the 40 skills. All null unless `status` is `ok`. |
+| `scenario_shift_pp` | `(fast.value_12m - moderate.value_12m) * 100`. `ok` only, else null. |
+| `band_width_pp` | `(moderate.high - moderate.low) * 100`. `ok` only, else null. If `abs(scenario_shift_pp) < band_width_pp / 2`, the UI can say the fast scenario is inside the band. |
+| `trend_label` | OBSERVED, not a forecast. Welch t-test on the monthly logit shares, last 12 months against the 12 before. p < 0.05: `"Rising"` or `"Falling"` (sign of the mean difference), else `"No clear change"`. `null` if the skill has < 30 mentions over those 24 months. |
+| `trend_p` | The Welch p-value. Null when `trend_label` is null. |
+| `mentions_last12`, `posts_last12`, `mentions_prev12`, `posts_prev12` | Pooled counts for the last 12 months and the 12 before. Share = mentions / posts. |
+| `note` | Text for the UI when `status` is not `ok`, else null. |
+
+Top level:
+| Field | Meaning |
+|---|---|
+| `partial_month` | `true` if the last month in the data is the current calendar month (UTC). Its HN thread is still open, so its counts are partial. The UI should say so. |
+| `interval` | Describes the band: `label` ("80% target band"), `level`, the chosen `model`, `window_origins` (24), `q_h12` (the h=12 multiplier), `earliest_supported_as_of`. |
+| `notes` | Plain-text caveats. Includes: `exposure.csv` (AEI 2026-06) is not time-cut. |
+
+Scale rule: never subtract `demand_share_latest` (raw) from `forecast.*.value_12m` (model scale). Any change is `value_12m - level_now`.
+
+How the numbers are made:
+- Model: naive (last value) or naive3 (mean of the last 3 values) on the logit series. The one with the lower mean share-scale error at h=12 over origins whose 12-month target is <= `as_of` is used. Drift and damped are not shipped. Their backtest numbers stay in `data/backtest.json`.
+- Band: rolling, symmetric, volatility-scaled conformal band. `sigma` = sample std (ddof=1) of the first differences of the logit series over 24 months. `q` = 80th percentile of `|actual - forecast| / sigma` over the last 24 origins whose target is <= `as_of`. Band = `inv_logit(point +/- q * sigma)`. The code is `band_offsets()` in `engine/forecast.py`. It is the 80% target band: coverage on test origins is in `data/backtest.json` (`coverage`).
+- `as_of`: `build_scores(as_of)` uses only data with target <= `as_of`. The earliest supported `as_of` is the first month with 24 usable origins (2023-11 for data from 2019-01). Earlier values raise an error. `exposure.csv` is not time-cut.
 
 ## `data/diff.json` ("what changed and why")
 ```json
