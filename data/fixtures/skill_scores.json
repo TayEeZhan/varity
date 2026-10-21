@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "fixture": true,
+  "generated_at": "2026-10-22T00:00:00Z",
+  "as_of": "2026-10",
+  "scenario_params": {"k": 0.5},
+  "data_window": {"from": "2019-01", "to": "2026-10"},
+  "skills": [
+    {
+      "skill": "Python",
+      "sdg": ["4.4", "8.2"],
+      "demand_share_latest": 0.31,
+      "demand_slope": 0.0008,
+      "momentum": 0.05,
+      "ai_exposure": 0.38,
+      "forecast": {
+        "moderate": {"value_12m": 0.32, "low": 0.29, "high": 0.35},
+        "fast": {"value_12m": 0.30, "low": 0.26, "high": 0.34}
+      },
+      "evidence": ["fixture:python-001", "fixture:python-002"],
+      "sources": [
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/python-demand", "date": "2026-10-01"},
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/python-ai-news", "date": "2026-09-01"}
+      ]
+    },
+    {
+      "skill": "SQL",
+      "sdg": ["4.4", "8.2"],
+      "demand_share_latest": 0.22,
+      "demand_slope": 0.0002,
+      "momentum": -0.02,
+      "ai_exposure": 0.35,
+      "forecast": {
+        "moderate": {"value_12m": 0.21, "low": 0.19, "high": 0.23},
+        "fast": {"value_12m": 0.19, "low": 0.16, "high": 0.22}
+      },
+      "evidence": ["fixture:sql-001", "fixture:sql-002"],
+      "sources": [
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/sql-demand", "date": "2026-10-01"},
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/sql-releases", "date": "2026-08-15"}
+      ]
+    },
+    {
+      "skill": "Kubernetes",
+      "sdg": ["8.2"],
+      "demand_share_latest": 0.068,
+      "demand_slope": 0.0010,
+      "momentum": 0.27,
+      "ai_exposure": 0.41,
+      "forecast": {
+        "moderate": {"value_12m": 0.081, "low": 0.069, "high": 0.093},
+        "fast": {"value_12m": 0.074, "low": 0.061, "high": 0.088}
+      },
+      "evidence": ["fixture:kubernetes-001", "fixture:kubernetes-002"],
+      "sources": [
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/kubernetes-demand", "date": "2026-10-01"},
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/kubernetes-repos", "date": "2026-09-20"}
+      ]
+    },
+    {
+      "skill": "PyTorch",
+      "sdg": ["8.2", "9.5"],
+      "demand_share_latest": 0.048,
+      "demand_slope": 0.0003,
+      "momentum": 0.10,
+      "ai_exposure": 0.27,
+      "forecast": {
+        "moderate": {"value_12m": 0.050, "low": 0.044, "high": 0.056},
+        "fast": {"value_12m": 0.047, "low": 0.040, "high": 0.054}
+      },
+      "evidence": ["fixture:pytorch-001", "fixture:pytorch-002"],
+      "sources": [
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/pytorch-demand", "date": "2026-10-01"},
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/pytorch-papers", "date": "2026-09-05"}
+      ]
+    },
+    {
+      "skill": "LLM / GenAI",
+      "sdg": ["8.2", "9.5"],
+      "demand_share_latest": 0.093,
+      "demand_slope": 0.0040,
+      "momentum": 0.71,
+      "ai_exposure": 0.52,
+      "forecast": {
+        "moderate": {"value_12m": 0.128, "low": 0.108, "high": 0.148},
+        "fast": {"value_12m": 0.141, "low": 0.112, "high": 0.170}
+      },
+      "evidence": ["fixture:llm-genai-001", "fixture:llm-genai-002"],
+      "sources": [
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/llm-demand", "date": "2026-10-01"},
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/llm-lab-blogs", "date": "2026-10-10"}
+      ]
+    },
+    {
+      "skill": "jQuery",
+      "sdg": ["8.2"],
+      "demand_share_latest": 0.036,
+      "demand_slope": -0.0015,
+      "momentum": -0.46,
+      "ai_exposure": 0.22,
+      "forecast": {
+        "moderate": {"value_12m": 0.024, "low": 0.020, "high": 0.028},
+        "fast": {"value_12m": 0.019, "low": 0.014, "high": 0.024}
+      },
+      "evidence": ["fixture:jquery-001", "fixture:jquery-002"],
+      "sources": [
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/jquery-demand", "date": "2026-10-01"},
+        {"name": "FIXTURE - not real data", "url": "https://example.invalid/fixture/jquery-repos", "date": "2026-07-30"}
+      ]
+    }
+  ]
+}
