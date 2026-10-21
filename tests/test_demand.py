@@ -1,6 +1,7 @@
 """Tests for engine.demand. Uses tiny synthetic threads in tmp_path, never data/raw."""
 import csv
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -133,3 +134,61 @@ def test_two_threads_for_one_month_is_an_error(tmp_path):
     tax.write_text(json.dumps(TAXONOMY), encoding="utf-8")
     with pytest.raises(ValueError):
         build_demand(threads, tmp_path, None, tax)
+
+
+# ------------------------------------------------ committed data (not synthetic)
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA = ROOT / "data"
+
+
+def test_committed_demand_csv_is_complete_and_clean():
+    with (DATA / "demand_monthly.csv").open(encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh)
+        assert reader.fieldnames == COLUMNS
+        rows = list(reader)
+    with (DATA / "hn_threads.csv").open(encoding="utf-8", newline="") as fh:
+        months = {r["month"] for r in csv.DictReader(fh)}
+    skills = [e["skill"] for e in json.loads((DATA / "taxonomy.json").read_text(encoding="utf-8"))]
+    assert len(skills) == 40
+    assert {r["month"] for r in rows} == months
+    assert {r["skill"] for r in rows} == set(skills)
+    assert len(rows) == len(months) * len(skills)
+    assert len({(r["month"], r["skill"]) for r in rows}) == len(rows)  # no duplicates
+    for r in rows:
+        for col in ("share", "share_smooth"):
+            assert r[col] != "", (r["month"], r["skill"], col)
+            value = float(r[col])  # raises on garbage
+            assert value == value, (r["month"], r["skill"], col)  # not NaN
+            assert 0.0 <= value <= 1.0, (r["month"], r["skill"], col, value)
+        assert r["thread_id"] and r["thread_url"]
+
+
+def test_committed_ai_context_csv_is_complete_and_clean():
+    with (DATA / "ai_context_monthly.csv").open(encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh)
+        assert reader.fieldnames == ["month", "mentions", "n_posts", "share", "share_smooth", "thread_id", "thread_url"]
+        rows = list(reader)
+    with (DATA / "hn_threads.csv").open(encoding="utf-8", newline="") as fh:
+        months = {r["month"] for r in csv.DictReader(fh)}
+    assert {r["month"] for r in rows} == months and len(rows) == len(months)
+    for r in rows:
+        assert 0 <= int(r["mentions"]) <= int(r["n_posts"])
+        for col in ("share", "share_smooth"):
+            assert 0.0 <= float(r[col]) <= 1.0
+
+
+def test_no_email_addresses_in_committed_data():
+    email = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
+    raw = DATA / "raw"
+    checked = 0
+    for path in DATA.rglob("*"):
+        if not path.is_file() or raw in path.parents:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue  # binary file
+        checked += 1
+        assert not email.search(text), f"email-like text in {path.relative_to(ROOT)}"
+    assert checked > 0

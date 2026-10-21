@@ -7,7 +7,10 @@ Counting rules (kept simple on purpose):
 - We count what the post says. We never infer a skill from another skill.
   Example: "PostgreSQL" counts as PostgreSQL only, not as SQL.
 - "React Native" counts as React Native only, not as React.
-- "Generative AI" counts as LLM / GenAI only, not as Machine Learning / AI.
+- "Generative AI" counts as LLM / GenAI only, not as Machine Learning.
+- A bare "AI" ("we are an AI startup") is not a skill. "ML", "AI engineer",
+  "machine learning" and similar phrases count as Machine Learning.
+- "TypeScript" counts in both "JavaScript / TypeScript" and "TypeScript".
 - "NoSQL", "MySQL" and "SQLite" do not count as SQL.
 """
 from __future__ import annotations
