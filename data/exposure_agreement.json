@@ -1,0 +1,625 @@
+{
+  "generated_by": "engine/exposure_indices.py",
+  "baseline_index": "aei_automation",
+  "production_stance_changed": false,
+  "indices": [
+    {
+      "id": "aei_automation",
+      "family": "aei",
+      "label": "AEI automation share (Claude.ai usage)"
+    },
+    {
+      "id": "gpts_gpt4_beta",
+      "family": "gpts",
+      "label": "GPTs are GPTs, beta, GPT-4 rated"
+    },
+    {
+      "id": "gpts_human_beta",
+      "family": "gpts",
+      "label": "GPTs are GPTs, beta, human rated"
+    },
+    {
+      "id": "aioe",
+      "family": "aioe",
+      "label": "AIOE (Felten, Raj, Seamans), all applications"
+    },
+    {
+      "id": "aioe_lm",
+      "family": "aioe",
+      "label": "AIOE, language-modelling variant"
+    },
+    {
+      "id": "msft_applicability",
+      "family": "msft",
+      "label": "Microsoft AI applicability score (Bing Copilot usage)"
+    }
+  ],
+  "families": {
+    "aei": "Anthropic Economic Index",
+    "gpts": "GPTs are GPTs",
+    "aioe": "AIOE",
+    "msft": "Microsoft Working with AI"
+  },
+  "sources": {
+    "aei": {
+      "name": "Anthropic Economic Index, release 2026-06-26 (collaboration_bucket_automation_pct)",
+      "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
+      "version": "release_2026_06_26, commit 4e5f69fab13a9c3f7d0dcc31a6f893a9818738f6",
+      "licence": "CC BY (data); see data/SOURCES.md section 1",
+      "file": "data/exposure_occupations.csv (derived by engine/exposure.py)"
+    },
+    "gpts": {
+      "name": "GPTs are GPTs (Eloundou, Manning, Mishkin, Rock), occupation level",
+      "url": "https://github.com/openai/GPTs-are-GPTs",
+      "version": "commit 0471612fef3cc22b74fb884d27bff9dbd3770582 (2025-10-04)",
+      "licence": "MIT (repository LICENSE, Copyright 2024 OpenAI)",
+      "file": "data/occ_level.csv, columns dv_rating_beta and human_rating_beta"
+    },
+    "aioe": {
+      "name": "AIOE (Felten, Raj, Seamans), occupation level",
+      "url": "https://github.com/AIOE-Data/AIOE",
+      "version": "commit adca5fc2cd0e9a659ff05278b7fa7a53f4f324c1 (2024-06-03)",
+      "licence": "No licence file. The README asks users to cite Felten, Raj, Seamans (2021), Strategic Management Journal 42(12):2195-2217. Treated as: use allowed with citation.",
+      "file": "AIOE_DataAppendix.xlsx sheet 'Appendix A' (AIOE) and Language Modeling AIOE and AIIE.xlsx sheet 'LM AIOE' (aioe_lm)"
+    },
+    "msft": {
+      "name": "Microsoft Working with AI, AI applicability scores (Tomlinson et al. 2025)",
+      "url": "https://github.com/microsoft/working-with-ai",
+      "version": "v1.1, commit 18ec44905db3383a7fd7fd0c1ff3ab36ad7729db (2026-10-09)",
+      "licence": "CC BY 4.0 (README and LICENSE.txt)",
+      "file": "ai_applicability_scores.csv, column ai_applicability_score"
+    }
+  },
+  "occupations": [
+    "15-1252.00",
+    "15-1251.00",
+    "15-1254.00",
+    "15-1243.00",
+    "15-1242.00",
+    "15-1244.00",
+    "15-1299.08",
+    "15-2051.00"
+  ],
+  "occupation_level": {
+    "spearman_vs_aei": {
+      "gpts_gpt4_beta": {
+        "spearman_vs_aei": 0.095238,
+        "p_two_sided_permutation": 0.840129,
+        "n_occupations": 8
+      },
+      "gpts_human_beta": {
+        "spearman_vs_aei": -0.119048,
+        "p_two_sided_permutation": 0.793006,
+        "n_occupations": 8
+      },
+      "aioe": {
+        "spearman_vs_aei": 0.071429,
+        "p_two_sided_permutation": 0.906349,
+        "n_occupations": 7
+      },
+      "aioe_lm": {
+        "spearman_vs_aei": -0.035714,
+        "p_two_sided_permutation": 0.963492,
+        "n_occupations": 7
+      },
+      "msft_applicability": {
+        "spearman_vs_aei": -0.785714,
+        "p_two_sided_permutation": 0.027927,
+        "n_occupations": 8
+      }
+    },
+    "spearman_matrix": {
+      "aei_automation": {
+        "aei_automation": 1.0,
+        "gpts_gpt4_beta": 0.095238,
+        "gpts_human_beta": -0.119048,
+        "aioe": 0.071429,
+        "aioe_lm": -0.035714,
+        "msft_applicability": -0.785714
+      },
+      "gpts_gpt4_beta": {
+        "aei_automation": 0.095238,
+        "gpts_gpt4_beta": 1.0,
+        "gpts_human_beta": 0.761905,
+        "aioe": 0.75,
+        "aioe_lm": 0.142857,
+        "msft_applicability": 0.190476
+      },
+      "gpts_human_beta": {
+        "aei_automation": -0.119048,
+        "gpts_gpt4_beta": 0.761905,
+        "gpts_human_beta": 1.0,
+        "aioe": 0.357143,
+        "aioe_lm": 0.071429,
+        "msft_applicability": 0.619048
+      },
+      "aioe": {
+        "aei_automation": 0.071429,
+        "gpts_gpt4_beta": 0.75,
+        "gpts_human_beta": 0.357143,
+        "aioe": 1.0,
+        "aioe_lm": 0.392857,
+        "msft_applicability": 0.142857
+      },
+      "aioe_lm": {
+        "aei_automation": -0.035714,
+        "gpts_gpt4_beta": 0.142857,
+        "gpts_human_beta": 0.071429,
+        "aioe": 0.392857,
+        "aioe_lm": 1.0,
+        "msft_applicability": 0.142857
+      },
+      "msft_applicability": {
+        "aei_automation": -0.785714,
+        "gpts_gpt4_beta": 0.190476,
+        "gpts_human_beta": 0.619048,
+        "aioe": 0.142857,
+        "aioe_lm": 0.142857,
+        "msft_applicability": 1.0
+      }
+    },
+    "note": "n = 8 occupations (7 for AIOE: Data Scientists has no AIOE value). With so few points only a very large rho is significant."
+  },
+  "category_level": {
+    "neutral_band_z": 0.3988,
+    "neutral_band_note": "The production neutral band |e_s| <= 0.02 expressed in standard deviations of e_s over the 40 skills. Every index uses it.",
+    "categories": {
+      "language": {
+        "n_skills": 14,
+        "occupations": [
+          "15-1252.00",
+          "15-1251.00"
+        ],
+        "production_stance": "AI-substitutable",
+        "production_e_s": 0.021873,
+        "index_z": {
+          "aei_automation": 0.436138,
+          "gpts_gpt4_beta": 0.665399,
+          "gpts_human_beta": -0.044571,
+          "aioe": 0.547053,
+          "aioe_lm": 0.676083,
+          "msft_applicability": -0.415917
+        },
+        "index_category_raw": {
+          "aei_automation": 61.835,
+          "gpts_gpt4_beta": 0.909211,
+          "gpts_human_beta": 0.565351,
+          "aioe": 1.256811,
+          "aioe_lm": 1.024204,
+          "msft_applicability": 0.294094
+        },
+        "index_labels": {
+          "aei_automation": "AI-substitutable",
+          "gpts_gpt4_beta": "AI-substitutable",
+          "gpts_human_beta": "neutral",
+          "aioe": "AI-substitutable",
+          "aioe_lm": "AI-substitutable",
+          "msft_applicability": "AI-complement"
+        },
+        "family_z": {
+          "aei": 0.436138,
+          "gpts": 0.310414,
+          "aioe": 0.611568,
+          "msft": -0.415917
+        },
+        "family_labels": {
+          "aei": "AI-substitutable",
+          "gpts": "neutral",
+          "aioe": "AI-substitutable",
+          "msft": "AI-complement"
+        },
+        "family_directions": {
+          "aei": "above",
+          "gpts": "above",
+          "aioe": "above",
+          "msft": "below"
+        },
+        "n_voting": 4,
+        "n_support": 3,
+        "families_supporting": [
+          "aei",
+          "gpts",
+          "aioe"
+        ],
+        "families_vetoing": [],
+        "n_exact_label": 2,
+        "n_same_side": 3,
+        "majority_supports": true,
+        "stance_robust": true,
+        "direction_robust": true
+      },
+      "framework": {
+        "n_skills": 5,
+        "occupations": [
+          "15-1254.00",
+          "15-1252.00"
+        ],
+        "production_stance": "neutral",
+        "production_e_s": -0.018977,
+        "index_z": {
+          "aei_automation": -0.378389,
+          "gpts_gpt4_beta": 0.541872,
+          "gpts_human_beta": -0.891294,
+          "aioe": -0.416422,
+          "aioe_lm": -0.523589,
+          "msft_applicability": 0.506128
+        },
+        "index_category_raw": {
+          "aei_automation": 57.75,
+          "gpts_gpt4_beta": 0.900557,
+          "gpts_human_beta": 0.540992,
+          "aioe": 1.165789,
+          "aioe_lm": 0.906237,
+          "msft_applicability": 0.315642
+        },
+        "index_labels": {
+          "aei_automation": "neutral",
+          "gpts_gpt4_beta": "AI-substitutable",
+          "gpts_human_beta": "AI-complement",
+          "aioe": "AI-complement",
+          "aioe_lm": "AI-complement",
+          "msft_applicability": "AI-substitutable"
+        },
+        "family_z": {
+          "aei": -0.378389,
+          "gpts": -0.174711,
+          "aioe": -0.470005,
+          "msft": 0.506128
+        },
+        "family_labels": {
+          "aei": "neutral",
+          "gpts": "neutral",
+          "aioe": "AI-complement",
+          "msft": "AI-substitutable"
+        },
+        "family_directions": {
+          "aei": "below",
+          "gpts": "below",
+          "aioe": "below",
+          "msft": "above"
+        },
+        "n_voting": 4,
+        "n_support": 2,
+        "families_supporting": [
+          "aei",
+          "gpts"
+        ],
+        "families_vetoing": [],
+        "n_exact_label": 2,
+        "n_same_side": 3,
+        "majority_supports": false,
+        "stance_robust": false,
+        "direction_robust": true
+      },
+      "data": {
+        "n_skills": 9,
+        "occupations": [
+          "15-1243.00",
+          "15-1242.00"
+        ],
+        "production_stance": "neutral",
+        "production_e_s": 0.008648,
+        "index_z": {
+          "aei_automation": 0.172439,
+          "gpts_gpt4_beta": 0.63051,
+          "gpts_human_beta": 1.061385,
+          "aioe": 0.705964,
+          "aioe_lm": 0.51011,
+          "msft_applicability": 0.037085
+        },
+        "index_category_raw": {
+          "aei_automation": 60.5125,
+          "gpts_gpt4_beta": 0.906766,
+          "gpts_human_beta": 0.597168,
+          "aioe": 1.271823,
+          "aioe_lm": 1.007884,
+          "msft_applicability": 0.304681
+        },
+        "index_labels": {
+          "aei_automation": "neutral",
+          "gpts_gpt4_beta": "AI-substitutable",
+          "gpts_human_beta": "AI-substitutable",
+          "aioe": "AI-substitutable",
+          "aioe_lm": "AI-substitutable",
+          "msft_applicability": "neutral"
+        },
+        "family_z": {
+          "aei": 0.172439,
+          "gpts": 0.845948,
+          "aioe": 0.608037,
+          "msft": 0.037085
+        },
+        "family_labels": {
+          "aei": "neutral",
+          "gpts": "AI-substitutable",
+          "aioe": "AI-substitutable",
+          "msft": "neutral"
+        },
+        "family_directions": {
+          "aei": "above",
+          "gpts": "above",
+          "aioe": "above",
+          "msft": "above"
+        },
+        "n_voting": 4,
+        "n_support": 2,
+        "families_supporting": [
+          "aei",
+          "msft"
+        ],
+        "families_vetoing": [],
+        "n_exact_label": 2,
+        "n_same_side": 4,
+        "majority_supports": false,
+        "stance_robust": false,
+        "direction_robust": true
+      },
+      "cloud_devops": {
+        "n_skills": 6,
+        "occupations": [
+          "15-1244.00",
+          "15-1299.08"
+        ],
+        "production_stance": "AI-substitutable",
+        "production_e_s": 0.052298,
+        "index_z": {
+          "aei_automation": 1.042796,
+          "gpts_gpt4_beta": -1.624438,
+          "gpts_human_beta": -0.839879,
+          "aioe": -2.053635,
+          "aioe_lm": -2.018172,
+          "msft_applicability": -1.226308
+        },
+        "index_category_raw": {
+          "aei_automation": 64.8775,
+          "gpts_gpt4_beta": 0.748793,
+          "gpts_human_beta": 0.542471,
+          "aioe": 1.011118,
+          "aioe_lm": 0.75927,
+          "msft_applicability": 0.275156
+        },
+        "index_labels": {
+          "aei_automation": "AI-substitutable",
+          "gpts_gpt4_beta": "AI-complement",
+          "gpts_human_beta": "AI-complement",
+          "aioe": "AI-complement",
+          "aioe_lm": "AI-complement",
+          "msft_applicability": "AI-complement"
+        },
+        "family_z": {
+          "aei": 1.042796,
+          "gpts": -1.232158,
+          "aioe": -2.035903,
+          "msft": -1.226308
+        },
+        "family_labels": {
+          "aei": "AI-substitutable",
+          "gpts": "AI-complement",
+          "aioe": "AI-complement",
+          "msft": "AI-complement"
+        },
+        "family_directions": {
+          "aei": "above",
+          "gpts": "below",
+          "aioe": "below",
+          "msft": "below"
+        },
+        "n_voting": 4,
+        "n_support": 1,
+        "families_supporting": [
+          "aei"
+        ],
+        "families_vetoing": [
+          "gpts",
+          "aioe",
+          "msft"
+        ],
+        "n_exact_label": 1,
+        "n_same_side": 1,
+        "majority_supports": false,
+        "stance_robust": false,
+        "direction_robust": false
+      },
+      "ai_ml": {
+        "n_skills": 5,
+        "occupations": [
+          "15-2051.00"
+        ],
+        "production_stance": "AI-complement",
+        "production_e_s": -0.122427,
+        "index_z": {
+          "aei_automation": -2.441125,
+          "gpts_gpt4_beta": -1.607215,
+          "gpts_human_beta": 0.942589,
+          "aioe": null,
+          "aioe_lm": null,
+          "msft_applicability": 2.282833
+        },
+        "index_category_raw": {
+          "aei_automation": 47.405,
+          "gpts_gpt4_beta": 0.75,
+          "gpts_human_beta": 0.59375,
+          "aioe": null,
+          "aioe_lm": null,
+          "msft_applicability": 0.357163
+        },
+        "index_labels": {
+          "aei_automation": "AI-complement",
+          "gpts_gpt4_beta": "AI-complement",
+          "gpts_human_beta": "AI-substitutable",
+          "aioe": null,
+          "aioe_lm": null,
+          "msft_applicability": "AI-substitutable"
+        },
+        "family_z": {
+          "aei": -2.441125,
+          "gpts": -0.332313,
+          "aioe": null,
+          "msft": 2.282833
+        },
+        "family_labels": {
+          "aei": "AI-complement",
+          "gpts": "neutral",
+          "aioe": null,
+          "msft": "AI-substitutable"
+        },
+        "family_directions": {
+          "aei": "below",
+          "gpts": "below",
+          "aioe": null,
+          "msft": "above"
+        },
+        "n_voting": 3,
+        "n_support": 2,
+        "families_supporting": [
+          "aei",
+          "gpts"
+        ],
+        "families_vetoing": [
+          "msft"
+        ],
+        "n_exact_label": 1,
+        "n_same_side": 2,
+        "majority_supports": true,
+        "stance_robust": false,
+        "direction_robust": true
+      },
+      "practice": {
+        "n_skills": 1,
+        "occupations": [
+          "15-1252.00"
+        ],
+        "production_stance": "neutral",
+        "production_e_s": 0.009173,
+        "index_z": {
+          "aei_automation": 0.182907,
+          "gpts_gpt4_beta": 0.083159,
+          "gpts_human_beta": -4.145668,
+          "aioe": 0.391501,
+          "aioe_lm": 0.670817,
+          "msft_applicability": -1.097889
+        },
+        "index_category_raw": {
+          "aei_automation": 60.565,
+          "gpts_gpt4_beta": 0.868421,
+          "gpts_human_beta": 0.447368,
+          "aioe": 1.242115,
+          "aioe_lm": 1.023686,
+          "msft_applicability": 0.278157
+        },
+        "index_labels": {
+          "aei_automation": "neutral",
+          "gpts_gpt4_beta": "neutral",
+          "gpts_human_beta": "AI-complement",
+          "aioe": "neutral",
+          "aioe_lm": "AI-substitutable",
+          "msft_applicability": "AI-complement"
+        },
+        "family_z": {
+          "aei": 0.182907,
+          "gpts": -2.031254,
+          "aioe": 0.531159,
+          "msft": -1.097889
+        },
+        "family_labels": {
+          "aei": "neutral",
+          "gpts": "AI-complement",
+          "aioe": "AI-substitutable",
+          "msft": "AI-complement"
+        },
+        "family_directions": {
+          "aei": "above",
+          "gpts": "below",
+          "aioe": "above",
+          "msft": "below"
+        },
+        "n_voting": 4,
+        "n_support": 1,
+        "families_supporting": [
+          "aei"
+        ],
+        "families_vetoing": [],
+        "n_exact_label": 1,
+        "n_same_side": 2,
+        "majority_supports": false,
+        "stance_robust": false,
+        "direction_robust": false
+      }
+    }
+  },
+  "robust_categories": [
+    "language"
+  ],
+  "contested_categories": [
+    "ai_ml",
+    "cloud_devops",
+    "data",
+    "framework",
+    "practice"
+  ],
+  "robust_skills": [
+    "Python",
+    "JavaScript / TypeScript",
+    "TypeScript",
+    "Java",
+    "Go",
+    "Rust",
+    "C",
+    "C++",
+    "C#",
+    "Swift",
+    "PHP",
+    "Perl",
+    "Ruby",
+    "R"
+  ],
+  "contested_skills": [
+    "React",
+    "React Native",
+    "AngularJS",
+    "jQuery",
+    "Node.js",
+    "SQL",
+    "PostgreSQL",
+    "MongoDB",
+    "Spark",
+    "Hadoop",
+    "Kafka",
+    "Snowflake",
+    "dbt",
+    "Airflow",
+    "AWS",
+    "GCP",
+    "Azure",
+    "Kubernetes",
+    "Docker",
+    "Terraform",
+    "LLM / GenAI",
+    "RAG",
+    "Vector Databases",
+    "PyTorch",
+    "Machine Learning",
+    "Microservices"
+  ],
+  "rules": {
+    "stance_robust": "more than half of the voting source families support the production stance (AEI is one of the voters). Support: AI-substitutable -> z > 0; AI-complement -> z < 0; neutral -> |z| <= neutral_band_z). A polar stance is also contested when a voting family reads the opposite side with |z| > 1 (veto)",
+    "family_vote": "mean z of the family's variants; a family with no value for a category abstains",
+    "labels": "same three-way rule as engine/exposure.py, applied to z with the neutral band above (shown for information)"
+  },
+  "caveats": [
+    "Eight occupations and four source families: this is a sanity check, not a measurement.",
+    "AEI and Microsoft measure how people use a chatbot; GPTs and AIOE rate what a model could do. They answer different questions, so disagreement is expected.",
+    "Skills in one category share one score, so 40 skills carry only 6 distinct values.",
+    "15-1299.08 maps to the broad code 15-1299 / 15-1199 ('Computer Occupations, All Other') in AIOE and Microsoft: a coarse match.",
+    "AIOE has no value for Data Scientists (15-2051), so the ai_ml category gets no AIOE vote.",
+    "The 2010 -> 2019 crosswalk gives several parents for some codes; the unweighted mean of their AIOE values is a choice."
+  ],
+  "raw_file_sha256": {
+    "gpts/occ_level.csv": "40c74f53de40aec91c0017d80690cbba915f83a8bb414bcf2f884692f1749acb",
+    "aioe/AIOE_DataAppendix.xlsx": "c123b4c64840aff3568ae6c97256678719b88a74d45b6362dbefb5af34667b95",
+    "aioe/Language_Modeling_AIOE_and_AIIE.xlsx": "ccdd1fb916dfa404914367eafde7c00b7148ea86f18fe616240bc85cf6131c8b",
+    "msft/ai_applicability_scores.csv": "204c7e6a5ec704156212f88a6282dba7508c8b90e5df7c0d590088b2b44aa7d2",
+    "onet_xwalk/2010_to_2019_Crosswalk.csv": "8f026a33134bfde5770308d1c6117cf70d9dd41c2b3467e6dd271d65bdeecc5a",
+    "onet_xwalk/2019_to_SOC_Crosswalk.xlsx": "bfc6722a92c2d607e5a99dee88b7826cf5aa91f7c0453182e0c8268e32a20a19"
+  }
+}
