@@ -1,0 +1,5267 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-22T19:02:19Z",
+  "as_of": "2026-10",
+  "months": 12,
+  "window": {
+    "recent": {
+      "from": "2025-11",
+      "to": "2026-10",
+      "months": 12,
+      "n_posts": 3714
+    },
+    "previous": {
+      "from": "2024-11",
+      "to": "2025-10",
+      "months": 12,
+      "n_posts": 3914
+    }
+  },
+  "sectors": [
+    {
+      "id": "climate_energy",
+      "name": "Climate and clean energy",
+      "sdg": [
+        "7.2",
+        "13.2"
+      ]
+    },
+    {
+      "id": "health",
+      "name": "Health and life sciences",
+      "sdg": [
+        "3.8",
+        "3.b"
+      ]
+    },
+    {
+      "id": "education",
+      "name": "Education",
+      "sdg": [
+        "4.3",
+        "4.4"
+      ]
+    },
+    {
+      "id": "financial_inclusion",
+      "name": "Financial inclusion",
+      "sdg": [
+        "8.10",
+        "1.4"
+      ]
+    },
+    {
+      "id": "agriculture_food",
+      "name": "Agriculture and food",
+      "sdg": [
+        "2.3",
+        "2.4"
+      ]
+    },
+    {
+      "id": "government_civic",
+      "name": "Government and civic tech",
+      "sdg": [
+        "16.6",
+        "16.7"
+      ]
+    },
+    {
+      "id": "accessibility",
+      "name": "Accessibility and disability inclusion",
+      "sdg": [
+        "10.2"
+      ]
+    },
+    {
+      "id": "cities_mobility",
+      "name": "Sustainable cities and mobility",
+      "sdg": [
+        "11.2",
+        "11.1"
+      ]
+    }
+  ],
+  "method": "Share of posts that mention the skill in each sector, last 12 months against the 12 before. Sector = regex patterns over post text (data/sdg_sectors.json), perks and legal lines removed first. Baseline = all posts. lift = share / baseline share. reliable = at least 30 posts and 3 different employers tagged in the sector. employers_recent = distinct employers (first line of the post) behind the tagged posts; ci95 = Wilson interval. Counts, shares and thread URLs only.",
+  "baseline": {
+    "n_recent": 3714,
+    "n_prev": 3914,
+    "sectors": {
+      "climate_energy": {
+        "count_recent": 79,
+        "employers_recent": 49,
+        "share_recent": 0.021271,
+        "count_prev": 97,
+        "share_prev": 0.024783,
+        "ci95_recent": [
+          0.017101,
+          0.02643
+        ]
+      },
+      "health": {
+        "count_recent": 371,
+        "employers_recent": 218,
+        "share_recent": 0.099892,
+        "count_prev": 345,
+        "share_prev": 0.088145,
+        "ci95_recent": [
+          0.090658,
+          0.109953
+        ]
+      },
+      "education": {
+        "count_recent": 45,
+        "employers_recent": 32,
+        "share_recent": 0.012116,
+        "count_prev": 68,
+        "share_prev": 0.017374,
+        "ci95_recent": [
+          0.009068,
+          0.016173
+        ]
+      },
+      "financial_inclusion": {
+        "count_recent": 16,
+        "employers_recent": 5,
+        "share_recent": 0.004308,
+        "count_prev": 13,
+        "share_prev": 0.003321,
+        "ci95_recent": [
+          0.002654,
+          0.006987
+        ]
+      },
+      "agriculture_food": {
+        "count_recent": 28,
+        "employers_recent": 14,
+        "share_recent": 0.007539,
+        "count_prev": 21,
+        "share_prev": 0.005365,
+        "ci95_recent": [
+          0.005221,
+          0.010875
+        ]
+      },
+      "government_civic": {
+        "count_recent": 66,
+        "employers_recent": 43,
+        "share_recent": 0.017771,
+        "count_prev": 81,
+        "share_prev": 0.020695,
+        "ci95_recent": [
+          0.013993,
+          0.022545
+        ]
+      },
+      "accessibility": {
+        "count_recent": 4,
+        "employers_recent": 4,
+        "share_recent": 0.001077,
+        "count_prev": 9,
+        "share_prev": 0.002299,
+        "ci95_recent": [
+          0.000419,
+          0.002766
+        ]
+      },
+      "cities_mobility": {
+        "count_recent": 6,
+        "employers_recent": 4,
+        "share_recent": 0.001616,
+        "count_prev": 9,
+        "share_prev": 0.002299,
+        "ci95_recent": [
+          0.000741,
+          0.00352
+        ]
+      }
+    }
+  },
+  "skills": {
+    "Python": {
+      "n_recent": 923,
+      "n_prev": 923,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 27,
+          "employers_recent": 21,
+          "share_recent": 0.029252,
+          "count_prev": 27,
+          "share_prev": 0.029252,
+          "ci95_recent": [
+            0.020181,
+            0.042227
+          ],
+          "lift": 1.3752,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "health": {
+          "count_recent": 132,
+          "employers_recent": 88,
+          "share_recent": 0.143012,
+          "count_prev": 112,
+          "share_prev": 0.121343,
+          "ci95_recent": [
+            0.121904,
+            0.167079
+          ],
+          "lift": 1.4317,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 4,
+          "employers_recent": 4,
+          "share_recent": 0.004334,
+          "count_prev": 6,
+          "share_prev": 0.006501,
+          "ci95_recent": [
+            0.001687,
+            0.01109
+          ],
+          "lift": 0.3577,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=47975571"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 10,
+          "employers_recent": 2,
+          "share_recent": 0.010834,
+          "count_prev": 3,
+          "share_prev": 0.00325,
+          "ci95_recent": [
+            0.005895,
+            0.019828
+          ],
+          "lift": 2.5149,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 15,
+          "employers_recent": 6,
+          "share_recent": 0.016251,
+          "count_prev": 2,
+          "share_prev": 0.002167,
+          "ci95_recent": [
+            0.009873,
+            0.02664
+          ],
+          "lift": 2.1556,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 14,
+          "employers_recent": 11,
+          "share_recent": 0.015168,
+          "count_prev": 33,
+          "share_prev": 0.035753,
+          "ci95_recent": [
+            0.009056,
+            0.025299
+          ],
+          "lift": 0.8535,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.004145
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 2,
+          "share_prev": 0.002167,
+          "ci95_recent": [
+            0.0,
+            0.004145
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "JavaScript / TypeScript": {
+      "n_recent": 979,
+      "n_prev": 996,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 25,
+          "employers_recent": 16,
+          "share_recent": 0.025536,
+          "count_prev": 16,
+          "share_prev": 0.016064,
+          "ci95_recent": [
+            0.017356,
+            0.037426
+          ],
+          "lift": 1.2005,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "health": {
+          "count_recent": 117,
+          "employers_recent": 75,
+          "share_recent": 0.11951,
+          "count_prev": 117,
+          "share_prev": 0.11747,
+          "ci95_recent": [
+            0.100662,
+            0.141332
+          ],
+          "lift": 1.1964,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 7,
+          "employers_recent": 6,
+          "share_recent": 0.00715,
+          "count_prev": 16,
+          "share_prev": 0.016064,
+          "ci95_recent": [
+            0.003468,
+            0.014685
+          ],
+          "lift": 0.5901,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=47975571"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 15,
+          "employers_recent": 4,
+          "share_recent": 0.015322,
+          "count_prev": 5,
+          "share_prev": 0.00502,
+          "ci95_recent": [
+            0.009307,
+            0.025126
+          ],
+          "lift": 3.5566,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 4,
+          "employers_recent": 4,
+          "share_recent": 0.004086,
+          "count_prev": 3,
+          "share_prev": 0.003012,
+          "ci95_recent": [
+            0.00159,
+            0.010458
+          ],
+          "lift": 0.542,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49156683",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 21,
+          "employers_recent": 12,
+          "share_recent": 0.02145,
+          "count_prev": 13,
+          "share_prev": 0.013052,
+          "ci95_recent": [
+            0.014072,
+            0.03257
+          ],
+          "lift": 1.207,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.001021,
+          "count_prev": 8,
+          "share_prev": 0.008032,
+          "ci95_recent": [
+            0.00018,
+            0.005763
+          ],
+          "lift": 0.948,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "cities_mobility": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.002043,
+          "count_prev": 4,
+          "share_prev": 0.004016,
+          "ci95_recent": [
+            0.00056,
+            0.007418
+          ],
+          "lift": 1.2642,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        }
+      }
+    },
+    "TypeScript": {
+      "n_recent": 882,
+      "n_prev": 863,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 25,
+          "employers_recent": 16,
+          "share_recent": 0.028345,
+          "count_prev": 15,
+          "share_prev": 0.017381,
+          "ci95_recent": [
+            0.019272,
+            0.041509
+          ],
+          "lift": 1.3326,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "health": {
+          "count_recent": 110,
+          "employers_recent": 69,
+          "share_recent": 0.124717,
+          "count_prev": 103,
+          "share_prev": 0.119351,
+          "ci95_recent": [
+            0.104525,
+            0.148163
+          ],
+          "lift": 1.2485,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 6,
+          "employers_recent": 5,
+          "share_recent": 0.006803,
+          "count_prev": 16,
+          "share_prev": 0.01854,
+          "ci95_recent": [
+            0.003121,
+            0.014762
+          ],
+          "lift": 0.5615,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=47975571"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 14,
+          "employers_recent": 3,
+          "share_recent": 0.015873,
+          "count_prev": 5,
+          "share_prev": 0.005794,
+          "ci95_recent": [
+            0.009478,
+            0.026467
+          ],
+          "lift": 3.6845,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 4,
+          "employers_recent": 4,
+          "share_recent": 0.004535,
+          "count_prev": 3,
+          "share_prev": 0.003476,
+          "ci95_recent": [
+            0.001765,
+            0.011603
+          ],
+          "lift": 0.6015,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49156683",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 21,
+          "employers_recent": 12,
+          "share_recent": 0.02381,
+          "count_prev": 9,
+          "share_prev": 0.010429,
+          "ci95_recent": [
+            0.015625,
+            0.036124
+          ],
+          "lift": 1.3398,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.001134,
+          "count_prev": 8,
+          "share_prev": 0.00927,
+          "ci95_recent": [
+            0.0002,
+            0.006394
+          ],
+          "lift": 1.0529,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "cities_mobility": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.002268,
+          "count_prev": 3,
+          "share_prev": 0.003476,
+          "ci95_recent": [
+            0.000622,
+            0.00823
+          ],
+          "lift": 1.4035,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        }
+      }
+    },
+    "Java": {
+      "n_recent": 128,
+      "n_prev": 135,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.007812,
+          "count_prev": 1,
+          "share_prev": 0.007407,
+          "ci95_recent": [
+            0.00138,
+            0.042927
+          ],
+          "lift": 0.3673,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        },
+        "health": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.015625,
+          "count_prev": 4,
+          "share_prev": 0.02963,
+          "ci95_recent": [
+            0.004295,
+            0.055182
+          ],
+          "lift": 0.1564,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.029138
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.007407,
+          "ci95_recent": [
+            0.0,
+            0.029138
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.029138
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.015625,
+          "count_prev": 4,
+          "share_prev": 0.02963,
+          "ci95_recent": [
+            0.004295,
+            0.055182
+          ],
+          "lift": 0.8792,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47601859"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.029138
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.029138
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Go": {
+      "n_recent": 293,
+      "n_prev": 326,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 7,
+          "employers_recent": 5,
+          "share_recent": 0.023891,
+          "count_prev": 10,
+          "share_prev": 0.030675,
+          "ci95_recent": [
+            0.01162,
+            0.048485
+          ],
+          "lift": 1.1232,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        },
+        "health": {
+          "count_recent": 22,
+          "employers_recent": 16,
+          "share_recent": 0.075085,
+          "count_prev": 16,
+          "share_prev": 0.04908,
+          "ci95_recent": [
+            0.050105,
+            0.111064
+          ],
+          "lift": 0.7517,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 3,
+          "employers_recent": 3,
+          "share_recent": 0.010239,
+          "count_prev": 2,
+          "share_prev": 0.006135,
+          "ci95_recent": [
+            0.003488,
+            0.029666
+          ],
+          "lift": 0.8451,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48357725",
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.012942
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.012942
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.006826,
+          "count_prev": 3,
+          "share_prev": 0.009202,
+          "ci95_recent": [
+            0.001874,
+            0.024543
+          ],
+          "lift": 0.3841,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.012942
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.003067,
+          "ci95_recent": [
+            0.0,
+            0.012942
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Rust": {
+      "n_recent": 309,
+      "n_prev": 273,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 6,
+          "employers_recent": 5,
+          "share_recent": 0.019417,
+          "count_prev": 8,
+          "share_prev": 0.029304,
+          "ci95_recent": [
+            0.008929,
+            0.041709
+          ],
+          "lift": 0.9128,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "health": {
+          "count_recent": 22,
+          "employers_recent": 14,
+          "share_recent": 0.071197,
+          "count_prev": 14,
+          "share_prev": 0.051282,
+          "ci95_recent": [
+            0.047484,
+            0.105442
+          ],
+          "lift": 0.7127,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 3,
+          "employers_recent": 2,
+          "share_recent": 0.009709,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.003307,
+            0.028152
+          ],
+          "lift": 0.8013,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.01228
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.003236,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.000571,
+            0.018101
+          ],
+          "lift": 0.4292,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=46108941"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 12,
+          "employers_recent": 4,
+          "share_recent": 0.038835,
+          "count_prev": 4,
+          "share_prev": 0.014652,
+          "ci95_recent": [
+            0.022352,
+            0.066644
+          ],
+          "lift": 2.1853,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49156683"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.01228
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 2,
+          "share_prev": 0.007326,
+          "ci95_recent": [
+            0.0,
+            0.01228
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "C": {
+      "n_recent": 79,
+      "n_prev": 82,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.025316,
+          "count_prev": 3,
+          "share_prev": 0.036585,
+          "ci95_recent": [
+            0.00697,
+            0.087688
+          ],
+          "lift": 1.1902,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49156683",
+            "https://news.ycombinator.com/item?id=47601859"
+          ]
+        },
+        "health": {
+          "count_recent": 5,
+          "employers_recent": 5,
+          "share_recent": 0.063291,
+          "count_prev": 1,
+          "share_prev": 0.012195,
+          "ci95_recent": [
+            0.027334,
+            0.139751
+          ],
+          "lift": 0.6336,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49156683",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.046373
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.046373
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.046373
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.012658,
+          "count_prev": 4,
+          "share_prev": 0.04878,
+          "ci95_recent": [
+            0.002238,
+            0.068277
+          ],
+          "lift": 0.7123,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.046373
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.046373
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "C++": {
+      "n_recent": 155,
+      "n_prev": 169,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.012903,
+          "count_prev": 2,
+          "share_prev": 0.011834,
+          "ci95_recent": [
+            0.003546,
+            0.045822
+          ],
+          "lift": 0.6066,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49156683",
+            "https://news.ycombinator.com/item?id=47975571"
+          ]
+        },
+        "health": {
+          "count_recent": 9,
+          "employers_recent": 7,
+          "share_recent": 0.058065,
+          "count_prev": 13,
+          "share_prev": 0.076923,
+          "ci95_recent": [
+            0.030845,
+            0.10666
+          ],
+          "lift": 0.5813,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.024185
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.024185
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.006452,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.00114,
+            0.035637
+          ],
+          "lift": 0.8558,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=46108941"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 5,
+          "employers_recent": 4,
+          "share_recent": 0.032258,
+          "count_prev": 14,
+          "share_prev": 0.08284,
+          "ci95_recent": [
+            0.013856,
+            0.073285
+          ],
+          "lift": 1.8152,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.024185
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 2,
+          "share_prev": 0.011834,
+          "ci95_recent": [
+            0.0,
+            0.024185
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "C#": {
+      "n_recent": 72,
+      "n_prev": 71,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.027778,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.007651,
+            0.095744
+          ],
+          "lift": 1.3059,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=46466074",
+            "https://news.ycombinator.com/item?id=46108941"
+          ]
+        },
+        "health": {
+          "count_recent": 11,
+          "employers_recent": 7,
+          "share_recent": 0.152778,
+          "count_prev": 21,
+          "share_prev": 0.295775,
+          "ci95_recent": [
+            0.087506,
+            0.253225
+          ],
+          "lift": 1.5294,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=49156683"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.050653
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.050653
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.027778,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.007651,
+            0.095744
+          ],
+          "lift": 3.6846,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 10,
+          "employers_recent": 3,
+          "share_recent": 0.138889,
+          "count_prev": 6,
+          "share_prev": 0.084507,
+          "ci95_recent": [
+            0.077226,
+            0.237134
+          ],
+          "lift": 7.8155,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.050653
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.014085,
+          "ci95_recent": [
+            0.0,
+            0.050653
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Swift": {
+      "n_recent": 54,
+      "n_prev": 46,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.066416
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 5,
+          "employers_recent": 5,
+          "share_recent": 0.092593,
+          "count_prev": 6,
+          "share_prev": 0.130435,
+          "ci95_recent": [
+            0.040201,
+            0.199101
+          ],
+          "lift": 0.9269,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.021739,
+          "ci95_recent": [
+            0.0,
+            0.066416
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.066416
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.066416
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 9,
+          "employers_recent": 2,
+          "share_recent": 0.166667,
+          "count_prev": 1,
+          "share_prev": 0.021739,
+          "ci95_recent": [
+            0.090243,
+            0.287368
+          ],
+          "lift": 9.3786,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.066416
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.066416
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "PHP": {
+      "n_recent": 42,
+      "n_prev": 34,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.083802
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 5,
+          "employers_recent": 4,
+          "share_recent": 0.119048,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.051937,
+            0.250007
+          ],
+          "lift": 1.1918,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47975571",
+            "https://news.ycombinator.com/item?id=47601859"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.029412,
+          "ci95_recent": [
+            0.0,
+            0.083802
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.083802
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.083802
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.083802
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.083802
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.083802
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Perl": {
+      "n_recent": 0,
+      "n_prev": 0,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Ruby": {
+      "n_recent": 115,
+      "n_prev": 158,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 4,
+          "employers_recent": 2,
+          "share_recent": 0.034783,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.013608,
+            0.086034
+          ],
+          "lift": 1.6352,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        },
+        "health": {
+          "count_recent": 10,
+          "employers_recent": 8,
+          "share_recent": 0.086957,
+          "count_prev": 7,
+          "share_prev": 0.044304,
+          "ci95_recent": [
+            0.047918,
+            0.152699
+          ],
+          "lift": 0.8705,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49156683",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "education": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.017391,
+          "count_prev": 9,
+          "share_prev": 0.056962,
+          "ci95_recent": [
+            0.004782,
+            0.061201
+          ],
+          "lift": 1.4354,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48357725",
+            "https://news.ycombinator.com/item?id=47975571"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.008696,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.001537,
+            0.047618
+          ],
+          "lift": 2.0186,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.032325
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.008696,
+          "count_prev": 3,
+          "share_prev": 0.018987,
+          "ci95_recent": [
+            0.001537,
+            0.047618
+          ],
+          "lift": 0.4893,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.006329,
+          "ci95_recent": [
+            0.0,
+            0.032325
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.032325
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "R": {
+      "n_recent": 9,
+      "n_prev": 3,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.333333,
+          "ci95_recent": [
+            0.0,
+            0.299153
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.111111,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.01989,
+            0.435006
+          ],
+          "lift": 1.1123,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.299153
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.299153
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.299153
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.299153
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.299153
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.299153
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "React": {
+      "n_recent": 834,
+      "n_prev": 813,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 23,
+          "employers_recent": 16,
+          "share_recent": 0.027578,
+          "count_prev": 10,
+          "share_prev": 0.0123,
+          "ci95_recent": [
+            0.018446,
+            0.041042
+          ],
+          "lift": 1.2965,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "health": {
+          "count_recent": 113,
+          "employers_recent": 70,
+          "share_recent": 0.135492,
+          "count_prev": 103,
+          "share_prev": 0.126691,
+          "ci95_recent": [
+            0.113928,
+            0.160398
+          ],
+          "lift": 1.3564,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 5,
+          "employers_recent": 5,
+          "share_recent": 0.005995,
+          "count_prev": 13,
+          "share_prev": 0.01599,
+          "ci95_recent": [
+            0.002563,
+            0.013957
+          ],
+          "lift": 0.4948,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48357725",
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 14,
+          "employers_recent": 3,
+          "share_recent": 0.016787,
+          "count_prev": 4,
+          "share_prev": 0.00492,
+          "ci95_recent": [
+            0.010025,
+            0.027979
+          ],
+          "lift": 3.8967,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 5,
+          "employers_recent": 4,
+          "share_recent": 0.005995,
+          "count_prev": 2,
+          "share_prev": 0.00246,
+          "ci95_recent": [
+            0.002563,
+            0.013957
+          ],
+          "lift": 0.7952,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 10,
+          "employers_recent": 10,
+          "share_recent": 0.01199,
+          "count_prev": 15,
+          "share_prev": 0.01845,
+          "ci95_recent": [
+            0.006526,
+            0.02193
+          ],
+          "lift": 0.6747,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.004585
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.002398,
+          "count_prev": 3,
+          "share_prev": 0.00369,
+          "ci95_recent": [
+            0.000658,
+            0.008701
+          ],
+          "lift": 1.4839,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        }
+      }
+    },
+    "React Native": {
+      "n_recent": 109,
+      "n_prev": 124,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.034044
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 20,
+          "employers_recent": 14,
+          "share_recent": 0.183486,
+          "count_prev": 17,
+          "share_prev": 0.137097,
+          "ci95_recent": [
+            0.122036,
+            0.266488
+          ],
+          "lift": 1.8368,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.009174,
+          "count_prev": 2,
+          "share_prev": 0.016129,
+          "ci95_recent": [
+            0.001621,
+            0.050147
+          ],
+          "lift": 0.7572,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.034044
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.009174,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.001621,
+            0.050147
+          ],
+          "lift": 1.2169,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=46108941"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 3,
+          "employers_recent": 3,
+          "share_recent": 0.027523,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.009404,
+            0.077812
+          ],
+          "lift": 1.5488,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.034044
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.034044
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "AngularJS": {
+      "n_recent": 0,
+      "n_prev": 0,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": null,
+          "count_prev": 0,
+          "share_prev": null,
+          "ci95_recent": null,
+          "lift": null,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "jQuery": {
+      "n_recent": 2,
+      "n_prev": 3,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.657628
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.5,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.094529,
+            0.905471
+          ],
+          "lift": 5.0054,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.657628
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.657628
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.657628
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.657628
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.657628
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.657628
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Node.js": {
+      "n_recent": 247,
+      "n_prev": 225,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 8,
+          "employers_recent": 3,
+          "share_recent": 0.032389,
+          "count_prev": 2,
+          "share_prev": 0.008889,
+          "ci95_recent": [
+            0.016501,
+            0.062599
+          ],
+          "lift": 1.5227,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "health": {
+          "count_recent": 28,
+          "employers_recent": 21,
+          "share_recent": 0.11336,
+          "count_prev": 23,
+          "share_prev": 0.102222,
+          "ci95_recent": [
+            0.079604,
+            0.15896
+          ],
+          "lift": 1.1348,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49156683"
+          ]
+        },
+        "education": {
+          "count_recent": 5,
+          "employers_recent": 4,
+          "share_recent": 0.020243,
+          "count_prev": 15,
+          "share_prev": 0.066667,
+          "ci95_recent": [
+            0.008677,
+            0.046504
+          ],
+          "lift": 1.6708,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=47601859"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 10,
+          "employers_recent": 2,
+          "share_recent": 0.040486,
+          "count_prev": 3,
+          "share_prev": 0.013333,
+          "ci95_recent": [
+            0.022137,
+            0.072909
+          ],
+          "lift": 9.3979,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 2,
+          "share_prev": 0.008889,
+          "ci95_recent": [
+            0.0,
+            0.015315
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 3,
+          "employers_recent": 2,
+          "share_recent": 0.012146,
+          "count_prev": 1,
+          "share_prev": 0.004444,
+          "ci95_recent": [
+            0.004139,
+            0.035095
+          ],
+          "lift": 0.6835,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.015315
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.015315
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "SQL": {
+      "n_recent": 150,
+      "n_prev": 141,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 4,
+          "share_prev": 0.028369,
+          "ci95_recent": [
+            0.0,
+            0.024971
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 22,
+          "employers_recent": 14,
+          "share_recent": 0.146667,
+          "count_prev": 11,
+          "share_prev": 0.078014,
+          "ci95_recent": [
+            0.098894,
+            0.212086
+          ],
+          "lift": 1.4683,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.007092,
+          "ci95_recent": [
+            0.0,
+            0.024971
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.006667,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.001178,
+            0.036794
+          ],
+          "lift": 1.5476,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.007092,
+          "ci95_recent": [
+            0.0,
+            0.024971
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 4,
+          "employers_recent": 4,
+          "share_recent": 0.026667,
+          "count_prev": 1,
+          "share_prev": 0.007092,
+          "ci95_recent": [
+            0.010418,
+            0.066555
+          ],
+          "lift": 1.5006,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.024971
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.007092,
+          "ci95_recent": [
+            0.0,
+            0.024971
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "PostgreSQL": {
+      "n_recent": 687,
+      "n_prev": 564,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 25,
+          "employers_recent": 14,
+          "share_recent": 0.03639,
+          "count_prev": 12,
+          "share_prev": 0.021277,
+          "ci95_recent": [
+            0.024768,
+            0.053168
+          ],
+          "lift": 1.7108,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "health": {
+          "count_recent": 64,
+          "employers_recent": 44,
+          "share_recent": 0.093159,
+          "count_prev": 42,
+          "share_prev": 0.074468,
+          "ci95_recent": [
+            0.073629,
+            0.117213
+          ],
+          "lift": 0.9326,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 5,
+          "employers_recent": 5,
+          "share_recent": 0.007278,
+          "count_prev": 9,
+          "share_prev": 0.015957,
+          "ci95_recent": [
+            0.003113,
+            0.016923
+          ],
+          "lift": 0.6007,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 14,
+          "employers_recent": 3,
+          "share_recent": 0.020378,
+          "count_prev": 4,
+          "share_prev": 0.007092,
+          "ci95_recent": [
+            0.012177,
+            0.033914
+          ],
+          "lift": 4.7303,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 11,
+          "employers_recent": 2,
+          "share_recent": 0.016012,
+          "count_prev": 3,
+          "share_prev": 0.005319,
+          "ci95_recent": [
+            0.008964,
+            0.028442
+          ],
+          "lift": 2.1239,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 11,
+          "employers_recent": 8,
+          "share_recent": 0.016012,
+          "count_prev": 17,
+          "share_prev": 0.030142,
+          "ci95_recent": [
+            0.008964,
+            0.028442
+          ],
+          "lift": 0.901,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.001773,
+          "ci95_recent": [
+            0.0,
+            0.005561
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.002911,
+          "count_prev": 1,
+          "share_prev": 0.001773,
+          "ci95_recent": [
+            0.000799,
+            0.010552
+          ],
+          "lift": 1.8014,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        }
+      }
+    },
+    "MongoDB": {
+      "n_recent": 81,
+      "n_prev": 70,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.024691,
+          "count_prev": 3,
+          "share_prev": 0.042857,
+          "ci95_recent": [
+            0.006797,
+            0.085629
+          ],
+          "lift": 1.1608,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47975571",
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "health": {
+          "count_recent": 7,
+          "employers_recent": 6,
+          "share_recent": 0.08642,
+          "count_prev": 7,
+          "share_prev": 0.1,
+          "ci95_recent": [
+            0.042492,
+            0.167801
+          ],
+          "lift": 0.8651,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.014286,
+          "ci95_recent": [
+            0.0,
+            0.04528
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.04528
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.04528
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.012346,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.002183,
+            0.06667
+          ],
+          "lift": 0.6947,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.04528
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.04528
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Spark": {
+      "n_recent": 22,
+      "n_prev": 28,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.035714,
+          "ci95_recent": [
+            0.0,
+            0.14866
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.090909,
+          "count_prev": 4,
+          "share_prev": 0.142857,
+          "ci95_recent": [
+            0.025295,
+            0.278154
+          ],
+          "lift": 0.9101,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.14866
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.14866
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.14866
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.14866
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.14866
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.14866
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Hadoop": {
+      "n_recent": 4,
+      "n_prev": 1,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.4899
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.4899
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.4899
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.4899
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.4899
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.4899
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.4899
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.4899
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Kafka": {
+      "n_recent": 50,
+      "n_prev": 66,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 2,
+          "share_prev": 0.030303,
+          "ci95_recent": [
+            0.0,
+            0.07135
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 7,
+          "employers_recent": 6,
+          "share_recent": 0.14,
+          "count_prev": 7,
+          "share_prev": 0.106061,
+          "ci95_recent": [
+            0.069507,
+            0.261865
+          ],
+          "lift": 1.4015,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.07135
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.015152,
+          "ci95_recent": [
+            0.0,
+            0.07135
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.07135
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.04,
+          "count_prev": 13,
+          "share_prev": 0.19697,
+          "ci95_recent": [
+            0.011039,
+            0.134603
+          ],
+          "lift": 2.2509,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.07135
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.07135
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Snowflake": {
+      "n_recent": 64,
+      "n_prev": 45,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.015625,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.002763,
+            0.083343
+          ],
+          "lift": 0.7346,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        },
+        "health": {
+          "count_recent": 7,
+          "employers_recent": 4,
+          "share_recent": 0.109375,
+          "count_prev": 3,
+          "share_prev": 0.066667,
+          "ci95_recent": [
+            0.054,
+            0.208989
+          ],
+          "lift": 1.0949,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=49156683"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.056626
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.056626
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.056626
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.056626
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.056626
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.056626
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "dbt": {
+      "n_recent": 30,
+      "n_prev": 22,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 4,
+          "employers_recent": 2,
+          "share_recent": 0.133333,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.053096,
+            0.296817
+          ],
+          "lift": 6.2683,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48357725",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        },
+        "health": {
+          "count_recent": 4,
+          "employers_recent": 4,
+          "share_recent": 0.133333,
+          "count_prev": 5,
+          "share_prev": 0.227273,
+          "ci95_recent": [
+            0.053096,
+            0.296817
+          ],
+          "lift": 1.3348,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.045455,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Airflow": {
+      "n_recent": 30,
+      "n_prev": 25,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.04,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 6,
+          "employers_recent": 5,
+          "share_recent": 0.2,
+          "count_prev": 4,
+          "share_prev": 0.16,
+          "ci95_recent": [
+            0.09505,
+            0.37306
+          ],
+          "lift": 2.0022,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 7,
+          "share_prev": 0.28,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.113517
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "AWS": {
+      "n_recent": 573,
+      "n_prev": 574,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 15,
+          "employers_recent": 13,
+          "share_recent": 0.026178,
+          "count_prev": 13,
+          "share_prev": 0.022648,
+          "ci95_recent": [
+            0.015927,
+            0.04274
+          ],
+          "lift": 1.2307,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=47975571"
+          ]
+        },
+        "health": {
+          "count_recent": 90,
+          "employers_recent": 59,
+          "share_recent": 0.157068,
+          "count_prev": 63,
+          "share_prev": 0.109756,
+          "ci95_recent": [
+            0.12957,
+            0.189134
+          ],
+          "lift": 1.5724,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 3,
+          "employers_recent": 3,
+          "share_recent": 0.005236,
+          "count_prev": 9,
+          "share_prev": 0.015679,
+          "ci95_recent": [
+            0.001782,
+            0.015279
+          ],
+          "lift": 0.4322,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 10,
+          "employers_recent": 2,
+          "share_recent": 0.017452,
+          "count_prev": 4,
+          "share_prev": 0.006969,
+          "ci95_recent": [
+            0.009507,
+            0.031825
+          ],
+          "lift": 4.0511,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 13,
+          "employers_recent": 3,
+          "share_recent": 0.022688,
+          "count_prev": 2,
+          "share_prev": 0.003484,
+          "ci95_recent": [
+            0.013306,
+            0.038427
+          ],
+          "lift": 3.0094,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 7,
+          "employers_recent": 6,
+          "share_recent": 0.012216,
+          "count_prev": 23,
+          "share_prev": 0.04007,
+          "ci95_recent": [
+            0.00593,
+            0.025
+          ],
+          "lift": 0.6874,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.001745,
+          "count_prev": 9,
+          "share_prev": 0.015679,
+          "ci95_recent": [
+            0.000308,
+            0.009819
+          ],
+          "lift": 1.6202,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.001742,
+          "ci95_recent": [
+            0.0,
+            0.00666
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "GCP": {
+      "n_recent": 197,
+      "n_prev": 222,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.005076,
+          "count_prev": 5,
+          "share_prev": 0.022523,
+          "ci95_recent": [
+            0.000897,
+            0.028189
+          ],
+          "lift": 0.2386,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=46466074"
+          ]
+        },
+        "health": {
+          "count_recent": 35,
+          "employers_recent": 19,
+          "share_recent": 0.177665,
+          "count_prev": 35,
+          "share_prev": 0.157658,
+          "ci95_recent": [
+            0.130609,
+            0.237052
+          ],
+          "lift": 1.7786,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 5,
+          "employers_recent": 4,
+          "share_recent": 0.025381,
+          "count_prev": 2,
+          "share_prev": 0.009009,
+          "ci95_recent": [
+            0.010889,
+            0.058029
+          ],
+          "lift": 2.0948,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=47975571"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.019128
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.004505,
+          "ci95_recent": [
+            0.0,
+            0.019128
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.004505,
+          "ci95_recent": [
+            0.0,
+            0.019128
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.019128
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.010152,
+          "count_prev": 2,
+          "share_prev": 0.009009,
+          "ci95_recent": [
+            0.002788,
+            0.036255
+          ],
+          "lift": 6.2822,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        }
+      }
+    },
+    "Azure": {
+      "n_recent": 101,
+      "n_prev": 86,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 3,
+          "share_prev": 0.034884,
+          "ci95_recent": [
+            0.0,
+            0.036642
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 11,
+          "employers_recent": 9,
+          "share_recent": 0.108911,
+          "count_prev": 16,
+          "share_prev": 0.186047,
+          "ci95_recent": [
+            0.061911,
+            0.184572
+          ],
+          "lift": 1.0903,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.009901,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.00175,
+            0.053968
+          ],
+          "lift": 0.8172,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.036642
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.009901,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.00175,
+            0.053968
+          ],
+          "lift": 1.3133,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 5,
+          "employers_recent": 4,
+          "share_recent": 0.049505,
+          "count_prev": 5,
+          "share_prev": 0.05814,
+          "ci95_recent": [
+            0.021328,
+            0.110696
+          ],
+          "lift": 2.7857,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.036642
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.036642
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Kubernetes": {
+      "n_recent": 341,
+      "n_prev": 366,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 4,
+          "employers_recent": 3,
+          "share_recent": 0.01173,
+          "count_prev": 5,
+          "share_prev": 0.013661,
+          "ci95_recent": [
+            0.004571,
+            0.029768
+          ],
+          "lift": 0.5515,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49156683"
+          ]
+        },
+        "health": {
+          "count_recent": 32,
+          "employers_recent": 23,
+          "share_recent": 0.093842,
+          "count_prev": 42,
+          "share_prev": 0.114754,
+          "ci95_recent": [
+            0.067257,
+            0.129476
+          ],
+          "lift": 0.9394,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.005865,
+          "count_prev": 4,
+          "share_prev": 0.010929,
+          "ci95_recent": [
+            0.00161,
+            0.02113
+          ],
+          "lift": 0.4841,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47601859",
+            "https://news.ycombinator.com/item?id=47219668"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 4,
+          "employers_recent": 1,
+          "share_recent": 0.01173,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.004571,
+            0.029768
+          ],
+          "lift": 2.7228,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.005865,
+          "count_prev": 1,
+          "share_prev": 0.002732,
+          "ci95_recent": [
+            0.00161,
+            0.02113
+          ],
+          "lift": 0.778,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 9,
+          "employers_recent": 7,
+          "share_recent": 0.026393,
+          "count_prev": 22,
+          "share_prev": 0.060109,
+          "ci95_recent": [
+            0.013946,
+            0.049392
+          ],
+          "lift": 1.4852,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.002933,
+          "count_prev": 8,
+          "share_prev": 0.021858,
+          "ci95_recent": [
+            0.000518,
+            0.016422
+          ],
+          "lift": 2.7233,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.01114
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Docker": {
+      "n_recent": 222,
+      "n_prev": 190,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 5,
+          "employers_recent": 5,
+          "share_recent": 0.022523,
+          "count_prev": 1,
+          "share_prev": 0.005263,
+          "ci95_recent": [
+            0.009658,
+            0.051631
+          ],
+          "lift": 1.0589,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48357725",
+            "https://news.ycombinator.com/item?id=47219668"
+          ]
+        },
+        "health": {
+          "count_recent": 29,
+          "employers_recent": 23,
+          "share_recent": 0.130631,
+          "count_prev": 11,
+          "share_prev": 0.057895,
+          "ci95_recent": [
+            0.092515,
+            0.181312
+          ],
+          "lift": 1.3077,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.005263,
+          "ci95_recent": [
+            0.0,
+            0.01701
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 4,
+          "employers_recent": 1,
+          "share_recent": 0.018018,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.007028,
+            0.045405
+          ],
+          "lift": 4.1825,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 13,
+          "employers_recent": 3,
+          "share_recent": 0.058559,
+          "count_prev": 2,
+          "share_prev": 0.010526,
+          "ci95_recent": [
+            0.034537,
+            0.097598
+          ],
+          "lift": 7.7675,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 3,
+          "employers_recent": 2,
+          "share_recent": 0.013514,
+          "count_prev": 7,
+          "share_prev": 0.036842,
+          "ci95_recent": [
+            0.004606,
+            0.038971
+          ],
+          "lift": 0.7605,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47601859",
+            "https://news.ycombinator.com/item?id=46108941"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.004505,
+          "count_prev": 8,
+          "share_prev": 0.042105,
+          "ci95_recent": [
+            0.000796,
+            0.02507
+          ],
+          "lift": 4.1829,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.005263,
+          "ci95_recent": [
+            0.0,
+            0.01701
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Terraform": {
+      "n_recent": 221,
+      "n_prev": 199,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 9,
+          "employers_recent": 6,
+          "share_recent": 0.040724,
+          "count_prev": 3,
+          "share_prev": 0.015075,
+          "ci95_recent": [
+            0.02157,
+            0.075572
+          ],
+          "lift": 1.9145,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "health": {
+          "count_recent": 28,
+          "employers_recent": 19,
+          "share_recent": 0.126697,
+          "count_prev": 28,
+          "share_prev": 0.140704,
+          "ci95_recent": [
+            0.08913,
+            0.17702
+          ],
+          "lift": 1.2683,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.005025,
+          "ci95_recent": [
+            0.0,
+            0.017086
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.017086
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 12,
+          "employers_recent": 2,
+          "share_recent": 0.054299,
+          "count_prev": 1,
+          "share_prev": 0.005025,
+          "ci95_recent": [
+            0.03133,
+            0.092497
+          ],
+          "lift": 7.2024,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 5,
+          "employers_recent": 4,
+          "share_recent": 0.022624,
+          "count_prev": 15,
+          "share_prev": 0.075377,
+          "ci95_recent": [
+            0.009701,
+            0.05186
+          ],
+          "lift": 1.2731,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=48357725"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.017086
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.005025,
+          "ci95_recent": [
+            0.0,
+            0.017086
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "LLM / GenAI": {
+      "n_recent": 566,
+      "n_prev": 561,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 7,
+          "employers_recent": 4,
+          "share_recent": 0.012367,
+          "count_prev": 4,
+          "share_prev": 0.00713,
+          "ci95_recent": [
+            0.006003,
+            0.025306
+          ],
+          "lift": 0.5814,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "health": {
+          "count_recent": 89,
+          "employers_recent": 52,
+          "share_recent": 0.157244,
+          "count_prev": 82,
+          "share_prev": 0.146168,
+          "ci95_recent": [
+            0.129576,
+            0.189533
+          ],
+          "lift": 1.5741,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 7,
+          "employers_recent": 7,
+          "share_recent": 0.012367,
+          "count_prev": 13,
+          "share_prev": 0.023173,
+          "ci95_recent": [
+            0.006003,
+            0.025306
+          ],
+          "lift": 1.0207,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=47975571"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 4,
+          "employers_recent": 1,
+          "share_recent": 0.007067,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.002752,
+            0.018029
+          ],
+          "lift": 1.6404,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.001767,
+          "count_prev": 1,
+          "share_prev": 0.001783,
+          "ci95_recent": [
+            0.000312,
+            0.009939
+          ],
+          "lift": 0.2344,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47601859"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 13,
+          "employers_recent": 5,
+          "share_recent": 0.022968,
+          "count_prev": 15,
+          "share_prev": 0.026738,
+          "ci95_recent": [
+            0.013471,
+            0.038897
+          ],
+          "lift": 1.2924,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49522897",
+            "https://news.ycombinator.com/item?id=49156683"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.006742
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 2,
+          "share_prev": 0.003565,
+          "ci95_recent": [
+            0.0,
+            0.006742
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "RAG": {
+      "n_recent": 92,
+      "n_prev": 52,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 2,
+          "employers_recent": 1,
+          "share_recent": 0.021739,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.005982,
+            0.075836
+          ],
+          "lift": 1.022,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=46857488",
+            "https://news.ycombinator.com/item?id=46466074"
+          ]
+        },
+        "health": {
+          "count_recent": 13,
+          "employers_recent": 9,
+          "share_recent": 0.141304,
+          "count_prev": 12,
+          "share_prev": 0.230769,
+          "ci95_recent": [
+            0.084476,
+            0.226888
+          ],
+          "lift": 1.4146,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 3,
+          "employers_recent": 3,
+          "share_recent": 0.032609,
+          "count_prev": 6,
+          "share_prev": 0.115385,
+          "ci95_recent": [
+            0.011151,
+            0.091535
+          ],
+          "lift": 2.6914,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.040083
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.040083
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.040083
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.040083
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.040083
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Vector Databases": {
+      "n_recent": 44,
+      "n_prev": 33,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.080298
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "health": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.045455,
+          "count_prev": 1,
+          "share_prev": 0.030303,
+          "ci95_recent": [
+            0.012555,
+            0.151353
+          ],
+          "lift": 0.455,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49156683",
+            "https://news.ycombinator.com/item?id=47601859"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.080298
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.080298
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.080298
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 1,
+          "share_prev": 0.030303,
+          "ci95_recent": [
+            0.0,
+            0.080298
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.080298
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.080298
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "PyTorch": {
+      "n_recent": 79,
+      "n_prev": 78,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.012658,
+          "count_prev": 1,
+          "share_prev": 0.012821,
+          "ci95_recent": [
+            0.002238,
+            0.068277
+          ],
+          "lift": 0.5951,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47219668"
+          ]
+        },
+        "health": {
+          "count_recent": 12,
+          "employers_recent": 8,
+          "share_recent": 0.151899,
+          "count_prev": 15,
+          "share_prev": 0.192308,
+          "ci95_recent": [
+            0.089082,
+            0.247001
+          ],
+          "lift": 1.5206,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47975571",
+            "https://news.ycombinator.com/item?id=47601859"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.046373
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.046373
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.012658,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.002238,
+            0.068277
+          ],
+          "lift": 1.679,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=46108941"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 3,
+          "employers_recent": 2,
+          "share_recent": 0.037975,
+          "count_prev": 1,
+          "share_prev": 0.012821,
+          "ci95_recent": [
+            0.012998,
+            0.105802
+          ],
+          "lift": 2.1369,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47975571",
+            "https://news.ycombinator.com/item?id=46108941"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.046373
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.046373
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Machine Learning": {
+      "n_recent": 747,
+      "n_prev": 745,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 19,
+          "employers_recent": 11,
+          "share_recent": 0.025435,
+          "count_prev": 16,
+          "share_prev": 0.021477,
+          "ci95_recent": [
+            0.016343,
+            0.039384
+          ],
+          "lift": 1.1958,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49156683"
+          ]
+        },
+        "health": {
+          "count_recent": 104,
+          "employers_recent": 60,
+          "share_recent": 0.139224,
+          "count_prev": 94,
+          "share_prev": 0.126174,
+          "ci95_recent": [
+            0.116239,
+            0.1659
+          ],
+          "lift": 1.3937,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "education": {
+          "count_recent": 6,
+          "employers_recent": 4,
+          "share_recent": 0.008032,
+          "count_prev": 10,
+          "share_prev": 0.013423,
+          "ci95_recent": [
+            0.003686,
+            0.017412
+          ],
+          "lift": 0.6629,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=49522897"
+          ]
+        },
+        "financial_inclusion": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.001339,
+          "count_prev": 1,
+          "share_prev": 0.001342,
+          "ci95_recent": [
+            0.000236,
+            0.007544
+          ],
+          "lift": 0.3108,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "agriculture_food": {
+          "count_recent": 7,
+          "employers_recent": 6,
+          "share_recent": 0.009371,
+          "count_prev": 8,
+          "share_prev": 0.010738,
+          "ci95_recent": [
+            0.004546,
+            0.019216
+          ],
+          "lift": 1.243,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48357725",
+            "https://news.ycombinator.com/item?id=47975571"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 8,
+          "employers_recent": 7,
+          "share_recent": 0.01071,
+          "count_prev": 14,
+          "share_prev": 0.018792,
+          "ci95_recent": [
+            0.005436,
+            0.020989
+          ],
+          "lift": 0.6027,
+          "reliable": true,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=49922569",
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.005116
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 2,
+          "share_prev": 0.002685,
+          "ci95_recent": [
+            0.0,
+            0.005116
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    },
+    "Microservices": {
+      "n_recent": 32,
+      "n_prev": 55,
+      "sectors": {
+        "climate_energy": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.0625,
+          "count_prev": 10,
+          "share_prev": 0.181818,
+          "ci95_recent": [
+            0.01731,
+            0.201475
+          ],
+          "lift": 2.9383,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=45800465"
+          ]
+        },
+        "health": {
+          "count_recent": 2,
+          "employers_recent": 2,
+          "share_recent": 0.0625,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.01731,
+            0.201475
+          ],
+          "lift": 0.6257,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=47601859",
+            "https://news.ycombinator.com/item?id=46857488"
+          ]
+        },
+        "education": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.107183
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "financial_inclusion": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.107183
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "agriculture_food": {
+          "count_recent": 1,
+          "employers_recent": 1,
+          "share_recent": 0.03125,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.005538,
+            0.157446
+          ],
+          "lift": 4.1451,
+          "reliable": false,
+          "example_threads": [
+            "https://news.ycombinator.com/item?id=48747976"
+          ]
+        },
+        "government_civic": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.107183
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "accessibility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.107183
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        },
+        "cities_mobility": {
+          "count_recent": 0,
+          "employers_recent": 0,
+          "share_recent": 0.0,
+          "count_prev": 0,
+          "share_prev": 0.0,
+          "ci95_recent": [
+            0.0,
+            0.107183
+          ],
+          "lift": 0.0,
+          "reliable": false,
+          "example_threads": []
+        }
+      }
+    }
+  }
+}
