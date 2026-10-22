@@ -768,7 +768,7 @@ def _tree_snapshot() -> dict:
 
 
 def _next_monday() -> dt.date:
-    today = dt.date.today()
+    today = pathway_mod.today_myt()  # the app plans in Malaysia time
     return today + dt.timedelta(days=7 - today.weekday())
 
 
@@ -783,18 +783,19 @@ def _pathway_app(scenario: str | None = None, target: str | None = None) -> tupl
 
 
 def _expected_plan(role_name: str, scenario: str = "moderate", hours: float = 5,
-                   start: dt.date | None = None) -> dict:
-    """The same plan, built straight from the engines for the default profile (no app code)."""
+                   start: dt.date | None = None, skills: list[str] | None = None) -> dict:
+    """The same plan, built straight from the engines for a profile (default: Aina; no app code)."""
     scores = _scores()
     profiles = json.loads((DATA / "role_profiles.json").read_text(encoding="utf-8"))
     profile = roles_mod.profile_for(scores["as_of"], profiles)
     trends = roles_mod.build_role_trends(roles_mod.read_demand_rows(DATA / "role_demand_monthly.csv"),
                                          roles_mod.load_roles(DATA / "roles.json"), as_of=scores["as_of"])
-    out = roles_mod.match_roles(set(PERSONA_SKILLS), profile, scores, trends, scenario,
+    out = roles_mod.match_roles(set(skills or PERSONA_SKILLS), profile, scores, trends, scenario,
                                 exposure=roles_mod.load_exposure(DATA / "exposure.csv"))
     gap = next(r for r in out["roles"] + out["low_match"] if r["name"] == role_name)["gap"]
+    role_gaps = [gap] + [r["gap"] for r in out["roles"] if r["name"] != role_name]  # target + all ranked
     resources = json.loads((DATA / "resources.json").read_text(encoding="utf-8"))
-    return pathway_mod.build_pathway(role_name, gap, [r["gap"] for r in out["roles"][:3]], scores, resources,
+    return pathway_mod.build_pathway(role_name, gap, role_gaps, scores, resources,
                                      scenario=scenario, hours_per_week=hours,
                                      start_date=start or _next_monday())
 
@@ -848,7 +849,6 @@ def test_pathway_renders_every_stage_and_every_step_field_from_the_engine():
         assert f"Why: {step['reason']}" in text
         assert (f"Resource: [{res['title']}]({res['url']}) | {res['provider']} | cost: {res['cost']} | "
                 f"about {step['minutes']} minutes (estimate)") in text
-        assert f"SDG {', '.join(step['sdg'])}: {step['sdg_reason']}" in text
         assert f"Step deadline: {step['deadline']}" in text
         assert f"Source: {step['source']}" in text
 
@@ -943,17 +943,18 @@ def test_ticking_a_task_updates_progress_next_task_and_done_tasks():
 @needs_real_data
 @needs_pathway_files
 def test_pathway_counts_overdue_tasks_against_today():
-    start = dt.date.today() - dt.timedelta(days=21)  # a plan that began three weeks ago
+    today = pathway_mod.today_myt()
+    start = today - dt.timedelta(days=21)  # a plan that began three weeks ago
     at, name = _pathway_app()
     at.date_input(key="pathway_start").set_value(start).run()
     assert not at.exception
     plan = _expected_plan(name, start=start)
-    overdue = [t for t in plan["tasks"] if dt.date.fromisoformat(t["deadline"]) < dt.date.today()]
+    overdue = [t for t in plan["tasks"] if dt.date.fromisoformat(t["deadline"]) < today]
     assert overdue
-    assert f"Overdue as of {dt.date.today().isoformat()}: {len(overdue)} task" in _joined(at)
+    assert f"Overdue as of {today.isoformat()}: {len(overdue)} task" in _joined(at)
     assert sum(m.value.endswith("(overdue)") for m in at.markdown) == len(overdue)
     _done_boxes(at)[0].check().run()  # a done task is no longer overdue
-    assert f"Overdue as of {dt.date.today().isoformat()}: {len(overdue) - 1} task" in _joined(at)
+    assert f"Overdue as of {today.isoformat()}: {len(overdue) - 1} task" in _joined(at)
 
 
 @needs_real_data
@@ -988,16 +989,33 @@ def test_hrd_note_is_shown_once_and_comes_from_resources_json():
 
 @needs_real_data
 @needs_pathway_files
-def test_sdg_section_shows_counts_and_the_contribution_line():
+def test_sdg_section_leads_with_plan_level_sentences_and_keeps_tags_in_an_expander():
     at, name = _pathway_app()
-    summary = _expected_plan(name)["sdg_summary"]
-    assert summary["counts"]
+    plan = _expected_plan(name)
+    n_skills = sum(1 for st_ in plan["steps"] if st_["resource"])
+    assert all(st_["resource"]["cost"] == "free" for st_ in plan["steps"] if st_["resource"])
     markdown = [m.value for m in at.markdown]
-    for tag, n in summary["counts"].items():
-        skills = ", ".join(summary["skills_by_target"][tag])
-        assert f"- SDG {tag}: {n} step{'' if n == 1 else 's'} ({skills})" in markdown
-    assert summary["line"] in markdown
-    assert summary["line"].startswith("How this plan contributes: ")
+    assert (f"SDG 4.4 (indicator 4.4.1, ICT skills for employment): this plan adds {n_skills} job-listed skills "
+            f"in {plan['totals']['hours']} hours (estimate) at RM0 cost using free resources.") in markdown
+    role = next(r for r in roles_mod.match_roles(
+        set(PERSONA_SKILLS), roles_mod.profile_for(_scores()["as_of"], json.loads(
+            (DATA / "role_profiles.json").read_text(encoding="utf-8"))), _scores(),
+        roles_mod.build_role_trends(roles_mod.read_demand_rows(DATA / "role_demand_monthly.csv"),
+                                    roles_mod.load_roles(DATA / "roles.json"), as_of=_scores()["as_of"]),
+        "moderate", exposure=roles_mod.load_exposure(DATA / "exposure.csv"))["roles"] if r["name"] == name)
+    out = role["outlook"]
+    if out["trend_label"]:
+        demand = (f"{out['trend_label']}, {100 * out['share_last12']:.1f}% of posts in the last 12 months vs "
+                  f"{100 * out['share_prev12']:.1f}% the 12 months before")
+    else:
+        demand = "no trend label: too few posts"
+    assert f"SDG 8.5 (full and productive employment): moves you toward {name} (role demand: {demand})." in markdown
+    assert not any(m.startswith("- SDG ") for m in markdown)         # the step-counting line is gone
+    assert not any(m.startswith("How this plan contributes") for m in markdown)
+    expander = next(e for e in at.expander if e.label == "SDG tags per skill")
+    tags = " ".join(m.value for m in expander.markdown)
+    for step in plan["steps"]:
+        assert f"- {step['skill']}: SDG {', '.join(step['sdg'])}. {step['sdg_reason']}" in tags
 
 
 @needs_real_data
@@ -1037,3 +1055,87 @@ def test_pathway_tab_writes_no_file_under_data():
     at.number_input(key="pathway_hours").set_value(12).run()
     assert not at.exception
     assert _tree_snapshot() == before
+
+
+# --- review fixes: no-regret rule, tick signature, Malaysia time --------------------------
+
+PERSONA_LABEL_SKILLS = {
+    PERSONA_LABELS[0]: PERSONA_SKILLS,
+    PERSONA_LABELS[1]: ["JavaScript / TypeScript", "TypeScript", "React", "Node.js"],
+    PERSONA_LABELS[2]: ["SQL", "Python", "Snowflake", "dbt"],
+}
+
+
+def _no_regret(plan: dict) -> list[str]:
+    return [s["skill"] for s in plan["steps"] if s["stage"] == "no_regret"]
+
+
+@needs_real_data
+@needs_pathway_files
+def test_no_regret_stage_counts_the_target_and_all_ranked_roles_on_real_data():
+    shown = {}
+    for label, skills in PERSONA_LABEL_SKILLS.items():
+        at = _run_app()
+        at.selectbox(key="role_persona").set_value(label).run()
+        top = _role_name(_cards(at)[0])
+        at.session_state["target_role"] = top
+        at.run()
+        assert not at.exception
+        expected = _no_regret(_expected_plan(top, skills=skills))
+        page = [m.value for m in at.markdown if m.value.startswith("Why: Needed by")]
+        assert len(page) == len(expected)                      # the page shows the same no-regret steps
+        shown[label] = expected
+    assert any(shown.values())                                  # at least one persona has a Stage 1
+    assert shown[PERSONA_LABELS[2]] == ["LLM / GenAI"]          # Chloe: top role AI/LLM Application Engineer
+    assert shown[PERSONA_LABELS[1]] == []                       # Ben: only one ranked role
+    # Aina (target Backend Engineer, 7 ranked roles) gets Node.js; the other examples from the review:
+    assert _no_regret(_expected_plan("Backend Engineer")) == ["Node.js"]
+    assert _no_regret(_expected_plan("AI/LLM Application Engineer")) == ["LLM / GenAI"]
+    assert _no_regret(_expected_plan("Data Engineer")) == ["Machine Learning"]
+    chloe = PERSONA_LABEL_SKILLS[PERSONA_LABELS[2]]
+    assert _no_regret(_expected_plan("Data Scientist", skills=chloe)) == ["Machine Learning", "LLM / GenAI"]
+
+
+@needs_real_data
+@needs_pathway_files
+def test_stage_one_section_is_filled_on_the_page_for_aina_and_backend_engineer():
+    at, name = _pathway_app(target="Backend Engineer")
+    assert name == "Backend Engineer"
+    why = [m.value for m in at.markdown if m.value.startswith("Why: Needed by")]
+    assert len(why) == 1 and "of the 7 roles counted (your target and your ranked roles)" in why[0]
+    assert "**1. Node.js**" in [m.value for m in at.markdown]
+
+
+@needs_real_data
+@needs_pathway_files
+def test_a_tick_never_moves_to_another_task_when_the_plan_changes():
+    at, name = _pathway_app(target="Backend Engineer")
+    first = _expected_plan(name)["tasks"][0]
+    assert first["skill"] != "Kubernetes"
+    _done_boxes(at)[0].check().run()
+    assert at.session_state["done_tasks"] == [first["id"]]
+    skills = list(at.multiselect(key="role_skills").value)
+    at.multiselect(key="role_skills").set_value(skills + [first["skill"]]).run()   # add the first skill
+    assert not at.exception
+    changed = _expected_plan(name, skills=PERSONA_SKILLS + [first["skill"]])
+    assert changed["tasks"][0]["title"] != first["title"]       # the plan changed (T001 is another task)
+    assert at.session_state["done_tasks"] == []
+    assert not any(box.value for box in _done_boxes(at))
+    assert _progress_text(at).startswith("0% done")
+
+
+@needs_real_data
+@needs_pathway_files
+def test_plan_uses_malaysia_time_when_it_is_still_yesterday_in_utc(monkeypatch):
+    class Clock(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):                      # 01:00 on Monday 2026-10-26 in Malaysia
+            return dt.datetime(2026, 10, 26, 1, 0, tzinfo=tz)
+
+    monkeypatch.setattr(pathway_mod, "datetime", Clock)
+    assert dt.datetime(2026, 10, 26, 1, 0, tzinfo=pathway_mod.MYT).astimezone(dt.timezone.utc).date() \
+        == dt.date(2026, 10, 25)                    # still Sunday in UTC
+    at, name = _pathway_app()
+    assert not at.exception
+    assert at.date_input(key="pathway_start").value == dt.date(2026, 11, 2)   # the Monday after the MYT Monday
+    assert "Overdue as of 2026-10-26:" in _joined(at)

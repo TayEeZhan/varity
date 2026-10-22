@@ -77,7 +77,7 @@ def resources():
 
 @pytest.fixture
 def staging_case(scores):
-    """Role gap for the target role, and the gaps of the user's top 3 roles.
+    """Role gap for the target role, and the gaps of the roles counted (target first).
 
     Docker: in all 3 roles (no-regret). Go: in 2 roles, Rising, not Falling (no-regret).
     Kubernetes: 1 role only, ok, share rank 4 of 5.
@@ -120,13 +120,21 @@ def test_falling_skill_is_never_no_regret(scores, resources, taxonomy, staging_c
     assert st["Docker"] == "near_term"   # still high demand now, so stage 2, not 1
 
 
-def test_only_first_three_roles_are_counted(scores, resources, taxonomy, staging_case):
+def test_every_given_role_is_counted_not_only_three(scores, resources, taxonomy, staging_case):
     gap, top = staging_case
     kafka_in_roles = [[gap_item("Kafka", 1.0)], [], [], [gap_item("Kafka", 1.0)], [gap_item("Kafka", 1.0)]]
     classified = pw.classify(gap, kafka_in_roles, scores)
-    assert classified["Kafka"]["stage"] != "no_regret"
-    assert classified["Kafka"]["roles_needing"] == 1
-    assert classified["Kafka"]["roles_total"] == 3
+    assert classified["Kafka"]["stage"] == "no_regret"   # 3 of 5 roles
+    assert classified["Kafka"]["roles_needing"] == 3
+    assert classified["Kafka"]["roles_total"] == 5
+
+
+def test_ai_substitutable_skill_is_never_no_regret(scores):
+    gap = [gap_item("Docker", 0.9, stance="AI-substitutable"), gap_item("SQL", 0.8)]
+    c = pw.classify(gap, [gap, gap, gap], scores)
+    assert c["SQL"]["stage"] == "no_regret"
+    assert c["Docker"]["stage"] != "no_regret"
+    assert c["Docker"]["stage"] == "near_term"   # still a high share now
 
 
 def test_near_term_is_status_ok_and_top_half_of_gap_by_share(scores, resources, taxonomy):
@@ -191,8 +199,8 @@ def test_fast_scenario_moves_future_bets_to_second_place(scores, resources, taxo
 def test_reasons_use_the_numbers(scores, resources, taxonomy, staging_case):
     gap, top = staging_case
     steps = {s["skill"]: s for s in build(gap, top, scores, resources, taxonomy)["steps"]}
-    assert steps["Docker"]["reason"].startswith("Needed by 3 of your top 3 roles")
-    assert steps["Go"]["reason"].startswith("Needed by 2 of your top 3 roles")
+    assert steps["Docker"]["reason"].startswith("Needed by 3 of the 3 roles counted")
+    assert steps["Go"]["reason"].startswith("Needed by 2 of the 3 roles counted")
     assert steps["RAG"]["reason"] == "Rising: 2.5% of posts vs 1.3% in the 12 months before."
     assert "20.0%" in steps["SQL"]["reason"] and "top half" in steps["SQL"]["reason"]
     assert "Too few posts to forecast" in steps["Kafka"]["reason"]
@@ -490,7 +498,7 @@ def test_ics_events_carry_date_summary_description_and_url(ics, plan):
         day = task["date"].replace("-", "")
         assert props["DTSTART;VALUE=DATE"] == day
         assert props["DTSTAMP"] == "20261022T090000Z"
-        assert props["UID"] == f"{task['id']}-{task['date']}@verity.pathway"
+        assert props["UID"] == f"{pw.tasks_signature(plan['tasks'])}-{task['id']}-{task['date']}@verity.pathway"
         assert props["SUMMARY"].replace("\\,", ",") == task["title"]
         assert task["resource_url"] in props["DESCRIPTION"]
         assert props["URL"] == task["resource_url"]
@@ -526,7 +534,7 @@ def test_markdown_export(scores, taxonomy):
     assert md.startswith("# Reskilling pathway: Backend Engineer\n")
     assert "Fast AI disruption (estimate)" in md
     assert "[Docker docs](https://example.org/docker)" in md
-    assert "Needed by 2 of your top 2 roles" in md
+    assert "Needed by 2 of the 2 roles counted" in md
     assert "No verified free resource yet" in md          # Go has no resource
     assert "| T001 | 2026-10-26 | 45 |" in md
     assert "SDG 4.4: 1 step (Docker)" in md
@@ -592,7 +600,7 @@ def test_every_real_resource_has_required_fields_https_and_status_200(real_resou
         assert isinstance(r["minutes"], int) and r["minutes"] > 0
         assert r["minutes_is_estimate"] is True
         assert isinstance(r["hrd_corp"], bool)
-        assert r["cost"] in {"free", "free audit", "low-cost"}
+        assert r["cost"] in {"free", "free trial", "free audit", "low-cost"}
         assert r["level"] in {"beginner", "intermediate", "advanced"}
         assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", r["checked"])
 
@@ -627,3 +635,92 @@ def test_pathway_on_the_real_data_files():
     assert all(t["minutes"] <= 45 for t in path["tasks"])
     assert all(s["sdg"] and s["sdg_reason"] for s in path["steps"])
     assert pw.to_ics(path["tasks"]).count("BEGIN:VEVENT") == len(path["tasks"])
+
+
+# ---------------------------------------------------------------- review fixes: time, UID, picking, SDG
+
+class _FixedClock(datetime):
+    """datetime whose now() is 01:00 on Monday 2026-10-26 in the zone asked for (UTC+8 here)."""
+
+    @classmethod
+    def now(cls, tz=None):
+        return datetime(2026, 10, 26, 1, 0, tzinfo=tz)
+
+
+def test_today_myt_is_the_malaysia_date_not_the_utc_date(monkeypatch):
+    utc_clock = datetime(2026, 10, 26, 1, 0, tzinfo=pw.MYT).astimezone(timezone.utc)
+    assert utc_clock.date() == date(2026, 10, 25)          # still Sunday in UTC
+    monkeypatch.setattr(pw, "datetime", _FixedClock)
+    assert pw.today_myt() == date(2026, 10, 26)            # already Monday in Malaysia
+    assert pw._as_date(None) == date(2026, 10, 26)
+
+
+def test_default_start_date_uses_malaysia_today(monkeypatch, scores, resources, taxonomy):
+    monkeypatch.setattr(pw, "datetime", _FixedClock)
+    gap = [gap_item("Docker", 0.9)]
+    path = pw.build_pathway("Backend Engineer", gap, [gap], scores, resources, taxonomy=taxonomy)
+    assert path["start_date"] == "2026-10-26"               # a Monday: not rolled back to Sunday's date
+
+
+def test_ics_uids_are_unique_across_two_plans(scores, resources, taxonomy):
+    one = build([gap_item("Docker", 0.9)], [[gap_item("Docker", 0.9)]], scores, resources, taxonomy)
+    two = build([gap_item("Go", 0.9)], [[gap_item("Go", 0.9)]], scores, resources, taxonomy)
+    assert one["tasks"][0]["id"] == two["tasks"][0]["id"] == "T001"
+    assert one["tasks"][0]["date"] == two["tasks"][0]["date"]   # same id and date as before the fix
+    uids = re.findall(r"UID:(\S+)", unfold(pw.to_ics(one["tasks"], now=FIXED_NOW) + pw.to_ics(two["tasks"], now=FIXED_NOW)))
+    assert len(uids) == len(one["tasks"]) + len(two["tasks"]) and len(set(uids)) == len(uids)
+
+
+def test_tasks_signature_changes_with_any_task_and_ignores_nothing_else():
+    a = [{"id": "T001", "title": "Go: A (part 1 of 1)", "date": "2026-10-26"}]
+    assert pw.tasks_signature(a) == pw.tasks_signature([dict(a[0])])
+    assert pw.tasks_signature(a) != pw.tasks_signature([dict(a[0], title="Kubernetes: B (part 1 of 1)")])
+    assert pw.tasks_signature(a) != pw.tasks_signature([dict(a[0], date="2026-10-27")])
+    assert pw.tasks_signature(a) != pw.tasks_signature([dict(a[0], id="T002")])
+
+
+def test_pick_resource_prefers_hrd_then_beginner_then_first_listed():
+    inter = res("X", 60, title="Intermediate first", url="https://example.org/i", level="intermediate")
+    begin = res("X", 60, title="Beginner second", url="https://example.org/b")
+    chosen, alts = pw._pick_resource([inter, begin])
+    assert chosen["title"] == "Beginner second" and [a["title"] for a in alts] == ["Intermediate first"]
+    first, second = (res("X", 60, title="First", url="https://example.org/1", level="intermediate"),
+                     res("X", 60, title="Second", url="https://example.org/2", level="intermediate"))
+    assert pw._pick_resource([first, second])[0]["title"] == "First"
+    hrd = res("X", 60, title="HRD", url="https://example.org/h", level="intermediate", hrd=True)
+    assert pw._pick_resource([begin, hrd])[0]["title"] == "HRD"
+
+
+def test_real_resources_pick_simple_rag_and_a_beginner_resource_where_one_exists(real_resources):
+    index = pw._resource_index(real_resources)
+    assert pw._pick_resource(index["RAG"])[0]["title"].startswith("Simple RAG")
+    for skill, options in index.items():
+        if any(o["level"] == "beginner" for o in options):
+            assert pw._pick_resource(options)[0]["level"] == "beginner", skill
+
+
+def test_real_resources_have_no_catalog_pages_for_mongodb_snowflake_and_gcp(real_resources):
+    urls = {r["url"] for r in real_resources["resources"]}
+    assert "https://learn.mongodb.com/" not in urls
+    assert "https://www.snowflake.com/en/developers/guides/" not in urls
+    assert "https://www.skills.google/" not in urls
+    assert not [r for r in real_resources["resources"] if r["cost"] == "free audit"]
+    minutes = {r["title"]: r["minutes"] for r in real_resources["resources"]}
+    assert minutes["Scientific Computing with Python"] > 600 and minutes["Learn C++"] > 1200
+    assert minutes["The Rust Programming Language (the Book)"] > 900 and minutes["React Quick Start"] < 300
+
+
+def test_sdg_headline_uses_only_plan_numbers_and_says_rm0_only_when_all_free(scores, resources, taxonomy):
+    gap = [gap_item("Docker", 0.9), gap_item("Go", 0.8), gap_item("Kafka", 0.5)]
+    rs = {"resources": [res("Docker", 90), res("Go", 150)]}          # Kafka has no resource
+    path = build(gap, [gap], scores, rs, taxonomy)
+    outlook = {"trend_label": "Rising", "share_last12": 0.102, "share_prev12": 0.081}
+    first, second = pw.sdg_headline(path, outlook)
+    assert first == ("SDG 4.4 (indicator 4.4.1, ICT skills for employment): this plan adds 2 job-listed skills "
+                     "in 4.0 hours (estimate) at RM0 cost using free resources.")
+    assert second == ("SDG 8.5 (full and productive employment): moves you toward Backend Engineer "
+                      "(role demand: Rising, 10.2% of posts in the last 12 months vs 8.1% the 12 months before).")
+    paid = {"resources": [res("Docker", 90, cost="low-cost"), res("Go", 150)]}
+    mostly = pw.sdg_headline(build(gap, [gap], scores, paid, taxonomy), None)
+    assert "mostly free resources" in mostly[0] and "RM0" not in mostly[0]
+    assert "no trend label: too few posts" in mostly[1]
