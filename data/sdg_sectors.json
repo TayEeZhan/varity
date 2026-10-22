@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "description": "Sectors tied to SDG targets, with word-boundary regex patterns over the text of an HN job post. A pattern says what the employer does. It is team judgement, tuned for precision (a wrong tag is worse than a missed one). All patterns are case-insensitive unless a pattern turns it off with (?-i:...).",
+  "text_rules": {
+    "note": "Applied to cleaned post text before any sector pattern. They stop perks and legal lines from creating a sector. Each rule is a regex.",
+    "drop_line": "\\bequal[\\s-]+(?:employment[\\s-]+)?opportunity\\b|\\beeo\\b|\\bdiscriminat\\w*|\\bprotected[\\s-]+(?:veteran|class|status|characteristic)\\w*|\\breasonable[\\s-]+accommodations?\\b",
+    "benefits_header": "^[\\W_]*(?:benefits?|perks?|we[\\s-]+offer|what[\\s-]+we[\\s-]+offer|compensation(?:[\\s-]+(?:and|&)[\\s-]+benefits)?|our[\\s-]+benefits)\\b",
+    "benefits_inline": "\\b(?:benefits?|perks?)\\s*(?::|[-\\u2013\\u2014]|\\binclude\\w*|\\bare\\b)[^\\n|]*|\\bwe[\\s-]+offer\\b[^\\n.]*",
+    "section_max_header_chars": 60,
+    "section_max_item_chars": 120,
+    "section_max_plain_chars": 80
+  },
+  "sectors": [
+    {
+      "id": "climate_energy",
+      "name": "Climate and clean energy",
+      "sdg": ["7.2", "13.2"],
+      "sdg_note": "SDG 7.2 raises the share of renewable energy. SDG 13.2 puts climate measures into planning.",
+      "patterns": [
+        "\\bclimate[\\s-]+(?:change|tech(?:nology)?|risk|crisis|action|solutions?|software|data|impact|mitigation|adaptation|resilien\\w+|positive|focused|accounting|science|startups?)\\b",
+        "\\bcarbon[\\s-]+(?:emissions?|footprints?|capture|credits?|removal|accounting|offsets?|neutral\\w*|negative|markets?|free|intensity|reduction)\\b",
+        "\\bdecarboni[sz]\\w*",
+        "\\bnet[\\s-]+zero\\b",
+        "\\brenewables?\\b",
+        "\\bclean[\\s-]?(?:energy|tech|power|electricity)\\b",
+        "\\bsolar\\b",
+        "\\b(?:wind[\\s-]+(?:power|farms?|turbines?|energy)|geothermal|hydropower|nuclear[\\s-]+(?:energy|power|fusion)|fusion[\\s-]+(?:energy|power))\\b",
+        "\\b(?:battery[\\s-]+(?:storage|technology|management|manufacturing|cells?|packs?|energy|systems?)|energy[\\s-]+storage|grid[\\s-]+storage)\\b",
+        "\\b(?:power|electric(?:al)?|smart|energy)[\\s-]+grids?\\b|\\bgrid[\\s-]+(?:operators?|software|optimi[sz]ation)\\b",
+        "\\b(?:greenhouse[\\s-]+gas(?:es)?|GHG[\\s-]+emissions?|emissions[\\s-]+(?:reduction|data|tracking|monitoring))\\b",
+        "\\benergy[\\s-]+(?:transition|efficiency)\\b",
+        "\\b(?:sustainability|ESG)[\\s-]+(?:software|platform|reporting|data|tech(?:nology)?)\\b",
+        "(?-i:\\bEV[\\s-]+charging\\b)|\\belectric[\\s-]+vehicles?\\b|\\bheat[\\s-]+pumps?\\b"
+      ]
+    },
+    {
+      "id": "health",
+      "name": "Health and life sciences",
+      "sdg": ["3.8", "3.b"],
+      "sdg_note": "SDG 3.8 is access to quality health-care services. SDG 3.b is research and development of medicines.",
+      "patterns": [
+        "\\bhealth[\\s-]?care\\b(?![\\s-]+(?:benefits?|coverage|plans?|insurance|stipends?|costs?|premiums?))",
+        "\\bhealth[\\s-]?tech\\b|\\bdigital[\\s-]+health\\b|\\btele[\\s-]?(?:health|medicine)\\b|\\bhealth[\\s-]+(?:data|records?|systems?|platform|startup|outcomes)\\b",
+        "\\b(?:clinical|clinicians?|clinics?)\\b",
+        "\\bpatients?\\b",
+        "\\bhospitals?\\b",
+        "\\b(?:biotech\\w*|drug[\\s-]+discovery|pharma(?:ceuticals?)?|life[\\s-]+sciences?|genomics?|therapeutics?|medtech|bioinformatics)\\b",
+        "\\bmedical[\\s-]+(?:devices?|imaging|records?|software|research|data)\\b",
+        "(?-i:\\b(?:EHR|FDA)\\b)|\\belectronic[\\s-]+(?:health|medical)[\\s-]+records?\\b",
+        "\\bmental[\\s-]+health\\b(?![\\s-]+(?:benefits?|coverage|days?|support|resources|stipends?|insurance|care[\\s-]+coverage))"
+      ]
+    },
+    {
+      "id": "education",
+      "name": "Education",
+      "sdg": ["4.3", "4.4"],
+      "sdg_note": "SDG 4.3 is equal access to education. SDG 4.4 is skills for employment.",
+      "patterns": [
+        "\\bed[\\s-]?tech\\b",
+        "(?-i:\\bK[\\s-]?12\\b)",
+        "\\b(?:student|online|e)[\\s-]*learning[\\s-]+(?:platform|app)s?\\b|\\blearning[\\s-]+management[\\s-]+systems?\\b",
+        "\\bonline[\\s-]+(?:courses?|learning|education|tutoring|classes)\\b",
+        "\\b(?:teachers?|educators?|classrooms?)\\b",
+        "\\b(?:help(?:s|ing)?|empower(?:s|ing)?|serv(?:e|es|ing)|support(?:s|ing)?)\\s+(?:\\w+\\s+){0,2}(?:students|schools|learners)\\b",
+        "\\bstudents[\\s-]+(?:and|&)[\\s-]+teachers\\b|\\bschool[\\s-]+(?:districts?|administrators?)\\b",
+        "\\beducation(?:al)?[\\s-]+(?:technology|platform|company|startup|software|products?|sector|space|industry)\\b|\\bhigher[\\s-]+education\\b"
+      ]
+    },
+    {
+      "id": "financial_inclusion",
+      "name": "Financial inclusion",
+      "sdg": ["8.10", "1.4"],
+      "sdg_note": "SDG 8.10 widens access to banking, insurance and financial services. SDG 1.4 is equal access to economic resources and financial services.",
+      "patterns": [
+        "\\b(?:under[\\s-]?banked|un[\\s-]?banked|financial[\\s-]+inclusion|financial[\\s-]+(?:access|wellness))\\b",
+        "\\bmicro[\\s-]?(?:finance|loans?|credit|lending)\\b",
+        "\\b(?:underserved|low[\\s-]+income|emerging[\\s-]+market)\\w*[\\s-]+(?:communities|consumers|customers|borrowers|households|markets?|populations?)\\b",
+        "\\b(?:credit[\\s-]+(?:access|invisible)|affordable[\\s-]+(?:credit|loans?|banking|insurance)|mobile[\\s-]+money|(?:cross[\\s-]+border|international)[\\s-]+remittances?|remittance[\\s-]+(?:platform|app|services?|corridors?))\\b",
+        "\\b(?:payments?|banking|lending|credit|loans?|financing)[\\s-]+for[\\s-]+(?:small[\\s-]+businesses|SMBs?|SMEs?|the[\\s-]+underserved|underserved[\\s-]+\\w+)\\b",
+        "\\bsmall[\\s-]+business(?:es)?[\\s-]+(?:lending|loans|payments|banking|finance)\\b"
+      ]
+    },
+    {
+      "id": "agriculture_food",
+      "name": "Agriculture and food",
+      "sdg": ["2.3", "2.4"],
+      "sdg_note": "SDG 2.3 raises farm productivity and incomes. SDG 2.4 is sustainable food production.",
+      "patterns": [
+        "\\b(?:ag[\\s-]?tech|agri[\\s-]?tech|agri[\\s-]?food|agricultur\\w+|agronom\\w+)\\b",
+        "\\b(?:farmers?|farming|livestock|aquaculture|crops)\\b",
+        "\\bfood[\\s-]+(?:security|systems?|supply[\\s-]+chain|waste)\\b",
+        "\\b(?:precision[\\s-]+ag\\w*|crop[\\s-]?(?:yields?|monitoring|science)|regenerative|vertical[\\s-]+farm\\w*)\\b",
+        "\\b(?:the|on|of|for|vertical|indoor|organic|small|local)[\\s-]+farms?\\b"
+      ]
+    },
+    {
+      "id": "government_civic",
+      "name": "Government and civic tech",
+      "sdg": ["16.6", "16.7"],
+      "sdg_note": "SDG 16.6 is effective, accountable and transparent institutions. SDG 16.7 is responsive, inclusive decision-making.",
+      "patterns": [
+        "\\b(?:gov[\\s-]?tech|civic[\\s-]?tech|civic|public[\\s-]+sector|e[\\s-]?government)\\b",
+        "\\b(?:local|state|federal|national|city|county|(?-i:US|U\\.S\\.))[\\s-]+(?:and[\\s-]+local[\\s-]+)?(?:governments?|agenc(?:y|ies))\\b(?![\\s-]+clearance)",
+        "\\bgovernments?[\\s-]+(?:agenc\\w+|customers?|clients?|contracts?|services?|software|digital|technology|sector|workflows?)\\b",
+        "\\b(?:for|serv\\w*|help\\w*|sell\\w*[\\s-]+to|modern\\w+|automat\\w+)[\\s-]+(?:\\w+[\\s-]+){0,2}governments?\\b(?![\\s-]+(?:clearance|id\\b))",
+        "\\b(?:municipalities|municipal[\\s-]+(?:governments?|services?|software)|public[\\s-]+(?:services?|safety|records)|voters?)\\b",
+        "\\b(?:general|local|presidential|national|state)[\\s-]+elections?\\b|\\belection[\\s-]+(?:security|software|administration|officials?|offices?)\\b|\\bvoting[\\s-]+(?:systems?|machines?|rights?)\\b",
+        "(?-i:\\bFedRAMP\\b)"
+      ]
+    },
+    {
+      "id": "accessibility",
+      "name": "Accessibility and disability inclusion",
+      "sdg": ["10.2"],
+      "sdg_note": "SDG 10.2 is the social and economic inclusion of all, including people with disabilities.",
+      "patterns": [
+        "\\bassistive[\\s-]+tech\\w*",
+        "\\baccessibility[\\s-]+(?:platform|company|software|startup|tools?|testing|compliance|overlay|products?|solutions?|mission)\\b",
+        "\\baccessible[\\s-]+(?:technology|tech)\\b",
+        "\\bpeople[\\s-]+with[\\s-]+(?:disabilit\\w+|visual[\\s-]+impairments?|low[\\s-]+vision)\\b",
+        "\\b(?:visually[\\s-]+impaired|hard[\\s-]+of[\\s-]+hearing|disabled[\\s-]+(?:people|users|persons)|neurodivers\\w+|sign[\\s-]+language)\\b"
+      ]
+    },
+    {
+      "id": "cities_mobility",
+      "name": "Sustainable cities and mobility",
+      "sdg": ["11.2", "11.1"],
+      "sdg_note": "SDG 11.2 is safe, affordable, accessible and sustainable transport. SDG 11.1 is adequate, safe and affordable housing.",
+      "patterns": [
+        "\\b(?:public|mass)[\\s-]+transit\\b|\\bpublic[\\s-]+transport\\w*",
+        "\\btransit[\\s-]+(?:agenc\\w+|authorit\\w+|data|riders?|systems?|operators?)\\b",
+        "\\bmicro[\\s-]?mobility\\b",
+        "\\b(?:urban[\\s-]+(?:mobility|planning|planners?|transport\\w*|development|infrastructure|logistics)|sustainable[\\s-]+(?:mobility|transport\\w*))\\b",
+        "\\bsmart[\\s-]+cit(?:y|ies)\\b",
+        "\\baffordable[\\s-]+housing\\b|\\bhousing[\\s-]+(?:affordability|crisis|market|authorit\\w+|policy)\\b",
+        "\\be[\\s-]?bikes?\\b|\\bbike[\\s-]+sharing\\b"
+      ]
+    }
+  ]
+}
