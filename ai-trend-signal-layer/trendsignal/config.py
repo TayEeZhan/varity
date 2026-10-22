@@ -75,6 +75,8 @@ class Settings:
     telegram_chat_id: str | None
     scheduler_enabled: bool
     jev_api_key: str | None = None
+    jev_base_url: str | None = None  # None = TypeSafe's own API; set when Jev comes through Replit AI Integrations
+    jev_via: str = "typesafe"  # "typesafe" (TYPESAFE_API_KEY) or "replit" (AI_INTEGRATIONS_OPENROUTER_*)
     jev_model: str = "jev-1.13.0"  # pinned: moving aliases (jev-latest) can change rankings silently
     jev_timeout_s: float = 2.0
     jev_mode: str = "auto"  # "off" never calls Jev even when a key is set
@@ -111,6 +113,21 @@ def load_dotenv(path: Path) -> None:
             os.environ.setdefault(key, value.strip("\"'"))
 
 
+def _jev_connection() -> dict[str, str | None]:
+    """A TypeSafe key wins. Otherwise use Replit AI Integrations, which provisions an OpenRouter
+    base URL and key that the TypeSafe SDK talks to directly (it adds /v1/systemone itself).
+    Replit only lists the jev-latest alias, so that is the default model on that route."""
+    if _env("TYPESAFE_API_KEY"):
+        return {"jev_api_key": _env("TYPESAFE_API_KEY"), "jev_base_url": _env("TYPESAFE_BASE_URL"),
+                "jev_via": "typesafe", "jev_model": _env("TRENDSIGNAL_JEV_MODEL", "jev-1.13.0")}
+    if _env("AI_INTEGRATIONS_OPENROUTER_API_KEY") and _env("AI_INTEGRATIONS_OPENROUTER_BASE_URL"):
+        return {"jev_api_key": _env("AI_INTEGRATIONS_OPENROUTER_API_KEY"),
+                "jev_base_url": _env("AI_INTEGRATIONS_OPENROUTER_BASE_URL"),
+                "jev_via": "replit", "jev_model": _env("TRENDSIGNAL_JEV_MODEL", "jev-latest")}
+    return {"jev_api_key": None, "jev_base_url": None, "jev_via": "typesafe",
+            "jev_model": _env("TRENDSIGNAL_JEV_MODEL", "jev-1.13.0")}
+
+
 def load_settings() -> Settings:
     load_dotenv(PROJECT_ROOT / ".env")
     config_dir = Path(_env("TRENDSIGNAL_CONFIG_DIR", str(PROJECT_ROOT / "config")))
@@ -138,8 +155,7 @@ def load_settings() -> Settings:
         telegram_bot_token=_env("TELEGRAM_BOT_TOKEN"),
         telegram_chat_id=_env("TELEGRAM_CHAT_ID"),
         scheduler_enabled=_env("TRENDSIGNAL_SCHEDULER", "0") == "1",
-        jev_api_key=_env("TYPESAFE_API_KEY"),
-        jev_model=_env("TRENDSIGNAL_JEV_MODEL", "jev-1.13.0"),
+        **_jev_connection(),
         jev_timeout_s=float(_env("TRENDSIGNAL_JEV_TIMEOUT", "2.0")),
         jev_mode=jev_mode,
         ranker=ranker,

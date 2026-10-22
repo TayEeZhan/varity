@@ -21,7 +21,14 @@ Output goes to `data/ranked/`:
 - `skills.json`: weekly skill momentum for SKidea's matching
 
 No keys are needed: without Jev the deterministic formula ranks (the documented fallback).
-Add `TYPESAFE_API_KEY` to get Jev's probabilities (see `.env.example`).
+To get Jev's probabilities, use either connection:
+
+| Route | Setup | Model |
+|---|---|---|
+| **Replit AI Integrations** (billed to Replit credits) | In Replit Agent, enable Replit-managed OpenRouter for `jev-latest` (Core plan, verified phone). Replit creates `AI_INTEGRATIONS_OPENROUTER_API_KEY` and `AI_INTEGRATIONS_OPENROUTER_BASE_URL`; the ranker reads them automatically | `jev-latest` |
+| **TypeSafe directly** | Set `TYPESAFE_API_KEY` (takes priority if both exist) | `jev-1.13.0` (pinned) |
+
+`TRENDSIGNAL_JEV_MODEL` overrides the model on either route.
 
 | Command | What it does |
 |---|---|

@@ -266,5 +266,6 @@ def make_jev_client(settings: Settings) -> JevClient | None:
         log.warning("TYPESAFE_API_KEY is set but typesafe-sdk is not installed; ranking with the formula")
         return None
     client = TypeSafeClient(api_key=settings.jev_api_key, model=settings.jev_model, timeout=settings.jev_timeout_s,
+                            base_url=settings.jev_base_url,  # Replit AI Integrations route; None = TypeSafe's API
                             retry=RetryPolicy(max_retries=0, timeout=settings.jev_timeout_s))
     return JevClient(client, settings.jev_model, timeout_s=settings.jev_timeout_s, cache=JevCache(settings.db_path))

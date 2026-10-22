@@ -121,6 +121,48 @@ def test_no_client_without_a_key(settings):
     assert make_jev_client(settings) is None
 
 
+def test_replit_ai_integrations_secrets_route_jev_through_openrouter(monkeypatch):
+    from trendsignal.config import load_settings
+
+    monkeypatch.setenv("TRENDSIGNAL_DOTENV", "0")
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    monkeypatch.setenv("AI_INTEGRATIONS_OPENROUTER_API_KEY", "replit-managed-test")
+    monkeypatch.setenv("AI_INTEGRATIONS_OPENROUTER_BASE_URL", "https://openrouter.example/api")
+    settings = load_settings()
+    assert settings.jev_enabled and settings.jev_via == "replit"
+    assert settings.jev_base_url == "https://openrouter.example/api" and settings.jev_model == "jev-latest"
+
+
+def test_a_typesafe_key_wins_over_replit_secrets(monkeypatch):
+    from trendsignal.config import load_settings
+
+    monkeypatch.setenv("TRENDSIGNAL_DOTENV", "0")
+    monkeypatch.delenv("TYPESAFE_BASE_URL", raising=False)
+    monkeypatch.setenv("TYPESAFE_API_KEY", "ts-test")
+    monkeypatch.setenv("AI_INTEGRATIONS_OPENROUTER_API_KEY", "replit-managed-test")
+    monkeypatch.setenv("AI_INTEGRATIONS_OPENROUTER_BASE_URL", "https://openrouter.example/api")
+    settings = load_settings()
+    assert settings.jev_via == "typesafe" and settings.jev_base_url is None and settings.jev_model == "jev-1.13.0"
+
+
+def test_replit_route_passes_its_base_url_to_the_sdk(settings, monkeypatch):
+    import typesafe_sdk
+    from dataclasses import replace
+
+    seen = {}
+
+    class RecordingClient:
+        def __init__(self, **kwargs):
+            seen.update(kwargs)
+
+    monkeypatch.setattr(typesafe_sdk, "TypeSafeClient", RecordingClient)
+    replit = replace(settings, jev_api_key="replit-managed-test", jev_base_url="https://openrouter.example/api",
+                     jev_via="replit", jev_model="jev-latest")
+    client = make_jev_client(replit)
+    assert isinstance(client, JevClient) and client.model == "jev-latest"
+    assert seen["base_url"] == "https://openrouter.example/api" and seen["model"] == "jev-latest"
+
+
 def test_real_sdk_client_is_built_when_a_key_is_set(settings):
     from dataclasses import replace
 
