@@ -54,10 +54,29 @@ def test_jury_marks_each_story_with_each_model_and_takes_the_majority():
     assert "x=must_know" in gold[0]["note"]
 
 
-def test_an_unavailable_model_is_skipped_not_fatal():
-    http, _ = client_answering({}, status=404)
-    votes = run_jury(STORIES, [Juror(http, "https://or.example/api", "k", "missing/model")])
-    assert all(v.vote == "" and "404" in v.reason for v in votes)
+def test_an_unavailable_model_is_skipped_after_three_failures(capsys):
+    from eval.jury import model_summary
+
+    http, calls = client_answering({}, status=404)
+    stories = STORIES + [{"url": f"https://e.x/{i}", "title": f"S{i}", "sources": "S"} for i in range(4, 9)]
+    votes = run_jury(stories, [Juror(http, "https://or.example/api", "k", "missing/model")])
+    assert len(calls) == 3 and len(votes) == 8 and all(v.vote == "" and "404" in v.reason for v in votes)
+    assert "skipping missing/model" in capsys.readouterr().out
+    assert "0/8 votes; first error: error: HTTP 404" in model_summary(votes)[0]
+
+
+def test_models_fall_back_to_openrouters_public_list():
+    from eval.jury import list_models
+
+    def handler(request):
+        if "localhost" in str(request.url):
+            return httpx.Response(405)
+        return httpx.Response(200, json={"data": [{"id": "anthropic/claude-x"}, {"id": "meta/llama"},
+                                                  {"id": "google/gemini-y"}]})
+
+    http = httpx.Client(transport=httpx.MockTransport(handler))
+    models, source = list_models(http, "http://localhost:1106/modelfarm/openrouter", "k")
+    assert models == ["anthropic/claude-x", "google/gemini-y"] and "public" in source
 
 
 def test_rate_limits_are_retried():
