@@ -1,6 +1,6 @@
 # Verity
 
-Verity reads a tech developer's CV, forecasts which skills are rising or falling from dated public data, and gives ranked future roles and a learning plan. Every claim shows its source and date, and the plan changes when the data changes. The app shows real forecasts built from public data. It falls back to sample data in `data/fixtures/` only when `data/skill_scores.json` is missing.
+Verity takes a tech developer's skills (a CV upload is planned), forecasts which skills are rising or falling from dated public data, and gives ranked future roles and a learning plan. Every claim shows its source and date, and the plan changes when the data changes. The app shows real forecasts built from public data.
 
 **Live prototype:** https://verity--eezhan0805.replit.app
 
