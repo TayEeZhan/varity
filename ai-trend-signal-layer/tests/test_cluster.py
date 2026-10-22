@@ -75,6 +75,28 @@ def test_unrelated_items_get_their_own_stories(weights):
     assert result[1].new_group is not None and result[2].new_group is not None
 
 
+def test_reports_of_one_security_event_merge_despite_different_wording(weights):
+    a = item(1, "hn", "Upcoming Critical PHP Security Release", author="a")
+    b = item(2, "hn", "PHP2Shell: AI uncovers critical RCE in PHP", author="b")
+    c = item(3, "hn", "Potential third critical PHP CVE", author="c")
+    result = cluster([a, b, c], [], weights)
+    assert result[1] == result[2] == result[3]
+
+
+def test_security_items_about_different_products_stay_apart(weights):
+    a = item(1, "hn", "Critical RCE in PHP", author="a")
+    b = item(2, "hn", "Compromised LiteLLM on PyPI installs a backdoor", author="b")
+    result = cluster([a, b], [], weights)
+    assert result[1] != result[2]
+
+
+def test_non_security_items_sharing_a_product_name_stay_apart(weights):
+    a = item(1, "hn", "Why I still write PHP in 2026", author="a")
+    b = item(2, "hn", "PHP 9 roadmap discussion", author="b")
+    result = cluster([a, b], [], weights)
+    assert result[1] != result[2]
+
+
 def test_items_outside_the_time_window_do_not_merge(weights):
     old = item(1, "deepmind_blog", "Gemini 4 Argon launch", hours_ago=200, story_id=3)
     new = item(2, "google_ai_blog", "Gemini 4 Argon launch", hours_ago=1)

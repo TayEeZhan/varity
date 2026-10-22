@@ -79,6 +79,31 @@ def test_must_know_cap_is_per_day():
     assert "cap" in ranked[6].notes[0] and ranked[99].tier == "must_know"
 
 
+def test_urgent_security_reaches_must_know_without_an_official_source():
+    ranked = rank_stories([entry(1, formula=63.0, magnitude=4, confirmed=False, is_security=True, origins=2,
+                                 velocity_z=3.0)], "formula", _weights())
+    assert ranked[0].tier == "must_know" and "urgent security" in ranked[0].notes[0]
+
+
+@pytest.mark.parametrize("changes", [
+    {"origins": 1},  # one report only
+    {"velocity_z": 0.5},  # not trending
+    {"is_security": False},  # not a security story
+    {"social_only": True},  # only social posts
+])
+def test_security_exception_needs_every_condition(changes):
+    base = {"is_security": True, "origins": 2, "velocity_z": 3.0, "social_only": False}
+    ranked = rank_stories([entry(1, formula=63.0, magnitude=4, confirmed=False, **{**base, **changes})],
+                          "formula", _weights())
+    assert ranked[0].tier != "must_know"
+
+
+def test_jev_must_know_on_urgent_security_is_not_demoted():
+    ranked = rank_stories([entry(1, confirmed=False, jev=decision(0.9, 0.05), is_security=True, origins=3,
+                                 velocity_z=2.0)], "jev", _weights())
+    assert ranked[0].tier == "must_know"
+
+
 def test_formula_low_impact_single_source_is_minor():
     ranked = rank_stories([entry(1, formula=60.0, magnitude=2, origins=1)], "formula", _weights())
     assert ranked[0].tier == "minor"
