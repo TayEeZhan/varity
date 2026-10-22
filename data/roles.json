@@ -4,7 +4,10 @@
     "name": "Data Engineer",
     "title_pattern": "\\bdata[\\s-]+engineer(?:s|ing)?\\b",
     "description": "Builds and runs the pipelines and warehouses that move data from source systems to the people and models that use it.",
-    "sdg": ["8.2", "16.6"],
+    "sdg": [
+      "8.2",
+      "16.6"
+    ],
     "sdg_reason": "Reliable data pipelines raise productivity (8.2) and give institutions trustworthy data for open decisions (16.6)."
   },
   {
@@ -12,15 +15,34 @@
     "name": "Analytics Engineer",
     "title_pattern": "\\banalytics[\\s-]+engineer(?:s|ing)?\\b",
     "description": "Turns raw warehouse data into clean, tested models and metrics that analysts and managers can trust.",
-    "sdg": ["16.6", "8.2"],
-    "sdg_reason": "Tested, documented metrics help organisations decide in the open (16.6) and work more productively (8.2)."
+    "sdg": [
+      "16.6",
+      "8.2"
+    ],
+    "sdg_reason": "Tested, documented metrics help organisations decide in the open (16.6) and work more productively (8.2).",
+    "ranked": false,
+    "note": "Not ranked: too few posts to learn a profile"
+  },
+  {
+    "id": "data_scientist",
+    "name": "Data Scientist",
+    "title_pattern": "\\bdata[\\s-]+scientists?\\b",
+    "description": "Explores data and builds statistical and machine-learning models to answer business and research questions.",
+    "sdg": [
+      "9.5",
+      "16.6"
+    ],
+    "sdg_reason": "Data science supports research and technical capability (9.5) and gives institutions evidence for open decisions (16.6)."
   },
   {
     "id": "ml_engineer",
     "name": "ML Engineer",
     "title_pattern": "(?<![\\w/])(?:(?:machine[\\s-]+learning|ML)(?:\\s*/\\s*AI)?|AI\\s*/\\s*ML|MLOps)[\\s-]+(?:engineer(?:s|ing)?|developers?)\\b",
     "description": "Trains, evaluates and deploys machine-learning models and keeps them working in production.",
-    "sdg": ["9.5", "3.d"],
+    "sdg": [
+      "9.5",
+      "3.d"
+    ],
     "sdg_reason": "Applied machine learning pushes research and technical capability (9.5) and supports early warning and risk management in health (3.d)."
   },
   {
@@ -28,7 +50,10 @@
     "name": "AI/LLM Application Engineer",
     "title_pattern": "(?<![\\w/])(?:AI|LLM|Gen[\\s-]?AI|generative\\s+AI|applied\\s+AI)[\\s-]+(?:(?:application|software|product)[\\s-]+)?(?:engineer(?:s|ing)?|developers?)\\b",
     "description": "Builds products on top of large language models: prompts, retrieval, tools, evaluation and safe deployment.",
-    "sdg": ["4.4", "8.2"],
+    "sdg": [
+      "4.4",
+      "8.2"
+    ],
     "sdg_reason": "LLM products are a fast-growing area of job skills (4.4) and raise productivity in many sectors (8.2)."
   },
   {
@@ -36,7 +61,9 @@
     "name": "Backend Engineer",
     "title_pattern": "\\bback[\\s-]?end[\\s-]+(?:software[\\s-]+)?(?:engineer(?:s|ing)?|developers?)\\b",
     "description": "Designs and builds the servers, APIs and databases behind a product.",
-    "sdg": ["9.c"],
+    "sdg": [
+      "9.c"
+    ],
     "sdg_reason": "Backend services are what make online services available to more people (9.c)."
   },
   {
@@ -44,7 +71,10 @@
     "name": "Full-stack Web Developer",
     "title_pattern": "\\bfull[\\s-]?stack[\\s-]+(?:web[\\s-]+|software[\\s-]+)?(?:engineer(?:s|ing)?|developers?)\\b",
     "description": "Builds both the browser interface and the server side of web products.",
-    "sdg": ["8.5", "9.c"],
+    "sdg": [
+      "8.5",
+      "9.c"
+    ],
     "sdg_reason": "Web skills open paths to decent work, including freelance and remote work (8.5), and widen access to online services (9.c)."
   },
   {
@@ -52,7 +82,10 @@
     "name": "Platform/DevOps Engineer",
     "title_pattern": "\\b(?:dev[\\s-]?ops[\\s-]+(?:engineer(?:s|ing)?|developers?)|site[\\s-]+reliability[\\s-]+engineer(?:s|ing)?|SRE|platform[\\s-]+engineer(?:s|ing)?|infrastructure[\\s-]+engineer(?:s|ing)?|cloud[\\s-]+engineer(?:s|ing)?)\\b",
     "description": "Runs the cloud, build and deployment systems that let other engineers ship software safely.",
-    "sdg": ["7.3", "9.c"],
+    "sdg": [
+      "7.3",
+      "9.c"
+    ],
     "sdg_reason": "Efficient cloud operations can cut wasted computing energy (7.3) and keep services reliably available (9.c)."
   },
   {
@@ -60,7 +93,10 @@
     "name": "Mobile Developer",
     "title_pattern": "\\b(?:mobile[\\s-]+(?:app[\\s-]+)?|ios[\\s-]+(?:app[\\s-]+)?|android[\\s-]+(?:app[\\s-]+)?|react[\\s-]+native[\\s-]+)(?:engineer(?:s|ing)?|developers?)\\b",
     "description": "Builds apps for phones and tablets on iOS and Android.",
-    "sdg": ["9.c", "8.5"],
+    "sdg": [
+      "9.c",
+      "8.5"
+    ],
     "sdg_reason": "For many people in Southeast Asia the phone is the main way online (9.c), and mobile skills are in demand for decent work (8.5)."
   }
 ]

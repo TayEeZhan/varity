@@ -1,6 +1,7 @@
 month,role_id,mentions,n_posts,share
 2019-01,data_engineer,53,765,0.069281
 2019-01,analytics_engineer,1,765,0.001307
+2019-01,data_scientist,52,765,0.067974
 2019-01,ml_engineer,22,765,0.028758
 2019-01,ai_app_engineer,2,765,0.002614
 2019-01,backend_engineer,92,765,0.120261
@@ -9,6 +10,7 @@ month,role_id,mentions,n_posts,share
 2019-01,mobile_developer,46,765,0.060131
 2019-02,data_engineer,51,692,0.073699
 2019-02,analytics_engineer,0,692,0.000000
+2019-02,data_scientist,48,692,0.069364
 2019-02,ml_engineer,26,692,0.037572
 2019-02,ai_app_engineer,2,692,0.002890
 2019-02,backend_engineer,84,692,0.121387
@@ -17,6 +19,7 @@ month,role_id,mentions,n_posts,share
 2019-02,mobile_developer,51,692,0.073699
 2019-03,data_engineer,39,747,0.052209
 2019-03,analytics_engineer,1,747,0.001339
+2019-03,data_scientist,52,747,0.069612
 2019-03,ml_engineer,29,747,0.038822
 2019-03,ai_app_engineer,2,747,0.002677
 2019-03,backend_engineer,95,747,0.127175
@@ -25,6 +28,7 @@ month,role_id,mentions,n_posts,share
 2019-03,mobile_developer,47,747,0.062918
 2019-04,data_engineer,55,740,0.074324
 2019-04,analytics_engineer,0,740,0.000000
+2019-04,data_scientist,53,740,0.071622
 2019-04,ml_engineer,20,740,0.027027
 2019-04,ai_app_engineer,2,740,0.002703
 2019-04,backend_engineer,81,740,0.109459
@@ -33,6 +37,7 @@ month,role_id,mentions,n_posts,share
 2019-04,mobile_developer,49,740,0.066216
 2019-05,data_engineer,63,816,0.077206
 2019-05,analytics_engineer,1,816,0.001225
+2019-05,data_scientist,65,816,0.079657
 2019-05,ml_engineer,29,816,0.035539
 2019-05,ai_app_engineer,2,816,0.002451
 2019-05,backend_engineer,93,816,0.113971
@@ -41,6 +46,7 @@ month,role_id,mentions,n_posts,share
 2019-05,mobile_developer,48,816,0.058824
 2019-06,data_engineer,44,660,0.066667
 2019-06,analytics_engineer,1,660,0.001515
+2019-06,data_scientist,46,660,0.069697
 2019-06,ml_engineer,18,660,0.027273
 2019-06,ai_app_engineer,1,660,0.001515
 2019-06,backend_engineer,76,660,0.115152
@@ -49,6 +55,7 @@ month,role_id,mentions,n_posts,share
 2019-06,mobile_developer,48,660,0.072727
 2019-07,data_engineer,59,757,0.077939
 2019-07,analytics_engineer,1,757,0.001321
+2019-07,data_scientist,47,757,0.062087
 2019-07,ml_engineer,24,757,0.031704
 2019-07,ai_app_engineer,3,757,0.003963
 2019-07,backend_engineer,87,757,0.114927
@@ -57,6 +64,7 @@ month,role_id,mentions,n_posts,share
 2019-07,mobile_developer,46,757,0.060766
 2019-08,data_engineer,38,727,0.052270
 2019-08,analytics_engineer,1,727,0.001376
+2019-08,data_scientist,48,727,0.066025
 2019-08,ml_engineer,22,727,0.030261
 2019-08,ai_app_engineer,3,727,0.004127
 2019-08,backend_engineer,89,727,0.122421
@@ -65,6 +73,7 @@ month,role_id,mentions,n_posts,share
 2019-08,mobile_developer,54,727,0.074278
 2019-09,data_engineer,38,607,0.062603
 2019-09,analytics_engineer,1,607,0.001647
+2019-09,data_scientist,36,607,0.059308
 2019-09,ml_engineer,14,607,0.023064
 2019-09,ai_app_engineer,2,607,0.003295
 2019-09,backend_engineer,76,607,0.125206
@@ -73,6 +82,7 @@ month,role_id,mentions,n_posts,share
 2019-09,mobile_developer,42,607,0.069193
 2019-10,data_engineer,36,718,0.050139
 2019-10,analytics_engineer,1,718,0.001393
+2019-10,data_scientist,51,718,0.071031
 2019-10,ml_engineer,24,718,0.033426
 2019-10,ai_app_engineer,2,718,0.002786
 2019-10,backend_engineer,88,718,0.122563
@@ -81,6 +91,7 @@ month,role_id,mentions,n_posts,share
 2019-10,mobile_developer,52,718,0.072423
 2019-11,data_engineer,41,626,0.065495
 2019-11,analytics_engineer,1,626,0.001597
+2019-11,data_scientist,34,626,0.054313
 2019-11,ml_engineer,15,626,0.023962
 2019-11,ai_app_engineer,1,626,0.001597
 2019-11,backend_engineer,69,626,0.110224
@@ -89,6 +100,7 @@ month,role_id,mentions,n_posts,share
 2019-11,mobile_developer,47,626,0.075080
 2019-12,data_engineer,35,584,0.059932
 2019-12,analytics_engineer,0,584,0.000000
+2019-12,data_scientist,37,584,0.063356
 2019-12,ml_engineer,22,584,0.037671
 2019-12,ai_app_engineer,2,584,0.003425
 2019-12,backend_engineer,61,584,0.104452
@@ -97,6 +109,7 @@ month,role_id,mentions,n_posts,share
 2019-12,mobile_developer,53,584,0.090753
 2020-01,data_engineer,37,574,0.064460
 2020-01,analytics_engineer,0,574,0.000000
+2020-01,data_scientist,27,574,0.047038
 2020-01,ml_engineer,14,574,0.024390
 2020-01,ai_app_engineer,4,574,0.006969
 2020-01,backend_engineer,72,574,0.125436
@@ -105,6 +118,7 @@ month,role_id,mentions,n_posts,share
 2020-01,mobile_developer,46,574,0.080139
 2020-02,data_engineer,37,579,0.063903
 2020-02,analytics_engineer,0,579,0.000000
+2020-02,data_scientist,24,579,0.041451
 2020-02,ml_engineer,25,579,0.043178
 2020-02,ai_app_engineer,3,579,0.005181
 2020-02,backend_engineer,71,579,0.122625
@@ -113,6 +127,7 @@ month,role_id,mentions,n_posts,share
 2020-02,mobile_developer,44,579,0.075993
 2020-03,data_engineer,51,644,0.079193
 2020-03,analytics_engineer,1,644,0.001553
+2020-03,data_scientist,42,644,0.065217
 2020-03,ml_engineer,23,644,0.035714
 2020-03,ai_app_engineer,2,644,0.003106
 2020-03,backend_engineer,87,644,0.135093
@@ -121,6 +136,7 @@ month,role_id,mentions,n_posts,share
 2020-03,mobile_developer,50,644,0.077640
 2020-04,data_engineer,40,457,0.087527
 2020-04,analytics_engineer,0,457,0.000000
+2020-04,data_scientist,32,457,0.070022
 2020-04,ml_engineer,19,457,0.041575
 2020-04,ai_app_engineer,4,457,0.008753
 2020-04,backend_engineer,57,457,0.124726
@@ -129,6 +145,7 @@ month,role_id,mentions,n_posts,share
 2020-04,mobile_developer,33,457,0.072210
 2020-05,data_engineer,23,499,0.046092
 2020-05,analytics_engineer,0,499,0.000000
+2020-05,data_scientist,27,499,0.054108
 2020-05,ml_engineer,19,499,0.038076
 2020-05,ai_app_engineer,2,499,0.004008
 2020-05,backend_engineer,58,499,0.116232
@@ -137,6 +154,7 @@ month,role_id,mentions,n_posts,share
 2020-05,mobile_developer,32,499,0.064128
 2020-06,data_engineer,21,506,0.041502
 2020-06,analytics_engineer,3,506,0.005929
+2020-06,data_scientist,20,506,0.039526
 2020-06,ml_engineer,16,506,0.031621
 2020-06,ai_app_engineer,4,506,0.007905
 2020-06,backend_engineer,66,506,0.130435
@@ -145,6 +163,7 @@ month,role_id,mentions,n_posts,share
 2020-06,mobile_developer,34,506,0.067194
 2020-07,data_engineer,37,538,0.068773
 2020-07,analytics_engineer,0,538,0.000000
+2020-07,data_scientist,29,538,0.053903
 2020-07,ml_engineer,21,538,0.039033
 2020-07,ai_app_engineer,4,538,0.007435
 2020-07,backend_engineer,66,538,0.122677
@@ -153,6 +172,7 @@ month,role_id,mentions,n_posts,share
 2020-07,mobile_developer,42,538,0.078067
 2020-08,data_engineer,38,641,0.059282
 2020-08,analytics_engineer,2,641,0.003120
+2020-08,data_scientist,37,641,0.057722
 2020-08,ml_engineer,21,641,0.032761
 2020-08,ai_app_engineer,3,641,0.004680
 2020-08,backend_engineer,92,641,0.143526
@@ -161,6 +181,7 @@ month,role_id,mentions,n_posts,share
 2020-08,mobile_developer,46,641,0.071763
 2020-09,data_engineer,37,600,0.061667
 2020-09,analytics_engineer,1,600,0.001667
+2020-09,data_scientist,36,600,0.060000
 2020-09,ml_engineer,25,600,0.041667
 2020-09,ai_app_engineer,3,600,0.005000
 2020-09,backend_engineer,81,600,0.135000
@@ -169,6 +190,7 @@ month,role_id,mentions,n_posts,share
 2020-09,mobile_developer,40,600,0.066667
 2020-10,data_engineer,46,710,0.064789
 2020-10,analytics_engineer,1,710,0.001408
+2020-10,data_scientist,24,710,0.033803
 2020-10,ml_engineer,26,710,0.036620
 2020-10,ai_app_engineer,0,710,0.000000
 2020-10,backend_engineer,100,710,0.140845
@@ -177,6 +199,7 @@ month,role_id,mentions,n_posts,share
 2020-10,mobile_developer,43,710,0.060563
 2020-11,data_engineer,45,692,0.065029
 2020-11,analytics_engineer,0,692,0.000000
+2020-11,data_scientist,31,692,0.044798
 2020-11,ml_engineer,21,692,0.030347
 2020-11,ai_app_engineer,3,692,0.004335
 2020-11,backend_engineer,94,692,0.135838
@@ -185,6 +208,7 @@ month,role_id,mentions,n_posts,share
 2020-11,mobile_developer,54,692,0.078035
 2020-12,data_engineer,46,685,0.067153
 2020-12,analytics_engineer,0,685,0.000000
+2020-12,data_scientist,29,685,0.042336
 2020-12,ml_engineer,20,685,0.029197
 2020-12,ai_app_engineer,2,685,0.002920
 2020-12,backend_engineer,90,685,0.131387
@@ -193,6 +217,7 @@ month,role_id,mentions,n_posts,share
 2020-12,mobile_developer,50,685,0.072993
 2021-01,data_engineer,47,703,0.066856
 2021-01,analytics_engineer,0,703,0.000000
+2021-01,data_scientist,39,703,0.055477
 2021-01,ml_engineer,21,703,0.029872
 2021-01,ai_app_engineer,1,703,0.001422
 2021-01,backend_engineer,89,703,0.126600
@@ -201,6 +226,7 @@ month,role_id,mentions,n_posts,share
 2021-01,mobile_developer,46,703,0.065434
 2021-02,data_engineer,69,937,0.073639
 2021-02,analytics_engineer,3,937,0.003202
+2021-02,data_scientist,53,937,0.056564
 2021-02,ml_engineer,29,937,0.030950
 2021-02,ai_app_engineer,6,937,0.006403
 2021-02,backend_engineer,126,937,0.134472
@@ -209,6 +235,7 @@ month,role_id,mentions,n_posts,share
 2021-02,mobile_developer,53,937,0.056564
 2021-03,data_engineer,60,903,0.066445
 2021-03,analytics_engineer,2,903,0.002215
+2021-03,data_scientist,45,903,0.049834
 2021-03,ml_engineer,24,903,0.026578
 2021-03,ai_app_engineer,1,903,0.001107
 2021-03,backend_engineer,124,903,0.137320
@@ -217,6 +244,7 @@ month,role_id,mentions,n_posts,share
 2021-03,mobile_developer,64,903,0.070875
 2021-04,data_engineer,54,876,0.061644
 2021-04,analytics_engineer,1,876,0.001142
+2021-04,data_scientist,51,876,0.058219
 2021-04,ml_engineer,32,876,0.036530
 2021-04,ai_app_engineer,3,876,0.003425
 2021-04,backend_engineer,119,876,0.135845
@@ -225,6 +253,7 @@ month,role_id,mentions,n_posts,share
 2021-04,mobile_developer,57,876,0.065068
 2021-05,data_engineer,55,843,0.065243
 2021-05,analytics_engineer,1,843,0.001186
+2021-05,data_scientist,49,843,0.058126
 2021-05,ml_engineer,20,843,0.023725
 2021-05,ai_app_engineer,1,843,0.001186
 2021-05,backend_engineer,128,843,0.151839
@@ -233,6 +262,7 @@ month,role_id,mentions,n_posts,share
 2021-05,mobile_developer,68,843,0.080664
 2021-06,data_engineer,70,966,0.072464
 2021-06,analytics_engineer,1,966,0.001035
+2021-06,data_scientist,42,966,0.043478
 2021-06,ml_engineer,25,966,0.025880
 2021-06,ai_app_engineer,3,966,0.003106
 2021-06,backend_engineer,155,966,0.160455
@@ -241,6 +271,7 @@ month,role_id,mentions,n_posts,share
 2021-06,mobile_developer,59,966,0.061077
 2021-07,data_engineer,54,877,0.061574
 2021-07,analytics_engineer,2,877,0.002281
+2021-07,data_scientist,37,877,0.042189
 2021-07,ml_engineer,24,877,0.027366
 2021-07,ai_app_engineer,3,877,0.003421
 2021-07,backend_engineer,123,877,0.140251
@@ -249,6 +280,7 @@ month,role_id,mentions,n_posts,share
 2021-07,mobile_developer,47,877,0.053592
 2021-08,data_engineer,57,833,0.068427
 2021-08,analytics_engineer,4,833,0.004802
+2021-08,data_scientist,41,833,0.049220
 2021-08,ml_engineer,25,833,0.030012
 2021-08,ai_app_engineer,0,833,0.000000
 2021-08,backend_engineer,113,833,0.135654
@@ -257,6 +289,7 @@ month,role_id,mentions,n_posts,share
 2021-08,mobile_developer,34,833,0.040816
 2021-09,data_engineer,69,897,0.076923
 2021-09,analytics_engineer,2,897,0.002230
+2021-09,data_scientist,51,897,0.056856
 2021-09,ml_engineer,35,897,0.039019
 2021-09,ai_app_engineer,1,897,0.001115
 2021-09,backend_engineer,120,897,0.133779
@@ -265,6 +298,7 @@ month,role_id,mentions,n_posts,share
 2021-09,mobile_developer,47,897,0.052397
 2021-10,data_engineer,58,770,0.075325
 2021-10,analytics_engineer,1,770,0.001299
+2021-10,data_scientist,34,770,0.044156
 2021-10,ml_engineer,23,770,0.029870
 2021-10,ai_app_engineer,0,770,0.000000
 2021-10,backend_engineer,121,770,0.157143
@@ -273,6 +307,7 @@ month,role_id,mentions,n_posts,share
 2021-10,mobile_developer,49,770,0.063636
 2021-11,data_engineer,65,942,0.069002
 2021-11,analytics_engineer,5,942,0.005308
+2021-11,data_scientist,41,942,0.043524
 2021-11,ml_engineer,22,942,0.023355
 2021-11,ai_app_engineer,0,942,0.000000
 2021-11,backend_engineer,117,942,0.124204
@@ -281,6 +316,7 @@ month,role_id,mentions,n_posts,share
 2021-11,mobile_developer,38,942,0.040340
 2021-12,data_engineer,55,738,0.074526
 2021-12,analytics_engineer,3,738,0.004065
+2021-12,data_scientist,31,738,0.042005
 2021-12,ml_engineer,29,738,0.039295
 2021-12,ai_app_engineer,1,738,0.001355
 2021-12,backend_engineer,105,738,0.142276
@@ -289,6 +325,7 @@ month,role_id,mentions,n_posts,share
 2021-12,mobile_developer,40,738,0.054201
 2022-01,data_engineer,43,661,0.065053
 2022-01,analytics_engineer,8,661,0.012103
+2022-01,data_scientist,38,661,0.057489
 2022-01,ml_engineer,16,661,0.024206
 2022-01,ai_app_engineer,0,661,0.000000
 2022-01,backend_engineer,86,661,0.130106
@@ -297,6 +334,7 @@ month,role_id,mentions,n_posts,share
 2022-01,mobile_developer,36,661,0.054463
 2022-02,data_engineer,65,800,0.081250
 2022-02,analytics_engineer,9,800,0.011250
+2022-02,data_scientist,38,800,0.047500
 2022-02,ml_engineer,31,800,0.038750
 2022-02,ai_app_engineer,0,800,0.000000
 2022-02,backend_engineer,92,800,0.115000
@@ -305,6 +343,7 @@ month,role_id,mentions,n_posts,share
 2022-02,mobile_developer,42,800,0.052500
 2022-03,data_engineer,60,784,0.076531
 2022-03,analytics_engineer,11,784,0.014031
+2022-03,data_scientist,43,784,0.054847
 2022-03,ml_engineer,29,784,0.036990
 2022-03,ai_app_engineer,0,784,0.000000
 2022-03,backend_engineer,107,784,0.136480
@@ -313,6 +352,7 @@ month,role_id,mentions,n_posts,share
 2022-03,mobile_developer,34,784,0.043367
 2022-04,data_engineer,63,743,0.084791
 2022-04,analytics_engineer,7,743,0.009421
+2022-04,data_scientist,49,743,0.065949
 2022-04,ml_engineer,28,743,0.037685
 2022-04,ai_app_engineer,2,743,0.002692
 2022-04,backend_engineer,92,743,0.123822
@@ -321,6 +361,7 @@ month,role_id,mentions,n_posts,share
 2022-04,mobile_developer,39,743,0.052490
 2022-05,data_engineer,66,756,0.087302
 2022-05,analytics_engineer,8,756,0.010582
+2022-05,data_scientist,36,756,0.047619
 2022-05,ml_engineer,34,756,0.044974
 2022-05,ai_app_engineer,4,756,0.005291
 2022-05,backend_engineer,81,756,0.107143
@@ -329,6 +370,7 @@ month,role_id,mentions,n_posts,share
 2022-05,mobile_developer,35,756,0.046296
 2022-06,data_engineer,56,723,0.077455
 2022-06,analytics_engineer,3,723,0.004149
+2022-06,data_scientist,39,723,0.053942
 2022-06,ml_engineer,24,723,0.033195
 2022-06,ai_app_engineer,3,723,0.004149
 2022-06,backend_engineer,85,723,0.117566
@@ -337,6 +379,7 @@ month,role_id,mentions,n_posts,share
 2022-06,mobile_developer,36,723,0.049793
 2022-07,data_engineer,35,523,0.066922
 2022-07,analytics_engineer,1,523,0.001912
+2022-07,data_scientist,24,523,0.045889
 2022-07,ml_engineer,23,523,0.043977
 2022-07,ai_app_engineer,0,523,0.000000
 2022-07,backend_engineer,55,523,0.105163
@@ -345,6 +388,7 @@ month,role_id,mentions,n_posts,share
 2022-07,mobile_developer,22,523,0.042065
 2022-08,data_engineer,40,631,0.063391
 2022-08,analytics_engineer,5,631,0.007924
+2022-08,data_scientist,25,631,0.039620
 2022-08,ml_engineer,26,631,0.041204
 2022-08,ai_app_engineer,3,631,0.004754
 2022-08,backend_engineer,68,631,0.107765
@@ -353,6 +397,7 @@ month,role_id,mentions,n_posts,share
 2022-08,mobile_developer,27,631,0.042789
 2022-09,data_engineer,32,503,0.063618
 2022-09,analytics_engineer,2,503,0.003976
+2022-09,data_scientist,25,503,0.049702
 2022-09,ml_engineer,20,503,0.039761
 2022-09,ai_app_engineer,1,503,0.001988
 2022-09,backend_engineer,52,503,0.103380
@@ -361,6 +406,7 @@ month,role_id,mentions,n_posts,share
 2022-09,mobile_developer,24,503,0.047714
 2022-10,data_engineer,26,455,0.057143
 2022-10,analytics_engineer,3,455,0.006593
+2022-10,data_scientist,12,455,0.026374
 2022-10,ml_engineer,14,455,0.030769
 2022-10,ai_app_engineer,2,455,0.004396
 2022-10,backend_engineer,49,455,0.107692
@@ -369,6 +415,7 @@ month,role_id,mentions,n_posts,share
 2022-10,mobile_developer,25,455,0.054945
 2022-11,data_engineer,31,524,0.059160
 2022-11,analytics_engineer,3,524,0.005725
+2022-11,data_scientist,24,524,0.045802
 2022-11,ml_engineer,20,524,0.038168
 2022-11,ai_app_engineer,3,524,0.005725
 2022-11,backend_engineer,57,524,0.108779
@@ -377,6 +424,7 @@ month,role_id,mentions,n_posts,share
 2022-11,mobile_developer,27,524,0.051527
 2022-12,data_engineer,31,481,0.064449
 2022-12,analytics_engineer,3,481,0.006237
+2022-12,data_scientist,25,481,0.051975
 2022-12,ml_engineer,26,481,0.054054
 2022-12,ai_app_engineer,1,481,0.002079
 2022-12,backend_engineer,67,481,0.139293
@@ -385,6 +433,7 @@ month,role_id,mentions,n_posts,share
 2022-12,mobile_developer,21,481,0.043659
 2023-01,data_engineer,26,363,0.071625
 2023-01,analytics_engineer,1,363,0.002755
+2023-01,data_scientist,12,363,0.033058
 2023-01,ml_engineer,10,363,0.027548
 2023-01,ai_app_engineer,1,363,0.002755
 2023-01,backend_engineer,32,363,0.088154
@@ -393,6 +442,7 @@ month,role_id,mentions,n_posts,share
 2023-01,mobile_developer,12,363,0.033058
 2023-02,data_engineer,23,436,0.052752
 2023-02,analytics_engineer,4,436,0.009174
+2023-02,data_scientist,14,436,0.032110
 2023-02,ml_engineer,17,436,0.038991
 2023-02,ai_app_engineer,3,436,0.006881
 2023-02,backend_engineer,52,436,0.119266
@@ -401,6 +451,7 @@ month,role_id,mentions,n_posts,share
 2023-02,mobile_developer,17,436,0.038991
 2023-03,data_engineer,18,406,0.044335
 2023-03,analytics_engineer,2,406,0.004926
+2023-03,data_scientist,12,406,0.029557
 2023-03,ml_engineer,15,406,0.036946
 2023-03,ai_app_engineer,4,406,0.009852
 2023-03,backend_engineer,45,406,0.110837
@@ -409,6 +460,7 @@ month,role_id,mentions,n_posts,share
 2023-03,mobile_developer,19,406,0.046798
 2023-04,data_engineer,15,352,0.042614
 2023-04,analytics_engineer,1,352,0.002841
+2023-04,data_scientist,12,352,0.034091
 2023-04,ml_engineer,13,352,0.036932
 2023-04,ai_app_engineer,3,352,0.008523
 2023-04,backend_engineer,30,352,0.085227
@@ -417,6 +469,7 @@ month,role_id,mentions,n_posts,share
 2023-04,mobile_developer,11,352,0.031250
 2023-05,data_engineer,15,342,0.043860
 2023-05,analytics_engineer,2,342,0.005848
+2023-05,data_scientist,9,342,0.026316
 2023-05,ml_engineer,14,342,0.040936
 2023-05,ai_app_engineer,0,342,0.000000
 2023-05,backend_engineer,34,342,0.099415
@@ -425,6 +478,7 @@ month,role_id,mentions,n_posts,share
 2023-05,mobile_developer,14,342,0.040936
 2023-06,data_engineer,18,331,0.054381
 2023-06,analytics_engineer,1,331,0.003021
+2023-06,data_scientist,15,331,0.045317
 2023-06,ml_engineer,11,331,0.033233
 2023-06,ai_app_engineer,5,331,0.015106
 2023-06,backend_engineer,32,331,0.096677
@@ -433,6 +487,7 @@ month,role_id,mentions,n_posts,share
 2023-06,mobile_developer,8,331,0.024169
 2023-07,data_engineer,12,306,0.039216
 2023-07,analytics_engineer,0,306,0.000000
+2023-07,data_scientist,15,306,0.049020
 2023-07,ml_engineer,14,306,0.045752
 2023-07,ai_app_engineer,8,306,0.026144
 2023-07,backend_engineer,19,306,0.062092
@@ -441,6 +496,7 @@ month,role_id,mentions,n_posts,share
 2023-07,mobile_developer,6,306,0.019608
 2023-08,data_engineer,19,343,0.055394
 2023-08,analytics_engineer,2,343,0.005831
+2023-08,data_scientist,15,343,0.043732
 2023-08,ml_engineer,14,343,0.040816
 2023-08,ai_app_engineer,5,343,0.014577
 2023-08,backend_engineer,26,343,0.075802
@@ -449,6 +505,7 @@ month,role_id,mentions,n_posts,share
 2023-08,mobile_developer,7,343,0.020408
 2023-09,data_engineer,17,296,0.057432
 2023-09,analytics_engineer,0,296,0.000000
+2023-09,data_scientist,11,296,0.037162
 2023-09,ml_engineer,19,296,0.064189
 2023-09,ai_app_engineer,2,296,0.006757
 2023-09,backend_engineer,27,296,0.091216
@@ -457,6 +514,7 @@ month,role_id,mentions,n_posts,share
 2023-09,mobile_developer,7,296,0.023649
 2023-10,data_engineer,17,321,0.052960
 2023-10,analytics_engineer,0,321,0.000000
+2023-10,data_scientist,11,321,0.034268
 2023-10,ml_engineer,16,321,0.049844
 2023-10,ai_app_engineer,3,321,0.009346
 2023-10,backend_engineer,21,321,0.065421
@@ -465,6 +523,7 @@ month,role_id,mentions,n_posts,share
 2023-10,mobile_developer,9,321,0.028037
 2023-11,data_engineer,18,362,0.049724
 2023-11,analytics_engineer,1,362,0.002762
+2023-11,data_scientist,11,362,0.030387
 2023-11,ml_engineer,15,362,0.041436
 2023-11,ai_app_engineer,7,362,0.019337
 2023-11,backend_engineer,31,362,0.085635
@@ -473,6 +532,7 @@ month,role_id,mentions,n_posts,share
 2023-11,mobile_developer,10,362,0.027624
 2023-12,data_engineer,16,313,0.051118
 2023-12,analytics_engineer,0,313,0.000000
+2023-12,data_scientist,10,313,0.031949
 2023-12,ml_engineer,19,313,0.060703
 2023-12,ai_app_engineer,9,313,0.028754
 2023-12,backend_engineer,26,313,0.083067
@@ -481,6 +541,7 @@ month,role_id,mentions,n_posts,share
 2023-12,mobile_developer,9,313,0.028754
 2024-01,data_engineer,17,278,0.061151
 2024-01,analytics_engineer,0,278,0.000000
+2024-01,data_scientist,8,278,0.028777
 2024-01,ml_engineer,18,278,0.064748
 2024-01,ai_app_engineer,6,278,0.021583
 2024-01,backend_engineer,21,278,0.075540
@@ -489,6 +550,7 @@ month,role_id,mentions,n_posts,share
 2024-01,mobile_developer,6,278,0.021583
 2024-02,data_engineer,10,341,0.029326
 2024-02,analytics_engineer,2,341,0.005865
+2024-02,data_scientist,12,341,0.035191
 2024-02,ml_engineer,16,341,0.046921
 2024-02,ai_app_engineer,5,341,0.014663
 2024-02,backend_engineer,35,341,0.102639
@@ -497,6 +559,7 @@ month,role_id,mentions,n_posts,share
 2024-02,mobile_developer,2,341,0.005865
 2024-03,data_engineer,8,300,0.026667
 2024-03,analytics_engineer,0,300,0.000000
+2024-03,data_scientist,10,300,0.033333
 2024-03,ml_engineer,18,300,0.060000
 2024-03,ai_app_engineer,7,300,0.023333
 2024-03,backend_engineer,28,300,0.093333
@@ -505,6 +568,7 @@ month,role_id,mentions,n_posts,share
 2024-03,mobile_developer,6,300,0.020000
 2024-04,data_engineer,9,289,0.031142
 2024-04,analytics_engineer,1,289,0.003460
+2024-04,data_scientist,6,289,0.020761
 2024-04,ml_engineer,15,289,0.051903
 2024-04,ai_app_engineer,9,289,0.031142
 2024-04,backend_engineer,23,289,0.079585
@@ -513,6 +577,7 @@ month,role_id,mentions,n_posts,share
 2024-04,mobile_developer,7,289,0.024221
 2024-05,data_engineer,17,396,0.042929
 2024-05,analytics_engineer,2,396,0.005051
+2024-05,data_scientist,11,396,0.027778
 2024-05,ml_engineer,18,396,0.045455
 2024-05,ai_app_engineer,8,396,0.020202
 2024-05,backend_engineer,30,396,0.075758
@@ -521,6 +586,7 @@ month,role_id,mentions,n_posts,share
 2024-05,mobile_developer,9,396,0.022727
 2024-06,data_engineer,14,339,0.041298
 2024-06,analytics_engineer,1,339,0.002950
+2024-06,data_scientist,14,339,0.041298
 2024-06,ml_engineer,25,339,0.073746
 2024-06,ai_app_engineer,14,339,0.041298
 2024-06,backend_engineer,34,339,0.100295
@@ -529,6 +595,7 @@ month,role_id,mentions,n_posts,share
 2024-06,mobile_developer,10,339,0.029499
 2024-07,data_engineer,25,379,0.065963
 2024-07,analytics_engineer,1,379,0.002639
+2024-07,data_scientist,11,379,0.029024
 2024-07,ml_engineer,24,379,0.063325
 2024-07,ai_app_engineer,12,379,0.031662
 2024-07,backend_engineer,39,379,0.102902
@@ -537,6 +604,7 @@ month,role_id,mentions,n_posts,share
 2024-07,mobile_developer,10,379,0.026385
 2024-08,data_engineer,13,322,0.040373
 2024-08,analytics_engineer,0,322,0.000000
+2024-08,data_scientist,11,322,0.034161
 2024-08,ml_engineer,21,322,0.065217
 2024-08,ai_app_engineer,13,322,0.040373
 2024-08,backend_engineer,29,322,0.090062
@@ -545,6 +613,7 @@ month,role_id,mentions,n_posts,share
 2024-08,mobile_developer,8,322,0.024845
 2024-09,data_engineer,15,303,0.049505
 2024-09,analytics_engineer,0,303,0.000000
+2024-09,data_scientist,9,303,0.029703
 2024-09,ml_engineer,18,303,0.059406
 2024-09,ai_app_engineer,5,303,0.016502
 2024-09,backend_engineer,29,303,0.095710
@@ -553,6 +622,7 @@ month,role_id,mentions,n_posts,share
 2024-09,mobile_developer,8,303,0.026403
 2024-10,data_engineer,17,329,0.051672
 2024-10,analytics_engineer,0,329,0.000000
+2024-10,data_scientist,8,329,0.024316
 2024-10,ml_engineer,12,329,0.036474
 2024-10,ai_app_engineer,7,329,0.021277
 2024-10,backend_engineer,31,329,0.094225
@@ -561,6 +631,7 @@ month,role_id,mentions,n_posts,share
 2024-10,mobile_developer,9,329,0.027356
 2024-11,data_engineer,19,317,0.059937
 2024-11,analytics_engineer,2,317,0.006309
+2024-11,data_scientist,7,317,0.022082
 2024-11,ml_engineer,11,317,0.034700
 2024-11,ai_app_engineer,12,317,0.037855
 2024-11,backend_engineer,32,317,0.100946
@@ -569,6 +640,7 @@ month,role_id,mentions,n_posts,share
 2024-11,mobile_developer,10,317,0.031546
 2024-12,data_engineer,19,330,0.057576
 2024-12,analytics_engineer,2,330,0.006061
+2024-12,data_scientist,7,330,0.021212
 2024-12,ml_engineer,13,330,0.039394
 2024-12,ai_app_engineer,16,330,0.048485
 2024-12,backend_engineer,27,330,0.081818
@@ -577,6 +649,7 @@ month,role_id,mentions,n_posts,share
 2024-12,mobile_developer,3,330,0.009091
 2025-01,data_engineer,18,276,0.065217
 2025-01,analytics_engineer,2,276,0.007246
+2025-01,data_scientist,9,276,0.032609
 2025-01,ml_engineer,17,276,0.061594
 2025-01,ai_app_engineer,12,276,0.043478
 2025-01,backend_engineer,24,276,0.086957
@@ -585,6 +658,7 @@ month,role_id,mentions,n_posts,share
 2025-01,mobile_developer,8,276,0.028986
 2025-02,data_engineer,16,396,0.040404
 2025-02,analytics_engineer,1,396,0.002525
+2025-02,data_scientist,12,396,0.030303
 2025-02,ml_engineer,18,396,0.045455
 2025-02,ai_app_engineer,13,396,0.032828
 2025-02,backend_engineer,28,396,0.070707
@@ -593,6 +667,7 @@ month,role_id,mentions,n_posts,share
 2025-02,mobile_developer,11,396,0.027778
 2025-03,data_engineer,14,354,0.039548
 2025-03,analytics_engineer,2,354,0.005650
+2025-03,data_scientist,10,354,0.028249
 2025-03,ml_engineer,15,354,0.042373
 2025-03,ai_app_engineer,17,354,0.048023
 2025-03,backend_engineer,33,354,0.093220
@@ -601,6 +676,7 @@ month,role_id,mentions,n_posts,share
 2025-03,mobile_developer,14,354,0.039548
 2025-04,data_engineer,11,306,0.035948
 2025-04,analytics_engineer,0,306,0.000000
+2025-04,data_scientist,3,306,0.009804
 2025-04,ml_engineer,22,306,0.071895
 2025-04,ai_app_engineer,18,306,0.058824
 2025-04,backend_engineer,29,306,0.094771
@@ -609,6 +685,7 @@ month,role_id,mentions,n_posts,share
 2025-04,mobile_developer,6,306,0.019608
 2025-05,data_engineer,8,301,0.026578
 2025-05,analytics_engineer,1,301,0.003322
+2025-05,data_scientist,4,301,0.013289
 2025-05,ml_engineer,12,301,0.039867
 2025-05,ai_app_engineer,12,301,0.039867
 2025-05,backend_engineer,30,301,0.099668
@@ -617,6 +694,7 @@ month,role_id,mentions,n_posts,share
 2025-05,mobile_developer,9,301,0.029900
 2025-06,data_engineer,16,358,0.044693
 2025-06,analytics_engineer,1,358,0.002793
+2025-06,data_scientist,6,358,0.016760
 2025-06,ml_engineer,17,358,0.047486
 2025-06,ai_app_engineer,17,358,0.047486
 2025-06,backend_engineer,40,358,0.111732
@@ -625,6 +703,7 @@ month,role_id,mentions,n_posts,share
 2025-06,mobile_developer,10,358,0.027933
 2025-07,data_engineer,18,331,0.054381
 2025-07,analytics_engineer,1,331,0.003021
+2025-07,data_scientist,5,331,0.015106
 2025-07,ml_engineer,16,331,0.048338
 2025-07,ai_app_engineer,15,331,0.045317
 2025-07,backend_engineer,36,331,0.108761
@@ -633,6 +712,7 @@ month,role_id,mentions,n_posts,share
 2025-07,mobile_developer,11,331,0.033233
 2025-08,data_engineer,15,305,0.049180
 2025-08,analytics_engineer,0,305,0.000000
+2025-08,data_scientist,8,305,0.026230
 2025-08,ml_engineer,14,305,0.045902
 2025-08,ai_app_engineer,16,305,0.052459
 2025-08,backend_engineer,28,305,0.091803
@@ -641,6 +721,7 @@ month,role_id,mentions,n_posts,share
 2025-08,mobile_developer,6,305,0.019672
 2025-09,data_engineer,16,299,0.053512
 2025-09,analytics_engineer,2,299,0.006689
+2025-09,data_scientist,7,299,0.023411
 2025-09,ml_engineer,19,299,0.063545
 2025-09,ai_app_engineer,18,299,0.060201
 2025-09,backend_engineer,26,299,0.086957
@@ -649,6 +730,7 @@ month,role_id,mentions,n_posts,share
 2025-09,mobile_developer,1,299,0.003344
 2025-10,data_engineer,26,341,0.076246
 2025-10,analytics_engineer,1,341,0.002933
+2025-10,data_scientist,11,341,0.032258
 2025-10,ml_engineer,26,341,0.076246
 2025-10,ai_app_engineer,28,341,0.082111
 2025-10,backend_engineer,33,341,0.096774
@@ -657,6 +739,7 @@ month,role_id,mentions,n_posts,share
 2025-10,mobile_developer,9,341,0.026393
 2025-11,data_engineer,21,392,0.053571
 2025-11,analytics_engineer,4,392,0.010204
+2025-11,data_scientist,10,392,0.025510
 2025-11,ml_engineer,26,392,0.066327
 2025-11,ai_app_engineer,24,392,0.061224
 2025-11,backend_engineer,43,392,0.109694
@@ -665,6 +748,7 @@ month,role_id,mentions,n_posts,share
 2025-11,mobile_developer,10,392,0.025510
 2025-12,data_engineer,13,377,0.034483
 2025-12,analytics_engineer,4,377,0.010610
+2025-12,data_scientist,4,377,0.010610
 2025-12,ml_engineer,19,377,0.050398
 2025-12,ai_app_engineer,27,377,0.071618
 2025-12,backend_engineer,44,377,0.116711
@@ -673,6 +757,7 @@ month,role_id,mentions,n_posts,share
 2025-12,mobile_developer,8,377,0.021220
 2026-01,data_engineer,9,256,0.035156
 2026-01,analytics_engineer,1,256,0.003906
+2026-01,data_scientist,5,256,0.019531
 2026-01,ml_engineer,11,256,0.042969
 2026-01,ai_app_engineer,17,256,0.066406
 2026-01,backend_engineer,30,256,0.117188
@@ -681,6 +766,7 @@ month,role_id,mentions,n_posts,share
 2026-01,mobile_developer,7,256,0.027344
 2026-02,data_engineer,16,410,0.039024
 2026-02,analytics_engineer,2,410,0.004878
+2026-02,data_scientist,7,410,0.017073
 2026-02,ml_engineer,15,410,0.036585
 2026-02,ai_app_engineer,17,410,0.041463
 2026-02,backend_engineer,39,410,0.095122
@@ -689,6 +775,7 @@ month,role_id,mentions,n_posts,share
 2026-02,mobile_developer,14,410,0.034146
 2026-03,data_engineer,11,317,0.034700
 2026-03,analytics_engineer,1,317,0.003155
+2026-03,data_scientist,6,317,0.018927
 2026-03,ml_engineer,14,317,0.044164
 2026-03,ai_app_engineer,19,317,0.059937
 2026-03,backend_engineer,36,317,0.113565
@@ -697,6 +784,7 @@ month,role_id,mentions,n_posts,share
 2026-03,mobile_developer,10,317,0.031546
 2026-04,data_engineer,5,329,0.015198
 2026-04,analytics_engineer,2,329,0.006079
+2026-04,data_scientist,5,329,0.015198
 2026-04,ml_engineer,15,329,0.045593
 2026-04,ai_app_engineer,23,329,0.069909
 2026-04,backend_engineer,36,329,0.109422
@@ -705,6 +793,7 @@ month,role_id,mentions,n_posts,share
 2026-04,mobile_developer,8,329,0.024316
 2026-05,data_engineer,19,318,0.059748
 2026-05,analytics_engineer,1,318,0.003145
+2026-05,data_scientist,4,318,0.012579
 2026-05,ml_engineer,15,318,0.047170
 2026-05,ai_app_engineer,23,318,0.072327
 2026-05,backend_engineer,34,318,0.106918
@@ -713,6 +802,7 @@ month,role_id,mentions,n_posts,share
 2026-05,mobile_developer,9,318,0.028302
 2026-06,data_engineer,20,313,0.063898
 2026-06,analytics_engineer,1,313,0.003195
+2026-06,data_scientist,6,313,0.019169
 2026-06,ml_engineer,14,313,0.044728
 2026-06,ai_app_engineer,19,313,0.060703
 2026-06,backend_engineer,31,313,0.099042
@@ -721,6 +811,7 @@ month,role_id,mentions,n_posts,share
 2026-06,mobile_developer,9,313,0.028754
 2026-07,data_engineer,12,259,0.046332
 2026-07,analytics_engineer,1,259,0.003861
+2026-07,data_scientist,4,259,0.015444
 2026-07,ml_engineer,10,259,0.038610
 2026-07,ai_app_engineer,18,259,0.069498
 2026-07,backend_engineer,24,259,0.092664
@@ -729,6 +820,7 @@ month,role_id,mentions,n_posts,share
 2026-07,mobile_developer,6,259,0.023166
 2026-08,data_engineer,8,228,0.035088
 2026-08,analytics_engineer,1,228,0.004386
+2026-08,data_scientist,7,228,0.030702
 2026-08,ml_engineer,9,228,0.039474
 2026-08,ai_app_engineer,19,228,0.083333
 2026-08,backend_engineer,27,228,0.118421
@@ -737,6 +829,7 @@ month,role_id,mentions,n_posts,share
 2026-08,mobile_developer,4,228,0.017544
 2026-09,data_engineer,8,249,0.032129
 2026-09,analytics_engineer,0,249,0.000000
+2026-09,data_scientist,7,249,0.028112
 2026-09,ml_engineer,10,249,0.040161
 2026-09,ai_app_engineer,17,249,0.068273
 2026-09,backend_engineer,27,249,0.108434
@@ -745,6 +838,7 @@ month,role_id,mentions,n_posts,share
 2026-09,mobile_developer,5,249,0.020080
 2026-10,data_engineer,5,266,0.018797
 2026-10,analytics_engineer,0,266,0.000000
+2026-10,data_scientist,6,266,0.022556
 2026-10,ml_engineer,10,266,0.037594
 2026-10,ai_app_engineer,12,266,0.045113
 2026-10,backend_engineer,22,266,0.082707

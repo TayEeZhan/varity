@@ -5,7 +5,8 @@ data/fixtures/skill_scores.json. Every number on screen comes from a file in the
 (skill_scores.json, demand_monthly.csv, ai_context_monthly.csv, backtest.json, taxonomy.json,
 SOURCES.md). No statistic is written in this file. No LLM is used.
 
-Three tabs: Skills (table), Skill detail (chart, text, sources), Method (backtest).
+Four tabs: Roles (role match for a chosen or edited skill set), Skills (table),
+Skill detail (chart, text, sources), Method (backtest).
 Sidebar: scenario, "As of" month (reruns the engine with data up to that month, nothing is
 written), and "Refresh live data" (engine.refresh.refresh).
 """
@@ -47,6 +48,17 @@ SERIES_BLUE = {"light": "#2a78d6", "dark": "#3987e5"}
 SERIES_ORANGE = {"light": "#eb6834", "dark": "#d95926"}
 SERIES_AQUA = {"light": "#1baf7a", "dark": "#199e70"}
 MUTED_GREY = "#8b8a84"
+
+# Role match (engine.roles). Three synthetic example profiles until the CV extractor lands.
+# The skill names must be taxonomy names. They are examples, not real people.
+PERSONAS = {
+    "Aina, junior Python dev (synthetic)": ["Python", "SQL", "PostgreSQL", "Docker", "AWS"],
+    "Ben, frontend dev (synthetic)": ["JavaScript / TypeScript", "TypeScript", "React", "Node.js"],
+    "Chloe, data analyst (synthetic)": ["SQL", "Python", "Snowflake", "dbt"],
+}
+ROLE_FILES = ("roles.json", "role_profiles.json", "role_demand_monthly.csv", "exposure.csv")
+TREND_BADGE = {"Rising": ":green-badge[Rising]", "Falling": ":red-badge[Falling]",
+               "No clear change": ":gray-badge[No clear change]"}
 
 
 # --------------------------------------------------------------------------------------
@@ -103,6 +115,15 @@ def scores_as_of(data_dir: str, as_of: str, demand_mtime: float) -> dict:
     from engine.scores import build_scores
 
     return build_scores(as_of=as_of, data_dir=data_dir)
+
+
+@st.cache_data(show_spinner=False)
+def role_trends_as_of(demand_path: str, roles_path: str, as_of: str, mtime: float) -> dict:
+    """Role trend labels cut at `as_of` from role_demand_monthly.csv (never later months). Writes no file."""
+    import engine.roles as roles_mod
+
+    return roles_mod.build_role_trends(roles_mod.read_demand_rows(demand_path), roles_mod.load_roles(roles_path),
+                                       as_of=as_of)
 
 
 def default_scores_path(data_dir: Path) -> Path:
@@ -438,7 +459,119 @@ taxonomy = read_json(data_dir / "taxonomy.json") if not is_fixture else None
 category_of = {t.get("skill"): t.get("category") for t in taxonomy or [] if isinstance(t, dict)}
 backtest = read_json(data_dir / "backtest.json") if not is_fixture else None
 
-tab_skills, tab_detail, tab_method = st.tabs(["Skills", "Skill detail", "Method"])
+tab_roles, tab_skills, tab_detail, tab_method = st.tabs(["Roles", "Skills", "Skill detail", "Method"])
+
+# --------------------------------------------------------------------------------------
+# Tab: Roles
+# --------------------------------------------------------------------------------------
+
+def role_card(role: dict, position: int, sort_by_match: bool, show_fast: bool) -> None:
+    """One bordered card for one ranked role. Every number comes from engine.roles.match_roles."""
+    with st.container(border=True):
+        title = f"#{position} {role['name']}"
+        if sort_by_match:
+            title += f" (rank #{role['rank']} by rank score)"
+        st.markdown(f"### {title}")
+        st.progress(min(max(role["match_score"], 0.0), 1.0), text=f"Match {role['match_score']:.0%}")
+
+        outlook = role["outlook"]
+        label = outlook.get("trend_label")
+        if label and outlook.get("share_last12") is not None and outlook.get("share_prev12") is not None:
+            p_text = f", p = {outlook['trend_p']:.3f}" if _is_number(outlook.get("trend_p")) else ""
+            st.markdown(f"Role demand: {TREND_BADGE.get(label, label)} "
+                        f"{outlook['share_last12']:.1%} of posts in the last 12 months vs "
+                        f"{outlook['share_prev12']:.1%} the 12 months before{p_text}")
+        else:
+            st.markdown("Role demand: :gray-badge[No label] too few posts to label a trend")
+
+        left, right = st.columns(2)
+        with left:
+            st.markdown("**You have**")
+            st.markdown("\n".join(f"- {s['skill']} (weight {s['weight']:.0%})" for s in role["have"]) or "- none")
+        with right:
+            st.markdown("**Gaps**")
+            st.markdown("\n".join(
+                f"- {s['skill']} (weight {s['weight']:.0%}; status {s['status'] or NA}; "
+                f"trend {s['trend_label'] or NO_LABEL})" for s in role["gap"]) or "- none")
+
+        st.write(role["reason"])
+        confidence = f"Confidence: {role['tier']} ({role['n_single_role_posts']} single-role posts)"
+        if role["tier"] == "rough":
+            confidence += ". Rough profile: treat the weights as approximate."
+        st.caption(confidence)
+        st.caption("SDG: " + (", ".join(str(t) for t in role["sdg"]) if role["sdg"] else NA))
+        if show_fast:
+            st.caption(f"Fast AI scenario (estimate): about {role['fast_shift']:+.1%} role demand vs moderate. "
+                       "Does not change the ranking.")
+        if st.button("Choose this as my target role", key=f"target_{role['role_id']}"):
+            st.session_state["target_role"] = role["name"]
+
+
+def roles_tab() -> None:
+    """The Roles tab: profile intake, ranked role cards, formula, sources."""
+    role_dir = DEFAULT_DATA_DIR
+    if is_fixture or taxonomy is None or not all((role_dir / n).exists() for n in ROLE_FILES):
+        st.info("Role match needs the real data files (taxonomy, roles, role profiles, role demand, exposure). "
+                "They are not available in this view.")
+        return
+    import engine.roles as roles_mod
+
+    st.subheader("Which future roles fit you?")
+    st.caption("Pick an example profile (synthetic people, not real CVs) and edit the skills. A CV upload comes later.")
+    persona = st.selectbox("Example profile", list(PERSONAS), key="role_persona")
+    if st.session_state.get("role_persona_applied") != persona:  # a new persona resets the skill list
+        st.session_state["role_skills"] = list(PERSONAS[persona])
+        st.session_state["role_persona_applied"] = persona
+    skill_options = [t["skill"] for t in taxonomy if isinstance(t, dict) and t.get("skill")]
+    my_skills = st.multiselect("Your skills (add or remove)", skill_options, key="role_skills")
+    sort_by_match = st.toggle("Sort by match only", key="roles_sort_match",
+                              help="Off: sorted by rank score (match and outlook).")
+    target_box = st.container()
+
+    try:
+        profile = roles_mod.profile_for(view_as_of, read_json(role_dir / "role_profiles.json"))
+    except ValueError as exc:
+        st.info(f"No role profile for {view_as_of}: {exc}.")
+        return
+    demand_path, roles_path = role_dir / "role_demand_monthly.csv", role_dir / "roles.json"
+    trends = role_trends_as_of(str(demand_path), str(roles_path), view_as_of, demand_path.stat().st_mtime)
+    out = roles_mod.match_roles(set(my_skills), profile, view, trends, scenario,
+                                exposure=roles_mod.load_exposure(role_dir / "exposure.csv"))
+
+    ranked = out["roles"]
+    shown = sorted(ranked, key=lambda r: (-r["match_score"], r["rank"])) if sort_by_match else ranked
+    for position, role in enumerate(shown, start=1):
+        role_card(role, position, sort_by_match, show_fast=scenario == "fast")
+
+    chosen = st.session_state.get("target_role")
+    target_box.markdown(f"**Target role:** {chosen}" if chosen else "**Target role:** none chosen yet")
+    for item in out["not_ranked"]:
+        st.caption(f"{item['name']}: {item['note']}")
+    if out["unmatched"]:
+        st.caption("Skills not in the taxonomy (ignored): " + ", ".join(out["unmatched"]))
+
+    n_posts = sum(r["n_single_role_posts"] for r in ranked)
+    win = profile["window"]
+    st.caption(f"Role skill weights learned from {n_posts:,} single-role HN 'Who is hiring?' posts, "
+               f"{win['from']} to {win['to']}. Role demand from monthly shares to {trends['as_of']}.")
+    with st.expander("How the rank is computed"):
+        formula = out["formula"]
+        st.markdown(
+            "- **Match score** = weight of the role's skills you have / total weight of its skills. "
+            "Weights are learned from real posts: the share of the role's single-role posts that mention the "
+            "skill, kept when the role asks for it at least 1.2 times as often as the average post.\n"
+            "- **Outlook score** = 1.0 if the role's share of posts is Rising, 0.5 if No clear change or unknown, "
+            "0.0 if Falling (same Welch test as the skill labels).\n"
+            f"- **Rank score** = {formula['match_weight']} x match + {formula['future_weight']} x outlook. "
+            "0.7 / 0.3 are team judgement, not fitted to data.\n"
+            "- **Fast AI scenario** only adds an estimate of how the role's demand moves "
+            f"(-k x sum of weight x AI exposure, k = {formula['k']}, an assumption). It never changes the ranking.\n"
+            "- Having TypeScript counts as having JavaScript / TypeScript. Roles with fewer than 50 single-role "
+            "posts are not ranked; 50 to 149 are marked rough.")
+
+
+with tab_roles:
+    roles_tab()
 
 # --------------------------------------------------------------------------------------
 # Tab: Skills
