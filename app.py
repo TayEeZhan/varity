@@ -1164,3 +1164,34 @@ with tab_method:
         st.write("Full list with dates and licences: `data/SOURCES.md`.")
         for title, url in source_links(load_text(str(sources_path), sources_path.stat().st_mtime)):
             st.markdown(f"- [{title}]({url})")
+
+    # New skills radar: data/skill_candidates.json from engine/discover.py. A person adds a skill to taxonomy.json.
+    radar_path = data_dir / "skill_candidates.json"
+    radar = read_json(radar_path if radar_path.exists() else DEFAULT_DATA_DIR / "skill_candidates.json")
+    if radar and radar.get("candidates") and not is_fixture:
+        st.header("Candidate new skills (not yet in Verity; need human review)")
+        bt_main = (radar.get("backtest") or {}).get("main") or {}
+        st.caption(
+            f"Terms that look like tech names in Hacker News hiring posts up to {radar.get('as_of', NA)} and are not "
+            "in the taxonomy. Shares are the share of posts in the last 12 months / the 12 months before. "
+            "Growth is the first share divided by the second (a term absent before shows 'new since'). "
+            "Nothing here changes the Skills tab until a person adds the skill to data/taxonomy.json. "
+            f"Backtest at {bt_main.get('as_of', NA)}: {bt_main.get('hits', NA)} of the top {bt_main.get('top_n', NA)} "
+            f"candidates grew in the next 12 months (all candidates: {pct(bt_main.get('base_rate_all_candidates'), 0)}). "
+            f"{(radar.get('backtest') or {}).get('verdict', '')} Read the evidence before you decide.")
+        radar_rows = []
+        for c in radar["candidates"][:15]:
+            links = [e.get("thread_url") for e in c.get("examples") or []] + [None, None]
+            radar_rows.append({
+                "Term": c.get("term"),
+                "Share last 12 / prior 12 months": f"{pct(c.get('share_last'), 2)} / {pct(c.get('share_prior'), 2)}",
+                "Growth": f"new since {c['new_since']}" if c.get("new_since") else f"x{c.get('growth')}",
+                "Trend label": c.get("label") or NO_LABEL,
+                "First seen": c.get("first_seen"),
+                "Co-occurring skills": ", ".join(s["skill"] for s in c.get("co_occurring_skills") or []) or NA,
+                "Source 1": links[0], "Source 2": links[1],
+            })
+        st.dataframe(
+            pd.DataFrame(radar_rows), hide_index=True, width="stretch",
+            column_config={k: st.column_config.LinkColumn(k, display_text="thread")
+                           for k in ("Source 1", "Source 2")})
