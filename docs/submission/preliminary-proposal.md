@@ -27,35 +27,33 @@ Items marked [TEAM TO FILL] are for the team. Do not submit with any of them lef
 
 Aina is a junior Python developer in Malaysia. She is a synthetic example. She hears that AI is changing tech jobs. She cannot tell which skills to deepen, which to drop, and what to learn next.
 
-The Domain 1 brief cites Hays (2025): 56% of workers use AI at work, and only 26% have had formal AI training. It also cites MOSTI: more than 600,000 Malaysian workers need reskilling in the next 3 to 5 years.
+In Malaysia, 56% of professionals already use AI tools at work, yet only 26% have received formal training (Domain 1 brief, citing Hays Asia Salary Guide 2025). MOSTI has said that more than 600,000 workers will need reskilling within three to five years (Domain 1 brief).
 
 Our user is a junior or mid-level tech developer, or a career switcher, in Malaysia. This user meets three problems.
 
 1. Skill lists carry no date, no source and no measure of doubt.
-2. Hype hides the signal. In Hacker News hiring posts, the share that mention AI rose from 6.4% in January 2019 to 54.6% in September 2026. Demand for the LLM / GenAI skill itself did not change over the last 12 months: 566 mentions in 3,714 posts, against 561 in 3,914 posts the year before.
+2. Hype hides the signal. In Hacker News hiring posts, the share that mention AI rose from 6.4% in January 2019 to 54.6% in September 2026. Demand for the LLM / GenAI skill itself showed no clear change: 566 mentions in 3,714 posts in the last 12 months against 561 in 3,914 posts in the 12 before (Welch test, p = 0.207).
 3. Free learning resources are scattered. The user cannot tell which ones still work.
 
-Our backtest shows the risk of false confidence. Twelve months ahead, a skill's share of job posts changes little. Simple persistence beat every trend model we tested. A single confident number would mislead this user. Verity gives a tested range, a plain Rising or Falling label, and a dated source on every line. The user decides.
+Our backtest shows the risk of false confidence. Twelve months ahead, a skill's share of job posts changes little. Simple persistence beat every trend model we tested. Verity gives a tested range, a plain Rising or Falling label, and a dated source on every line. The user decides.
 
-(229/250 words)
+(233/250 words)
 
 ### 2.2 Proposed AI Solution
 
-Verity is a decision aid. It forecasts skill demand, ranks future roles for a user, and builds a dated learning plan. A person makes every decision.
+Verity is a decision aid. It forecasts skill demand, ranks roles and builds a learning plan. A person makes every decision. Our AI and machine learning:
 
-The list below shows what counts as AI and machine learning in Verity, what lost, and what we plan.
+- **Statistical forecast.** We model each skill's monthly share of job posts on a logit scale. A rolling-origin backtest over 24 test months chose the model. Production picks between "last month" (naive) and "mean of the last 3 months" (naive3) by backtest. Today it picks naive3, with a 12-month error of 1.66 percentage points. The trend models scored 2.13 and 2.27. A conformal band wraps each forecast. It covered 93.8% of real values against an 80% target.
+- **Welch trend test.** A t-test compares the last 12 months with the 12 before and labels each skill Rising, Falling or No clear change. The direction held in 67.2% of 720 backtest cases.
+- **Learned role profiles.** We learn skill weights for 9 tech roles (8 with enough posts to rank) from Hacker News posts that name exactly one role.
+- **A model that lost.** We trained a gradient-boosting model (HistGradientBoostingRegressor) on all skills. Its error was 2.06 points, worse than 1.66. We did not ship it.
+- **Planned: CV extraction with Claude Haiku.** It will return each skill with an exact CV quote. Code will drop any skill without one. Not built yet.
 
-- **Statistical forecast.** We model each skill's monthly share of job posts on a logit scale. A rolling-origin backtest over 24 test months chose the model. The chosen model, the mean of the last 3 months, had a 12-month error of 1.66 percentage points. The trend models scored 2.13 and 2.27. A conformal band wraps each forecast. It covered 93.8% of real values against an 80% target.
-- **Welch trend test.** A t-test compares the last 12 months with the 12 before. It labels a skill Rising, Falling or No clear change. The direction held in 67.2% of 720 backtest cases.
-- **Learned role profiles.** We learn skill weights for 9 tech roles from Hacker News posts that name exactly one role. We do not set the weights by hand.
-- **A model that lost.** We trained a gradient-boosting model (scikit-learn HistGradientBoostingRegressor) on all skills. Its error was 2.06 points, worse than 1.66. We did not ship it.
-- **Planned: CV extraction with Claude Haiku.** The model will return each skill with an exact quote from the CV. Code will drop any skill with no matching quote. This is not built yet.
-
-Code, not a language model, sets the role ranking and the plan order. Two scenarios, Moderate and Fast AI disruption, are labelled as estimates.
+Code, not a language model, sets the role ranking and the plan order. Two scenarios, Moderate and Fast AI disruption, are labelled as estimates. Today the user enters skills in a form (example profiles plus a skill picker). HRD Corp status is shown as not verified.
 
 The build also uses the workshop topics in general terms: generative AI (planned extraction), data handling (stored snapshots) and cloud deployment (Replit).
 
-(278/300 words)
+(281/300 words)
 
 ## 3. Technical Approach
 
@@ -65,10 +63,10 @@ The build also uses the workshop topics in general terms: generative AI (planned
 - **Data and statistics:** pandas, NumPy, SciPy (Welch test), statsmodels (damped-trend model, tested only).
 - **Machine-learning experiment:** scikit-learn (not used in the app).
 - **Data sources:** Hacker News "Ask HN: Who is hiring?" threads through the Algolia HN Search API (free); Anthropic Economic Index (AI exposure); GPTs-are-GPTs, AIOE and Microsoft Working with AI (exposure cross-check only).
-- **Hosting:** Replit Autoscale deployment, Replit App Storage (data snapshots), Replit Scheduled Deployment (daily refresh).
+- **Hosting:** Replit Autoscale deployment (live). Replit App Storage (data snapshots) and a Replit Scheduled Deployment (daily refresh): code merged; Replit setup pending.
 - **Planned:** Claude Haiku (Anthropic) for CV extraction.
 
-**Sponsor GenAI API or cloud platform.** We use Replit for hosting, App Storage and Scheduled Deployments. We use no sponsor GenAI API yet. We use no GPU, so we use no RunPod.
+**Sponsor GenAI API or cloud platform.** We use Replit for hosting. We will use App Storage and Scheduled Deployments once set up (code merged; Replit setup pending). We use no sponsor GenAI API yet. We use no GPU, so we use no RunPod.
 
 ```mermaid
 flowchart LR
@@ -93,8 +91,8 @@ flowchart LR
   end
   subgraph REPLIT["Replit"]
     APP["Streamlit app<br/>Autoscale deployment"]
-    STORE["App Storage<br/>snapshots"]
-    JOB["Scheduled Deployment<br/>daily 09:00 MYT"]
+    STORE["App Storage<br/>snapshots<br/>(setup pending)"]
+    JOB["Scheduled Deployment<br/>daily 09:00 MYT<br/>(setup pending)"]
   end
   HN --> TAG --> DEM --> FC --> SCORES
   AEI --> EXP --> SCORES
@@ -121,15 +119,15 @@ flowchart LR
 
 **Ideate.** LinkedIn and X break terms or hold personal data. JobStreet blocked plain requests with a bot challenge. We chose Hacker News hiring threads. We tried a machine-learning forecaster and dropped it when it lost.
 
-**Prototype.** A Streamlit app with five tabs.
+**Prototype.** A five-tab Streamlit app.
 
-**Test.** 713 automated tests and a backtest with no look-ahead. In Phase 2 we will test with the three synthetic personas and [TEAM TO FILL: number] volunteer users.
+**Test.** Over 700 automated tests and a backtest with no look-ahead. In Phase 2 we will test with the three synthetic personas and [TEAM TO FILL: number] volunteer users.
 
-**Deployment.** The app runs as a Replit Autoscale deployment. A Replit Scheduled Deployment refreshes the data daily at 09:00 Malaysia time and saves a snapshot to Replit App Storage. If storage or the network fails, the app shows the last good data with its date.
+**Deployment.** The app runs as a Replit Autoscale deployment. The daily refresh job and App Storage snapshots are code merged; Replit setup pending. Once set up, the job will refresh the data at 09:00 Malaysia time and save a snapshot. On failure, the app shows the last good data with its date.
 
 **Hardest risk.** Hacker News is US-heavy. Our fallback: the app says so, and Malaysian sources are future work.
 
-(181/200 words)
+(187/200 words)
 
 ## 4. Environmental Impact Preliminary Framework & SDG
 
@@ -137,14 +135,14 @@ Phase 2 impact figures are **targets** for the team to measure in Phase 2 user t
 
 | Target SDG sub-target | Current problem baseline (with source) | Core measurable KPI (unit) | Phase 2 impact target |
 |---|---|---|---|
-| **SDG 4.4** "By 2030, substantially increase the number of youth and adults who have relevant skills, including technical and vocational skills, for employment, decent jobs and entrepreneurship." | 26% of workers have had formal AI training (Hays, 2025, as cited in the Domain 1 brief) | Test users who finish at least one plan step, using a verified free resource, within 14 days (% of test users) | Target: 50% of test users |
-| **SDG 8.5** "By 2030, achieve full and productive employment and decent work for all women and men, including for young people and persons with disabilities, and equal pay for work of equal value." | More than 600,000 Malaysian workers need reskilling in the next 3 to 5 years (MOSTI, as cited in the Domain 1 brief) | Test users who pick a target role after they see the match score and skill gap (% of test users) | Target: 80% of test users |
-| **SDG 8.2** "Achieve higher levels of economic productivity through diversification, technological upgrading and innovation, including through a focus on high-value added and labour-intensive sectors." | 56% of workers use AI at work (Hays, 2025, as cited in the Domain 1 brief) | Test users who add at least one Rising or AI-complement skill to their plan (% of test users) | Target: 60% of test users |
+| **SDG 4.4** "By 2030, substantially increase the number of youth and adults who have relevant skills, including technical and vocational skills, for employment, decent jobs and entrepreneurship." | In Malaysia, only 26% of professionals have received formal training in AI tools (Domain 1 brief, citing Hays Asia Salary Guide 2025) | Test users who finish at least one plan step, using a link-checked learning resource (77 resources, link-checked: HTTP 200 on 22 Oct 2026; 76 free, 1 free trial), within 14 days (% of test users) | Target: 50% of test users |
+| **SDG 8.5** "By 2030, achieve full and productive employment and decent work for all women and men, including for young people and persons with disabilities, and equal pay for work of equal value." | MOSTI has said that more than 600,000 workers will need reskilling within three to five years (Domain 1 brief) | Test users who pick a target role after they see the match score and skill gap (% of test users) | Target: 80% of test users |
+| **SDG 8.2** "Achieve higher levels of economic productivity through diversification, technological upgrading and innovation, including through a focus on high-value added and labour-intensive sectors." | In Malaysia, 56% of professionals already use AI tools at work (Domain 1 brief, citing Hays Asia Salary Guide 2025) | Test users who add at least one Rising or AI-complement skill to their plan (% of test users) | Target: 60% of test users |
 
 **Sources.**
-- Hays (2025), and MOSTI: both as cited in the Domain 1 brief. [TEAM TO FILL: add the full reference and link from the brief.]
+- Hays Asia Salary Guide 2025 (56% and 26%) and MOSTI (more than 600,000 workers): both as cited in the Domain 1 brief. [TEAM TO FILL: add the full reference and link from the brief.]
 - United Nations, Sustainable Development Goals, targets 4.4, 8.2 and 8.5: https://sdgs.un.org/goals.
-- Verity KPIs are counted by the app's own plan progress (`engine/pathway.py`, `progress()`) and a short role-choice question in the test session. The app does not yet log the role-choice or skill-add events. [TEAM TO FILL: decide how to log them before Phase 2.]
+- Verity KPIs: the app shows plan progress per session (`engine/pathway.py`, `progress()`) but stores no events; we will record all three KPIs in the Phase 2 test session.
 
 **Environmental note.** Verity runs on CPU only. It trains no model in production. The daily refresh job takes about 7 seconds.
 

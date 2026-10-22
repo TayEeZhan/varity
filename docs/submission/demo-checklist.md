@@ -16,7 +16,7 @@ Tick each box as you do it. Items marked [TEAM TO FILL] need a decision from you
 - [ ] Both members read `docs/ml-forecaster.md`, the backtest part of `docs/build-plan.md`, and `docs/submission/qa-prep.md`. Sheng Kuan speaks the forecast-test rows (5 and 8) and may get those questions.
 - [ ] Open https://verity--eezhan0805.replit.app in a private window. It must show real data. If the page shows "Prototype: showing sample data", the deployment is old: redeploy `main` first.
 - [ ] Compare the page with the numbers in section 4. If a value differs, find out why (a refresh, a new snapshot) and fix the script, not the screen.
-- [ ] Do not click "Refresh live data" before the take. It publishes to the shared store, so the numbers can change for everyone, including the judges. If someone clicked it, repeat the number check.
+- [ ] Do not click "Refresh live data" before the take. Once App Storage is set up (Replit setup pending), it publishes to the shared store, so the numbers can change for everyone, including the judges. If someone clicked it, repeat the number check.
 - [ ] Open the app once on `main` locally (`streamlit run app.py`) as a second source for the backup take (section 6).
 - [ ] Choose the account for the recording: a clean browser profile with no extensions, no saved logins, and no bookmarks bar.
 
@@ -88,7 +88,7 @@ Times follow the script. "Hold" is how long the screen stays still while the voi
 | Shot | Script row | Time | Screen | Action | Hold |
 |---|---|---|---|---|---|
 | S1 | 1 | 0:00-0:05 | Slide 1 | Title; voice starts at 0:01 | 5 s |
-| S2 | 1 | 0:05-0:30 | Slide 2 | AI-mention chart; highlight 6.4% and 51.9% | 25 s |
+| S2 | 1 | 0:05-0:30 | Slide 2 | AI-mention chart; highlight 6.4% and 54.6% | 25 s |
 | S3 | 1 | 0:30-0:40 | Slide 3 | Aina and the five boxes; the word "synthetic" visible | 10 s |
 | D1 | 2 | 0:40-0:48 | App, Roles tab | Select the example profile "Aina, junior Python dev (synthetic)"; skills list visible | 3 s |
 | D2 | 2 | 0:48-1:02 | Card #1 | Point at the match bar (66%), the gaps list, the Role demand line | 4 s on the bar |
