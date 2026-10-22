@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-22T06:20:24Z",
+  "generated_at": "2026-10-22T06:34:20Z",
   "as_of": "2026-10",
   "partial_month": true,
   "method": "Welch t-test on the monthly logit share, last 12 months against the 12 before; p < 0.05 and at least 30 mentions in the 24 months, as for skills.",
@@ -19,6 +19,14 @@
       "mentions_last12": 18,
       "posts_last12": 3714,
       "mentions_prev12": 15,
+      "posts_prev12": 3914
+    },
+    "data_scientist": {
+      "trend_label": "No clear change",
+      "trend_p": 0.3959374703300835,
+      "mentions_last12": 71,
+      "posts_last12": 3714,
+      "mentions_prev12": 89,
       "posts_prev12": 3914
     },
     "ml_engineer": {
