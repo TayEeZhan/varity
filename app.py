@@ -131,6 +131,14 @@ def role_trends_as_of(demand_path: str, roles_path: str, as_of: str, mtime: floa
                                        as_of=as_of)
 
 
+@st.cache_data(show_spinner=False)
+def role_forecast_as_of(data_dir: str, as_of: str, mtime: float) -> dict:
+    """Role forecast cut at `as_of` (engine.role_forecast.role_forecast_for, no later months). Writes no file."""
+    from engine.role_forecast import role_forecast_for
+
+    return role_forecast_for(as_of=as_of, data_dir=data_dir)
+
+
 def default_scores_path(data_dir: Path) -> Path:
     """Engine output in `data_dir` if it exists, otherwise the sample fixture."""
     candidate = data_dir / SCORES_NAME
@@ -503,6 +511,35 @@ tab_roles, tab_pathway, tab_skills, tab_detail, tab_method = st.tabs(
 # Tab: Roles
 # --------------------------------------------------------------------------------------
 
+def role_forecast_line(role_id: str) -> str | None:
+    """The role forecast line for a role card, or None (line hidden) if its files are missing or too early.
+
+    Numbers come from data/role_forecast.json and data/role_backtest.json. For an As-of month before the
+    file's month, the forecast is recomputed from data up to that month (no later data).
+    """
+    forecast = read_json(DEFAULT_DATA_DIR / "role_forecast.json")
+    backtest_doc = read_json(DEFAULT_DATA_DIR / "role_backtest.json")
+    demand_file = DEFAULT_DATA_DIR / "role_demand_monthly.csv"
+    if forecast is None or backtest_doc is None or not demand_file.exists():
+        return None
+    if forecast.get("as_of") != view_as_of:
+        try:
+            forecast = role_forecast_as_of(str(DEFAULT_DATA_DIR), view_as_of, demand_file.stat().st_mtime)
+        except (ValueError, FileNotFoundError):
+            return None
+    item = (forecast.get("roles") or {}).get(role_id)
+    if not item:
+        return None
+    now = item["share_now"]
+    text = f"Share of HN hiring posts now {pct(now['value'])} ({now['mentions']}/{now['posts']}); "
+    est = item["forecast_moderate"]
+    if item["status"] != "ok" or est.get("value_12m") is None:
+        return text + "too few posts a month for a 12-month estimate."
+    covered = (backtest_doc.get("coverage") or {}).get("test_h12")
+    return (text + f"12-month estimate {pct(est['value_12m'])} (80% target band {pct(est['low'])}–{pct(est['high'])}). "
+            f"Band covered {pct(covered, 0)} of held-out outcomes for roles.")
+
+
 def role_card(role: dict, position: int, sort_by_match: bool, show_fast: bool) -> None:
     """One bordered card for one ranked role. Every number comes from engine.roles.match_roles."""
     with st.container(border=True):
@@ -521,6 +558,10 @@ def role_card(role: dict, position: int, sort_by_match: bool, show_fast: bool) -
                         f"{outlook['share_prev12']:.1%} the 12 months before{p_text}")
         else:
             st.markdown("Role demand: :gray-badge[No label] too few posts to label a trend")
+
+        forecast_line = role_forecast_line(role["role_id"])
+        if forecast_line:
+            st.caption(forecast_line)
 
         left, right = st.columns(2)
         with left:
