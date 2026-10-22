@@ -7,7 +7,7 @@ The ingestion side (Sheng Kuan) writes rows. The engine side (Ee Zhan) reads the
 | File | Content | Used by |
 |---|---|---|
 | `data/taxonomy.json` | `[{ "skill": "Kubernetes", "synonyms": ["k8s"], "pattern": "\\b(kubernetes|k8s)\\b", "sdg": ["8.2"] }]` | Engine tagging, CV extractor (must output these canonical `skill` names) |
-| `data/roles.json` | `[{ "role": "Data Engineer", "skills": {"SQL": 1.0, "Python": 0.8} }]` | Role match |
+| `data/roles.json` | `[{ "id": "data_engineer", "name": "Data Engineer", "title_pattern": "\\bdata[\\s-]+engineers?\\b", "description": "...", "sdg": ["8.2", "16.6"], "sdg_reason": "..." }]`. `title_pattern` is a case-insensitive regex (shortened here). Skill weights are NOT here: they are learned, see `role_profiles.json` | Role match |
 | `data/resources.json` | `[{ "skill": "SQL", "title": "...", "url": "...", "minutes": 45, "cost": "free", "hrd_corp": false, "checked": "2026-10-23" }]` | Pathway. Ingestion side fills and verifies it |
 
 ## `data/profile.json` (CV extractor output)
@@ -146,6 +146,60 @@ How the numbers are made:
 - Model: naive (last value) or naive3 (mean of the last 3 values) on the logit series. The one with the lower mean share-scale error at h=12 over origins whose 12-month target is <= `as_of` is used. Drift and damped are not shipped. Their backtest numbers stay in `data/backtest.json`.
 - Band: rolling, symmetric, volatility-scaled conformal band. `sigma` = sample std (ddof=1) of the first differences of the logit series over 24 months. `q` = 80th percentile of `|actual - forecast| / sigma` over the last 24 origins whose target is <= `as_of`. Band = `inv_logit(point +/- q * sigma)`. The code is `band_offsets()` in `engine/forecast.py`. It is the 80% target band: coverage on test origins is in `data/backtest.json` (`coverage`).
 - `as_of`: `build_scores(as_of)` uses only data with target <= `as_of`. The earliest supported `as_of` is the first month with 24 usable origins (2023-11 for data from 2019-01). Earlier values raise an error. `exposure.csv` is not time-cut.
+
+## Role match files (engine output, UI reads them) - E7
+Code: `engine/roles.py`. Build: `python -m engine.roles --raw-dir <folder with the raw HN thread JSON>`. Tests: `tests/test_roles.py`.
+A post belongs to a role if its cleaned text matches the role's `title_pattern` (case-insensitive). One post can belong to several roles. Counting rules are the same as `demand_monthly.csv` (top-level, non-deleted, non-empty posts; a post counts once per role and once per skill).
+None of these files holds post text. They hold counts, shares, skill names and HN thread ids only.
+
+### `data/role_profiles.json`
+```json
+{
+  "schema_version": 1, "generated_at": "2026-10-22T12:00:00Z", "as_of": "2026-10",
+  "window": {"from": "2024-11", "to": "2026-10", "months": 24},
+  "params": {"min_p_role": 0.08, "min_lift": 1.2, "top_k": 10, "thin_below_posts": 30, "weight": "p_role / sum of kept p_role"},
+  "n_posts_all": 7628,
+  "thread_ids": ["..."],
+  "roles": [{
+    "role_id": "data_engineer", "name": "Data Engineer", "description": "...", "sdg": ["8.2", "16.6"],
+    "n_role_posts": 343, "window": {"from": "2024-11", "to": "2026-10", "months": 24},
+    "profile_status": "ok", "note": null,
+    "skills": [{"skill": "Python", "weight": 0.27, "p_role": 0.55, "p_all": 0.30, "lift": 1.8}],
+    "thread_ids": ["..."]
+  }]
+}
+```
+| Field | Meaning |
+|---|---|
+| `p_role` | Share of the role's posts that mention the skill. |
+| `p_all` | Share of all posts in the window that mention the skill. |
+| `lift` | `p_role / p_all`. Above 1 means the role asks for the skill more than the average post. |
+| `skills` | Skills with `p_role >= 0.08` and `lift >= 1.2`, top 10 by `p_role`, sorted by weight (high to low). May be empty. |
+| `weight` | `p_role` divided by the sum of `p_role` over the kept skills, so the weights of one role sum to 1. Learned from the posts, not invented. |
+| `profile_status` | `ok`, or `thin` when fewer than 30 posts name the role. For `thin`, `note` says so and the weights are rough. |
+| `thread_ids` | Per role: threads in the window that hold at least one post for the role. Top level: all threads in the window. |
+
+### `data/role_demand_monthly.csv`
+Columns: `month, role_id, mentions, n_posts, share`. `mentions` = posts in that month that match the role. `n_posts` = all posts that month (same as `demand_monthly.csv`). One row per month in `hn_threads.csv` and role.
+
+### `data/role_trends.json`
+```json
+{ "schema_version": 1, "generated_at": "...", "as_of": "2026-10", "partial_month": true, "method": "...",
+  "roles": { "data_engineer": { "trend_label": "Rising", "trend_p": 0.01,
+             "mentions_last12": 182, "posts_last12": 3714, "mentions_prev12": 140, "posts_prev12": 3914 } } }
+```
+`trend_label` uses the same rule as skills (`engine.forecast.trend_label`): Welch t-test on the monthly logit share, last 12 months against the 12 before, p < 0.05 gives `Rising` or `Falling`, else `No clear change`. `null` when there are fewer than 30 mentions in the 24 months. Observed, not a forecast.
+
+### `match_roles(user_skills, role_profiles, skill_scores, role_trends, scenario="moderate")`
+`user_skills`: set of canonical skill names, or dict skill -> years. `scenario`: `moderate` or `fast`. Returns `{"scenario", "formula", "roles"}`; `roles` is sorted by `rank_score`. Per role:
+| Field | Meaning |
+|---|---|
+| `match_score` | Weight of the role's skills the user has / total weight, 0 to 1. |
+| `have`, `gap` | The role's skills the user has / lacks, both sorted by weight. Each has `skill`, `weight`, and (gap) `status`, `trend_label`, `stance` from `skill_scores.json`. `have` also has `years`. |
+| `future_score` | From the role trend: Rising 1.0, No clear change 0.5, Falling 0.0, unknown 0.5. Fast scenario: +0.1 if more than half of the role weight is on AI-complement skills, -0.1 if more than half is on AI-substitutable skills. Clipped to [0, 1]. `scenario_adjustment` shows the +0.1 / -0.1 / 0. |
+| `rank_score` | `0.7 * match_score + 0.3 * future_score`. The 0.7 / 0.3 split and the 0.1 step are team judgement, not fitted to data. `formula` in the output says so. |
+| `outlook` | `trend_label`, `trend_p`, `mentions_last12`, `mentions_prev12` of the role. |
+| `reason` | Plain sentence, for example "You have 4 of its top 7 skills (Python, SQL, AWS, Docker). Biggest gaps: Airflow, dbt. Role demand: Rising (182 vs 140 posts)." |
 
 ## `data/diff.json` ("what changed and why")
 ```json
