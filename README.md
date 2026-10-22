@@ -1,6 +1,6 @@
 # Verity
 
-Verity reads a tech developer's CV, forecasts which skills are rising or falling from dated public data, and gives ranked future roles and a learning plan. Every claim shows its source and date, and the plan changes when the data changes. The app currently shows sample data from `data/fixtures/`, not real forecasts.
+Verity reads a tech developer's CV, forecasts which skills are rising or falling from dated public data, and gives ranked future roles and a learning plan. Every claim shows its source and date, and the plan changes when the data changes. The app shows real forecasts built from public data. It falls back to sample data in `data/fixtures/` only when `data/skill_scores.json` is missing.
 
 **Live prototype:** https://verity--eezhan0805.replit.app
 
@@ -30,3 +30,12 @@ Full sources and licences: data/SOURCES.md
 This product includes information from O*NET OnLine by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). Used under the CC BY 4.0 license.
 
 AI tools used in development: Claude Code (Anthropic).
+
+## Code tour
+
+The repo has guided tours for the VS Code CodeTour extension, in the `.tours/` folder.
+
+1. Install the **CodeTour** extension (publisher vsls-contrib) from the VS Code Marketplace.
+2. Open this folder in VS Code.
+3. Click **CodeTour** in the Explorer panel.
+4. Pick a tour: `01-data-to-forecast`, `02-roles-to-pathway` or `03-live-data`.
