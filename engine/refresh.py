@@ -4,9 +4,13 @@
     result = refresh()          # dict, never raises for network or file errors
 
 Steps
-1. Pick a writable data directory. Try the repo data/ folder. On a read-only or
-   reset filesystem (Replit Autoscale) copy the committed data/*.csv and
-   data/*.json files (not data/raw) to <tempdir>/verity_data and work there.
+1. Pick a runtime data directory. refresh() NEVER writes into the committed repo
+   data/ folder (an accidental commit of refreshed files is a risk, and on Replit
+   Autoscale the disk belongs to one instance and is lost on restart). The folder
+   is $VERITY_RUNTIME_DIR if that variable is set, else <tempdir>/verity_data. The
+   committed data/*.csv and data/*.json files (not data/raw) are copied there first.
+   A work_dir argument (used by tests) replaces it. If the chosen folder is not
+   writable, <tempdir>/verity_data is used instead.
 2. Fetch the newest "Ask HN: Who is hiring?" thread, bypassing the raw cache.
 3. Update hn_threads.csv, then recompute only that month in demand_monthly.csv
    (and ai_context_monthly.csv). No other month is read or changed.
@@ -41,12 +45,24 @@ from engine import backfill_hn, demand  # noqa: E402
 
 DATA_DIR = ROOT / "data"
 TMP_DIR_NAME = "verity_data"
+RUNTIME_ENV = "VERITY_RUNTIME_DIR"
 SCORES_NAME = "skill_scores.json"
 # Argument names that would mean build_scores takes a data directory.
 # build_scores has had "data_dir" since step A1; the other names are older guesses.
 DIR_PARAM_NAMES = ("data_dir", "work_dir", "base_dir", "root", "data_path")
 
 _LOCK = threading.Lock()
+
+
+def runtime_dir(tmp_root: Path | None = None) -> Path:
+    """Where refresh() works by default: $VERITY_RUNTIME_DIR, else <tempdir>/verity_data.
+
+    tmp_root replaces the system temp folder (for tests); the variable still wins over it
+    only when tmp_root is not given.
+    """
+    if tmp_root is None and os.environ.get(RUNTIME_ENV):
+        return Path(os.environ[RUNTIME_ENV])
+    return (Path(tmp_root) if tmp_root is not None else Path(tempfile.gettempdir())) / TMP_DIR_NAME
 
 
 def is_writable(directory: Path) -> bool:
@@ -145,18 +161,24 @@ def refresh(
 ) -> dict:
     """Run the live refresh. Return a summary dict, or {"ok": False, "error": ...}.
 
-    work_dir: where to work. Default is the repo data/ folder, with a temp-dir
-    fallback when it is not writable. source_dir: where the committed files
-    are copied from (default repo data/). session and tmp_root are for tests.
+    work_dir: where to work. Default is runtime_dir() ($VERITY_RUNTIME_DIR or
+    <tempdir>/verity_data), never the repo data/ folder. source_dir: where the
+    committed files are copied from (default repo data/). session and tmp_root are
+    for tests. If another refresh is running the result has "busy": True.
     """
     started = time.monotonic()
     if not _LOCK.acquire(blocking=False):
-        return {"ok": False, "error": "a refresh is already running"}
+        return {"ok": False, "busy": True, "error": "a refresh is already running"}
     data_dir: Path | None = None
     backups: dict[Path, bytes | None] = {}
     try:
         source = Path(source_dir) if source_dir is not None else DATA_DIR
-        data_dir = choose_work_dir(work_dir, source, Path(tmp_root) if tmp_root is not None else None)
+        tmp_root_path = Path(tmp_root) if tmp_root is not None else None
+        if work_dir is None:
+            work_dir = runtime_dir(tmp_root_path)
+            if work_dir.resolve() == source.resolve():
+                raise ValueError(f"the runtime folder must not be the committed data folder ({source})")
+        data_dir = choose_work_dir(work_dir, source, tmp_root_path)
         threads_csv = data_dir / "hn_threads.csv"
         demand_csv = data_dir / "demand_monthly.csv"
         ai_csv = data_dir / "ai_context_monthly.csv"
@@ -204,7 +226,8 @@ def refresh(
         return {
             "ok": True,
             "data_dir": str(data_dir),
-            "used_temp_dir": data_dir.resolve() != (Path(work_dir) if work_dir is not None else source).resolve(),
+            "used_temp_dir": data_dir.resolve() != Path(work_dir).resolve(),
+            "committed_data_untouched": data_dir.resolve() != source.resolve(),
             "thread_id": thread_id,
             "month": month,
             "posts_before": before,
