@@ -17,6 +17,8 @@ from __future__ import annotations
 import json
 import logging
 import threading
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from math import isfinite
 from pathlib import Path
@@ -34,10 +36,15 @@ try:
                               TypeSafeRateLimitError)
 except ImportError:  # the SDK is optional: without it make_jev_client returns None
     FATAL_ERRORS: tuple[type[BaseException], ...] = ()
+    RATE_LIMIT_ERRORS: tuple[type[BaseException], ...] = ()
 else:
     # These will not fix themselves within a run, so stop asking and let the formula rank.
-    FATAL_ERRORS = (TypeSafeAuthenticationError, TypeSafePermissionDeniedError, TypeSafeNotFoundError,
-                    TypeSafeRateLimitError)
+    FATAL_ERRORS = (TypeSafeAuthenticationError, TypeSafePermissionDeniedError, TypeSafeNotFoundError)
+    # A rate limit clears in seconds: wait and retry before giving up on the run.
+    RATE_LIMIT_ERRORS = (TypeSafeRateLimitError,)
+
+RATE_LIMIT_RETRIES = 4
+RATE_LIMIT_FIRST_WAIT_S = 2.0  # doubles each retry: 2, 4, 8, 16 s
 
 USD_PER_MILLION_INPUT_TOKENS = 0.042  # TypeSafe list price; output tokens are free
 DEFAULT_MAX_CALLS_PER_RUN = 400
@@ -189,9 +196,10 @@ class JevClient:
     """Thread-safe wrapper used by one pipeline run."""
 
     def __init__(self, client: SystemOneClient, model: str, *, timeout_s: float = 2.0,
-                 cache: JevCache | None = None, max_calls: int = DEFAULT_MAX_CALLS_PER_RUN):
+                 cache: JevCache | None = None, max_calls: int = DEFAULT_MAX_CALLS_PER_RUN,
+                 sleep: Callable[[float], None] = time.sleep):
         self._client, self.model, self._timeout = client, model, timeout_s
-        self._cache, self._max_calls = cache, max_calls
+        self._cache, self._max_calls, self._sleep = cache, max_calls, sleep
         self._lock = threading.Lock()
         self.calls = 0
         self.input_tokens = 0
@@ -223,13 +231,20 @@ class JevClient:
 
     def _ask(self, state: dict, questions: dict) -> Any:
         self._reserve_call()
-        try:
-            response = self._client.system_one(state, questions, timeout=self._timeout)
-        except FATAL_ERRORS as exc:
-            self._close(f"Jev rejected the request ({exc.__class__.__name__})")
-            raise JevError(self.reason) from exc
-        except Exception as exc:  # timeout, connection, server or validation error: fall back for this call only
-            raise JevError(f"Jev call failed ({exc.__class__.__name__})") from exc
+        for attempt in range(RATE_LIMIT_RETRIES + 1):
+            try:
+                response = self._client.system_one(state, questions, timeout=self._timeout)
+                break
+            except RATE_LIMIT_ERRORS as exc:
+                if attempt == RATE_LIMIT_RETRIES or not self.open:
+                    self._close(f"Jev rate limit persisted after {RATE_LIMIT_RETRIES} retries")
+                    raise JevError(self.reason) from exc
+                self._sleep(RATE_LIMIT_FIRST_WAIT_S * (2 ** attempt))
+            except FATAL_ERRORS as exc:
+                self._close(f"Jev rejected the request ({exc.__class__.__name__})")
+                raise JevError(self.reason) from exc
+            except Exception as exc:  # timeout, connection, server or validation error: fall back for this call only
+                raise JevError(f"Jev call failed ({exc.__class__.__name__})") from exc
         usage = getattr(response, "usage", None)
         with self._lock:
             self.input_tokens += int(getattr(usage, "input_tokens", 0) or 0)
