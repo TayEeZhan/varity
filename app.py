@@ -8,9 +8,14 @@ SOURCES.md). No statistic is written in this file. No LLM is used.
 A four-step journey, then the evidence behind it:
   1 You (example profile and skills; a CV upload slot comes later),
   2 Skills radar (engine.radar: every skill by demand share and tested trend),
-  3 Future roles (role match for the chosen or edited skill set, engine.roles),
-  4 Your plan (ordered plan and daily to-do list for the target role, engine.pathway),
-  Evidence: Skills (table), Skill detail (chart, text, sources), Method (backtest).
+  3 Future roles (role match for the chosen or edited skill set, engine.roles; an optional SDG goal
+    re-orders the roles on request, engine.sdg; MyCOL badges, data/mycol_role_map.json),
+  4 Your plan (ordered plan and daily to-do list for the target role, engine.pathway; its SDG lines
+    come from engine.sdg.plan_sdg_summary),
+  Evidence: Skills (table), Skill detail (chart, text, sources), Method (backtest, SDG sector links,
+  Malaysia data).
+Files for the SDG goal and the Malaysia badges (role_sdg.json, sdg_sectors.json, mycol.json,
+mycol_role_map.json) are optional: when one is missing or unreadable, its part is left out.
 Sidebar: scenario, "As of" month (reruns the engine with data up to that month, nothing is
 written), and "Refresh live data" (engine.refresh.refresh).
 """
@@ -72,6 +77,14 @@ STEP_YOU, STEP_RADAR, STEP_ROLES, STEP_PLAN, STEP_EVIDENCE = (
 JOURNEY_KEY = "journey_step"
 ROLE_DATA_MISSING = ("Role match needs the real data files (taxonomy, roles, role profiles, role demand, exposure). "
                      "They are not available in this view.")
+NO_GOAL = "No preference"
+GOAL_LABEL = "What do you want your work to help with? (optional)"
+ORDER_BEST, ORDER_GOAL = "Best fit", "Fit for my goal"
+GOAL_KEY, ORDER_KEY = "sdg_goal", "roles_order_by"
+MYCOL_BADGE = "On Malaysia's Critical Occupations List"
+MYCOL_CAPTION = ("MyCOL is TalentCorp's list of occupations in short supply in Malaysia; the mapping to our "
+                 "roles is team judgement.")
+NO_MY_SNAPSHOT = ("No Malaysian job-site snapshot yet: collectors need written permission from each site.")
 TREND_BADGE = {"Rising": ":green-badge[Rising]", "Falling": ":red-badge[Falling]",
                "No clear change": ":gray-badge[No clear change]"}
 
@@ -719,8 +732,8 @@ with tab_radar:
 # Step 3: Future roles
 # --------------------------------------------------------------------------------------
 
-def role_forecast_line(role_id: str) -> str | None:
-    """The role forecast line for a role card, or None (line hidden) if its files are missing or too early.
+def role_forecast_doc() -> tuple[dict, dict] | None:
+    """(role forecast, role backtest) for the As-of month, or None when a file is missing or too early.
 
     Numbers come from data/role_forecast.json and data/role_backtest.json. For an As-of month before the
     file's month, the forecast is recomputed from data up to that month (no later data).
@@ -735,9 +748,16 @@ def role_forecast_line(role_id: str) -> str | None:
             forecast = role_forecast_as_of(str(DEFAULT_DATA_DIR), view_as_of, demand_file.stat().st_mtime)
         except (ValueError, FileNotFoundError):
             return None
-    item = (forecast.get("roles") or {}).get(role_id)
+    return forecast, backtest_doc
+
+
+def role_forecast_line(role_id: str) -> str | None:
+    """The role forecast line for a role card, or None (line hidden) if its files are missing or too early."""
+    docs = role_forecast_doc()
+    item = ((docs[0].get("roles") or {}).get(role_id)) if docs else None
     if not item:
         return None
+    backtest_doc = docs[1]
     now = item["share_now"]
     text = f"Share of HN hiring posts now {pct(now['value'])} ({now['mentions']}/{now['posts']}); "
     est = item["forecast_moderate"]
@@ -748,11 +768,194 @@ def role_forecast_line(role_id: str) -> str | None:
             f"Band covered {pct(covered, 0)} of held-out outcomes for roles.")
 
 
-def role_card(role: dict, position: int, sort_by_match: bool, show_fast: bool) -> None:
+def role_estimate_text(role_id: str) -> str | None:
+    """'12-month estimate 10.4% of HN hiring posts (80% target band 8.3%–12.9%)' for the step 3 summary line.
+
+    None when the role forecast files are missing, the role has too few posts, or it is not in the file.
+    """
+    docs = role_forecast_doc()
+    item = ((docs[0].get("roles") or {}).get(role_id)) if docs else None
+    est = (item or {}).get("forecast_moderate") or {}
+    if not item or item.get("status") != "ok" or not _is_number(est.get("value_12m")):
+        return None
+    label = (docs[0].get("interval") or {}).get("label") or "target band"
+    return (f"12-month estimate {pct(est['value_12m'])} of HN hiring posts "
+            f"({label} {pct(est.get('low'))}–{pct(est.get('high'))})")
+
+
+# --- SDG goal (engine.sdg) and Malaysia badges (MyCOL). Both read optional files: a missing or unreadable
+# file hides its part of the page and never stops the app. ---
+
+def read_optional_json(name: str, dict_keys: tuple[str, ...] = ()) -> dict | None:
+    """data/<name> as a dict that holds `dict_keys`, or None when it is missing, unreadable or the wrong shape."""
+    try:
+        doc = read_json(DEFAULT_DATA_DIR / name)
+    except (OSError, ValueError):
+        return None
+    return doc if isinstance(doc, dict) and all(k in doc for k in dict_keys) else None
+
+
+def read_optional_csv(name: str) -> pd.DataFrame | None:
+    """data/<name> as a table, or None when the file is missing or cannot be read."""
+    try:
+        return read_csv(DEFAULT_DATA_DIR / name)
+    except (OSError, ValueError, pd.errors.ParserError):
+        return None
+
+
+def load_role_sdg() -> dict | None:
+    """data/role_sdg.json (engine.sdg), or None. None hides the goal selector, the goal sentences and the Method part."""
+    doc = read_optional_json("role_sdg.json", ("sectors", "roles", "baseline"))
+    if doc is None or not doc["sectors"] or not isinstance(doc["sectors"], list)             or not isinstance(doc["roles"], dict) or not isinstance(doc["baseline"], dict):
+        return None
+    return doc
+
+
+def goal_options(role_sdg: dict | None) -> dict[str, str]:
+    """{label: sector id} for the goal selector: '<name> (SDG x.y)', sectors from data/sdg_sectors.json.
+
+    Only sectors that role_sdg.json has numbers for are offered. The sector list in role_sdg.json is the
+    fallback when data/sdg_sectors.json is missing.
+    """
+    if role_sdg is None:
+        return {}
+    known = {s.get("id") for s in role_sdg["sectors"] if isinstance(s, dict)}
+    listed = read_optional_json("sdg_sectors.json", ("sectors",))
+    sectors = listed["sectors"] if listed and isinstance(listed["sectors"], list) else role_sdg["sectors"]
+    options = {}
+    for sector in sectors:
+        if isinstance(sector, dict) and sector.get("id") in known and sector.get("name"):
+            targets = " / ".join(str(t) for t in sector.get("sdg") or [])
+            options[f"{sector['name']} (SDG {targets})" if targets else sector["name"]] = sector["id"]
+    return options
+
+
+def chosen_goal(role_sdg: dict | None) -> str | None:
+    """The sector id picked in step 3, or None for 'No preference' (or when the goal data is missing)."""
+    return goal_options(role_sdg).get(st.session_state.get(GOAL_KEY))
+
+
+def goal_controls(role_sdg: dict | None) -> tuple[str | None, bool]:
+    """The goal selector, the order radio and one caption. Returns (sector id or None, ordered by goal?).
+
+    Nothing is drawn when the goal data is missing.
+    """
+    options = goal_options(role_sdg)
+    if not options:
+        return None, False
+    if st.session_state.get(GOAL_KEY) not in (NO_GOAL, *options):
+        st.session_state.pop(GOAL_KEY, None)  # a label from an older file: back to 'No preference'
+    left, right = st.columns([3, 2])
+    picked = left.selectbox(GOAL_LABEL, [NO_GOAL, *options], key=GOAL_KEY)
+    goal = options.get(picked)
+    order = right.radio("Order roles by:", [ORDER_BEST, ORDER_GOAL], key=ORDER_KEY, horizontal=True,
+                        disabled=goal is None,
+                        help="Best fit is the match-and-outlook order. Fit for my goal moves roles that hire "
+                             "for your goal up a little. No role is hidden in either order.")
+    months = role_sdg.get("months")
+    st.caption(f"Goal fit compares the share of each role's single-role HN posts from employers in this sector "
+               f"over the last {months if _is_number(months) else 'few'} months with the share across all posts; "
+               "it shows who hires, not what the work achieves, the sample is mostly US, and the weight is team "
+               "judgement (Evidence > Method > SDG sector links).")
+    if past_view:
+        st.caption(f"Sector shares are for the {months if _is_number(months) else 'last few'} months to "
+                   f"{role_sdg.get('as_of') or NA} and do not move with the As-of slider.")
+    return goal, goal is not None and order == ORDER_GOAL
+
+
+def apply_goal(out: dict, role_sdg: dict | None, goal: str | None) -> dict | None:
+    """engine.sdg.rerank_for_goal on the match_roles output, or None (no goal, or the file cannot be used)."""
+    if goal is None or role_sdg is None:
+        return None
+    from engine.sdg import rerank_for_goal
+
+    try:
+        return rerank_for_goal(out, role_sdg, goal)
+    except (ValueError, KeyError, TypeError) as exc:
+        st.caption(f"The goal view is not available: data/role_sdg.json could not be used ({type(exc).__name__}).")
+        return None
+
+
+def goal_order(goal_out: dict) -> list[dict]:
+    """The ranked roles of a rerank_for_goal result in 'Fit for my goal' order (goal_rank 1 first)."""
+    by_id = {r["role_id"]: r for r in goal_out["roles"]}
+    return [by_id[row["role_id"]] for row in goal_out["by_goal_fit"] if row["role_id"] in by_id]
+
+
+def sdg_sector_block(role: dict) -> None:
+    """The goal sentence of one role card, from engine.sdg.rerank_for_goal ("sdg_goal" on the role).
+
+    Shows nothing when the role has no goal view (no goal chosen, or no role_sdg.json). A cell that is not
+    reliable is called rough: it does not re-order anything.
+    """
+    goal = role.get("sdg_goal")
+    if not goal:
+        return None
+    sentence = goal["sentence"]
+    if goal.get("share") is not None and not goal.get("reliable"):
+        st.caption(f"For your goal (rough, not used to re-order): {sentence}")
+    else:
+        st.caption(f"For your goal: {sentence}")
+    return None
+
+
+def plan_sdg_lines(plan: dict, role: dict, role_sdg: dict | None) -> list[str]:
+    """The SDG sentences of step 4: engine.sdg.plan_sdg_summary with the goal chosen in step 3.
+
+    With no role_sdg.json (or one that cannot be used) the summary has the plan-level lines only.
+    """
+    from engine.sdg import plan_sdg_summary
+
+    try:
+        return plan_sdg_summary(plan, role, role_sdg or {}, chosen_goal(role_sdg))["lines"]
+    except (KeyError, TypeError, ValueError):
+        return plan_sdg_summary(plan, role, {}, None)["lines"]
+
+
+def mycol_by_role() -> dict[str, list[dict]]:
+    """{role_id: [mapped MyCOL occupations]} from data/mycol_role_map.json and data/mycol.json; {} when either is missing.
+
+    Each item: occupation, masco_code, strength ('direct' or 'partial'), year, url (the source in mycol.json).
+    Direct matches come first. A mapping whose occupation is not in mycol.json is left out.
+    """
+    mycol = read_optional_json("mycol.json", ("occupations",))
+    mapping = read_optional_json("mycol_role_map.json", ("mappings",))
+    if mycol is None or mapping is None or not isinstance(mycol["occupations"], list) \
+            or not isinstance(mapping["mappings"], list):
+        return {}
+    source = mycol.get("source") if isinstance(mycol.get("source"), dict) else {}
+    by_code = {o.get("masco_code"): o for o in mycol["occupations"] if isinstance(o, dict)}
+    found: dict[str, list[dict]] = {}
+    for m in mapping["mappings"]:
+        occ = by_code.get(m.get("masco_code")) if isinstance(m, dict) else None
+        if occ is None or not m.get("role_id") or m.get("strength") not in ("direct", "partial"):
+            continue
+        url = occ.get("source_url") or source.get("pdf_url") or source.get("landing_page") or ""
+        found.setdefault(m["role_id"], []).append({
+            "occupation": occ.get("occupation") or m.get("occupation") or NA, "masco_code": m["masco_code"],
+            "strength": m["strength"], "year": occ.get("year") or source.get("year") or "",
+            "url": url if str(url).startswith(("http://", "https://")) else ""})
+    for items in found.values():
+        items.sort(key=lambda i: i["strength"] != "direct")
+    return found
+
+
+def mycol_badges(items: list[dict]) -> None:
+    """One small badge line per MyCOL occupation mapped to the role, with the strength and the source link."""
+    for item in items:
+        year = f" {item['year']}" if item["year"] else ""
+        color = "blue" if item["strength"] == "direct" else "gray"
+        link = f" | [MyCOL source]({item['url']})" if item["url"] else ""
+        st.markdown(f":{color}-badge[{MYCOL_BADGE}{year}: {item['occupation']} (MASCO {item['masco_code']})] "
+                    f"{item['strength']} match{link}")
+
+
+def role_card(role: dict, position: int, show_rank: bool, show_fast: bool,
+              mycol: dict[str, list[dict]] | None = None) -> None:
     """One bordered card for one ranked role. Every number comes from engine.roles.match_roles."""
     with st.container(border=True):
         title = f"#{position} {role['name']}"
-        if sort_by_match:
+        if show_rank:
             title += f" (rank #{role['rank']} by rank score)"
         st.markdown(f"### {title}")
         st.progress(min(max(role["match_score"], 0.0), 1.0), text=f"Match {role['match_score']:.0%}")
@@ -770,6 +973,7 @@ def role_card(role: dict, position: int, sort_by_match: bool, show_fast: bool) -
         forecast_line = role_forecast_line(role["role_id"])
         if forecast_line:
             st.caption(forecast_line)
+        mycol_badges((mycol or {}).get(role["role_id"], []))
 
         left, right = st.columns(2)
         with left:
@@ -787,6 +991,7 @@ def role_card(role: dict, position: int, sort_by_match: bool, show_fast: bool) -
             confidence += ". Rough profile: treat the weights as approximate."
         st.caption(confidence)
         st.caption("SDG: " + (", ".join(str(t) for t in role["sdg"]) if role["sdg"] else NA))
+        sdg_sector_block(role)
         if show_fast:
             st.caption(f"Fast AI scenario (estimate): about {role['fast_shift']:+.1%} role demand vs moderate. "
                        "Does not change the ranking.")
@@ -833,19 +1038,38 @@ def roles_step(ctx: dict) -> dict | None:
         st.info(ctx["problem"])
         return None
     out, profile, trends = ctx["out"], ctx["profile"], ctx["trends"]
-    ranked, low_match = out["roles"], out["low_match"]
     limit = out["formula"]["low_match_below"]
-    st.markdown(f"**{best_fit_line(ranked)}**")
+    st.markdown(f"**{best_fit_line(out['roles'])}**")
     st.caption("Role demand labels are tested trends, not forecasts. Match is how much of the role's skill "
                "list you already have.")
-    sort_by_match = st.toggle("Sort by match only", key="roles_sort_match",
-                              help="Off: sorted by rank score (match and outlook).")
+    role_sdg = load_role_sdg()
+    goal, by_goal = goal_controls(role_sdg)
+    goal_out = apply_goal(out, role_sdg, goal)
+    by_goal = by_goal and goal_out is not None
+    # With a goal, the cards come from the rerank output: same roles, each with its goal sentence.
+    ranked = goal_out["roles"] if goal_out else out["roles"]
+    low_match = goal_out["low_match"] if goal_out else out["low_match"]
+    if by_goal:
+        formula = goal_out["formula"]
+        st.caption(f"Ordered by fit for {goal_out['sector_name']}: {formula['goal_fit_score']}. "
+                   "A role's score goes up only with a reliable over-representation; no score is lowered and no "
+                   "role is hidden.")
+    sort_by_match = st.toggle("Sort by match only", key="roles_sort_match", disabled=by_goal,
+                              help="Off: sorted by rank score (match and outlook). Not used when roles are "
+                                   "ordered by fit for your goal.")
+    mycol = mycol_by_role()
+    if mycol:
+        st.caption(MYCOL_CAPTION)
     target_box = st.container()
 
     if ranked:
-        shown = sorted(ranked, key=lambda r: (-r["match_score"], r["rank"])) if sort_by_match else ranked
+        if by_goal:
+            shown = goal_order(goal_out)
+        else:
+            shown = sorted(ranked, key=lambda r: (-r["match_score"], r["rank"])) if sort_by_match else ranked
+        reordered = by_goal or sort_by_match
         for position, role in enumerate(shown, start=1):
-            role_card(role, position, sort_by_match, show_fast=scenario == "fast")
+            role_card(role, position, reordered, show_fast=scenario == "fast", mycol=mycol)
         if low_match:
             with st.expander(f"Not a fit yet (under {limit:.0%} match)"):
                 st.caption("These roles are not ranked: with so few of their skills, the outlook alone "
@@ -855,16 +1079,20 @@ def roles_step(ctx: dict) -> dict | None:
                     st.markdown("\n".join(
                         f"- {s['skill']} (weight {s['weight']:.0%}; status {s['status'] or NA}; "
                         f"trend {s['trend_label'] or NO_LABEL})" for s in role["gap"]) or "- no gaps")
+                    sdg_sector_block(role)
                     if st.button("Choose this as my target role", key=f"target_{role['role_id']}"):
                         st.session_state["target_role"] = role["name"]
     else:
         st.info("None of the roles match well yet; pick a target to see the gap")
         for position, role in enumerate(low_match, start=1):  # sorted by match, not ranked
-            role_card(role, position, False, show_fast=scenario == "fast")
+            role_card(role, position, False, show_fast=scenario == "fast", mycol=mycol)
 
     chosen = st.session_state.get("target_role")
     with target_box:
-        st.markdown(f"**Target role:** {chosen}" if chosen else "**Target role:** none chosen yet")
+        summary = f"**Target role:** {chosen}" if chosen else "**Target role:** none chosen yet"
+        target_id = next((r["role_id"] for r in out["roles"] + out["low_match"] if r["name"] == chosen), None)
+        estimate = role_estimate_text(target_id) if target_id else None
+        st.markdown(f"{summary}. {estimate}." if estimate else summary)
         if chosen:
             next_button("See my plan", STEP_PLAN, "next_to_plan")
     for item in out["not_ranked"]:
@@ -917,16 +1145,6 @@ def change_target_button() -> None:
     """Link-style button. Choosing a role stays possible only in step 3, Future roles."""
     st.button("Change target role", key="change_target_role", type="tertiary", on_click=clear_target_role,
               help="Clears the target and takes you to step 3 to pick a new one.")
-
-
-def sdg_sector_block(role: dict) -> None:
-    """Hook for the SDG sector data (branch feat/sdg-sectors). Shows nothing while data/role_sdg.json is missing.
-
-    `role` is the match_roles entry of the target role. The other branch reads the file and renders here.
-    """
-    if not (DEFAULT_DATA_DIR / "role_sdg.json").exists():
-        return None
-    return None
 
 
 def step_card(step: dict) -> None:
@@ -990,8 +1208,8 @@ def plan_summary(box, target: str, plan: dict) -> None:
 
 def pathway_tab(role_out: dict | None) -> None:
     """Step 4, Your plan: summary card, staged plan, daily to-do list with progress, exports, SDG links."""
-    from engine.pathway import (HRD_CORP_NOTE, PLACEHOLDER_RESOURCE, build_pathway, progress, sdg_headline,
-                                tasks_signature, to_ics, to_markdown, today_myt)
+    from engine.pathway import (HRD_CORP_NOTE, PLACEHOLDER_RESOURCE, build_pathway, progress, tasks_signature,
+                                to_ics, to_markdown, today_myt)
 
     st.session_state.setdefault("done_tasks", [])
     target = st.session_state.get("target_role")
@@ -1083,11 +1301,12 @@ def pathway_tab(role_out: dict | None) -> None:
     e2.download_button("Download calendar (.ics)", to_ics(plan["tasks"]), file_name="verity_plan.ics",
                        mime="text/calendar", key="download_plan_ics", on_click="ignore")
 
-    # SDG links: the plan-level statements first, the per-skill tags second
+    # SDG links: the plan-level statements first (engine.sdg.plan_sdg_summary), the per-skill tags second.
+    # Without data/role_sdg.json the summary still gives the SDG 4.4 and 8.5 lines (no goal line).
     st.markdown("### SDG links")
-    for sentence in sdg_headline(plan, role["outlook"]):
+    role_sdg = load_role_sdg()
+    for sentence in plan_sdg_lines(plan, role, role_sdg):
         st.markdown(sentence)
-    sdg_sector_block(role)
     with st.expander("SDG tags per skill"):
         for step in plan["steps"]:
             if step["sdg"]:
@@ -1348,6 +1567,115 @@ def mae_table(models: dict) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def precision_by_sector() -> dict[str, str]:
+    """{sector name: hand-checked precision text} from the 'Precision' table of docs/sdg-links.md ({} if absent)."""
+    path = BASE_DIR / "docs" / "sdg-links.md"
+    if not path.exists():
+        return {}
+    match = re.search(r"(?ms)^## Precision[^\n]*\n(.*?)(?=^## |\Z)", path.read_text(encoding="utf-8"))
+    found = {}
+    for line in (match.group(1).splitlines() if match else []):
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if line.startswith("|") and len(cells) >= 2 and cells[0] != "Sector" and not set(line) <= set("|- "):
+            found[cells[0]] = cells[1]
+    return found
+
+
+def sdg_method_section(role_sdg: dict) -> None:
+    """Evidence > Method > SDG sector links: method, precision table and limits. Numbers come from the files."""
+    from engine.sdg import GOAL_WEIGHT, MAX_EXCESS, MIN_EMPLOYERS, MIN_N
+
+    window = role_sdg.get("window") or {}
+    recent, previous = window.get("recent") or {}, window.get("previous") or {}
+    baseline = role_sdg["baseline"].get("sectors") or {}
+    st.header("SDG sector links")
+    st.write(role_sdg.get("method") or "data/role_sdg.json has no method text.")
+    st.markdown(
+        "- **Sectors** are tied to SDG targets in data/sdg_sectors.json. Perk and legal lines are removed before "
+        "the word patterns run.\n"
+        f"- **Window.** {recent.get('from', NA)} to {recent.get('to', NA)} ({recent.get('n_posts', NA)} posts), "
+        f"against {previous.get('from', NA)} to {previous.get('to', NA)} ({previous.get('n_posts', NA)} posts).\n"
+        f"- **Reliable** means at least {MIN_N} role posts and {MIN_EMPLOYERS} different employers in the "
+        "sector. A cell that is not reliable is marked rough and never moves a role.\n"
+        f"- **Fit for my goal** = rank score x (1 + {GOAL_WEIGHT} x min(max(lift - 1, 0), {MAX_EXCESS:g})). "
+        "The weight and the cap are team judgement, not fitted. No score is lowered and no role is hidden.")
+    precision = precision_by_sector()
+    rows = []
+    for sector in role_sdg["sectors"]:
+        base = baseline.get(sector.get("id")) or {}
+        rows.append({"Sector": sector.get("name") or NA,
+                     "SDG": " / ".join(str(t) for t in sector.get("sdg") or []) or NA,
+                     "Precision (hand check, docs/sdg-links.md)": precision.get(sector.get("name")) or NA,
+                     "Tagged posts, last window": base.get("count_recent", NA),
+                     "Different employers": base.get("employers_recent", NA)})
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+    st.caption("Precision is the share of tagged posts that really say the employer works in the sector, judged "
+               "by one reader on a small random sample per sector (sample size and error margin: "
+               "docs/sdg-links.md). Recall was not measured.")
+    thin = [f"{s['name']} ({baseline[s['id']]['count_recent']} posts)" for s in role_sdg["sectors"]
+            if _is_number((baseline.get(s.get("id")) or {}).get("count_recent"))
+            and baseline[s["id"]]["count_recent"] < MIN_N]
+    small = [f"{r.get('name', rid)} ({r['n_recent']} posts)" for rid, r in role_sdg["roles"].items()
+             if isinstance(r, dict) and _is_number(r.get("n_recent")) and r["n_recent"] < MIN_N]
+    st.markdown("**Limits**")
+    st.markdown(
+        "- Hacker News 'Who is hiring?' leans to US start-ups and software firms. Read the shares as 'among HN "
+        "posts', not as the Malaysian job market.\n"
+        "- The sector comes from words in the company description, by pattern. A post that never says what the "
+        "company does gets no sector.\n"
+        "- The link is to the employer's sector, not to the effect of the work: association, not impact.\n"
+        "- Employers repost every month, so shares count posts, not companies.\n"
+        + (f"- Sectors with fewer than {MIN_N} tagged posts are too thin for a role-level claim: "
+           f"{', '.join(thin)}.\n" if thin else "")
+        + (f"- Roles with fewer than {MIN_N} single-role posts in the window: {', '.join(small)}.\n"
+           if small else "")
+        + "- The sector shares come from one build and do not move with the As-of slider.")
+    st.caption("Full method, hand-check notes and the fixes they led to: docs/sdg-links.md.")
+
+
+def malaysia_data_section() -> None:
+    """Evidence > Method > Malaysia data: MyCOL source and year, and the job-site snapshots (or why there are none)."""
+    st.header("Malaysia data")
+    mycol = read_optional_json("mycol.json", ("source", "occupations"))
+    mapping = read_optional_json("mycol_role_map.json", ("mappings",))
+    if mycol is not None and isinstance(mycol["source"], dict) and isinstance(mycol["occupations"], list):
+        source = mycol["source"]
+        mapped = [m for m in (mapping or {}).get("mappings") or [] if isinstance(m, dict)]
+        strengths = [m.get("strength") for m in mapped]
+        silent = (mapping or {}).get("roles_without_mycol_signal") or {}
+        st.markdown(f"**MyCOL {source.get('year') or NA}** ({source.get('name') or NA}), published by "
+                    f"{source.get('publisher') or NA}. Retrieved {source.get('retrieved') or NA}.")
+        if str(source.get("landing_page") or "").startswith(("http://", "https://")):
+            st.markdown(f"Source: [{source['landing_page']}]({source['landing_page']})")
+        st.markdown(
+            f"- {len(mycol['occupations'])} tech-relevant occupations are in data/mycol.json. "
+            f"{source.get('scope') or ''}\n"
+            f"- {source.get('meaning') or ''}\n"
+            + (f"- data/mycol_role_map.json maps them to our roles: {len(mapped)} links, "
+               f"{strengths.count('direct')} direct and {strengths.count('partial')} partial. "
+               f"{mapping.get('basis') or ''}\n" if mapping else ""))
+        if silent.get("roles"):
+            st.caption(f"Roles with no MyCOL occupation: {', '.join(str(r) for r in silent['roles'])}. "
+                       f"{silent.get('reason') or ''}")
+        st.caption("MyCOL is a shortage list, not a vacancy count. Do not compare it with job-ad shares. "
+                   "The mapping is team judgement, not an official crosswalk.")
+    snapshots = read_optional_csv("my_jobs_snapshots.csv")
+    if snapshots is None or snapshots.empty:
+        st.markdown(NO_MY_SNAPSHOT)
+        return
+    for site, frame in snapshots.groupby("site"):
+        day = frame["snapshot_date"].max()
+        latest = frame[frame["snapshot_date"] == day]
+        st.markdown(f"**{site}**: snapshot of {day}, {int(latest['n_listings'].max())} listings. "
+                    "Top skills by share of listings:")
+        top = latest.sort_values("share", ascending=False).head(10)
+        st.dataframe(pd.DataFrame({"Skill": top["skill"], "Listings": top["mentions"],
+                                   "Share of listings": top["share"].map(pct)}), hide_index=True, width="stretch")
+    st.caption("One dated snapshot per site and no history: it is a cross-check, not a trend. A listing is one "
+               "role and a Hacker News post is one company, so the shares are not comparable "
+               "(docs/malaysia-data.md).")
+
+
 with ev_method:
     if backtest is None:
         st.info("data/backtest.json was not found, so the method tab has nothing to show. "
@@ -1458,6 +1786,12 @@ with ev_method:
             width="stretch")
         st.caption("Posts that only say 'AI' in a company blurb are counted here and not as a skill. "
                    "This is a signal about hiring context, not about one skill.")
+
+    if not is_fixture:
+        method_sdg = load_role_sdg()
+        if method_sdg is not None:
+            sdg_method_section(method_sdg)
+        malaysia_data_section()
 
     sources_path = data_dir / "SOURCES.md"
     if not sources_path.exists():
