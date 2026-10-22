@@ -21,13 +21,13 @@ Where a field has nothing to declare, we write "None".
 
 ### 2.1 Architecture overview
 
-Verity is one Python program. A Streamlit app imports the engine modules. There is no separate API server.
+Verity is one Python program. A Streamlit app imports the engine modules.
 
-**Data flow.** The engine downloads every monthly Hacker News "Who is hiring?" thread through the Algolia HN Search API: 94 threads and 48,508 job posts, January 2019 to October 2026. A tagger finds 40 taxonomy skills in each post with regular expressions. The engine turns the tags into a monthly share per skill. It forecasts 12 months ahead, adds a conformal band and a Welch trend label, and joins an AI exposure score from the Anthropic Economic Index. It writes `skill_scores.json`. The role module learns role profiles from posts that name one role. The pathway module orders the learning plan and sets dates. A discovery module lists candidate new skills for human review.
+**Data flow.** The engine downloads every monthly Hacker News "Who is hiring?" thread through the Algolia HN Search API: 94 threads and 48,508 job posts, January 2019 to October 2026. A tagger finds 40 taxonomy skills in each post with regular expressions. The engine turns the tags into a monthly share per skill. It forecasts 12 months ahead, adds a conformal band and a Welch trend label, and joins an AI exposure score from the Anthropic Economic Index. The role module learns role profiles from posts that name one role. The pathway module orders the learning plan. A discovery module lists candidate new skills for human review.
 
-**Storage and refresh.** The repository holds only aggregates. Raw post text stays on the team's machines. A daily Replit Scheduled Deployment fetches the newest thread, rebuilds the scores and saves a snapshot to Replit App Storage. The app reads the newest snapshot. It falls back to the committed files.
+**Storage and refresh.** The repository holds only aggregates. Raw post text stays in gitignored folders on the team's machines and, during a refresh, in a temporary folder on the Replit server. A daily Replit Scheduled Deployment (code merged; Replit setup pending) will fetch the newest thread, rebuild the scores and save a snapshot to Replit App Storage. The app reads the newest snapshot, or else the committed files.
 
-(179/200 words)
+(186/200 words)
 
 ### 2.2 Libraries, versions and licences
 
@@ -42,7 +42,7 @@ Versions are exact. They come from `requirements.txt` and `requirements-dev.txt`
 | requests 2.34.2 | HTTP calls to the Algolia HN Search API | Apache-2.0 |
 | statsmodels 0.15.0 | Damped-trend model, tested in the backtest only (not in production forecasts) | BSD-3-Clause |
 | scipy 1.18.1 | Welch t-test for the Rising / Falling label | BSD (3-clause) |
-| pytest 9.1.1 | Automated tests (713 tests) | MIT |
+| pytest 9.1.1 | Automated tests (over 700 tests) | MIT |
 | replit-object-storage 1.0.2 | Client for Replit App Storage (daily snapshots) | ISC |
 | scikit-learn 1.9.1 | Gradient-boosting experiment only (`requirements-dev.txt`; not installed on Replit) | BSD-3-Clause |
 | joblib 1.6.0 | Dependency of scikit-learn (`requirements-dev.txt`) | BSD-3-Clause |
@@ -65,10 +65,10 @@ No other API is used. The app calls no LLM API.
 | Service | Use | Plan and region |
 |---|---|---|
 | Replit Autoscale deployment | Hosts the Streamlit app. Build: `pip install -r requirements.txt`. | Plan: [TEAM TO FILL: Replit plan on the deploying account]. Region: [TEAM TO FILL: region shown in Replit] |
-| Replit App Storage | Stores the newest data snapshot (keeps the last 14). | [TEAM TO FILL: confirm the bucket exists] |
-| Replit Scheduled Deployment | Runs `python -m engine.scheduled` daily at 09:00 Malaysia time (cron `0 1 * * *` in UTC). | [TEAM TO FILL: confirm the Scheduled Deployment is created and has run once] |
+| Replit App Storage | Will store the newest data snapshot (keeps the last 14). | Code merged; Replit setup pending. [TEAM TO FILL: confirm the bucket exists] |
+| Replit Scheduled Deployment | Will run `python -m engine.scheduled` daily at 09:00 Malaysia time (cron `0 1 * * *` in UTC). | Code merged; Replit setup pending. [TEAM TO FILL: confirm the Scheduled Deployment is created and has run once] |
 
-Status note: the code for App Storage and the scheduled job is merged. Our setup guide (`docs/replit-schedule.md`) lists the Replit steps as still to do on 22 Oct 2026. Confirm both before you submit.
+Status note: the code for App Storage and the scheduled job is merged, but the Replit setup is pending. Our setup guide (`docs/replit-schedule.md`) lists the steps. Do them, then remove "pending" from this table and from the proposal (sections 3.1 and 3.2).
 
 ## 4. AI, models and data
 
@@ -86,7 +86,7 @@ Status note: the code for App Storage and the scheduled job is merged. Our setup
 
 | Name | Source / URL | Type | License | Personal data (Y/N) |
 |---|---|---|---|---|
-| Hacker News "Ask HN: Who is hiring?" threads | Algolia HN Search API, https://hn.algolia.com/api (threads by user `whoishiring`) | Public job posts; we commit monthly skill counts and thread links only | No licence stated in `data/SOURCES.md` | Raw posts: Y (they can hold names and contact details). The raw text stays local and is not committed. Committed files: N. |
+| Hacker News "Ask HN: Who is hiring?" threads | Algolia HN Search API, https://hn.algolia.com/api (threads by user `whoishiring`) | Public job posts; we commit monthly skill counts and thread links only | No licence stated in `data/SOURCES.md` | Y for the raw text (it can hold names and contact details). The raw text is not stored in the repository or in App Storage. It sits in gitignored folders on the team's machines and, during a refresh, in a temporary folder on the Replit server. Committed files: N. |
 | Anthropic Economic Index, release 2026-06-26 | https://huggingface.co/datasets/Anthropic/EconomicIndex | Occupation-level AI usage (automation share) | CC BY (data), MIT (code) | N |
 | O*NET 31.0 Database, Task Statements | https://www.onetcenter.org/database.html | Task text by occupation (used in an earlier version only) | CC BY 4.0 | N |
 | GPTs are GPTs, occupation-level ratings | https://github.com/openai/GPTs-are-GPTs | Exposure ratings (cross-check only) | MIT | N |
@@ -107,15 +107,17 @@ Full URLs, versions, commit hashes and file checksums: `data/SOURCES.md`.
 
 Other AI tools: None declared. [TEAM TO FILL: add any other AI tool that either member used, including chat tools, before you sign.]
 
-**How the team reviewed AI output.** A stronger model reviews each major part before we call it done. The team reviews every pull request. We run 713 automated tests, including tests that block look-ahead leaks. Every number in the app and documents traces to a file in `data/`. Reviews found real faults, and we fixed them: bare "AI" inflated Machine Learning to 55% of posts, the first exposure score measured traffic, and the first uncertainty band covered only 65.9% of real values. Both members must be able to explain each part.
+#### How the team reviewed AI output (max 100 words)
 
-(87/100 words)
+A stronger model reviews each major part before we call it done. The team reviews every pull request. We run over 700 automated tests, including tests that block look-ahead leaks. Every statistic traces to a file in `data/` or a cited source. Reviews found real faults, and we fixed them: bare "AI" inflated Machine Learning to 55% of posts, the first exposure score measured traffic, and the first uncertainty band covered only 65.9% of real values. Both members must be able to explain each part.
+
+(85/100 words)
 
 ## 5. Sponsor resources
 
-**Replit** (Core plan: [TEAM TO FILL: confirm]). We use it for hosting, App Storage and Scheduled Deployments. Replit is essential for the hackathon, because the rules make it compulsory. It is replaceable. The app is plain Python and Streamlit, and `engine/store.py` has a local-folder store beside the Replit store. Any host with a scheduler and file storage could take its place. Proof of use: the live URL https://verity--eezhan0805.replit.app. [TEAM TO FILL: attach any extra proof, such as a project history link.]
+**Replit** (Core plan: [TEAM TO FILL: confirm]). We use it for hosting. We plan to use App Storage and Scheduled Deployments (code merged; Replit setup pending). Replit is essential for the hackathon (compulsory). It is replaceable. The app is plain Python and Streamlit, and `engine/store.py` has a local-folder store beside the Replit store. Any host with a scheduler and file storage could take its place. Proof of use: the live URL https://verity--eezhan0805.replit.app. [TEAM TO FILL: attach any extra proof, such as a project history link.]
 
-(81/100 words)
+(85/100 words)
 
 **RunPod:** Not used. We do no GPU work. The organisers confirmed on 22 Oct 2026 that RunPod proof is not needed without GPU use.
 
@@ -123,9 +125,9 @@ Other AI tools: None declared. [TEAM TO FILL: add any other AI tool that either 
 
 ### 6.1 Data handling and privacy
 
-Verity processes no personal data. We commit only aggregates: monthly counts per skill and role, thread links and derived scores. Raw Hacker News post text can hold names and contact details, so it stays on the team's machines in a folder that git ignores. The code strips HTML and links before it tags skills. A test checks that no committed data file holds an email address. Outputs never hold post text, author names or per-post links. The three example profiles are synthetic. We use no real CVs. The app has no sign-in. We design for the Personal Data Protection Act 2010 (PDPA) by collecting no personal data in the demo.
+The app collects no personal data. Raw Hacker News posts can hold names and contact details. They stay in gitignored folders on the team's machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored: monthly counts per skill and role, thread links and derived scores. The code strips HTML and links before it tags skills. A test checks that no committed data file holds an email address. Outputs never hold post text, author names or per-post links. The three example profiles are synthetic. We use no real CVs. The app has no sign-in. We design for the Personal Data Protection Act 2010 (PDPA) by collecting no personal data in the demo.
 
-(110/150 words)
+(120/150 words)
 
 ### 6.2 Known limitations and risks
 

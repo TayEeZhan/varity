@@ -16,14 +16,14 @@ Confirm the file-name spacing rule in the organisers' submission video. The merm
 ### Preliminary proposal
 - Section 1: leader email, leader phone, university.
 - Section 3.2: any real user interviews (or delete the sentence), and the number of volunteer users for Phase 2 testing.
-- Section 4: the full Hays (2025) and MOSTI references with links (copy them from the Domain 1 brief), and how you will log the Phase 2 KPI events.
+- Section 4: the full Hays Asia Salary Guide 2025 and MOSTI references with links (copy them from the Domain 1 brief).
 - Section 5: tick the eligibility box (both members) and the workshops box (only if both members finished the GenAI, Database and Cloud workshops). Match each line to the official template wording.
 - Section 6.2: licence of the chart colour values; Claude Haiku model ID once chosen.
 - Section 6.3: permission evidence (if you claim any) and any other declaration the template asks for.
 - Section 7: declaration wording, signature and date.
 
 ### Tech declaration
-- Section 3.2: Replit plan, region, and a check that the App Storage bucket and the Scheduled Deployment exist and ran once.
+- Section 3.2: Replit plan, region. Create the App Storage bucket and the Scheduled Deployment (code is merged; setup is pending), run it once, then remove "pending" from the proposal (3.1, 3.2, diagram) and from this declaration (2.1, 3.2, 5).
 - Section 4.1: Claude Haiku model ID once chosen.
 - Section 4.3: Replit Agent model (if shown), and any other AI tool either member used.
 - Section 5: confirm the Replit plan; attach any extra proof of use.
@@ -31,13 +31,21 @@ Confirm the file-name spacing rule in the organisers' submission video. The merm
 - Section 8: declaration wording, signature and date.
 
 ## Check before you sign
-1. **Hays 2025 (56%, 26%) and MOSTI (more than 600,000).** These figures are not in `BRIEF.md` or in the repository. They came from the instruction to draft these documents. Check each against the Domain 1 brief PDF.
+1. **Hays Asia Salary Guide 2025 (56%, 26%) and MOSTI (more than 600,000).** These figures are not in `BRIEF.md` or in the repository. The proposal quotes them from the Domain 1 brief, as a fact-check supplied them. Check the wording against the brief PDF.
 2. **SDG sub-target wording** (4.4, 8.5, 8.2) is the official UN text from memory. Check it at https://sdgs.un.org/goals.
 3. **Phase 2 targets** (50%, 80%, 60% of test users) are placeholders for the team to confirm or change. They are targets, not results.
 4. **The four readiness boxes and the compliance checklist** follow `BRIEF.md`, because the official template text is not in the sources. Match them to the template.
-5. **Prototype data.** `README.md` says the app "currently shows sample data". `docs/build-plan.md` says the real-data app is merged. Open the live URL while logged out and check which is true. Update the README line if it is stale.
-6. **Replit setup.** `docs/replit-schedule.md` lists the App Storage bucket and the Scheduled Deployment as steps still to do. The documents say both exist. Do not submit until they do.
+5. **Prototype data.** The root `README.md` and `docs/build-plan.md` no longer say the app shows sample data. Open the live URL while logged out and check that it shows real data (no "Prototype: showing sample data" banner). If it does, redeploy `main`.
+6. **Replit setup.** `docs/replit-schedule.md` lists the App Storage bucket and the Scheduled Deployment as steps still to do. The documents say "code merged; Replit setup pending". After you finish the setup, change those lines.
 7. **Git author name and email.** 20 commits show `greenrobot8888 <eezhan0805@gmail.com>`. The leader is named Tay Ee Zhan. The repository goes public at submission, so the personal email becomes public. `docs/build-plan.md` lists this as an open decision.
 8. **AIOE licence.** The AIOE data has no licence file. `data/SOURCES.md` lists the fallback (remove the two AIOE indices).
 9. **Word limits.** Counts are in the documents. Re-count after any edit. Word counters differ by a few words.
 10. **Leader's university.** Sheng Kuan's commit email is a University of Malaya student address. Ee Zhan's university is not in any file.
+
+## If Sheng Kuan's AI-trend-signal-layer branch is merged
+
+- [ ] Declare Jev (TypeSafe AI, via Replit AI Integrations / OpenRouter) and any Claude models (Haiku, Sonnet) in the tech declaration, sections 4.1 and 5.
+- [ ] Declare the new data sources (RSS, arXiv, HF papers, HN, Bluesky, X API, Threads) in section 4.2 with their terms and personal-data flags.
+- [ ] Change every "no LLM" line: the `app.py` header, tech declaration 3.1 and 4.1, pitch row 10, qa-prep #1 and #19, deck slide 7.
+- [ ] Resolve the conflict with the "we did not use X" statements (for example the X and Bluesky lines in the proposal 3.2, `docs/data-contract.md` and `docs/build-plan.md`).
+- [ ] Be ready to explain the six commits that share one timestamp (22 Oct 13:13).

@@ -2,12 +2,12 @@
 
 Team **Hokkien Mee Is Purple** (Ee Zhan, Sheng Kuan). XMUM SDC Hackathon 2026, Domain 1 (Aiversecity Future-Ready Workforce).
 Preliminary deadline: **Sun 25 Oct 2026, 07:59:59 MYT**. Our target: submit **Sat 24 Oct, 21:00**.
-Live prototype: https://verity--eezhan0805.replit.app (shows sample data until step A2 is done).
-Status on 22 Oct 2026: 221 tests pass.
+Live prototype: https://verity--eezhan0805.replit.app (real forecasts; see the status table below).
+Status on 22 Oct 2026: over 700 automated tests pass.
 
 Legend: ✅ built and tested · 🟡 built, not yet shown in the app · ⏳ planned · ❓ needs a team decision
 
-## Current status (22 Oct 2026, after PRs #1-#7 were merged into main; 713 tests pass)
+## Current status (22 Oct 2026, after PRs #1-#7 were merged into main; over 700 tests pass)
 Sections 2 and 3 below are the plan as written earlier. This table is the current truth.
 
 | Part | Status | Where |
@@ -30,7 +30,7 @@ Sections 2 and 3 below are the plan as written earlier. This table is the curren
 
 ## 1. What Verity is
 
-**One line:** Verity reads a tech developer's CV, shows which skills are rising or falling from dated public data, ranks future roles with a match score and skill gap, and turns the gap into a daily learning plan. Every number shows its source and date.
+**One line:** Verity takes a tech developer's skills (a CV upload is planned), shows which skills are rising or falling from dated public data, ranks future roles with a match score and skill gap, and turns the gap into a daily learning plan. Every number shows its source and date.
 
 **User:** a junior or mid-level tech developer in Malaysia (fresh grad, career switcher), for example "Aina, junior Python developer". CS and tech is our starting group because it has the best free, dated, public data. The design does not depend on the field.
 
@@ -78,7 +78,7 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
 - **Why this way:**
   - Patterns, not an LLM, so the result is the same every run, free, fast, and easy to explain.
   - Hard names have tested rules: "Go" vs "go to market", "R" vs "R&D", C vs C++ vs C#, "Swift" vs "swift delivery", React vs React Native.
-  - **Fix from review:** bare "AI" in company blurbs ("we are an AI startup") made Machine Learning look like 55% of jobs. Now Machine Learning needs real skill words (ML engineer, PyTorch, deep learning). Posts that only say "AI" go to a separate series (`ai_context_monthly.csv`: 6.5% in 2019 to 51.2% now). That series is a real AI-trend signal, but it measures company context, not a skill.
+  - **Fix from review:** bare "AI" in company blurbs ("we are an AI startup") made Machine Learning look like 55% of jobs. Now Machine Learning needs real skill words (ML engineer, PyTorch, deep learning). Posts that only say "AI" go to a separate series (`ai_context_monthly.csv`: 6.4% in Jan 2019 to 54.6% in Sep 2026, the last full month; as pooled shares, 6.5% over 2019 and 50.9% over the 12 months to Oct 2026). That series is a real AI-trend signal, but it measures company context, not a skill.
   - **Fix from review:** "JavaScript / TypeScript" is one combined row (flat, about 25%), so JS developers are not told their skill is dying. TypeScript keeps its own row to show the shift.
 - **Proof:** tests for every hard name.
 
@@ -160,13 +160,13 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
   - If the Replit disk is read-only, it works in a temporary folder.
   - If the network fails, it keeps the last good data and shows its date.
 
-### P11. Streamlit app on Replit ✅ (shows sample data)
-- **What it does now:** title, data date, a Moderate/Fast toggle, a table of skills, and sources per skill. It is deployed at the URL above.
+### P11. Streamlit app on Replit ✅
+- **What it does now:** five tabs (Roles, Pathway, Skills, Skill detail, Method), a sidebar with the Moderate/Fast scenario, the As-of month and Refresh, and sources per skill. It is deployed at the URL above.
 - **Why Streamlit:** one Python program reads the engine directly. No separate server is needed, and it is fast to build and deploy on Replit, which is compulsory.
 - **Why the versions are pinned:** Replit's package firewall blocks Pillow versions with known security issues (six advisories on 20 Oct 2026). We moved to Streamlit 1.66.1 with Pillow 13.0.0, and checked every package against the OSV advisory database.
 
 ### P12. Quality, sources and privacy ✅
-- 221 automated tests: tagger, demand, exposure, forecast, backtest (including tests that the future does not leak into the past), scores, refresh and the app.
+- Over 700 automated tests: tagger, demand, exposure, forecast, backtest (including tests that the future does not leak into the past), scores, refresh and the app.
 - `data/SOURCES.md` lists every dataset with URL, date and licence. O*NET (CC BY 4.0) and the Anthropic Economic Index (CC BY) are credited in the README.
 - A test checks that no committed data file holds an email address.
 - The repo is private while we build. It has an Apache 2.0 licence.
@@ -188,7 +188,7 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
 - **Refresh button:** calls P10 and shows "last updated" and what changed.
 - **As-of slider (Nov 2023 to Oct 2026):** reruns the engine with only the data known at that date. For example, "in Dec 2023 we forecast X; what happened was Y".
 - **Model name and "Estimate. You decide." line:** always visible.
-- **Why:** this is what the judges see in the live demo. Today the deployed app still shows sample data.
+- **Why:** this is what the judges see in the live demo.
 
 ### E7. Role match ⏳ (Ee Zhan)
 - **What it does:** ranks about 8 future tech roles for the user. Each role gets a match score, the skills the user has, the skills missing, and one line on why.

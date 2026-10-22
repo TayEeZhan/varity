@@ -24,9 +24,9 @@ How to use this sheet:
 | 1 robust, 5 contested categories; 26 of 40 skills contested | Exposure cross-check | `data/exposure_robustness.csv` |
 | -0.79 | Rank correlation of Microsoft's index with the Anthropic index | `data/exposure_agreement.json` |
 | k = 2 (assumed); data says 1.8 per 12 months, 95% interval -1.0 to 2.9 | Fast scenario strength | `data/k_estimate.json` |
-| 77 resources | Verified free resources, all HTTP 200 on 2026-10-22 | `data/resources.json` |
+| 77 resources | Link-checked (HTTP 200 on 22 Oct 2026): 76 free, 1 free trial | `data/resources.json` |
 | 3 of 15 | Radar hits at 2023-06 (base rate 0.30) | `docs/skill-discovery.md` |
-| 713 | Tests that passed on 22 Oct | `docs/build-plan.md` |
+| Over 700 | Automated tests that passed on 22 Oct | `docs/build-plan.md` |
 
 ## Innovation and Creativity (30%)
 
@@ -65,11 +65,11 @@ It is not Malaysian data, and the limits slide says so. Hacker News gives a free
 Relies on: `docs/build-plan.md` (status table, risks); `data/SOURCES.md`.
 
 **9. Who is the user, and did you test with real users?**
-The user is a junior or mid-level tech developer in Malaysia, such as a fresh graduate or a career switcher, and we built three synthetic personas (Aina, Ben, Chloe). We have not tested with real users, because the rules allow only public, open or synthetic data. User testing is the first next step.
+The user is a junior or mid-level tech developer in Malaysia, such as a fresh graduate or a career switcher, and we built three synthetic personas (Aina, Ben, Chloe). We have not tested with real users yet. User testing is the first next step.
 Relies on: `docs/build-plan.md` section 1; `app.py` (`PERSONAS`); `BRIEF.md` (data rules).
 
 **10. How do you avoid inventing courses or jobs?**
-Courses come only from `data/resources.json`: 77 resources, each fetched on 2026-10-22, and only HTTP 200 entries stay; a skill with no verified resource shows "No verified free resource yet" and gets no tasks. We list roles, not vacancies: 9 roles whose skill weights are counted from real Hacker News posts. A test checks that every chosen resource URL exists in the resource file.
+Courses come only from `data/resources.json`: 77 resources, link-checked (HTTP 200 on 22 Oct 2026): 76 free, 1 free trial. Only entries that returned HTTP 200 stay; a skill with no usable resource shows a placeholder note and gets no tasks. We list roles, not vacancies: 9 roles whose skill weights are counted from real Hacker News posts. A test checks that every chosen resource URL exists in the resource file.
 Relies on: `docs/pathway.md` (The "no invented courses" rule); `data/role_profiles.json`.
 
 **11. How would you scale beyond tech?**
@@ -91,11 +91,11 @@ It is a labelled assumption, not a finding. We tried to measure k: the best esti
 Relies on: `data/k_estimate.json` (`headline`, `verdict`); `docs/exposure-crosscheck.md` Part B; `data/skill_scores.json` (Python).
 
 **15. What happens if a source goes down?**
-Refresh keeps the last good data and shows its date with the error, for example "The last good data is shown: data as of ...". If the Replit disk is read-only, the refresh works in a temporary folder, and the committed files are a full fallback. For the final round we also upload a backup pitch video. The daily scheduled refresh is merged, but its Replit setup is still a to-do.
+Refresh keeps the last good data and shows its date with the error, for example "The last good data is shown: data as of ...". If the Replit disk is read-only, the refresh works in a temporary folder, and the committed files are a full fallback. For the final round we also upload a backup pitch video. The daily scheduled refresh is code merged; its Replit setup is pending.
 Relies on: `docs/build-plan.md` P10; `app.py` (`show_refresh_result`); `docs/replit-schedule.md`; `BRIEF.md` (final deliverables).
 
 **16. Privacy and PDPA?**
-The demo processes no personal data: the three profiles are synthetic and the app has no sign-in. We commit only counts and thread links, raw post text stays on our machines, and tests check that no committed data file holds an email address and that radar output holds no author names. When CV upload arrives, we need a PDPA assessment and a retention rule. [TEAM TO FILL: retention rule]
+The app collects no personal data: the three profiles are synthetic and it has no sign-in. We commit only counts and thread links; raw post text stays in gitignored folders on our machines and, during a refresh, in a temporary folder on the Replit server. Tests check that no committed data file holds an email address and that radar output holds no author names. When CV upload arrives, we need a PDPA assessment and a retention rule. [TEAM TO FILL: retention rule]
 Relies on: `docs/submission/tech-declaration.md` section 6.1; `docs/build-plan.md` P2 and P12; `docs/skill-discovery.md`.
 
 **17. What is your hardest technical risk, and what is the fallback?**
@@ -103,7 +103,7 @@ The hardest risk is forecast skill: 12-month demand is close to no change, and 1
 Relies on: `data/skill_scores.json` (`status`); `docs/build-plan.md` P8.
 
 **18. What is built, and what is only planned?**
-Built and merged: forecast, bands, trend labels, scenarios, as-of view, role match, pathway with exports, live refresh, exposure cross-check, k estimate and the radar, with 713 tests passing on 22 Oct. Not in the app: CV upload (the app takes a profile and a skill picker), the AI-news feed (Sheng Kuan's ranker sits on an unmerged branch), JobStreet data, and a full "what changed" diff (Refresh lists changed skills only). Claude Haiku for CV extraction is planned and not built.
+Built and merged: forecast, bands, trend labels, scenarios, as-of view, role match, pathway with exports, live refresh, exposure cross-check, k estimate and the radar, with over 700 tests passing on 22 Oct. Not in the app: CV upload (the app takes a profile and a skill picker), the AI-news feed (Sheng Kuan's ranker sits on an unmerged branch), JobStreet data, and a full "what changed" diff (Refresh lists changed skills only). Claude Haiku for CV extraction is planned and not built.
 Relies on: `docs/build-plan.md` (status table, 22 Oct).
 
 **19. What is the stack, which model, and where is Replit?**
@@ -111,7 +111,7 @@ Python and Streamlit 1.66.1 on a Replit Autoscale deployment, with pandas 3.0.6,
 Relies on: `requirements.txt`; `docs/submission/tech-declaration.md`; `BRIEF.md` (answered 22 Oct).
 
 **20. How do you know the code is correct?**
-713 automated tests passed on 22 Oct, including tests that the future cannot leak into a past forecast. The ML experiment has its own leak test: scrambling every month after the origin left the prediction unchanged at 3 test origins. The build plan requires a stronger-model review of each major part before it merges, and the merged work sits in pull requests #1 to #7.
+Over 700 automated tests passed on 22 Oct, including tests that the future cannot leak into a past forecast. The ML experiment has its own leak test: scrambling every month after the origin left the prediction unchanged at 3 test origins. The build plan requires a stronger-model review of each major part before it merges, and the merged work sits in pull requests #1 to #7.
 Relies on: `docs/build-plan.md`; `data/ml_backtest.json` (`leak_test`).
 
 ## Clarity of Proposal and integrity (20%)
@@ -130,7 +130,7 @@ We compare the monthly share of posts that mention a skill over the last 12 mont
 Relies on: `docs/build-plan.md` P7; `data/backtest.json` (`trend_label_backtest`).
 
 **24. Explain the match score and the rank.**
-Match score is the weight of the role's skills you have divided by the weight of all its skills, and a weight is the share of that role's single-role posts that mention the skill, kept when the role asks for it at least 1.2 times as often as the average post. Rank score is 0.7 times match plus 0.3 times outlook (Rising 1.0, No clear change 0.5, Falling 0.0), and the team chose 0.7 and 0.3 without fitting them to data. A role under 20% match is not ranked, so it cannot rank on outlook alone.
+Match score is the weight of the role's skills you have divided by the weight of all its skills, and a weight is the share of that role's single-role posts that mention the skill, kept when the role asks for it at least 1.1 times as often as the average post. Rank score is 0.7 times match plus 0.3 times outlook (Rising 1.0, No clear change 0.5, Falling 0.0), and the team chose 0.7 and 0.3 without fitting them to data. A role under 20% match is not ranked, so it cannot rank on outlook alone.
 Relies on: the "How the rank is computed" panel in `app.py`; `data/role_profiles.json`; `data/role_trends.json`.
 
 **25. Your band covered 93.8% against an 80% target. Is it useless?**
