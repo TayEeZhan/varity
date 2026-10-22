@@ -1,0 +1,85 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "01 Data to forecast",
+  "description": "How Verity turns Hacker News hiring posts into skill shares, a 12-month forecast, a band, a trend label and a status. Follow the steps in order.",
+  "steps": [
+    {
+      "file": "engine/tagging.py",
+      "line": 6,
+      "title": "Counting rules",
+      "description": "The tagger counts only what a post says, and it never infers one skill from another. PostgreSQL is not SQL, and React Native is not React. A judge can check any count against the raw post, so inferred skills would break that check. Judge asks: Does React Native count as React? Short answer: No, only as React Native."
+    },
+    {
+      "file": "engine/tagging.py",
+      "line": 72,
+      "title": "tag_text: one post, a set of skills",
+      "description": "tag_text returns the set of canonical skill names that one post mentions, after clean_text removes HTML and URLs. Each taxonomy entry has one regex, compiled once and cached. A set means a skill counts once per post, however often it appears. Judge asks: Does a post that names Python twice count twice? Short answer: No."
+    },
+    {
+      "file": "data/taxonomy.json",
+      "line": 65,
+      "title": "The tricky case: Go",
+      "description": "Go is a common English word, so a plain match would give false hits. This pattern counts a capital Go only when it is not followed by phrases such as to market, ahead or live. The entry is case sensitive (line 66), and the R entry on line 177 excludes R-rated in the same way. Judge asks: Could a sales post that says go to market add Go? Short answer: No."
+    },
+    {
+      "file": "engine/demand.py",
+      "line": 195,
+      "title": "The monthly share",
+      "description": "The monthly share is mentions divided by n_posts for each skill and month. n_posts counts the top-level posts with text in that thread, and each post counts once per skill (tag_text, line 184). A share is fair across months with different post volumes, and a raw count is not. Judge asks: Why not just count mentions? Short answer: Post volume changes each month, so a count would measure market size."
+    },
+    {
+      "file": "engine/forecast.py",
+      "line": 76,
+      "title": "The logit scale",
+      "description": "The forecast works on the logit scale, ln(p / (1 - p)), after smoothed_share on line 88 computes (mentions + 0.5) / (n_posts + 1). The smoothing keeps a month with zero mentions finite on this scale. The inverse logit maps the band back to a share at the end. Judge asks: What does the plus 0.5 do? Short answer: It keeps a zero count away from 0 and 1."
+    },
+    {
+      "file": "engine/forecast.py",
+      "line": 163,
+      "title": "naive3: the simple baseline",
+      "description": "naive3 forecasts that every future month equals the mean of the last three logit values, with no trend term. On test origins its 12-month error was 1.66 points, against 1.81 for naive, so it is the chosen model. The trend models did worse, at 2.13 and 2.27 points. Judge asks: Why not a trend model? Short answer: They had larger errors on the same test origins."
+    },
+    {
+      "file": "engine/forecast.py",
+      "line": 324,
+      "title": "band_offsets: the 80 percent band",
+      "description": "band_offsets takes the 80th percentile of the absolute scaled residuals from the last 24 origins whose 12-month target is already known. The band is inv_logit of the point forecast plus or minus q times sigma, where sigma is the volatility of recent logit changes. Judge asks: Is 80 percent the real coverage? Short answer: At 12 months on test origins the band covered 93.8 percent, so it is conservative."
+    },
+    {
+      "file": "engine/backtest.py",
+      "line": 185,
+      "title": "The rolling backtest",
+      "description": "For each test origin, the code picks the model as of that month, then builds the band for each horizon with band_offsets. It checks whether each real value falls inside its band. Each origin sees only the data it would have had at that time. Judge asks: Could the test peek at future months? Short answer: No, every residual used has a target on or before the origin."
+    },
+    {
+      "file": "engine/forecast.py",
+      "line": 369,
+      "title": "The trend label",
+      "description": "trend_label compares the last 12 months of logit share with the 12 months before. A skill needs at least 30 mentions over those 24 months, and p must be below 0.05 for Rising or Falling, otherwise the label is No clear change. The label describes the past, not a forecast. Judge asks: Is Rising a prediction? Short answer: No, but the backtest found the direction held in 67.2 percent of labelled cases."
+    },
+    {
+      "file": "engine/forecast.py",
+      "line": 387,
+      "title": "The Welch t-test",
+      "description": "This line is the test itself. Welch's version does not assume that the two 12-month windows have the same spread. That matters because a skill can be steady in one year and noisy in the next. Judge asks: Why not the normal t-test? Short answer: The two windows can have different spreads, and Welch handles that."
+    },
+    {
+      "file": "engine/scores.py",
+      "line": 220,
+      "title": "Status rules",
+      "description": "skill_status sets each skill's status. ok means at least 5 mentions a month over the last 12 months, and only ok skills get a forecast and a scenario. low_volume means at least 30 mentions over 24 months, and rare is anything below that. Judge asks: What does a rare skill show? Short answer: Its counts only, with no forecast and no trend label."
+    },
+    {
+      "file": "engine/scores.py",
+      "line": 100,
+      "title": "The Fast scenario",
+      "description": "fast_scenario computes moderate times (1 minus k times e_s), then clips the result to 0 to 1. e_s is how far the skill's AI exposure sits from the average. k is 2, and the app shows it as an assumption. Judge asks: Is k equal to 2 proven? Short answer: No, it is a labelled assumption."
+    },
+    {
+      "file": "engine/outcome.py",
+      "line": 16,
+      "title": "Grading a past forecast",
+      "description": "band_verdict checks an old forecast against what happened. It reports whether the target month's smoothed share was below, inside or above the Moderate band. Only the Moderate band is graded, because the Fast band is an assumption with no observed outcome. Judge asks: Why not grade the Fast band? Short answer: There is no observed outcome to test an assumption against."
+    }
+  ]
+}
