@@ -14,9 +14,9 @@ Three steps
        p_role = share of the role's single-role posts that mention the skill
        p_all  = share of all posts in the window that mention the skill (no masking)
        lift   = p_role / p_all
-   Keep skills with p_role >= 0.08, lift >= 1.2 and at least 10 single-role posts (MIN_SKILL_POSTS).
+   Keep skills with p_role >= 0.08, lift >= 1.1 and at least 10 single-role posts (MIN_SKILL_POSTS).
    Take the top 10 by p_role. weight = p_role divided by the sum of the kept p_role values.
-   Confidence tier from n_single_role_posts: >= 150 "solid", 50 to 149 "rough", < 50 "not_ranked".
+   Confidence tier: "solid" = at least 150 single-role posts AND at least 5 skills; "rough" = at least 50 posts; else "not_ranked".
    Profiles are computed at fixed as_of points, each from the 24 months up to that point, so the
    app's As-of slider never uses a profile that saw later posts (see profile_for).
 2. Role demand. Monthly share of posts that match each role (every post that matches, single or
@@ -25,6 +25,7 @@ Three steps
        match_score = weight of the role's skills the user has / total weight (0 to 1)
        future_score = 1.0 Rising, 0.5 No clear change or unknown, 0.0 Falling (moderate trend)
        rank_score = 0.7 * match_score + 0.3 * future_score         (both scenarios)
+   A role with match_score < 0.20 is not ranked: it goes to "low_match" so it cannot rank on outlook alone.
    The 0.7 / 0.3 split is team judgement, not fitted. The Fast scenario never changes the rank.
    It adds fast_shift = -k * sum(weight * e_s): how much the role's demand moves, as a fraction,
    if skills lose demand in line with their AI exposure (the skill rule fast = moderate * (1 - k * e_s)
@@ -66,11 +67,13 @@ EXPOSURE_CSV = DATA_DIR / "exposure.csv"
 # Profile learning (set before looking at results).
 PROFILE_MONTHS = 24
 MIN_P_ROLE = 0.08
-MIN_LIFT = 1.2
+MIN_LIFT = 1.1
 MIN_SKILL_POSTS = 10  # a skill must appear in at least this many single-role posts
 TOP_K = 10
-SOLID_FROM = 150  # n_single_role_posts >= this: "solid"
+SOLID_FROM = 150  # n_single_role_posts >= this AND SOLID_MIN_SKILLS skills: "solid"
+SOLID_MIN_SKILLS = 5  # a profile with fewer skills than this is at best "rough"
 ROUGH_FROM = 50  # n_single_role_posts >= this: "rough"; below: "not_ranked"
+LOW_MATCH_BELOW = 0.20  # match_score below this: the role is not ranked (team judgement)
 PROFILE_AS_OF_POINTS = ("2023-12", "2024-06", "2024-12", "2025-06", "2025-12", "2026-10")
 SCHEMA_VERSION = 2
 
@@ -157,9 +160,13 @@ def _read_item(raw_dir: Path, thread_id: str) -> dict:
     return json.loads((raw_dir / f"{thread_id}.json").read_text(encoding="utf-8"))
 
 
-def tier_for(n_single: int) -> str:
-    """Confidence tier from the number of single-role posts behind a profile."""
-    if n_single >= SOLID_FROM:
+def tier_for(n_single: int, n_skills: int) -> str:
+    """Confidence tier from the single-role posts behind a profile and its number of skills.
+
+    solid: at least 150 posts AND at least 5 skills. rough: at least 50 posts (a short profile
+    with many posts is rough too). not_ranked: fewer than 50 posts.
+    """
+    if n_single >= SOLID_FROM and n_skills >= SOLID_MIN_SKILLS:
         return "solid"
     if n_single >= ROUGH_FROM:
         return "rough"
@@ -284,12 +291,16 @@ def profile_from_scan(
             }
             for s in kept
         ]
-        tier = tier_for(n_single)
+        tier = tier_for(n_single, len(skill_docs))
         ranked = bool(role.get("ranked", True))
         if not ranked:
             note = role.get("note") or "Not ranked."
         elif tier == "not_ranked":
             note = f"Not ranked: only {n_single} single-role posts (fewer than {ROUGH_FROM}) to learn a profile."
+        elif tier == "rough" and n_single >= SOLID_FROM:
+            k_found = len(skill_docs)
+            note = (f"Rough profile: only {k_found} skill{'s' if k_found != 1 else ''} passed the filters "
+                    f"(at least {SOLID_MIN_SKILLS} are needed). Treat the weights as approximate.")
         elif tier == "rough":
             note = (f"Rough profile: learned from {n_single} single-role posts "
                     f"(fewer than {SOLID_FROM}). Treat the weights as approximate.")
@@ -328,8 +339,9 @@ def _profile_params() -> dict:
         "min_lift": MIN_LIFT,
         "min_skill_posts": MIN_SKILL_POSTS,
         "top_k": TOP_K,
-        "tiers": {"solid": f">= {SOLID_FROM} single-role posts", "rough": f"{ROUGH_FROM} to {SOLID_FROM - 1}",
-                  "not_ranked": f"< {ROUGH_FROM}"},
+        "tiers": {"solid": f">= {SOLID_FROM} single-role posts and >= {SOLID_MIN_SKILLS} skills",
+                  "rough": f">= {ROUGH_FROM} single-role posts (and not solid)",
+                  "not_ranked": f"< {ROUGH_FROM} single-role posts"},
         "weight": "p_role / sum of kept p_role",
         "posts_used": "single-role posts only, title span masked before tagging skills",
     }
@@ -579,6 +591,7 @@ def match_roles(
     scenario: str = "moderate",
     exposure: Mapping[str, float] | None = None,
     k: float | None = None,
+    low_match_below: float = LOW_MATCH_BELOW,
 ) -> dict:
     """Rank roles for one user. Nothing is written.
 
@@ -593,8 +606,13 @@ def match_roles(
         which is how exposure.csv defines e_s.
     k: Fast strength. Default: skill_scores["scenario_params"]["k"], else 2.
 
-    Returns {"scenario", "formula", "roles", "not_ranked", "unmatched"}. "roles" is sorted by
-    rank_score (ties: higher match_score, then name). Every role carries all parts of its score.
+    low_match_below: a role whose match_score is below this goes to "low_match" and is NOT ranked, so a
+        role cannot rank on its outlook alone. Default 0.20 (team judgement). Use 0 to rank every role.
+
+    Returns {"scenario", "formula", "roles", "low_match", "not_ranked", "unmatched"}. "roles" holds the
+    roles with match_score >= low_match_below, sorted by rank_score (ties: higher match_score, then
+    name), each with a "rank". "low_match" holds the others, sorted by match_score (highest first),
+    with rank None. Every role carries all parts of its score. "roles" may be empty.
     """
     if scenario not in SCENARIOS:
         raise ValueError(f"scenario must be one of {SCENARIOS}, got {scenario!r}")
@@ -682,6 +700,11 @@ def match_roles(
             }
         )
 
+    low_match = sorted((r for r in results if r["match_score"] < low_match_below),
+                       key=lambda r: (-r["match_score"], r["name"]))
+    for r in low_match:
+        r["rank"] = None
+    results = [r for r in results if r["match_score"] >= low_match_below]
     results.sort(key=lambda r: (-r["rank_score"], -r["match_score"], r["name"]))
     for i, r in enumerate(results, start=1):
         r["rank"] = i
@@ -695,9 +718,14 @@ def match_roles(
             "fast_shift": "-k * sum(weight * e_s) over the role's skills, as a fraction of role demand; "
                           "shown for the Fast scenario only and never used in rank_score",
             "k": k,
-            "basis": "team judgement: 0.7 / 0.3 and the trend scores are chosen by the team, not fitted to data",
+            "low_match_below": low_match_below,
+            "low_match": "a role with match_score below low_match_below is listed in low_match and not ranked, "
+                         "so it cannot rank on its outlook alone",
+            "basis": "team judgement: 0.7 / 0.3, the trend scores and the 0.20 low-match limit are chosen by "
+                     "the team, not fitted to data",
         },
         "roles": results,
+        "low_match": low_match,
         "not_ranked": not_ranked,
         "unmatched": unmatched,
     }
