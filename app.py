@@ -438,6 +438,24 @@ taxonomy = read_json(data_dir / "taxonomy.json") if not is_fixture else None
 category_of = {t.get("skill"): t.get("category") for t in taxonomy or [] if isinstance(t, dict)}
 backtest = read_json(data_dir / "backtest.json") if not is_fixture else None
 
+
+def read_static(name: str, reader):
+    """A file that the refresh does not rewrite: look in the active folder, then in data/."""
+    for folder in (data_dir, DEFAULT_DATA_DIR):
+        value = reader(folder / name)
+        if value is not None:
+            return value
+    return None
+
+
+# Exposure cross-check (engine/exposure_indices.py, engine/k_estimate.py). Missing files hide it.
+exposure_agreement = read_static("exposure_agreement.json", read_json) if not is_fixture else None
+k_estimate = read_static("k_estimate.json", read_json) if not is_fixture else None
+_robust = read_static("exposure_robustness.csv", read_csv) if not is_fixture else None
+contested_skills = (
+    set(_robust.loc[_robust["stance_robust"].astype(str).str.lower() == "false", "skill"])
+    if _robust is not None and {"skill", "stance_robust"} <= set(_robust.columns) else set())
+
 tab_skills, tab_detail, tab_method = st.tabs(["Skills", "Skill detail", "Method"])
 
 # --------------------------------------------------------------------------------------
@@ -580,7 +598,8 @@ with tab_detail:
                 f"to a band width of {width:.1f} pp.{verdict_text}")
         if skill.get("note"):
             st.markdown(f"**Note:** {skill['note']}")
-        st.markdown(f"**AI stance:** {skill.get('stance') or NA} | **SDG:** {sdg_text(skill)}")
+        contested = " (contested across indices)" if picked in contested_skills else ""
+        st.markdown(f"**AI stance:** {skill.get('stance') or NA}{contested} | **SDG:** {sdg_text(skill)}")
 
         # What happened (as-of views only)
         if past_view and target_month and demand is not None:
@@ -749,6 +768,31 @@ with tab_method:
         for note in scores.get("notes") or []:
             if note not in (backtest.get("caveats") or []):
                 st.markdown(f"- {note}")
+
+    if exposure_agreement:
+        from engine.exposure_indices import agreement_text, correlation_text, crosscheck_rows
+
+        st.header("Exposure cross-check")
+        st.write(
+            "Our AI stance comes from one source, the Anthropic Economic Index (AEI). We checked it against "
+            "three other published indices at the occupation level. Each cell is the category's z-score "
+            "(0 = average of the 40 skills) and the stance that source would give. The two GPTs variants "
+            "and the two AIOE variants are averaged into one source each.")
+        st.dataframe(pd.DataFrame(crosscheck_rows(exposure_agreement)), hide_index=True, width="stretch")
+        if correlation_text(exposure_agreement):
+            st.markdown(correlation_text(exposure_agreement))
+        st.markdown(agreement_text(exposure_agreement))
+        st.caption(
+            "A polar stance (substitutable or complement) is supported by a source that puts the category on "
+            "the same side of the average; a neutral stance, by a source that puts it near the average. "
+            "'Contested' means that half or fewer of the sources support it. Eight occupations and four "
+            "sources make this a sanity check, not a measurement. AEI and Microsoft measure chatbot "
+            "use; GPTs and AIOE rate what a model could do, so some disagreement is expected.")
+        if k_estimate:
+            from engine.k_estimate import k_caption, k_line
+
+            st.markdown(f"**k from data:** {k_line(k_estimate)}")
+            st.caption(k_caption(k_estimate))
 
     ai_context = read_csv(data_dir / "ai_context_monthly.csv") if not is_fixture else None
     if ai_context is not None and not ai_context.empty:
