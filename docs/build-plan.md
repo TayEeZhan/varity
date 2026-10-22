@@ -7,6 +7,25 @@ Status on 22 Oct 2026: 221 tests pass.
 
 Legend: ✅ built and tested · 🟡 built, not yet shown in the app · ⏳ planned · ❓ needs a team decision
 
+## Current status (22 Oct 2026, after PRs #1-#7 were merged into main; 713 tests pass)
+Sections 2 and 3 below are the plan as written earlier. This table is the current truth.
+
+| Part | Status | Where |
+|---|---|---|
+| P1-P11 skill engine and app on real data (forecast, band, trend label, statuses, scenarios, refresh, as-of view) | ✅ merged | PR #1 |
+| E7 role match (profiles learned from single-role HN posts, tiers, Roles tab, personas) | ✅ merged | PR #2 |
+| E8 pathway (stages, daily to-do, progress, .md/.ics export, SDG lines, 77 verified resources) | ✅ merged | PR #4 |
+| Step 4 daily scheduled refresh + Replit App Storage | ✅ merged; Replit UI setup still to do | PR #3, docs/replit-schedule.md |
+| Step 5 ML forecaster (gradient boosting) | ✅ merged as evidence; lost to naive3, not used in production | PR #5, docs/ml-forecaster.md |
+| Step 9 exposure cross-check (3 indices) and data-based k | ✅ merged; only "language" stance robust; k cannot be pinned down | PR #6, docs/exposure-crosscheck.md |
+| Step 7 new-skill discovery radar | ✅ merged; weak backtest, human review only | PR #7, docs/skill-discovery.md |
+| Step 8 JobStreet Malaysia | ❌ stopped: Cloudflare challenge; needs a data partnership | docs/jobstreet.md (branch feat/jobstreet-my) |
+| E9 "what changed and why" | 🟡 partial: Refresh lists changed skills; no full diff view | app.py |
+| S1 CV extraction (Claude Haiku) | ⏳ Sheng Kuan | not started in this repo |
+| S2 AI news ranker feed | ⏳ Sheng Kuan; plugs into `ext_momentum` | docs/ml-forecaster.md |
+| Submission documents, pitch script, Q&A | ⏳ drafts on branch docs/submission | docs/submission/ |
+| Open decisions | ❓ AIOE licence; cloud_devops stance; JobStreet route; Gmail in old commits | — |
+
 ---
 
 ## 1. What Verity is
@@ -115,7 +134,7 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
 - **Now (Oct 2026):**
   - Rising: Rust, PostgreSQL, Terraform, RAG.
   - Falling: Ruby, Microservices.
-  - LLM / GenAI is **flat** (561 vs 566 mentions). It rose fast in 2023 and has now levelled off.
+  - LLM / GenAI is **flat** (566 mentions in the last 12 months vs 561 in the 12 before). It rose fast in 2023 and has now levelled off.
 - **Why:** the brief asks which skills emerge or decline, and the best forecast is "about the same". So we show an observed, tested trend label, plus the forecast level and band. We never claim a precise future number.
 
 ### P8. Data-volume status 🟡
