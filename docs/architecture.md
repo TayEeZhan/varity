@@ -1,7 +1,7 @@
 # Verity: architecture
 
 Team Hokkien Mee Is Purple (Ee Zhan, Sheng Kuan). XMUM SDC Hackathon 2026, Domain 1.
-Written 23 Oct 2026 on branch `docs/architecture`. The status table in `docs/build-plan.md` is the source of truth for what is built.
+Written 23 Oct 2026 on branch `docs/architecture`; updated on the integration branch `feat/integrate`. The status table in `docs/build-plan.md` is the source of truth for what is built.
 
 ## How to read this document
 
@@ -11,6 +11,7 @@ Every component has one status tag.
 |---|---|
 | **[LIVE]** | Built and merged in `main`. |
 | **[BRANCH]** | Built on an unmerged branch or package. Not in `main`. |
+| **[BRANCH: integrate]** | Built on the integration branch `feat/integrate`, which merges `feat/journey-ui`, `feat/role-forecast`, `feat/sdg-sectors`, `feat/my-jobs` and `docs/architecture`. Wired together and tested there. Not in `main` until that branch is merged. |
 | **[PLANNED]** | Not built. A design only. |
 
 A planned part never appears as a working part. Every number comes from a file. The file is in brackets, for example (data/backtest.json). When a number has no file, it is left out.
@@ -48,7 +49,7 @@ flowchart LR
         BF["backfill_hn.py<br/>[LIVE]"]
         RF["refresh.py<br/>[LIVE]"]
         TS["trendsignal collectors<br/>[BRANCH]"]
-        MJ["my_jobs.py<br/>[BRANCH]"]
+        MJ["my_jobs.py + MyCOL<br/>[BRANCH: integrate]<br/>job sites gated"]
         CVX["CV extractor, Claude Haiku<br/>[PLANNED]"]
     end
 
@@ -60,7 +61,7 @@ flowchart LR
         RM["roles: profiles + match<br/>[LIVE]"]
         PW["pathway [LIVE]"]
         DS["discover radar [LIVE]"]
-        SDG["sdg sectors [BRANCH]"]
+        SDG["sdg sectors [BRANCH: integrate]"]
     end
 
     subgraph FILES["Data files in data/"]
@@ -116,7 +117,7 @@ Solid arrows work today. Dotted arrows are branch or planned links.
 The shape of the system:
 
 - **The engine is plain Python.** It reads files in `data/` and writes files in `data/`. It has no server and no database.
-- **The app reads files.** `app.py` (Streamlit, five tabs: Roles, Pathway, Skills, Skill detail, Method) calls the engine and reads its output files. The sidebar has a Moderate or Fast scenario switch, an As-of month slider and a Refresh button.
+- **The app reads files.** `app.py` (Streamlit) is a four-step journey, 1 You, 2 Skills radar, 3 Future roles, 4 Your plan, plus an Evidence section (Skills, Skill detail, Method) [BRANCH: integrate]. It calls the engine and reads its output files. The sidebar has a Moderate or Fast scenario switch, an As-of month slider and a Refresh button.
 - **Sheng Kuan's AI-advancement layer is a separate package.** It runs on its own and writes one ranked file. It is not connected to the app yet. The planned link is a file, not a function call (section 3.17).
 - **Collectors write counts, not text.** Raw post text stays in the gitignored folder `data/raw/`. Only aggregates and thread links are committed.
 
@@ -310,7 +311,9 @@ flowchart LR
 - **Outputs.** `data/role_sdg.json` and `data/skill_sdg.json`. Counts, shares and thread URLs only.
 - **Key functions.** `engine/sdg.py`: `rerank_for_goal(match_roles_output, role_sdg, goal_sector)` and `plan_sdg_summary(plan, role, role_sdg, goal_sector)`.
 - **Why built this way.** Today the SDG tag is one fixed tag per skill and role, written by the team. This branch measures it from what employers say. Perk and legal lines are removed first, so a benefits line does not tag a post as health.
-- **Status.** [BRANCH] `feat/sdg-sectors`. Work in progress, not yet committed.
+- **In the app.** Step 3 has an optional goal selector ("What do you want your work to help with?") and an "Order roles by" radio: Best fit (default) or Fit for my goal. Each role card shows one goal sentence from `rerank_for_goal`, called rough when the cell is not reliable. Step 4 takes its SDG lines from `plan_sdg_summary`, with the goal from step 3. Evidence > Method has a subsection "SDG sector links" (method, precision table from `docs/sdg-links.md`, limits). If `data/role_sdg.json` is missing or unusable, these parts are hidden and the app still runs.
+- **Limit.** The sector shares are one build (HN only, a US-heavy sample). They do not move with the As-of slider, and the app says so.
+- **Status.** [BRANCH: integrate] (`feat/sdg-sectors`, wired into the journey UI). Not in `main`.
 
 ### 3.15 Malaysian data [BRANCH]
 
@@ -318,14 +321,17 @@ flowchart LR
 - **Key code.** `engine/my_jobs.py` (collector). It checks `robots.txt` for every URL, sends at most 1 request per 3 seconds per host, uses one honest User-Agent, keeps no login or cookies, and stops that site for the run on any challenge page. It strips emails, phone numbers and contact lines. Only aggregates are committed.
 - **Why built this way.** The HN series is US-heavy. This data is local evidence. It is not a time series: each run is one dated snapshot with no history, so it cannot feed the forecast.
 - **JobStreet.** Stopped. The site answers a plain request with a Cloudflare challenge (HTTP 403), and passing it from a script would bypass bot protection. No scraper was built (`docs/jobstreet.md` on branch `feat/jobstreet-my`). The route needs a data partnership or a file the site sends us (section 9).
-- **Status.** [BRANCH] `feat/my-jobs`. Work in progress, not yet committed. The JobStreet finding is a document only.
+- **MyCOL.** `data/mycol.json` holds 10 tech-relevant occupations from the MyMahir MyCOL 2024/2025 list (TalentCorp). `data/mycol_role_map.json` maps them to our roles, with a strength (direct or partial) and a reason for each link. It is team judgement and says so. The role cards in step 3 show a badge for each mapped occupation, with its MASCO code, the strength and the source link. A role with no mapping shows nothing. MyCOL is a shortage list, not a vacancy count (docs/malaysia-data.md).
+- **Job-site snapshots (gated).** The collectors for Hiredly and Jobstore are built and tested, but no snapshot has been collected: `data/my_jobs_snapshots.csv` and `data/my_roles_snapshots.csv` hold only their header row. A run needs `--permission-confirmed`, which means written permission from the site is on file. Evidence > Method > Malaysia data says this when the file has no rows.
+- **Status.** MyCOL [BRANCH: integrate] (`feat/my-jobs`, shown in the journey UI). Job-site collectors [BRANCH], gated: built, not run. The JobStreet finding is a document only.
 
 ### 3.16 Journey UI [BRANCH]
 
 - **What it does.** Rebuilds the app as a 4-step journey: You, Future Skills Radar, Future roles, Your plan. An Evidence section holds the method and backtest detail.
 - **Key code.** `engine/radar.py` holds the radar's chart data and sentences as pure functions. A skill gets a colour only if its Welch label is Rising or Falling. Every other skill is grey, so the chart never claims a change the test did not find. `app.py` changes on the branch.
 - **Why built this way.** The five-tab layout shows the method first. The journey follows the user's question: who am I, what is moving, which roles fit, what do I do next.
-- **Status.** [BRANCH] `feat/journey-ui`. Work in progress, not yet committed.
+- **What is wired.** Step 3 also carries the role forecast line, the SDG goal controls and the MyCOL badges (sections 3.14 and 3.15); the step 3 summary line adds the target role's 12-month estimate and its band. Step 4 uses `plan_sdg_summary`. Evidence > Method has the subsections SDG sector links and Malaysia data.
+- **Status.** [BRANCH: integrate] (`feat/journey-ui` with the other feature branches). Not in `main`.
 
 ### 3.17 AI-advancement ranker (Sheng Kuan) [BRANCH] and its integration [PLANNED]
 
@@ -401,19 +407,22 @@ flowchart LR
 
 Verity does not predict the number of jobs. It predicts a role's **share of job posts** in a public sample.
 
-- **Role demand** is the monthly share of HN hiring posts whose text names the role. A title pattern in `data/roles.json` decides the match. For example, "backend engineer" or "site reliability engineer".
-- **The outlook** is the same machinery as for skills: a persistence level, a conformal band and a Welch trend label. Persistence is the method that won the skill backtest, so we expect the same for roles. We will test that, not assume it (section 4.4).
+- **Role demand** is the monthly share of HN hiring posts whose text names the role. A title pattern in `data/roles.json` decides the match.
+- **The outlook** is the same machinery as for skills: a persistence level (naive3, the mean of the last 3 months on the logit scale), a rolling conformal band and a Welch trend label. Persistence won the skill backtest, so we tested it for roles instead of assuming it (section 4.4).
 - **The role's skills** are learned from single-role posts, at as-of points, so a profile never saw posts from after its date.
 
-Today the live part is the trend label and the learned profile. The role level and band are [PLANNED] (section 4.3).
+The trend label and the learned profile are [LIVE]. The role level, band and backtest are built on a branch **[BRANCH: integrate]**. Emerging-role discovery is [PLANNED] (section 4.3).
 
-### 4.2 Today's pipeline [LIVE]
+### 4.2 Pipeline [LIVE] plus role forecast [BRANCH: integrate]
 
 ```mermaid
 flowchart TB
     RAW["Raw HN posts, 2019-01 to now<br/>local only, data/raw/hn/"] --> A["1 Title match<br/>roles.json title_pattern, 9 roles"]
     A --> B["2 Monthly role share<br/>role_demand_monthly.csv"]
     B --> C["3 Role trend label<br/>Welch test, role_trends.json"]
+    B --> R["3b Role forecast [BRANCH: integrate]<br/>engine/role_forecast.py<br/>naive3 level + rolling conformal band<br/>role_forecast.json"]
+    B --> RB["3c Role backtest [BRANCH: integrate]<br/>engine/role_backtest.py<br/>role_backtest.json"]
+    RB -. "source date" .-> R
     A --> D["4 Mask title, keep single-role posts<br/>learn skill weights per as-of point"]
     D --> E["role_profiles.json<br/>6 as-of points, tiers"]
     C --> F["5 match_roles<br/>rank = 0.7 match + 0.3 outlook"]
@@ -421,6 +430,7 @@ flowchart TB
     SK["skill_scores.json<br/>status, label, stance"] --> F
     U["User skills"] --> F
     F --> G["Ranked roles<br/>have, gap, reason"]
+    R --> G
     F --> H["fast_shift<br/>labelled estimate, display only"]
     G --> PW["Pathway"]
 ```
@@ -429,16 +439,21 @@ Steps:
 
 1. **Title match.** `compile_patterns` and `matching_roles` in `engine/roles.py` test each cleaned post against the nine `title_pattern` regexes. One post can match several roles.
 2. **Monthly share.** `role_demand` writes `data/role_demand_monthly.csv` (month, role_id, mentions, n_posts, share). It uses the same counting rules as the skill series. A post counts once per role.
-3. **Role trend label.** `build_role_trends` calls the same `engine.forecast.trend_label` as skills. It writes `data/role_trends.json`. With `as_of`, it cuts the rows at that month, so later data is never used. Today, for example, AI/LLM Application Engineer is Rising (235 mentions in the last 12 months against 194 in the 12 before) (data/role_trends.json).
+3. **Role trend label.** `build_role_trends` calls the same `engine.forecast.trend_label` as skills. It writes `data/role_trends.json`. With `as_of`, it cuts the rows at that month, so later data is never used. Today, for example, AI/LLM Application Engineer is Rising (235 mentions in the last 12 months against 194 in the 12 before) (data/role_trends.json). It is still the only input to `future_score`, so the rank is unchanged.
+
+3b. **Role forecast [BRANCH: integrate].** `engine/role_forecast.py` renames `role_id` to `skill` in `role_demand_monthly.csv` and calls the same functions that score skills: `logit_series`, `forecast_skill` (naive and naive3), `build_residual_tables`, `choose_model`, `band_offsets` (W = 24, one pooled quantile `q`), `volatility`, `has_enough_data` and `trend_label`. No maths is copied; `tests/test_role_forecast.py` checks that the function objects are the same. It forecasts the 8 ranked roles 12 months ahead and writes `data/role_forecast.json`: `share_now` (3 pooled months, m/n), `level_now`, the 12-month value with its 80% target band, `band_width_pp`, the trend label with shares and p, sources and `partial_month`. A role with a mean below 5 mentions a month over the last 12 months is `low_volume`: counts, no band. `role_forecast_for(as_of)` cuts the rows at `as_of`, so the As-of slider never sees a later month. The role card in the app shows one line from these files. Today the chosen model is naive3, q at h=12 is 1.55 on the logit scale, and all 8 roles are `ok` (data/role_forecast.json).
+
+3c. **Role backtest [BRANCH: integrate].** `engine/role_backtest.py` runs `engine.backtest.run_backtest` on the same table and writes `data/role_backtest.json` (section 4.4).
+
 4. **Learned profiles.** `learn_profile_set` builds one profile per as-of point from the 24 months before that point. It masks the title and uses single-role posts only. Section 3.9 gives the filters.
 5. **Rank.** `match_roles` computes `rank_score = 0.7 * match_score + 0.3 * future_score`. The outlook is only 30% of the rank, and it comes from the label, not from a forecast.
 6. **Fast shift.** `fast_shift = -k * sum(weight * e_s)` applies the skill scenario rule to the role's skill weights. It is a labelled estimate for display. The Fast scenario never changes the rank.
 7. **No leakage.** `profile_for(as_of)` picks a profile that saw no later post. `build_role_trends(..., as_of=...)` cuts the rows. The app passes the As-of month to both.
 
-What is not built today:
+What is not built:
 
-- The role-level level and band. Roles have a label only.
-- A backtest for roles. The 67.2% label hit rate is measured for skills (data/backtest.json). No file measures it for roles.
+- A Fast scenario for the role level or band. The `fast_shift` of `match_roles` stays a labelled estimate.
+- Emerging-role discovery (section 4.3).
 - A role refresh in the daily job. Role files change only when someone rebuilds them.
 
 ### 4.3 Emerging and declining roles [PLANNED]
@@ -473,14 +488,34 @@ flowchart TB
 
 **(c) The AI-advancement lead signal.** Take `data/ai_news_weekly.csv` (section 3.17). For each role, aggregate the weekly momentum of its profile skills: `sum(weight * momentum(skill))`. Test it as a lead indicator: does the signal at month `t` explain the change in role share at `t + 12` beyond persistence? Two blockers. The ranker has only live data, so a historical backfill of the news sources is needed before any test. And the test must pass the promotion rule (section 4.4). Until then the signal is shown as evidence ("this week in AI for your skills") and carries weight 0.
 
-**(d) The Malaysian signal.** Job-site snapshots and MyCOL tags (section 3.15) show whether a role or skill has local demand today. They have no history, so they cannot enter the forecast. The app shows them next to the role as local evidence, labelled with the snapshot date.
+**(d) The Malaysian signal.** Job-site snapshots and MyCOL tags (section 3.15) show whether a role or skill has local demand today. They have no history, so they cannot enter the forecast. The app shows them next to the role as local evidence, labelled with the snapshot date. Today the MyCOL badges on the role cards are built [BRANCH: integrate]; the job-site snapshots are not collected (section 3.15).
 
 **(e) Declining roles.** Flag a role when its trend label is Falling and a large share of its profile weight sits on skills that are Falling. The share limit is fixed before looking at results. Both inputs already exist in `data/role_trends.json` and `data/skill_scores.json`, so this is the cheapest part to build. The app says "declining in this sample", not "dying".
 
 ### 4.4 How each part is evaluated
 
-- **Rolling-origin backtest for roles.** Reuse `engine/backtest.py` on `data/role_demand_monthly.csv`. The file has the same columns as the skill series, except `role_id` takes the place of `skill`, so a thin adapter is enough. At every origin from 2021-12, use only earlier data, forecast 12 months ahead, and compare with what happened. Report error in percentage points, band coverage and label hit rate. Roles with too few posts (Analytics Engineer has 33 matching posts in its 24-month window, data/role_profiles.json) get the same volume rules as skills: a label or only counts.
-- **No-look-ahead rule.** Every step takes an `as_of` and ignores later months. Profiles come from as-of points. A leak test scrambles every month after the origin and checks that the output does not change, as in `tests/test_ml_forecast.py`.
+**Role backtest [BRANCH: integrate].** Same design as skills, run on `data/role_demand_monthly.csv` for the 8 ranked roles. Rolling origins 2021-12 to 2025-10; early 2021-12..2023-10 (23 origins), test 2023-11..2025-10 (24 origins). At every origin only earlier data is used. Nothing was tuned on the test origins.
+
+| Measure (test origins) | Roles (data/role_backtest.json) | Skills (data/backtest.json) |
+|---|---|---|
+| Role-origin or skill-origin pairs | 188 (8 roles) | 616 (40 skills) |
+| MAE at h=12, naive | 1.632 pp | 1.806 pp |
+| MAE at h=12, naive3 | 1.604 pp | 1.661 pp |
+| naive3 gain over naive at h=12 (95% interval, roles resampled) | 0.028 pp (-0.093 to +0.149) | not compared here |
+| Band coverage at h=12 (nominal 80%) | 93.6% | 93.8% |
+| Band coverage, mean over h=1..12 | 88.0% | 91.1% |
+| Mean band width at h=12 | 8.48 pp | 8.38 pp |
+| Trend-label hit rate (Rising or Falling) | 69.3% on n = 228 (77 Rising, 151 Falling) | 67.2% on n = 720 |
+
+How to read it:
+
+- **Point forecast.** naive3 is better than naive on test (1.604 against 1.632 pp), but the gain is 0.03 pp and its 95% interval includes zero. With 8 roles we cannot tell the two apart. The production rule picks naive3 on the data to 2026-10 (1.578 against 1.631 pp). Drift and damped are worse than naive at h=12 on test (1.783 and 1.864 pp) and are not shipped.
+- **Band.** At h=12 the band covers 93.6% against a target of 80%, so it is too wide at that horizon (conservative). At h=1 to 3 it covers 79% to 82%, close to target. The mean over h is 88.0%. The rolling quantile is pooled over 8 roles, so one noisy role moves it. The share-group split is thin (41, 111 and 36 role-origins). Widths in pp are not directly comparable between roles and skills, because roles have larger shares.
+- **Label.** 69.3% of Rising or Falling labels matched the next 12 months, against 50% for a coin flip. That is similar to the skill rate (67.2%). The role-origins overlap and the roles move together, so n = 228 is far fewer than 228 independent tests. This is a rough guide, not a validation. Falling labels (70.2% on 151) did slightly better than Rising labels (67.5% on 77).
+- **Sample.** Only 8 roles, so every rate has a wide interval that this file does not show. The skill backtest has 40 skills and 616 test pairs.
+
+**No-look-ahead rule.** Every step takes an `as_of` and ignores later months. A test scrambles every month after `as_of` and checks that `role_forecast_for` returns the same output (tests/test_role_forecast.py).
+
 - **Promotion rule.** A new signal enters the outlook only if it beats persistence on held-out test origins, and the lower end of the 95% interval of the gain (skill-cluster bootstrap) is above zero. This is the rule the ML experiment used and failed (docs/ml-forecaster.md). If a signal fails, it is shown as evidence only, or dropped.
 - **Human-review gate for new roles.** A candidate title or cluster shows its evidence: counts, first month seen, co-occurring skills and thread links. A person reads it, names the role, writes the `title_pattern` and tests, and adds it to `data/roles.json`. Until then the app tags it "candidate, not yet a role". Rejected terms go to a stoplist.
 - **Candidate quality.** Measure the candidate finders the way `discover` is measured: run at `as_of = 2023-06`, take the top 15, and count how many grew in the next 12 months. Report precision next to the base rate.
@@ -489,11 +524,11 @@ flowchart TB
 
 - **Precise job counts.** HN posts are a sample of tech hiring. A share is not a count of jobs.
 - **Causation.** AI news that comes before a rise in a role is an association. Even the k estimate is an association across skills (data/k_estimate.json).
-- **Malaysian coverage from HN.** HN is US- and startup-heavy. Malaysian evidence comes from the separate snapshots.
+- **Malaysian coverage from HN.** HN is US- and startup-heavy. Malaysian evidence comes from MyCOL (a shortage list) and, once written permission is on file, from the separate job-site snapshots; none is collected yet.
 - **That a role will exist or die.** We show a share, a band and a label.
 - **That a candidate is a real role.** A candidate is a pattern in posts. A person decides.
 - **That the 0.7 and 0.3 split is fitted.** It is team judgement (docs/data-contract.md).
-- **That the role label is validated.** Only the skill label is (data/backtest.json). The role test is [PLANNED].
+- **That the role label or band is proven.** The role-label hit rate is 69.3% on 228 overlapping role-origins from 8 roles, and the 80% target band covered 93.6% of held-out 12-month outcomes (data/role_backtest.json). The sample is small. We report it as a rough guide.
 
 ---
 
@@ -522,8 +557,10 @@ Schemas are in `docs/data-contract.md`. Raw files are local only. They are liste
 | `data/SOURCES.md` | Team | Judges, README | Committed |
 | `data/raw/hn/<id>.json` | `backfill_hn.py` | demand, roles, discover | Local only (gitignored) |
 | `data/raw/ext/*` (AEI, GPTs, AIOE, Microsoft, O*NET crosswalks) | Downloaded by hand | exposure, exposure_indices | Local only (gitignored) |
-| `data/role_sdg.json`, `data/skill_sdg.json`, `data/sdg_sectors.json` | `sdg.py` | Journey UI | [BRANCH] |
-| Malaysian job-site snapshot file (name set in the branch), raw pages in `data/raw/my_jobs/` | `my_jobs.py` | App evidence line | [BRANCH]. Aggregates only. |
+| `data/role_forecast.json`, `data/role_backtest.json` | `role_forecast.py`, `role_backtest.py` | Journey UI (role cards, step 3 summary line) | [BRANCH: integrate]. Rebuilt by hand. |
+| `data/role_sdg.json`, `data/skill_sdg.json`, `data/sdg_sectors.json` | `sdg.py` | Journey UI (step 3 goal, step 4 SDG lines, Method) | [BRANCH: integrate]. Optional: the app runs without them. |
+| `data/mycol.json`, `data/mycol_role_map.json` | By hand from the TalentCorp PDF (team judgement for the map) | Journey UI (role badges, Method) | [BRANCH: integrate]. Optional. |
+| `data/my_jobs_snapshots.csv`, `data/my_roles_snapshots.csv`, raw pages in `data/raw/my_jobs/` | `my_jobs.py` | Method (Malaysia data) | [BRANCH]. Header row only: no snapshot is collected until each site's written permission is on file. Aggregates only. |
 | `data/ranked/latest.json` | trendsignal ranker | `ai_news.py` | [BRANCH]. Inside Sheng Kuan's package. |
 | `data/ai_news_weekly.csv`, `data/ai_news_stories.json` | `ai_news.py` | App block "This week in AI" | [PLANNED] |
 | `data/profile.json` | CV extractor | `match_roles` | [PLANNED] |
@@ -579,4 +616,5 @@ Every major part gets a review by a stronger model before it is called done (doc
 5. **Gmail history.** Commits in `main` show a personal Gmail address as author. The repo goes public at submission. Options: switch future commits to the GitHub noreply address, or also rewrite history (docs/build-plan.md, docs/submission/README.md).
 6. **LLM naming.** Name the exact Haiku model ID once chosen. Decide whether the Jev route is used in the demo or shown as a second opinion only.
 7. **Scheduled job setup.** Create the App Storage bucket and the Scheduled deployment on Replit.
-8. **Role outlook scope.** Decide whether the role level, band and backtest (section 4.3 and 4.4) are built before submission, or presented as the design.
+8. **Role outlook scope.** The role level, band and backtest are built [BRANCH: integrate] (sections 4.2 and 4.4). Decide whether `feat/integrate` is merged into `main` before submission. Emerging-role discovery (section 4.3) stays a design.
+9. **Job-site snapshots.** Hiredly and Jobstore collectors are ready. Run them only when written permission from each site is on file (docs/malaysia-data.md).

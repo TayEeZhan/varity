@@ -1225,7 +1225,10 @@ def test_step_1_has_a_cv_slot_that_shows_nothing_yet():
 
 
 def test_the_cv_slot_and_the_sdg_sector_hook_exist_and_show_nothing(tmp_path):
-    """Both hooks are plain functions in app.py. Run them alone, so the app does not have to start."""
+    """Both hooks are plain functions in app.py. Run them alone, so the app does not have to start.
+
+    sdg_sector_block draws only when the role carries a goal view ("sdg_goal"); a role without one shows nothing.
+    """
     tree = ast.parse((ROOT / "app.py").read_text(encoding="utf-8"))
     wanted = {"cv_intake_slot", "sdg_sector_block"}
     funcs = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in wanted]
@@ -1413,3 +1416,472 @@ def test_the_header_is_short_and_the_long_notes_sit_in_about_the_data():
             "works if the forecast is wrong.") in top_level
     assert "Estimates, not facts. You decide." in top_level
     assert not about.proto.expanded                                            # collapsed by default
+
+
+# --- Integration: SDG goal, MyCOL badges, Method subsections --------------------------
+# The goal selector and the order radio sit in step 3, the plan SDG lines in step 4, the badges on the role
+# cards. Expected values are worked out here from the data files and the engine functions, not from app.py.
+
+from engine import sdg as sdg_mod
+
+NO_GOAL = "No preference"
+GOAL_KEY, ORDER_KEY = "sdg_goal", "roles_order_by"
+ORDER_BEST, ORDER_GOAL = "Best fit", "Fit for my goal"
+MYCOL_MARK = "Critical Occupations List"
+MYCOL_CAPTION = ("MyCOL is TalentCorp's list of occupations in short supply in Malaysia; the mapping to our "
+                 "roles is team judgement.")
+NO_SNAPSHOT = "No Malaysian job-site snapshot yet: collectors need written permission from each site."
+PRECISION_COLUMN = "Precision (hand check, docs/sdg-links.md)"
+needs_integration_files = pytest.mark.skipif(
+    not all((DATA / n).exists() for n in (
+        "role_sdg.json", "sdg_sectors.json", "mycol.json", "mycol_role_map.json", "role_forecast.json",
+        "role_backtest.json", "resources.json", "taxonomy.json", "role_profiles.json", "role_demand_monthly.csv",
+        "roles.json", "exposure.csv", "skill_scores.json")),
+    reason="integration data files not generated yet")
+
+
+def _data_json(name: str) -> dict:
+    return json.loads((DATA / name).read_text(encoding="utf-8"))
+
+
+def _goal_label(sector_id: str) -> str:
+    sector = next(s for s in _data_json("sdg_sectors.json")["sectors"] if s["id"] == sector_id)
+    return f"{sector['name']} (SDG {' / '.join(sector['sdg'])})"
+
+
+def _expected_match(skills: list[str] | None = None, scenario: str = "moderate") -> dict:
+    """match_roles output straight from the engines for a profile (default: Aina)."""
+    scores = _scores()
+    profile = roles_mod.profile_for(scores["as_of"], _data_json("role_profiles.json"))
+    trends = roles_mod.build_role_trends(roles_mod.read_demand_rows(DATA / "role_demand_monthly.csv"),
+                                         roles_mod.load_roles(DATA / "roles.json"), as_of=scores["as_of"])
+    return roles_mod.match_roles(set(skills or PERSONA_SKILLS), profile, scores, trends, scenario,
+                                 exposure=roles_mod.load_exposure(DATA / "exposure.csv"))
+
+
+def _pick_goal(at: AppTest, sector_id: str) -> AppTest:
+    return at.selectbox(key=GOAL_KEY).set_value(_goal_label(sector_id)).run()
+
+
+def _card_names(at: AppTest) -> list[str]:
+    return [_role_name(c) for c in _cards(at)]
+
+
+def _walk(node):
+    for child in node.children.values():
+        yield child
+        if hasattr(child, "children"):
+            yield from _walk(child)
+
+
+def _card_texts(at: AppTest) -> dict[str, list[str]]:
+    """Role name -> every markdown and caption text inside that role's bordered card, in order."""
+    found = {}
+
+    def visit(node):
+        for child in node.children.values():
+            if not hasattr(child, "children"):
+                continue
+            head = next((c.value for c in child.children.values()
+                         if getattr(c, "type", "") == "markdown" and c.value.startswith("### #")), None)
+            if head:
+                found[_role_name(head.removeprefix("### "))] = [
+                    c.value for c in _walk(child) if getattr(c, "type", "") in ("markdown", "caption")]
+            else:
+                visit(child)
+
+    visit(at.main)
+    return found
+
+
+def _app_copy(tmp_path: Path, drop: tuple[str, ...] = (), write: dict[str, str] | None = None) -> AppTest:
+    """The app run from a copy of app.py, engine/ and data/ (no raw folder, no docs/) in `tmp_path`.
+
+    `drop` names data files to leave out. `write` maps a data file name to the text it gets (after the drop).
+    """
+    shutil.copy(APP_PATH, tmp_path / "app.py")
+    shutil.copytree(ROOT / "engine", tmp_path / "engine", ignore=shutil.ignore_patterns("__pycache__"))
+    shutil.copytree(DATA, tmp_path / "data", ignore=shutil.ignore_patterns("raw", *drop))
+    for name, text in (write or {}).items():
+        (tmp_path / "data" / name).write_text(text, encoding="utf-8")
+    return AppTest.from_file(str(tmp_path / "app.py"), default_timeout=90).run()
+
+
+# -- the goal selector ------------------------------------------------------------------
+
+@needs_real_data
+@needs_integration_files
+def test_goal_selector_offers_no_preference_and_every_sector_with_its_sdg_targets():
+    at = _run_app()
+    assert not at.exception
+    box = at.selectbox(key=GOAL_KEY)
+    sectors = _data_json("sdg_sectors.json")["sectors"]
+    assert box.label == "What do you want your work to help with? (optional)"
+    assert box.options == [NO_GOAL] + [_goal_label(s["id"]) for s in sectors]
+    assert box.value == NO_GOAL
+    assert any(o.startswith("Health and life sciences (SDG 3.8") for o in box.options)
+    order = at.radio(key=ORDER_KEY)
+    assert order.label == "Order roles by:" and order.options == [ORDER_BEST, ORDER_GOAL]
+    assert order.value == ORDER_BEST
+    assert order.proto.disabled                                           # nothing to order by yet
+    captions = _captions(at)
+    assert "Evidence > Method > SDG sector links" in captions               # method and limits, one sentence
+    assert "it shows who hires, not what the work achieves" in captions
+    assert not any(c.value.startswith("For your goal") for c in at.caption)
+
+
+@needs_real_data
+@needs_integration_files
+@pytest.mark.parametrize("sector", ["health", "climate_energy"])
+def test_the_goal_reorders_only_in_fit_for_my_goal_mode_and_never_hides_a_role(sector):
+    out = _expected_match()
+    best = [r["name"] for r in out["roles"]]
+    low = {r["name"] for r in out["low_match"]}
+    fit = [r["name"] for r in sdg_mod.rerank_for_goal(out, _data_json("role_sdg.json"), sector)["by_goal_fit"]]
+    assert sorted(fit) == sorted(best)                                        # the engine itself drops nobody
+
+    at = _run_app()
+    assert _card_names(at) == best
+    _pick_goal(at, sector)
+    assert not at.exception
+    assert _card_names(at) == best                                            # Best fit: the same order as before
+    assert not any("by rank score" in c for c in _cards(at))
+    assert not at.radio(key=ORDER_KEY).proto.disabled
+
+    at.radio(key=ORDER_KEY).set_value(ORDER_GOAL).run()
+    assert not at.exception
+    assert _card_names(at) == fit                                             # the engine's goal order
+    assert set(_low(at)) == low                                               # "Not a fit yet" roles stay listed
+    if sector == "climate_energy":
+        assert fit != best                                                    # for Aina this goal moves a role
+        assert all("by rank score" in c for c in _cards(at))                  # a re-ordered list shows old ranks
+
+    at.radio(key=ORDER_KEY).set_value(ORDER_BEST).run()
+    assert _card_names(at) == best                                            # and back
+    at.selectbox(key=GOAL_KEY).set_value(NO_GOAL).run()
+    assert _card_names(at) == best and not at.exception
+
+
+@needs_real_data
+@needs_integration_files
+def test_goal_order_replaces_the_sort_by_match_toggle_and_keeps_every_card():
+    at = _run_app()
+    n_cards = len(_cards(at))
+    at.toggle(key="roles_sort_match").set_value(True).run()
+    _pick_goal(at, "climate_energy")
+    assert not at.toggle(key="roles_sort_match").proto.disabled               # still usable in Best fit mode
+    assert _matches(at) == sorted(_matches(at), reverse=True)
+    at.radio(key=ORDER_KEY).set_value(ORDER_GOAL).run()
+    assert not at.exception and len(_cards(at)) == n_cards
+    assert at.toggle(key="roles_sort_match").proto.disabled                   # one order at a time
+
+
+# -- the goal sentence in the cards --------------------------------------------------------
+
+@needs_real_data
+@needs_integration_files
+@pytest.mark.parametrize("sector", ["health", "climate_energy"])
+def test_every_role_card_shows_its_goal_sentence_from_the_rerank_output(sector):
+    out = _expected_match()
+    goal_out = sdg_mod.rerank_for_goal(out, _data_json("role_sdg.json"), sector)
+    at = _pick_goal(_run_app(), sector)
+    assert not at.exception
+    texts = _card_texts(at)
+    assert set(texts) == {r["name"] for r in out["roles"]}
+    reliable_seen = 0
+    for role in goal_out["roles"]:
+        goal = role["sdg_goal"]
+        if goal["share"] is not None and not goal["reliable"]:
+            expected = f"For your goal (rough, not used to re-order): {goal['sentence']}"
+        else:
+            expected = f"For your goal: {goal['sentence']}"
+            reliable_seen += 1
+        assert expected in texts[role["name"]], role["name"]
+    assert reliable_seen
+    captions = [c.value for c in at.caption]
+    for role in goal_out["low_match"]:                                        # "Not a fit yet" roles carry it too
+        assert any(role["sdg_goal"]["sentence"] in c for c in captions)
+
+
+@needs_real_data
+@needs_integration_files
+def test_an_unreliable_cell_is_called_rough_and_a_reliable_one_is_not():
+    out = _expected_match()
+    goal_out = sdg_mod.rerank_for_goal(out, _data_json("role_sdg.json"), "health")
+    rough = [r for r in goal_out["roles"] if not r["sdg_goal"]["reliable"] and r["sdg_goal"]["share"] is not None]
+    assert rough, "the committed data should have a thin Health cell for one of Aina's roles"
+    texts = _card_texts(_pick_goal(_run_app(), "health"))
+    for role in rough:
+        assert any(t.startswith("For your goal (rough") for t in texts[role["name"]])
+    for role in goal_out["roles"]:
+        if role["sdg_goal"]["reliable"]:
+            assert not any("rough" in t for t in texts[role["name"]] if t.startswith("For your goal"))
+
+
+@needs_real_data
+@needs_integration_files
+def test_the_role_forecast_line_still_shows_in_every_card_with_a_goal():
+    at = _run_app()
+    _pick_goal(at, "climate_energy")
+    at.radio(key=ORDER_KEY).set_value(ORDER_GOAL).run()
+    texts = _card_texts(at)
+    assert texts
+    for name, lines in texts.items():
+        assert sum(t.startswith("Share of HN hiring posts now") for t in lines) == 1, name
+
+
+@needs_real_data
+@needs_integration_files
+def test_a_past_as_of_month_says_the_sector_shares_do_not_move():
+    at = _run_app()
+    assert not any("do not move with the As-of slider" in c.value for c in at.caption)
+    at.sidebar.select_slider[0].set_value("2024-06").run()
+    assert not at.exception
+    assert any("do not move with the As-of slider" in c.value for c in at.caption)
+
+
+# -- the MyCOL badges ------------------------------------------------------------------------
+
+@needs_real_data
+@needs_integration_files
+def test_mycol_badges_appear_only_on_roles_the_map_links_to_an_occupation():
+    mapping = _data_json("mycol_role_map.json")["mappings"]
+    occupations = {o["masco_code"]: o for o in _data_json("mycol.json")["occupations"]}
+    texts = _card_texts(_run_app())
+    mapped_seen = unmapped_seen = 0
+    for name, lines in texts.items():
+        role_id = ROLE_KEYS[name]
+        badges = [t for t in lines if MYCOL_MARK in t]
+        links = [m for m in mapping if m["role_id"] == role_id]
+        assert len(badges) == len(links), name
+        if not links:
+            unmapped_seen += 1
+            continue
+        mapped_seen += 1
+        for link in links:
+            occ = occupations[link["masco_code"]]
+            badge = next(b for b in badges if f"{link['occupation']} (MASCO {link['masco_code']})" in b)
+            assert f"On Malaysia's Critical Occupations List {occ['year']}: " in badge
+            assert f"{link['strength']} match" in badge
+            assert f"({occ['source_url']})" in badge                           # the source link
+    assert mapped_seen and unmapped_seen                                        # Aina sees both kinds of role
+
+
+@needs_real_data
+@needs_integration_files
+def test_one_mycol_caption_gives_the_plain_meaning_and_the_team_judgement_note():
+    captions = [c.value for c in _run_app().caption]
+    assert captions.count(MYCOL_CAPTION) == 1
+
+
+@needs_real_data
+@needs_integration_files
+def test_a_direct_mycol_match_is_marked_direct_and_comes_before_the_partial_ones():
+    backend = [t for t in _card_texts(_run_app())["Backend Engineer"] if MYCOL_MARK in t]
+    assert "Software Developers (MASCO 2512)" in backend[0] and "direct match" in backend[0]
+    assert len(backend) > 1 and all("partial match" in t for t in backend[1:])
+
+
+# -- step 3 summary line and step 4 SDG lines --------------------------------------------------
+
+@needs_real_data
+@needs_integration_files
+def test_the_step_3_summary_line_adds_the_target_roles_12_month_estimate_and_band():
+    forecast = _data_json("role_forecast.json")
+    item = forecast["roles"]["backend_engineer"]["forecast_moderate"]
+    at = _run_app()
+    assert "**Target role:** none chosen yet" in [m.value for m in at.markdown]
+    at.button(key="target_backend_engineer").click().run()
+    label = forecast["interval"]["label"]
+    assert (f"**Target role:** Backend Engineer. 12-month estimate {item['value_12m']:.1%} of HN hiring posts "
+            f"({label} {item['low']:.1%}–{item['high']:.1%}).") in [m.value for m in at.markdown]
+
+
+@needs_real_data
+@needs_integration_files
+def test_the_step_3_summary_line_has_no_estimate_when_the_role_forecast_file_is_missing(tmp_path):
+    at = _app_copy(tmp_path, drop=("role_forecast.json",))
+    at.button(key="target_backend_engineer").click().run()
+    assert not at.exception
+    assert "**Target role:** Backend Engineer" in [m.value for m in at.markdown]
+
+
+@needs_real_data
+@needs_integration_files
+@pytest.mark.parametrize("goal", [None, "health", "climate_energy"])
+def test_the_plan_sdg_lines_come_from_plan_sdg_summary_with_the_goal_from_step_3(goal):
+    target = "Backend Engineer"
+    at = _run_app()
+    if goal:
+        _pick_goal(at, goal)
+    at.session_state["target_role"] = target
+    at.run()
+    assert not at.exception
+    role = next(r for r in _expected_match()["roles"] if r["name"] == target)
+    lines = sdg_mod.plan_sdg_summary(_expected_plan(target), role, _data_json("role_sdg.json"), goal)["lines"]
+    assert len(lines) == (3 if goal else 2)
+    markdown = [m.value for m in at.markdown]
+    start = markdown.index("### SDG links")
+    assert markdown[start + 1:start + 1 + len(lines)] == lines                 # in this order, right under the heading
+    if goal:
+        assert "employers (SDG" in lines[-1] and "of all posts" in lines[-1]
+    assert any(e.label == "SDG tags per skill" for e in at.expander)           # per-skill tags stay in their expander
+
+
+# -- Evidence > Method ------------------------------------------------------------------------
+
+def _doc_precision() -> dict[str, str]:
+    """Sector -> precision cell, read from docs/sdg-links.md with a different parser from app.py."""
+    text = (ROOT / "docs" / "sdg-links.md").read_text(encoding="utf-8")
+    block = text.split("## Precision (hand check)")[1].split("\n## ")[0]
+    rows = [line for line in block.splitlines() if line.startswith("|")][2:]
+    return {cells[0]: cells[1] for cells in ([c.strip() for c in row.strip("|").split("|")] for row in rows)}
+
+
+@needs_real_data
+@needs_integration_files
+def test_method_tab_renders_the_sdg_sector_links_subsection_from_the_files():
+    role_sdg = _data_json("role_sdg.json")
+    at = _run_app()
+    assert not at.exception
+    assert "SDG sector links" in [h.value for h in at.header]
+    text = _joined(at)
+    assert role_sdg["method"] in text
+    window = role_sdg["window"]["recent"]
+    assert f"{window['from']} to {window['to']} ({window['n_posts']} posts)" in text
+    assert f"at least {sdg_mod.MIN_N} role posts and {sdg_mod.MIN_EMPLOYERS} different employers" in text
+    assert f"1 + {sdg_mod.GOAL_WEIGHT} x min(max(lift - 1, 0), {sdg_mod.MAX_EXCESS:g})" in text
+    for limit in ("US start-ups", "association, not impact", "do not move with the As-of slider"):
+        assert limit in text
+    table = next(d.value for d in at.dataframe if PRECISION_COLUMN in d.value.columns)
+    precision = _doc_precision()
+    assert len(table) == len(role_sdg["sectors"])
+    for _, row in table.iterrows():
+        sector = next(s for s in role_sdg["sectors"] if s["name"] == row["Sector"])
+        base = role_sdg["baseline"]["sectors"][sector["id"]]
+        assert row[PRECISION_COLUMN] == precision[sector["name"]]
+        assert row["Tagged posts, last window"] == base["count_recent"]
+        assert row["Different employers"] == base["employers_recent"]
+        assert row["SDG"] == " / ".join(sector["sdg"])
+
+
+@needs_real_data
+@needs_integration_files
+def test_method_tab_renders_the_malaysia_data_subsection_from_the_files():
+    mycol = _data_json("mycol.json")["source"]
+    links = _data_json("mycol_role_map.json")["mappings"]
+    at = _run_app()
+    assert "Malaysia data" in [h.value for h in at.header]
+    text = _joined(at)
+    assert f"**MyCOL {mycol['year']}** ({mycol['name']}), published by {mycol['publisher']}" in text
+    assert f"Retrieved {mycol['retrieved']}" in text
+    assert f"[{mycol['landing_page']}]({mycol['landing_page']})" in text
+    assert (f"{len(links)} links, {sum(m['strength'] == 'direct' for m in links)} direct and "
+            f"{sum(m['strength'] == 'partial' for m in links)} partial") in text
+    assert "MyCOL is a shortage list, not a vacancy count" in text
+    snapshots = pd.read_csv(DATA / "my_jobs_snapshots.csv")
+    if snapshots.empty:
+        assert NO_SNAPSHOT in text
+    else:
+        assert NO_SNAPSHOT not in text
+        assert f"snapshot of {snapshots['snapshot_date'].max()}" in text
+
+
+@needs_real_data
+@needs_integration_files
+def test_a_job_site_snapshot_in_the_csv_is_shown_with_its_date_and_listing_count(tmp_path):
+    csv = ("snapshot_date,site,skill,mentions,n_listings,share\n"
+           "2026-10-24,hiredly,Python,6,30,0.2\n2026-10-24,hiredly,SQL,3,30,0.1\n")
+    at = _app_copy(tmp_path, write={"my_jobs_snapshots.csv": csv})
+    assert not at.exception
+    text = _joined(at)
+    assert "**hiredly**: snapshot of 2026-10-24, 30 listings." in text
+    assert NO_SNAPSHOT not in text
+    table = next(d.value for d in at.dataframe if "Share of listings" in d.value.columns)
+    assert list(table["Skill"]) == ["Python", "SQL"] and list(table["Share of listings"]) == ["20.0%", "10.0%"]
+
+
+@needs_real_data
+@needs_integration_files
+def test_the_precision_column_says_n_a_when_the_docs_are_not_shipped(tmp_path):
+    at = _app_copy(tmp_path)                      # the copy has no docs/ folder
+    assert not at.exception
+    table = next(d.value for d in at.dataframe if PRECISION_COLUMN in d.value.columns)
+    assert set(table[PRECISION_COLUMN]) == {"n/a"}
+
+
+# -- missing or broken optional files ----------------------------------------------------------
+
+@needs_real_data
+@needs_integration_files
+@pytest.mark.parametrize("drop,write", [
+    (("role_sdg.json",), None),
+    (("mycol.json",), None),
+    (("mycol_role_map.json",), None),
+    (("role_sdg.json", "sdg_sectors.json", "mycol.json", "mycol_role_map.json", "my_jobs_snapshots.csv"), None),
+    ((), {"role_sdg.json": "{not json"}),
+    ((), {"role_sdg.json": "[]"}),
+    ((), {"role_sdg.json": json.dumps({"sectors": [], "roles": {}, "baseline": {}})}),
+    ((), {"mycol.json": "{not json"}),
+    ((), {"mycol_role_map.json": json.dumps({"mappings": "oops"})}),
+], ids=["no-role-sdg", "no-mycol", "no-mycol-map", "none-of-them", "role-sdg-bad-json", "role-sdg-list",
+        "role-sdg-empty", "mycol-bad-json", "map-bad-shape"])
+def test_the_app_runs_when_the_sdg_or_mycol_files_are_missing_or_broken(tmp_path, drop, write):
+    at = _app_copy(tmp_path, drop=drop, write=write)
+    assert not at.exception
+    files = set(drop) | set(write or {})
+    gone_sdg = "role_sdg.json" in files
+    gone_mycol = bool(files & {"mycol.json", "mycol_role_map.json"})
+    texts = _card_texts(at)
+    assert len(texts) == len(_expected_match()["roles"])                        # every role card is still there
+    headers = [h.value for h in at.header]
+    assert ("SDG sector links" in headers) is not gone_sdg
+    assert "Malaysia data" in headers
+    all_lines = [t for lines in texts.values() for t in lines]
+    page = _joined(at) + "\n" + _captions(at)
+    if gone_sdg:
+        assert not [s for s in at.selectbox if s.key == GOAL_KEY]
+        assert not [r for r in at.radio if r.key == ORDER_KEY]
+        assert not any(t.startswith("For your goal") for t in all_lines)
+        assert "Evidence > Method > SDG sector links" not in page
+    else:
+        assert at.selectbox(key=GOAL_KEY).value == NO_GOAL
+    if gone_mycol:
+        assert not any(MYCOL_MARK in t for t in all_lines)
+        assert MYCOL_CAPTION not in page
+        assert ("MyCOL is a shortage list" not in page) is ("mycol.json" in files)   # the source note needs mycol.json
+    else:
+        assert any(MYCOL_MARK in t for t in all_lines) and MYCOL_CAPTION in page
+    if pd.read_csv(DATA / "my_jobs_snapshots.csv").empty or "my_jobs_snapshots.csv" in files:
+        assert NO_SNAPSHOT in page
+    at.session_state["target_role"] = "Backend Engineer"                         # step 4 still has SDG 4.4 and 8.5
+    at.run()
+    assert not at.exception
+    markdown = [m.value for m in at.markdown]
+    start = markdown.index("### SDG links")
+    assert markdown[start + 1].startswith("SDG 4.4") and markdown[start + 2].startswith("SDG 8.5")
+
+
+@needs_real_data
+@needs_integration_files
+def test_a_missing_sectors_file_falls_back_to_the_sectors_in_role_sdg_json(tmp_path):
+    at = _app_copy(tmp_path, drop=("sdg_sectors.json",))
+    assert not at.exception
+    options = at.selectbox(key=GOAL_KEY).options
+    assert options[0] == NO_GOAL and len(options) == 1 + len(_data_json("role_sdg.json")["sectors"])
+
+
+@needs_real_data
+@needs_integration_files
+def test_a_role_sdg_file_the_engine_cannot_use_gives_a_note_and_no_crash(tmp_path):
+    doc = _data_json("role_sdg.json")
+    doc["roles"] = {rid: {"name": r["name"]} for rid, r in doc["roles"].items()}      # no "sectors" in any role
+    at = _app_copy(tmp_path, write={"role_sdg.json": json.dumps(doc)})
+    assert not at.exception
+    at.selectbox(key=GOAL_KEY).set_value(at.selectbox(key=GOAL_KEY).options[1]).run()
+    assert not at.exception
+    assert any(c.value.startswith("The goal view is not available") for c in at.caption)
+    assert len(_card_names(at)) == len(_expected_match()["roles"])                 # no role is hidden
+    at.session_state["target_role"] = "Backend Engineer"
+    at.run()
+    assert not at.exception                                                        # step 4 falls back to the plan lines
