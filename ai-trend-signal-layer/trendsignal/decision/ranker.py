@@ -26,6 +26,8 @@ from trendsignal.pipeline.features import BuiltFeatures, top_features
 TIER_ORDER = {tier: index for index, tier in enumerate(TIER_KEYS)}
 WORTH_WEIGHT = 0.5  # P(worth_a_look) counts half as much as P(must_know)
 LOW_IMPACT_MAX = 2  # formula path: impact at or below this needs a second origin to rise above Minor
+URGENT_SECURITY_MIN_ORIGINS = 2
+URGENT_SECURITY_MIN_Z = 1.5  # "trending": engagement 1.5 robust standard deviations above the source's normal
 
 
 def expected_impact(impact_probs: dict[int, float]) -> float:
@@ -103,8 +105,17 @@ def _score(entry: RankEntry, mode: str, weights: Weights) -> _Scored:
         return _Scored(entry, "jev", jev_final_score(entry.jev.tier_probs, confidence), jev_tier(entry.jev.tier_probs),
                        expected_impact(entry.jev.impact_probs), confidence)
     low_impact = entry.change_magnitude <= LOW_IMPACT_MAX and entry.built.features.origins < 2
-    return _Scored(entry, "formula", entry.formula_score, formula_tier(entry.formula_score, weights, low_impact),
-                   float(entry.change_magnitude), None)
+    tier = formula_tier(entry.formula_score, weights, low_impact)
+    if tier == "worth_a_look" and urgent_security(entry.built.features):
+        tier = "must_know"  # a live, corroborated vulnerability is must-know even before an advisory exists
+    return _Scored(entry, "formula", entry.formula_score, tier, float(entry.change_magnitude), None)
+
+
+def urgent_security(features) -> bool:
+    """Security news breaks on community sources days before an official advisory. Treat it as confirmed
+    once at least two independent sources report it and it is trending; social posts alone never count."""
+    return (features.is_security and not features.social_only
+            and features.origins >= URGENT_SECURITY_MIN_ORIGINS and features.velocity_z >= URGENT_SECURITY_MIN_Z)
 
 
 def apply_guardrails(scored: list[_Scored], cap: int) -> dict[int, tuple[str, tuple[str, ...]]]:
@@ -119,7 +130,10 @@ def apply_guardrails(scored: list[_Scored], cap: int) -> dict[int, tuple[str, tu
         elif tier == "must_know" and features.social_only:
             tier, notes = "worth_a_look", ("social posts only: cannot be Must-know",)
         elif tier == "must_know" and not item.entry.confirmed:
-            tier, notes = "worth_a_look", ("Must-know needs an official or research source, or 3 reports",)
+            if urgent_security(features):
+                notes = ("urgent security: 2+ independent reports and trending, before any official advisory",)
+            else:
+                tier, notes = "worth_a_look", ("Must-know needs an official or research source, or 3 reports",)
         if tier == "must_know":
             must_by_day[item.entry.day].append(item)
         result[item.entry.story_id] = (tier, notes)

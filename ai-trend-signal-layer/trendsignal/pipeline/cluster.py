@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -40,6 +41,25 @@ class _Candidate:
     target: Target
     vector: dict[str, float]
     terms: frozenset[str]
+    security: bool = False
+
+
+SECURITY_RE = re.compile(r"\bcve-?\d*|vulnerab|exploit|\brce\b|security (flaw|issue|advisory|update|release)|breach"
+                         r"|malware|backdoor|credential steal|compromised|supply[- ]chain attack|zero[- ]day", re.I)
+# Words every security headline uses: sharing them says nothing about the product affected.
+SECURITY_GENERIC_TERMS = frozenset(
+    "cve cves cvss rce security critical vulnerability vulnerabilities exploit exploits patch patches release "
+    "releases upcoming incoming potential third second first new tell hn ask ai zero-day advisory update".split()
+)
+
+
+def is_security_item(item: ClusterItem) -> bool:
+    return bool(SECURITY_RE.search(item.title) or SECURITY_RE.search(item.text[:400]))
+
+
+def shared_product(terms_a: frozenset[str], terms_b: frozenset[str]) -> bool:
+    """Two security headlines name the same product (PHP, LiteLLM, OpenSSL...), not just security words."""
+    return bool({t for t in terms_a & terms_b if t not in SECURITY_GENERIC_TERMS and not t[0].isdigit()})
 
 
 BORDERLINE_MIN_SIMILARITY = 0.25  # below this the pair is clearly different; no need to ask Jev
@@ -76,7 +96,8 @@ def assign_clusters(
     candidates: list[_Candidate] = []
 
     def register(item: ClusterItem, target: Target) -> None:
-        candidate = _Candidate(item, target, index.vector(doc_text(item.title, item.text)), key_terms(item.title))
+        candidate = _Candidate(item, target, index.vector(doc_text(item.title, item.text)), key_terms(item.title),
+                               is_security_item(item))
         for key in _exact_keys(item):
             by_key.setdefault(key, []).append(candidate)
         candidates.append(candidate)
@@ -130,6 +151,7 @@ def _best_similar(item: ClusterItem, candidates: list[_Candidate], index: TfidfI
                   same_story: SameStoryJudge | None = None) -> Target | None:
     vector = index.vector(doc_text(item.title, item.text))
     terms = key_terms(item.title)
+    security = is_security_item(item)
     best: tuple[float, Target] | None = None
     borderline: tuple[float, _Candidate, list[str]] | None = None
     for candidate in candidates:
@@ -137,7 +159,10 @@ def _best_similar(item: ClusterItem, candidates: list[_Candidate], index: TfidfI
             continue
         similarity = cosine(vector, candidate.vector)
         shared_terms = sorted(t for t in terms & candidate.terms if index.is_distinctive(t))
-        if _passes(similarity, bool(shared_terms), weights):
+        # One security event is reported with very different wording ("Upcoming critical PHP release",
+        # "PHP2Shell RCE", "Potential third PHP CVE"); naming the same product is enough to merge them.
+        same_security_event = security and candidate.security and shared_product(terms, candidate.terms)
+        if same_security_event or _passes(similarity, bool(shared_terms), weights):
             if best is None or similarity > best[0]:
                 best = (similarity, candidate.target)
         elif similarity >= BORDERLINE_MIN_SIMILARITY and (borderline is None or similarity > borderline[0]):
