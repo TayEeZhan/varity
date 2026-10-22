@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}AI Trend Signal{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="alternate" type="application/rss+xml" title="AI Trend Signal" href="/rss.xml">
+</head>
+<body>
+  <header class="site">
+    <div class="wrap bar">
+      <a class="brand" href="/"><span class="pulse" aria-hidden="true"></span>AI Trend Signal</a>
+      <nav>
+        <a href="/">Feed</a>
+        <a href="/brief/daily">Today's brief</a>
+        <a href="/brief/weekly">Weekly</a>
+        <a href="/sources">Sources</a>
+        <a href="/rss.xml">RSS</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="wrap foot">
+    <p>Last pipeline run: {{ last_run or "not yet" }} (UTC){% if stale %} · Stale sources: {{ stale|join(", ") }}{% endif %}</p>
+    <p>Ranks come from a fixed scoring formula; summaries come from Claude or from rules. Always read the primary source before acting.</p>
+  </footer>
+  <script>
+    document.addEventListener("click", async (event) => {
+      const button = event.target.closest(".fb button");
+      if (!button) return;
+      const box = button.closest(".fb");
+      try {
+        const response = await fetch("/api/feedback", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({story_id: Number(box.dataset.story), signal: button.dataset.signal}),
+        });
+        box.textContent = response.ok ? "Thanks, noted" : "Could not save";
+      } catch (error) {
+        box.textContent = "Could not save";
+      }
+    });
+  </script>
+</body>
+</html>

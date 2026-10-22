@@ -1,0 +1,39 @@
+{% macro card(s, full=true) %}
+<article class="card tier-{{ s.tier }}" id="s-{{ s.id }}">
+  <div class="meta">
+    <span class="chip">{{ category_labels.get(s.category, s.category) }}</span>
+    {% if s.is_breaking_change %}<span class="chip warn">Breaking change</span>{% endif %}
+    {% if s.status == "unconfirmed" %}<span class="chip pending">Unconfirmed</span>{% endif %}
+    <span class="time" title="Estimated time to understand the primary source">⏱ {{ s.time_to_understand_min }} min</span>
+    <span class="score" title="Importance score, 0 to 100">{{ "%.0f"|format(s.importance) }}</span>
+  </div>
+  <h3><a href="{{ s.url }}" target="_blank" rel="noopener noreferrer">{{ s.title }}</a></h3>
+  {% set has_summary = s.tldr and s.tldr != s.title %}
+  {% if full %}
+    {% if has_summary %}<p class="tldr">{{ s.tldr }}</p>{% endif %}
+    <p class="why"><strong>Why it matters:</strong> {{ s.why_it_matters }}</p>
+  {% elif has_summary %}
+    <p class="tldr">{{ s.tldr|truncate(200) }}</p>
+  {% endif %}
+  <details class="ranked"{% if full %} open{% endif %}>
+    <summary>Why it ranked here</summary>
+    <ul class="reasons">{% for reason in s.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+    <div class="bars">
+      {% for name, value in s.features.items() %}
+        <div class="feat"><span>{{ name|replace("_", " ") }}</span><i style="--v: {{ value }}"></i><b>{{ "%.2f"|format(value) }}</b></div>
+      {% endfor %}
+    </div>
+  </details>
+  <div class="foot-row">
+    <span class="sources">
+      {% for src in s.sources[:4] %}<a href="{{ src.url }}" target="_blank" rel="noopener noreferrer">{{ src.name }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+      {% if s.sources|length > 4 %} · <a href="/story/{{ s.id }}">+{{ s.sources|length - 4 }} more</a>{% endif %}
+    </span>
+    <span class="fb" data-story="{{ s.id }}">
+      <button type="button" data-signal="useful" title="Useful">👍</button>
+      <button type="button" data-signal="not_important" title="Not important">👎</button>
+      <button type="button" data-signal="already_knew" title="I already knew this">Knew it</button>
+    </span>
+  </div>
+</article>
+{% endmacro %}

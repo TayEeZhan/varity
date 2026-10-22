@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Sources · AI Trend Signal{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Sources</h1>
+  <p class="lede">Tier A is official, B is research, C is curated community and press, D is social media.
+    Sources fetched with official APIs or RSS only. A source that fails three times in a row is marked stale.</p>
+</section>
+<table class="table">
+  <thead><tr><th>Source</th><th>Tier</th><th>Type</th><th>Status</th><th>Last success (UTC)</th><th>Last error</th></tr></thead>
+  <tbody>
+    {% for h in health %}
+      <tr>
+        <td>{{ h.name }}</td><td>{{ h.tier }}</td><td>{{ h.adapter }}</td>
+        <td><span class="chip {{ 'ok' if h.status == 'ok' else ('warn' if h.status == 'stale' else '') }}">{{ h.status }}</span></td>
+        <td>{{ (h.last_ok_at or "-")[:16]|replace("T", " ") }}</td>
+        <td class="muted">{{ (h.last_error or "")|truncate(80) }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
