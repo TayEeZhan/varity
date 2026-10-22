@@ -5,17 +5,20 @@ data/fixtures/skill_scores.json. Every number on screen comes from a file in the
 (skill_scores.json, demand_monthly.csv, ai_context_monthly.csv, backtest.json, taxonomy.json,
 SOURCES.md). No statistic is written in this file. No LLM is used.
 
-Four tabs: Roles (role match for a chosen or edited skill set), Skills (table),
-Skill detail (chart, text, sources), Method (backtest).
+Five tabs: Roles (role match for a chosen or edited skill set), Pathway (ordered plan and daily
+to-do list for the chosen target role, engine.pathway), Skills (table), Skill detail (chart, text,
+sources), Method (backtest).
 Sidebar: scenario, "As of" month (reruns the engine with data up to that month, nothing is
 written), and "Refresh live data" (engine.refresh.refresh).
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 import altair as alt
@@ -57,6 +60,7 @@ PERSONAS = {
     "Chloe, data analyst (synthetic)": ["SQL", "Python", "Snowflake", "dbt"],
 }
 ROLE_FILES = ("roles.json", "role_profiles.json", "role_demand_monthly.csv", "exposure.csv")
+NO_TARGET_PROMPT = "Choose a target role in the Roles tab first"
 TREND_BADGE = {"Rising": ":green-badge[Rising]", "Falling": ":red-badge[Falling]",
                "No clear change": ":gray-badge[No clear change]"}
 
@@ -459,7 +463,8 @@ taxonomy = read_json(data_dir / "taxonomy.json") if not is_fixture else None
 category_of = {t.get("skill"): t.get("category") for t in taxonomy or [] if isinstance(t, dict)}
 backtest = read_json(data_dir / "backtest.json") if not is_fixture else None
 
-tab_roles, tab_skills, tab_detail, tab_method = st.tabs(["Roles", "Skills", "Skill detail", "Method"])
+tab_roles, tab_pathway, tab_skills, tab_detail, tab_method = st.tabs(
+    ["Roles", "Pathway", "Skills", "Skill detail", "Method"])
 
 # --------------------------------------------------------------------------------------
 # Tab: Roles
@@ -507,13 +512,17 @@ def role_card(role: dict, position: int, sort_by_match: bool, show_fast: bool) -
             st.session_state["target_role"] = role["name"]
 
 
-def roles_tab() -> None:
-    """The Roles tab: profile intake, ranked role cards, formula, sources."""
+def roles_tab() -> dict | None:
+    """The Roles tab: profile intake, ranked role cards, formula, sources.
+
+    Returns the match_roles output, so the Pathway tab uses the same profile, skills and as-of month.
+    Returns None when the role data is missing for this view.
+    """
     role_dir = DEFAULT_DATA_DIR
     if is_fixture or taxonomy is None or not all((role_dir / n).exists() for n in ROLE_FILES):
         st.info("Role match needs the real data files (taxonomy, roles, role profiles, role demand, exposure). "
                 "They are not available in this view.")
-        return
+        return None
     import engine.roles as roles_mod
 
     st.subheader("Which future roles fit you?")
@@ -532,7 +541,7 @@ def roles_tab() -> None:
         profile = roles_mod.profile_for(view_as_of, read_json(role_dir / "role_profiles.json"))
     except ValueError as exc:
         st.info(f"No role profile for {view_as_of}: {exc}.")
-        return
+        return None
     demand_path, roles_path = role_dir / "role_demand_monthly.csv", role_dir / "roles.json"
     trends = role_trends_as_of(str(demand_path), str(roles_path), view_as_of, demand_path.stat().st_mtime)
     out = roles_mod.match_roles(set(my_skills), profile, view, trends, scenario,
@@ -587,10 +596,175 @@ def roles_tab() -> None:
             "posts are not ranked; a profile with fewer than 150 posts or fewer than 5 skills is marked rough.\n"
             f"- A role with under {formula['low_match_below']:.0%} match is not ranked (team judgement), so "
             "it cannot rank on its outlook alone. It is listed under \"Not a fit yet\".")
+    return out
 
 
 with tab_roles:
-    roles_tab()
+    role_out = roles_tab()
+
+# --------------------------------------------------------------------------------------
+# Tab: Pathway
+# --------------------------------------------------------------------------------------
+
+def next_monday(today: date) -> date:
+    """The first Monday after `today` (a Monday gives the Monday a week later)."""
+    return today + timedelta(days=7 - today.weekday())
+
+
+def clear_target_role() -> None:
+    st.session_state.pop("target_role", None)
+
+
+def change_target_button() -> None:
+    """Link-style button. Choosing a role stays possible only in the Roles tab."""
+    st.button("Change target role", key="change_target_role", type="tertiary", on_click=clear_target_role,
+              help="Clears the target. Pick a new one in the Roles tab.")
+
+
+def step_card(step: dict) -> None:
+    """One skill of the plan: reason, resource, SDG tags, deadline, source."""
+    res = step["resource"]
+    with st.container(border=True):
+        st.markdown(f"**{step['order']}. {step['skill']}**")
+        st.markdown(f"Why: {step['reason']}")
+        if res:
+            st.markdown(f"Resource: [{res['title']}]({res['url']}) | {res['provider']} | cost: {res['cost']} | "
+                        f"about {step['minutes']} minutes (estimate)")
+        else:
+            st.markdown(f"Resource: {step['resource_note']}")
+            st.caption("No tasks are planned for this skill until a verified resource is added.")
+        if step["sdg"]:
+            st.markdown(f"SDG {', '.join(step['sdg'])}: {step['sdg_reason'] or NA}")
+        if step["deadline"]:
+            st.markdown(f"Step deadline: {step['deadline']}")
+        st.caption(f"Source: {step['source']}")
+
+
+def todo_table(tasks: list[dict], sig: str, today: date) -> list[str]:
+    """One row per task with a checkbox. Returns the ids that are ticked."""
+    before = (set(st.session_state.get("done_tasks") or [])
+              if st.session_state.get("done_plan_sig") == sig else set())
+    widths = [0.7, 1.9, 0.9, 6, 1.2]
+    head = st.columns(widths)
+    for col, text in zip(head, ("Done", "Date", "Minutes", "Task", "Link")):
+        col.markdown(f"**{text}**")
+    ticked = []
+    for t in tasks:
+        c_done, c_date, c_min, c_task, c_link = st.columns(widths, vertical_alignment="center")
+        done = c_done.checkbox(f"Done: {t['title']}", value=t["id"] in before,
+                               key=f"done_{sig}_{t['id']}", label_visibility="collapsed")
+        if done:
+            ticked.append(t["id"])
+        overdue = not done and date.fromisoformat(t["date"]) < today
+        c_date.markdown(f"{t['date']} (overdue)" if overdue else t["date"])
+        c_min.markdown(str(t["minutes"]))
+        c_task.markdown(f"~~{t['title']}~~" if done else t["title"])
+        c_link.markdown(f"[Open]({t['resource_url']})")
+    return ticked
+
+
+def pathway_tab(role_out: dict | None) -> None:
+    """The Pathway tab: staged plan, daily to-do list with progress, exports, SDG links."""
+    from engine.pathway import HRD_CORP_NOTE, PLACEHOLDER_RESOURCE, build_pathway, progress, to_ics, to_markdown
+
+    st.session_state.setdefault("done_tasks", [])
+    target = st.session_state.get("target_role")
+    if not target:
+        st.info(NO_TARGET_PROMPT)
+        return
+    st.subheader(f"Pathway to {target}")
+    change_target_button()
+    resources_doc = read_json(DEFAULT_DATA_DIR / "resources.json")
+    if role_out is None or resources_doc is None or taxonomy is None:
+        st.info("The pathway needs the real data files (roles, taxonomy, resources). They are not available in this view.")
+        return
+    everyone = role_out["roles"] + role_out["low_match"]
+    role = next((r for r in everyone if r["name"] == target), None)
+    if role is None:
+        st.warning(f"{target} is not in the role list for this view (as of {view_as_of}). Change the target role.")
+        return
+    if not role["gap"]:
+        st.success(f"You already have every skill in the {target} profile, so there is no gap to plan.")
+        return
+
+    left, right = st.columns(2)
+    hours = left.number_input("Hours per week", min_value=1, max_value=40, value=5, step=1, key="pathway_hours")
+    start = right.date_input("Start date", value=next_monday(date.today()), key="pathway_start")
+    start = start if isinstance(start, date) else next_monday(date.today())
+
+    # The top 3 ranked roles set the "no-regret" stage. With no ranked role, the best low-match roles stand in.
+    top = (role_out["roles"] or role_out["low_match"])[:3]
+    plan = build_pathway(target, role["gap"], [r["gap"] for r in top], view, resources_doc,
+                         scenario=scenario, hours_per_week=hours, start_date=start, taxonomy=taxonomy)
+    st.caption(f"Skill data as of {plan['skill_scores_as_of'] or NA}. Scenario: {plan['scenario_label']}. "
+               f"{plan['totals']['steps']} skills, {plan['totals']['tasks']} daily tasks, about "
+               f"{plan['totals']['hours']} hours (estimate), {hours} hours a week, Monday to Friday.")
+    st.info(f"HRD Corp: {resources_doc.get('hrd_corp_note') or HRD_CORP_NOTE}")
+    if scenario == "fast":
+        st.info("Fast AI scenario (an assumption, not a forecast): future bets (Stage 3) are moved earlier, to "
+                "second place, ahead of near-term demand. Only the order of the stages changes.")
+
+    # Stages
+    for stage in plan["stages"]:
+        st.markdown(f"### {stage['label']}")
+        steps = [s for s in plan["steps"] if s["stage"] == stage["name"]]
+        if not steps:
+            st.caption("No skills in this stage.")
+        for step in steps:
+            step_card(step)
+    if plan["unresolved"]:
+        st.caption(f"{PLACEHOLDER_RESOURCE}: {', '.join(plan['unresolved'])}.")
+
+    # Daily to-do list
+    st.markdown("### Daily to-do list")
+    sig = hashlib.md5(f"{target}|{scenario}|{hours}|{start}|{view_as_of}".encode()).hexdigest()[:8]
+    today = date.today()
+    progress_box = st.container()  # filled after the checkboxes, so it shows this run's ticks
+    if plan["tasks"]:
+        ticked = todo_table(plan["tasks"], sig, today)
+    else:
+        ticked = []
+        st.info("No daily tasks yet: no skill in this gap has a verified resource.")
+    st.session_state["done_tasks"] = ticked
+    st.session_state["done_plan_sig"] = sig
+    prog = progress(plan["tasks"], ticked, today)
+    with progress_box:
+        st.progress(min(max(prog["percent_done"] / 100, 0.0), 1.0),
+                    text=f"{prog['percent_done']:.0f}% done ({prog['tasks_done']} of {prog['tasks_total']} tasks, "
+                         f"{prog['minutes_done']} of {prog['minutes_total']} minutes)")
+        n_over = len(prog["overdue"])
+        st.markdown(f"Overdue as of {prog['as_of']}: {n_over} task{'' if n_over == 1 else 's'}")
+        nxt = prog["next_task"]
+        if nxt:
+            st.markdown(f"Next task: {nxt['title']} ({nxt['minutes']} min, {nxt['date']})")
+        else:
+            st.markdown("Next task: none left" if plan["tasks"] else "Next task: none")
+        done_skills = prog["completed_skills"] if plan["tasks"] else []
+        st.markdown("Skills completed: " + (", ".join(done_skills) if done_skills else "none yet"))
+        st.markdown(f"Plan finishes on {plan['finish_date']}" if plan["finish_date"]
+                    else "Plan finishes on: no dated tasks")
+    st.caption("Ticks are kept while the plan stays the same. A new role, scenario, pace or start date makes a "
+               "new plan and clears them. Times are estimates.")
+
+    # Exports: the browser downloads the text. The server writes no file.
+    st.markdown("### Export")
+    e1, e2 = st.columns(2)
+    e1.download_button("Download plan (Markdown)", to_markdown(plan), file_name="verity_plan.md",
+                       mime="text/markdown", key="download_plan_md", on_click="ignore")
+    e2.download_button("Download calendar (.ics)", to_ics(plan["tasks"]), file_name="verity_plan.ics",
+                       mime="text/calendar", key="download_plan_ics", on_click="ignore")
+
+    # SDG links
+    st.markdown("### SDG links")
+    sdg = plan["sdg_summary"]
+    for tag, n in sdg["counts"].items():
+        st.markdown(f"- SDG {tag}: {n} step{'' if n == 1 else 's'} ({', '.join(sdg['skills_by_target'][tag])})")
+    st.markdown(sdg["line"])
+    st.caption(plan["notes"][0])  # the estimate note; the HRD Corp note is shown once, above
+
+
+with tab_pathway:
+    pathway_tab(role_out)
 
 # --------------------------------------------------------------------------------------
 # Tab: Skills
