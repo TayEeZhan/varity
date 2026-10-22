@@ -10,8 +10,9 @@ Steps
 2. Fetch the newest "Ask HN: Who is hiring?" thread, bypassing the raw cache.
 3. Update hn_threads.csv, then recompute only that month in demand_monthly.csv
    (and ai_context_monthly.csv). No other month is read or changed.
-4. Call engine.scores.build_scores() and write skill_scores.json into the
-   same directory.
+4. Call engine.scores.build_scores(data_dir=<working directory>) and write
+   skill_scores.json into the same directory. Every input of build_scores
+   (demand, taxonomy, exposure, backtest, thread titles) is read from there.
 
 The app must read skill_scores.json from result["data_dir"], not always from
 the repo data/ folder.
@@ -42,6 +43,7 @@ DATA_DIR = ROOT / "data"
 TMP_DIR_NAME = "verity_data"
 SCORES_NAME = "skill_scores.json"
 # Argument names that would mean build_scores takes a data directory.
+# build_scores has had "data_dir" since step A1; the other names are older guesses.
 DIR_PARAM_NAMES = ("data_dir", "work_dir", "base_dir", "root", "data_path")
 
 _LOCK = threading.Lock()
@@ -102,9 +104,9 @@ def _run_build_scores(data_dir: Path) -> tuple[dict, bool]:
     dir_param = _build_scores_accepts_dir()
     if dir_param is not None:
         return scores.build_scores(**{dir_param: data_dir}), True
-    # No directory argument. It does accept the demand table, so pass ours.
-    # Its other inputs (taxonomy, exposure, backtest, thread titles) still come
-    # from the repo data/ folder.
+    # Old build_scores without a directory argument (kept for safety). It does
+    # accept the demand table, so pass ours. Its other inputs still come from
+    # the repo data/ folder.
     return scores.build_scores(demand=load_demand(path=data_dir / "demand_monthly.csv")), False
 
 

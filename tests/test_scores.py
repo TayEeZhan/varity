@@ -1,6 +1,7 @@
 """Tests for engine/scores.py."""
 
 import json
+import shutil
 from datetime import datetime, timezone
 
 import numpy as np
@@ -296,3 +297,97 @@ def test_written_file_matches_the_contract_if_present():
     if not sc.SCORES_JSON.exists():
         pytest.skip("data/skill_scores.json not generated yet")
     check_contract(json.loads(sc.SCORES_JSON.read_text(encoding="utf-8")))
+
+
+# data_dir
+
+DATA_FILES = ("demand_monthly.csv", "taxonomy.json", "exposure.csv", "backtest.json", "hn_threads.csv")
+
+
+@pytest.fixture
+def data_copy(tmp_path):
+    """A copy of the five input files in a temp folder."""
+    for name in DATA_FILES:
+        shutil.copy(sc.DATA_DIR / name, tmp_path / name)
+    return tmp_path
+
+
+def _without_time(scores):
+    scores = dict(scores)
+    scores.pop("generated_at")
+    return scores
+
+
+def test_data_dir_copy_gives_the_same_scores_as_the_repo_folder(data_copy):
+    default = sc.build_scores(as_of="2025-06", today=TODAY)
+    copied = sc.build_scores(as_of="2025-06", today=TODAY, data_dir=data_copy)
+    assert _without_time(copied) == _without_time(default)
+    check_contract(copied)
+
+
+def test_every_input_comes_from_data_dir(data_copy):
+    """Change each input in the copy: the result must change; the repo folder is not read."""
+    base = sc.build_scores(as_of="2025-06", today=TODAY, data_dir=data_copy)
+
+    exposure = pd.read_csv(data_copy / "exposure.csv")
+    exposure.loc[exposure["skill"] == "Python", "ai_exposure"] = 0.123
+    exposure.to_csv(data_copy / "exposure.csv", index=False)
+    changed = sc.build_scores(as_of="2025-06", today=TODAY, data_dir=data_copy)
+    assert by_name(changed, "Python")["ai_exposure"] == pytest.approx(0.123)
+
+    threads = pd.read_csv(data_copy / "hn_threads.csv")
+    threads.loc[threads["month"] == "2025-06", "title"] = "Changed title"
+    threads.to_csv(data_copy / "hn_threads.csv", index=False)
+    changed = sc.build_scores(as_of="2025-06", today=TODAY, data_dir=data_copy)
+    assert by_name(changed, "Python")["sources"][2]["name"] == "Changed title"
+
+    backtest = json.loads((data_copy / "backtest.json").read_text(encoding="utf-8"))
+    backtest["generated_at"] = "2001-02-03T00:00:00Z"
+    (data_copy / "backtest.json").write_text(json.dumps(backtest), encoding="utf-8")
+    changed = sc.build_scores(as_of="2025-06", today=TODAY, data_dir=data_copy)
+    assert by_name(changed, "Python")["sources"][-1]["date"] == "2001-02-03"
+
+    taxonomy = json.loads((data_copy / "taxonomy.json").read_text(encoding="utf-8"))
+    (data_copy / "taxonomy.json").write_text(json.dumps(taxonomy[:5]), encoding="utf-8")
+    assert len(sc.build_scores(as_of="2025-06", today=TODAY, data_dir=data_copy)["skills"]) == 5
+
+    demand = pd.read_csv(data_copy / "demand_monthly.csv")
+    demand[demand["month"] <= "2025-03"].to_csv(data_copy / "demand_monthly.csv", index=False)
+    assert sc.build_scores(today=TODAY, data_dir=data_copy)["as_of"] == "2025-03"
+    assert base["as_of"] == "2025-06"
+
+
+def test_missing_thread_month_skips_the_source_and_does_not_raise(data_copy):
+    threads = pd.read_csv(data_copy / "hn_threads.csv")
+    threads[threads["month"] != "2025-06"].to_csv(data_copy / "hn_threads.csv", index=False)
+    out = sc.build_scores(as_of="2025-06", today=TODAY, data_dir=data_copy)
+    check_contract(out)
+    names = [s["name"] for s in by_name(out, "Python")["sources"]]
+    assert len(names) == 4  # two threads, AEI, backtest
+    assert not any("June 2025" in n for n in names)
+
+
+def test_thread_sources_skips_unknown_months():
+    threads = pd.DataFrame({"month": ["2025-01"], "title": ["t"], "url": ["u"],
+                            "created_at": ["2025-01-02T00:00:00Z"]})
+    assert sc._thread_sources(threads, ["2024-12", "2025-01"]) == [
+        {"name": "t", "url": "u", "date": "2025-01-02"}]
+
+
+def test_build_scores_writes_no_file(data_copy):
+    before = {p.name: p.read_bytes() for p in data_copy.iterdir()}
+    sc.build_scores(as_of="2024-06", today=TODAY, data_dir=data_copy)
+    assert {p.name: p.read_bytes() for p in data_copy.iterdir()} == before
+
+
+def test_main_writes_into_data_dir(data_copy):
+    repo_file = sc.SCORES_JSON.read_bytes() if sc.SCORES_JSON.exists() else None
+    assert sc.main(data_copy) == 0
+    check_contract(json.loads((data_copy / "skill_scores.json").read_text(encoding="utf-8")))
+    assert (sc.SCORES_JSON.read_bytes() if sc.SCORES_JSON.exists() else None) == repo_file
+
+
+def test_missing_backtest_in_data_dir_raises_a_clear_error(data_copy):
+    (data_copy / "backtest.json").unlink()
+    with pytest.raises(FileNotFoundError, match="backtest.json"):
+        sc.build_scores(today=TODAY, data_dir=data_copy)

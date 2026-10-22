@@ -59,10 +59,13 @@ from engine.forecast import (  # noqa: E402
     _check_month,
 )
 
+# Default locations in the repo data/ folder. build_scores(data_dir=...) uses the same
+# file names inside any other folder.
 SCORES_JSON = DATA_DIR / "skill_scores.json"
 TAXONOMY_JSON = DATA_DIR / "taxonomy.json"
 EXPOSURE_CSV = DATA_DIR / "exposure.csv"
 THREADS_CSV = DATA_DIR / "hn_threads.csv"
+DEMAND_NAME = "demand_monthly.csv"
 
 K = 2  # fast-scenario strength: an assumption shown in the app
 SLOPE_WINDOW = 24  # months for demand_slope
@@ -134,20 +137,28 @@ def _fast_block(moderate: dict, e_s: float, k: float) -> dict:
 
 
 def _thread_sources(threads: pd.DataFrame, months: list[str]) -> list[dict]:
-    rows = threads.set_index("month").loc[months]
+    """One source per month that has a row in hn_threads.csv. A missing month is skipped."""
+    by_month = threads.drop_duplicates("month", keep="last").set_index("month")
     return [
         {
-            "name": row["title"],
-            "url": row["url"],
-            "date": str(row["created_at"])[:10],
+            "name": by_month.at[month, "title"],
+            "url": by_month.at[month, "url"],
+            "date": str(by_month.at[month, "created_at"])[:10],
         }
-        for _, row in rows.iterrows()
+        for month in months
+        if month in by_month.index
     ]
 
 
 def build_scores(as_of: str | None = None, backtest: dict | None = None, k: float = K,
-                 demand: pd.DataFrame | None = None, today: datetime | None = None) -> dict:
+                 demand: pd.DataFrame | None = None, today: datetime | None = None,
+                 data_dir: Path | str | None = None) -> dict:
     """Build the skill_scores dict using only data up to and including `as_of` (YYYY-MM).
+
+    Returns the dict and writes nothing (only main() writes a file), so an as-of view is safe.
+    `data_dir` (default: the repo data/ folder) holds demand_monthly.csv, taxonomy.json,
+    exposure.csv, backtest.json and hn_threads.csv. A `demand` or `backtest` argument wins
+    over the file in data_dir.
 
     as_of defaults to the last month in the data. The model choice and the band use only
     residuals whose target is <= as_of. as_of must be at least earliest_supported(months)
@@ -155,15 +166,17 @@ def build_scores(as_of: str | None = None, backtest: dict | None = None, k: floa
     `backtest` is only used for its generated_at date (the backtest source entry).
     `today` (default now, UTC) only decides partial_month.
     """
+    data_dir = DATA_DIR if data_dir is None else Path(data_dir)
     if backtest is None:
-        if not BACKTEST_JSON.exists():
-            raise FileNotFoundError(f"{BACKTEST_JSON} not found. Run: python -m engine.backtest")
-        backtest = json.loads(BACKTEST_JSON.read_text(encoding="utf-8"))
+        backtest_path = data_dir / BACKTEST_JSON.name
+        if not backtest_path.exists():
+            raise FileNotFoundError(f"{backtest_path} not found. Run: python -m engine.backtest")
+        backtest = json.loads(backtest_path.read_text(encoding="utf-8"))
     if today is None:
         today = datetime.now(timezone.utc)
 
     if demand is None:
-        demand = load_demand()
+        demand = load_demand(path=data_dir / DEMAND_NAME)
     all_months = sorted(demand["month"].unique())
     last_month = all_months[-1]
     if as_of is None:
@@ -190,9 +203,10 @@ def build_scores(as_of: str | None = None, backtest: dict | None = None, k: floa
     model = choose_model(tables, as_of)
     q12 = band_offsets(tables[model], as_of, HORIZON)
 
-    taxonomy = {t["skill"]: t for t in json.loads(TAXONOMY_JSON.read_text(encoding="utf-8"))}
-    exposure = pd.read_csv(EXPOSURE_CSV).set_index("skill")
-    threads = pd.read_csv(THREADS_CSV)
+    taxonomy = {t["skill"]: t
+                for t in json.loads((data_dir / TAXONOMY_JSON.name).read_text(encoding="utf-8"))}
+    exposure = pd.read_csv(data_dir / EXPOSURE_CSV.name).set_index("skill")
+    threads = pd.read_csv(data_dir / THREADS_CSV.name)
     sources = ([dict(s) for s in _thread_sources(threads, latest_months)] + [dict(AEI_SOURCE)]
                + [backtest_source(model, backtest["generated_at"])])
     evidence = [f"hn:{thread_ids[m]}" for m in latest_months]
@@ -260,13 +274,15 @@ def build_scores(as_of: str | None = None, backtest: dict | None = None, k: floa
     }
 
 
-def main() -> int:
-    scores = build_scores()
-    SCORES_JSON.write_text(json.dumps(scores, indent=2) + "\n", encoding="utf-8")
+def main(data_dir: Path | str | None = None) -> int:
+    data_dir = DATA_DIR if data_dir is None else Path(data_dir)
+    out_path = data_dir / SCORES_JSON.name
+    scores = build_scores(data_dir=data_dir)
+    out_path.write_text(json.dumps(scores, indent=2) + "\n", encoding="utf-8")
     counts: dict[str, int] = {}
     for s in scores["skills"]:
         counts[s["status"]] = counts.get(s["status"], 0) + 1
-    print(f"Wrote {SCORES_JSON}: {len(scores['skills'])} skills, as_of {scores['as_of']}, "
+    print(f"Wrote {out_path}: {len(scores['skills'])} skills, as_of {scores['as_of']}, "
           f"model {scores['interval']['model']}, partial_month {scores['partial_month']}.")
     print("Status counts:", counts)
     for label in ("Rising", "Falling"):
