@@ -1,0 +1,13 @@
+# Synthetic robots.txt shaped like a job site that uses wildcards.
+User-agent: *
+Disallow: */job/
+Disallow: *?
+Disallow: /api/jobsearch/
+Allow: *?keywords
+Allow: /public$
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Verity
+Disallow: /secret/
