@@ -1,0 +1,10 @@
+modules = ["python-3.12"]
+run = "pip install -q -r requirements.txt && python -m trendsignal serve --scheduler --port 8000"
+
+[[ports]]
+localPort = 8000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "vm"
+run = ["sh", "-c", "pip install -q -r requirements.txt && python -m trendsignal serve --scheduler --port 8000"]

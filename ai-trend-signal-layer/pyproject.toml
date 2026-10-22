@@ -1,0 +1,15 @@
+[project]
+name = "ai-trend-signal-layer"
+version = "0.1.0"
+description = "Collects AI and tech updates from official sources and social media, ranks them, and writes a daily brief."
+requires-python = ">=3.11"
+license = "Apache-2.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["trendsignal"]
+omit = ["trendsignal/__main__.py"]

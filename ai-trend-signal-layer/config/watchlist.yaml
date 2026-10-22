@@ -1,0 +1,62 @@
+# Developer-facing terms. A story mentioning these scores higher on "dev relevance".
+dev_terms:
+  - python
+  - javascript
+  - typescript
+  - rust
+  - go
+  - java
+  - react
+  - next.js
+  - node
+  - docker
+  - kubernetes
+  - pytorch
+  - tensorflow
+  - jax
+  - transformers
+  - vllm
+  - ollama
+  - llama.cpp
+  - langchain
+  - llamaindex
+  - cuda
+  - api
+  - sdk
+  - cli
+  - vs code
+  - github
+  - copilot
+  - claude
+  - gpt
+  - gemini
+  - llama
+  - mistral
+  - deepseek
+  - qwen
+  - hugging face
+  - open source
+  - open-weight
+  - agent
+  - mcp
+  - rag
+  - fine-tuning
+  - inference
+  - cve
+  - vulnerability
+  - deprecation
+  - breaking change
+
+# Skill -> terms. Feeds SKidea's skill scoring: weekly mention counts per skill
+# become its "adoption momentum" input (GET /api/skills/momentum).
+skills:
+  LLM application development: [langchain, llamaindex, rag, agent, mcp, function calling, tool use, prompt]
+  LLM serving and inference: [vllm, ollama, llama.cpp, inference, quantization, tensorrt, serving]
+  Deep learning frameworks: [pytorch, tensorflow, jax, transformers, cuda]
+  Model fine-tuning: [fine-tuning, lora, qlora, rlhf, dpo, distillation]
+  Frontend development: [react, next.js, javascript, typescript, frontend]
+  Cloud and DevOps: [kubernetes, docker, aws, gcp, azure, terraform, devops]
+  Systems programming: [rust, go, c++, webassembly]
+  AI security: [cve, vulnerability, prompt injection, jailbreak, security]
+  Data engineering: [sql, spark, pipeline, etl, data engineering, dbt, kafka]
+  Python development: [python, pip, uv, fastapi, django]

@@ -1,0 +1,88 @@
+# Source registry. Adding a source never needs a code change.
+#
+# tier:    A = primary/official, B = research, C = curated community/press, D = social
+# adapter: rss | arxiv | hf_papers | hn | bluesky | x_api | threads
+# poll_every_minutes: how often the scheduler collects this source
+# enabled: false keeps the adapter wired but skips it (X and Threads need keys / approval)
+
+sources:
+  # ---- Tier A: official lab and company blogs -------------------------------------------
+  - {id: openai_news, name: OpenAI News, tier: A, adapter: rss, url: "https://openai.com/news/rss.xml", poll_every_minutes: 60}
+  - {id: deepmind_blog, name: Google DeepMind Blog, tier: A, adapter: rss, url: "https://deepmind.google/blog/rss.xml", poll_every_minutes: 60}
+  - {id: google_ai_blog, name: Google AI (The Keyword), tier: A, adapter: rss, url: "https://blog.google/technology/ai/rss/", poll_every_minutes: 60}
+  - {id: hf_blog, name: Hugging Face Blog, tier: A, adapter: rss, url: "https://huggingface.co/blog/feed.xml", poll_every_minutes: 60}
+  - {id: msr_blog, name: Microsoft Research Blog, tier: A, adapter: rss, url: "https://www.microsoft.com/en-us/research/feed/", poll_every_minutes: 60}
+  - {id: nvidia_dev_blog, name: NVIDIA Technical Blog, tier: A, adapter: rss, url: "https://developer.nvidia.com/blog/feed", poll_every_minutes: 60}
+  - {id: aws_ml_blog, name: AWS Machine Learning Blog, tier: A, adapter: rss, url: "https://aws.amazon.com/blogs/machine-learning/feed/", poll_every_minutes: 60}
+  - {id: github_changelog, name: GitHub Changelog, tier: A, adapter: rss, url: "https://github.blog/changelog/feed/", poll_every_minutes: 60}
+  - {id: meta_engineering, name: Engineering at Meta, tier: A, adapter: rss, url: "https://engineering.fb.com/feed/", poll_every_minutes: 60}
+
+  # ---- Tier A: GitHub releases of tools developers depend on (Atom feeds, no API key) --
+  - {id: gh_pytorch, name: "GitHub: pytorch/pytorch", tier: A, adapter: rss, url: "https://github.com/pytorch/pytorch/releases.atom", poll_every_minutes: 60, params: {title_prefix: "PyTorch"}}
+  - {id: gh_transformers, name: "GitHub: huggingface/transformers", tier: A, adapter: rss, url: "https://github.com/huggingface/transformers/releases.atom", poll_every_minutes: 60, params: {title_prefix: "Transformers"}}
+  - {id: gh_vllm, name: "GitHub: vllm-project/vllm", tier: A, adapter: rss, url: "https://github.com/vllm-project/vllm/releases.atom", poll_every_minutes: 60, params: {title_prefix: "vLLM"}}
+  - {id: gh_langchain, name: "GitHub: langchain-ai/langchain", tier: A, adapter: rss, url: "https://github.com/langchain-ai/langchain/releases.atom", poll_every_minutes: 60, params: {title_prefix: "LangChain"}}
+  - {id: gh_ollama, name: "GitHub: ollama/ollama", tier: A, adapter: rss, url: "https://github.com/ollama/ollama/releases.atom", poll_every_minutes: 60, params: {title_prefix: "Ollama"}}
+  - {id: gh_anthropic_sdk, name: "GitHub: anthropics/anthropic-sdk-python", tier: A, adapter: rss, url: "https://github.com/anthropics/anthropic-sdk-python/releases.atom", poll_every_minutes: 60, params: {title_prefix: "Anthropic Python SDK"}}
+  - {id: gh_openai_sdk, name: "GitHub: openai/openai-python", tier: A, adapter: rss, url: "https://github.com/openai/openai-python/releases.atom", poll_every_minutes: 60, params: {title_prefix: "OpenAI Python SDK"}}
+  - {id: gh_nextjs, name: "GitHub: vercel/next.js", tier: A, adapter: rss, url: "https://github.com/vercel/next.js/releases.atom", poll_every_minutes: 60, params: {title_prefix: "Next.js"}}
+  - {id: gh_react, name: "GitHub: facebook/react", tier: A, adapter: rss, url: "https://github.com/facebook/react/releases.atom", poll_every_minutes: 60, params: {title_prefix: "React"}}
+  - {id: gh_kubernetes, name: "GitHub: kubernetes/kubernetes", tier: A, adapter: rss, url: "https://github.com/kubernetes/kubernetes/releases.atom", poll_every_minutes: 60, params: {title_prefix: "Kubernetes"}}
+  - {id: gh_vscode, name: "GitHub: microsoft/vscode", tier: A, adapter: rss, url: "https://github.com/microsoft/vscode/releases.atom", poll_every_minutes: 60, params: {title_prefix: "VS Code"}}
+  - {id: gh_rust, name: "GitHub: rust-lang/rust", tier: A, adapter: rss, url: "https://github.com/rust-lang/rust/releases.atom", poll_every_minutes: 60, params: {title_prefix: "Rust"}}
+
+  # ---- Tier B: research --------------------------------------------------------------------
+  - {id: arxiv_ai, name: "arXiv (cs.AI, cs.CL, cs.LG, cs.SE)", tier: B, adapter: arxiv, poll_every_minutes: 1440, params: {categories: [cs.AI, cs.CL, cs.LG, cs.SE], max_results: 60}}
+  - {id: hf_daily_papers, name: Hugging Face Daily Papers, tier: B, adapter: hf_papers, poll_every_minutes: 360, params: {min_upvotes: 5}}
+
+  # ---- Tier C: curated community and press ---------------------------------------------------
+  - id: hn
+    name: Hacker News
+    tier: C
+    adapter: hn
+    poll_every_minutes: 60
+    params:
+      min_points: 60
+      lookback_hours: 48
+      # Keep only titles about AI, software or computing (HN also carries politics, science, etc.).
+      keywords: [ai, llm, llms, gpt, claude, gemini, llama, mistral, deepseek, qwen, model, models, openai, anthropic,
+                 deepmind, nvidia, gpu, cuda, chip, chips, agent, agents, mcp, rag, inference, training, dataset,
+                 python, rust, go, golang, javascript, typescript, java, kotlin, swift, php, ruby, c++, wasm,
+                 webassembly, compiler, linux, kernel, bsd, windows, macos, ios, android, database, postgres,
+                 sqlite, duckdb, redis, docker, kubernetes, cloud, aws, azure, gcp, api, sdk, cli, framework,
+                 react, browser, chrome, firefox, github, git, open source, open-source, programming, programmer,
+                 developer, developers, software, code, coding, security, vulnerability, cve, exploit, malware,
+                 backdoor, breach, pypi, npm, crate, release, released, launch, robot, robotics, quantum]
+  - {id: simonw, name: "Simon Willison's Weblog", tier: C, adapter: rss, url: "https://simonwillison.net/atom/everything/", poll_every_minutes: 120}
+  - {id: techcrunch_ai, name: TechCrunch AI, tier: C, adapter: rss, url: "https://techcrunch.com/category/artificial-intelligence/feed/", poll_every_minutes: 120}
+  - {id: verge_ai, name: The Verge AI, tier: C, adapter: rss, url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", poll_every_minutes: 120}
+  - id: bluesky_curated
+    name: Bluesky (curated accounts)
+    tier: C
+    adapter: bluesky
+    poll_every_minutes: 120
+    params:
+      handles: [simonwillison.net]
+
+  # ---- Tier D: social (official APIs only; disabled until keys / App Review exist) ---------
+  - id: x_curated
+    name: X (curated accounts)
+    tier: D
+    adapter: x_api
+    enabled: false              # set true once X_BEARER_TOKEN is configured and the budget is agreed
+    poll_every_minutes: 180
+    daily_budget_usd: 1.50
+    params:
+      accounts_file: x_accounts.txt
+      max_results_per_account: 5
+      usd_per_post_read: 0.005
+      usd_per_user_lookup: 0.010
+  - id: threads_search
+    name: Threads (keyword search)
+    tier: D
+    adapter: threads
+    enabled: false              # needs the threads_keyword_search permission (Meta App Review)
+    poll_every_minutes: 180
+    params:
+      keywords: ["new model release", "open source LLM", "AI agent framework"]
+      search_type: TOP

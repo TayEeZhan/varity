@@ -1,0 +1,40 @@
+# Ranking weights (ARCHITECTURE_PLAN.md section 7). Every score row records `version`,
+# so bump it whenever a number below changes.
+version: v1
+
+# Authority feature: trust weight of the best source tier in a story.
+tier_trust: {A: 1.0, B: 0.85, C: 0.6, D: 0.4}
+
+# Importance = sum(weight * feature), each feature in [0, 1]. Weights should sum to 1.
+feature_weights:
+  impact: 0.25
+  authority: 0.20
+  corroboration: 0.20
+  velocity: 0.15
+  dev_relevance: 0.10
+  novelty: 0.10
+
+# corroboration = 1 - exp(-k * n), n = independent origins. Social posts from many
+# accounts count as at most `social_origin_cap` origins so a pile-on can't fake consensus.
+corroboration_k: 0.5
+social_origin_cap: 3
+
+penalties:
+  unconfirmed: 0.15   # social-only story, not yet matched by a Tier A/B source
+  opinion: 0.10       # opinion / marketing pieces
+
+# Freshness only orders the feed (rank = importance * freshness). It never changes a tier.
+freshness_tau_hours: {daily: 36, weekly: 120}
+
+tiers:
+  must_know: 75
+  worth_a_look: 50
+  daily_must_know_cap: 5
+  emerging_velocity_min: 0.6
+
+cluster:
+  # Lexical TF-IDF similarity on title + lead text (see pipeline/similarity.py).
+  similarity: 0.6               # merge on similarity alone above this
+  similarity_with_key_term: 0.3 # merge above this when both share a key term (e.g. "gpt-5", "v2.5")
+  window_hours: 72
+  novelty_lookback_days: 14
