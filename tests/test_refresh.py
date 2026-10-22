@@ -297,3 +297,67 @@ def test_scores_error_is_reported_but_demand_stays_updated(tmp_path, monkeypatch
     result = refresh_mod.refresh(data, source_dir=data, session=FakeSession(3, {3: _item(3, NEW_3)}))
     assert result["ok"] is True and result["scores_updated"] is False and "KeyError" in result["scores_error"]
     assert {r["n_posts"] for r in read_rows(data / "demand_monthly.csv") if r["month"] == "2024-03"} == {"5"}
+
+
+# --- refresh with the real build_scores and a temp copy of the real data -------
+
+REAL_DATA = Path(__file__).resolve().parent.parent / "data"
+
+
+class LatestThreadSession:
+    """Fake Algolia: one newest hiring thread with the given posts."""
+
+    def __init__(self, thread_id, title, created, posts):
+        self.hit = {"objectID": str(thread_id), "title": title, "created_at_i": int(created.timestamp())}
+        self.item = _item(thread_id, posts)
+
+    def get(self, url, timeout=None):
+        if "search_by_date" in url:
+            return FakeResponse({"hits": [self.hit], "nbPages": 1})
+        return FakeResponse(self.item)
+
+
+def _real_snapshot():
+    return {p.name: p.read_bytes() for p in REAL_DATA.iterdir() if p.is_file()}
+
+
+def _fake_posts(n):
+    words = ["Python", "Rust", "Kubernetes", "SQL", "React", "Java"]
+    return [f"Co{i} | {words[i % len(words)]} engineer" for i in range(n)]
+
+
+def test_refresh_in_a_temp_dir_rebuilds_skill_scores_there_with_the_real_engine(tmp_path):
+    work = tmp_path / "work"
+    snapshot = _real_snapshot()
+    latest = read_rows(REAL_DATA / "hn_threads.csv")[-1]
+    created = datetime.strptime(latest["created_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    session = LatestThreadSession(int(latest["thread_id"]), latest["title"], created, _fake_posts(60))
+
+    result = refresh_mod.refresh(work, source_dir=REAL_DATA, session=session)
+
+    assert result["ok"] is True, result
+    assert result["scores_updated"] is True and result["scores_error"] is None
+    assert result["build_scores_accepts_data_dir"] is True
+    assert result["data_dir"] == str(work) and result["posts_after"] == 60
+    new = json.loads((work / "skill_scores.json").read_text(encoding="utf-8"))
+    assert new["as_of"] == latest["month"]
+    python = next(s for s in new["skills"] if s["skill"] == "Python")
+    assert result["skills_changed"]["Python"][1] == round(python["demand_share_latest"], 6)
+    # the repo data folder was not touched
+    assert _real_snapshot() == snapshot
+
+
+def test_refresh_adds_a_new_month_in_a_temp_dir_and_scores_follow(tmp_path):
+    work = tmp_path / "work"
+    created = datetime(2026, 11, 1, 15, 0, 0, tzinfo=timezone.utc)
+    session = LatestThreadSession(777, "Ask HN: Who is hiring? (November 2026)", created, _fake_posts(40))
+
+    result = refresh_mod.refresh(work, source_dir=REAL_DATA, session=session)
+
+    assert result["ok"] is True, result
+    assert result["new_thread"] is True and result["month"] == "2026-11"
+    assert result["scores_updated"] is True, result["scores_error"]
+    new = json.loads((work / "skill_scores.json").read_text(encoding="utf-8"))
+    assert new["as_of"] == "2026-11"
+    assert new["data_window"]["to"] == "2026-11"
+    assert new["skills"][0]["sources"][2]["date"] == "2026-11-01"
