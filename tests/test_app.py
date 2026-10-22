@@ -25,6 +25,9 @@ needs_real_data = pytest.mark.skipif(
 DATA_FILES = ("skill_scores.json", "demand_monthly.csv", "taxonomy.json", "exposure.csv",
               "backtest.json", "hn_threads.csv", "ai_context_monthly.csv", "SOURCES.md")
 FORECAST_PREFIX = "12-month forecast"
+# The journey layout: the step tabs come first, then the Evidence tab with three nested tabs.
+JOURNEY_TABS = ["1 You", "2 Skills radar", "3 Future roles", "4 Your plan", "Evidence"]
+EVIDENCE_TABS = ["Skills", "Skill detail", "Method"]
 
 
 def _run_app(path: str = APP_PATH) -> AppTest:
@@ -138,7 +141,7 @@ def test_real_data_shows_the_header_and_the_fixed_lines():
     assert "Estimates, not facts. You decide." in text
     assert "No LLM is used in this view." in text
     assert (PARTIAL_NOTE in text) == bool(scores["partial_month"])
-    assert [t.label for t in at.tabs] == ["Roles", "Pathway", "Skills", "Skill detail", "Method"]
+    assert [t.label for t in at.tabs] == JOURNEY_TABS + EVIDENCE_TABS  # layout move: Roles/Pathway are steps 3/4
     assert len(_skills_table(at)) == len(scores["skills"])
 
 
@@ -395,6 +398,8 @@ def test_no_as_of_view_draws_months_after_as_of_except_the_outcome_point():
         target = pd.Timestamp(str(pd.Period(as_of, freq="M") + 12) + "-01")
         outcome_seen = False
         for df in frames:
+            if "series" not in df.columns:  # the radar chart (step 2) has its own test in this file
+                continue
             for series, rows in df.groupby("series"):
                 if series.startswith("Forecast") or series == "What happened":
                     assert (rows["date"] == target).all()  # only the target month
@@ -535,7 +540,7 @@ def _role_name(card: str) -> str:
 def test_roles_tab_is_first_and_degrades_on_the_fixture(fixture_app):
     at = _run_app(fixture_app)
     assert not at.exception
-    assert [t.label for t in at.tabs][0] == "Roles"
+    assert [t.label for t in at.tabs][0] == "1 You"  # layout move: the journey starts with "1 You"
     assert any("Role match needs the real data files" in i.value for i in at.info)
     assert _cards(at) == []
 
@@ -746,7 +751,7 @@ from streamlit.delta_generator import DeltaGenerator
 from engine import pathway as pathway_mod
 from engine import roles as roles_mod
 
-NO_TARGET_PROMPT = "Choose a target role in the Roles tab first"
+NO_TARGET_PROMPT = "Choose a target role in step 3, Future roles, first"  # layout move: no Roles tab any more
 FAST_NOTE_START = "Fast AI scenario (an assumption, not a forecast): future bets (Stage 3) are moved earlier"
 STAGE_HEADINGS = ["### Stage 1: no-regret", "### Stage 2: near-term demand", "### Also in the gap",
                   "### Stage 3: future bet"]
@@ -815,7 +820,7 @@ def _stage_headings(at: AppTest) -> list[str]:
 def test_pathway_tab_follows_roles_and_asks_for_a_target(fixture_app):
     at = _run_app(fixture_app)
     assert not at.exception
-    assert [t.label for t in at.tabs][:2] == ["Roles", "Pathway"]
+    assert [t.label for t in at.tabs][:4] == JOURNEY_TABS[:4]  # layout move
     assert NO_TARGET_PROMPT in [i.value for i in at.info]
     assert not _done_boxes(at) and not at.get("download_button")
 
@@ -825,7 +830,7 @@ def test_pathway_tab_follows_roles_and_asks_for_a_target(fixture_app):
 def test_pathway_tab_without_a_target_shows_the_prompt_only():
     at = _run_app()
     assert not at.exception
-    assert [t.label for t in at.tabs] == ["Roles", "Pathway", "Skills", "Skill detail", "Method"]
+    assert [t.label for t in at.tabs] == JOURNEY_TABS + EVIDENCE_TABS  # layout move
     assert NO_TARGET_PROMPT in [i.value for i in at.info]
     assert not _done_boxes(at) and not at.get("download_button")
     assert not any(b.key == "change_target_role" for b in at.button)
@@ -1139,3 +1144,272 @@ def test_plan_uses_malaysia_time_when_it_is_still_yesterday_in_utc(monkeypatch):
     assert not at.exception
     assert at.date_input(key="pathway_start").value == dt.date(2026, 11, 2)   # the Monday after the MYT Monday
     assert "Overdue as of 2026-10-26:" in _joined(at)
+
+
+# --- the four-step journey, the Future Skills Radar and the Evidence section -------------------------
+
+import ast
+import statistics
+
+JOURNEY_STEPS = ["1 You", "2 Skills radar", "3 Future roles", "4 Your plan"]
+
+
+def _expected_radar(skills_list: list[dict]) -> tuple[list[dict], float]:
+    """The plotted skills (ok or low_volume, a positive share and prior mentions) and the median share,
+    worked out here from the file with its own code, not with engine.radar."""
+    plotted = [s for s in skills_list if s["status"] in ("ok", "low_volume")
+               and s["demand_share_latest"] and s["demand_share_latest"] > 0 and s["mentions_prev12"] > 0]
+    return plotted, statistics.median(s["demand_share_latest"] for s in plotted)
+
+
+def _expected_user_counts(my_skills: list[str], skills_list: list[dict]) -> dict:
+    plotted, cut = _expected_radar(skills_list)
+    mine = [s for s in plotted if s["skill"] in my_skills]
+    steady = [s for s in mine if s["trend_label"] not in ("Rising", "Falling")]
+    return {"on_chart": len(mine),
+            "rising": sorted(s["skill"] for s in mine if s["trend_label"] == "Rising"),
+            "falling": sorted(s["skill"] for s in mine if s["trend_label"] == "Falling"),
+            "strong": sum(s["demand_share_latest"] >= cut for s in steady),
+            "small": sum(s["demand_share_latest"] < cut for s in steady)}
+
+
+def _sentence(at: AppTest, start: str) -> str:
+    return next(m.value for m in at.markdown if m.value.startswith(start))
+
+
+def _radar_points(at: AppTest) -> pd.DataFrame:
+    """The radar's rows, one per skill, read back from the chart data on the page."""
+    frames = [f for f in _chart_frames(at) if {"mark", "mine", "quadrant"} <= set(f.columns)]
+    assert frames, "no radar chart on the page"
+    return pd.concat(frames).drop_duplicates("skill").reset_index(drop=True)
+
+
+def _parse_your_skills(sentence: str) -> dict:
+    """'Your skills: 4 strong and steady, [1 small and steady,] 1 rising (A, B), 0 falling.'"""
+    def names(word):
+        hit = re.search(rf"\d+ {word}(?: \(([^)]*)\))?", sentence)
+        return sorted(hit.group(1).split(", ")) if hit and hit.group(1) else []
+    small = re.search(r"(\d+) small and steady", sentence)
+    return {"strong": int(re.search(r"(\d+) strong and steady", sentence).group(1)),
+            "small": int(small.group(1)) if small else 0,
+            "rising": names("rising"), "falling": names("falling")}
+
+
+@needs_real_data
+@needs_role_files
+@pytest.mark.parametrize("label", PERSONA_LABELS)
+def test_the_journey_renders_for_each_persona(label):
+    at = _run_app()
+    at.selectbox(key="role_persona").set_value(label).run()
+    assert not at.exception
+    assert [t.label for t in at.tabs][:5] == JOURNEY_STEPS + ["Evidence"]
+    text = _joined(at)
+    assert "Tell us your skills. A CV upload is coming." in text            # step 1
+    assert "**Next:** see how your skills are trending." in text
+    assert "Future Skills Radar" in [s.value for s in at.subheader]          # step 2
+    assert len(at.get("arrow_vega_lite_chart")) + len(at.get("vega_lite_chart")) >= 1
+    assert any(m.value.startswith("**Best fit now: ") for m in at.markdown)   # step 3
+    assert _cards(at)
+    assert NO_TARGET_PROMPT in [i.value for i in at.info]                     # step 4 waits for a target
+    assert "Estimates, not facts. You decide." in text
+    assert any(e.label == "About the data" for e in at.expander)
+
+
+@needs_real_data
+@needs_role_files
+def test_step_1_has_a_cv_slot_that_shows_nothing_yet():
+    at = _run_app()
+    assert not at.exception
+    assert len(at.get("file_uploader")) == 0
+    assert [b.label for b in at.button if b.key == "next_to_radar"] == ["See the skills radar"]
+
+
+def test_the_cv_slot_and_the_sdg_sector_hook_exist_and_show_nothing(tmp_path):
+    """Both hooks are plain functions in app.py. Run them alone, so the app does not have to start."""
+    tree = ast.parse((ROOT / "app.py").read_text(encoding="utf-8"))
+    wanted = {"cv_intake_slot", "sdg_sector_block"}
+    funcs = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in wanted]
+    assert {f.name for f in funcs} == wanted
+    namespace = {"DEFAULT_DATA_DIR": tmp_path}  # an empty folder: data/role_sdg.json is missing
+    exec(compile(ast.Module(body=funcs, type_ignores=[]), "app.py", "exec"), namespace)
+    assert namespace["cv_intake_slot"]() is None
+    assert namespace["sdg_sector_block"]({"name": "Backend Engineer"}) is None
+
+
+@needs_real_data
+@needs_role_files
+def test_the_radar_plots_every_ok_or_low_volume_skill_and_rings_the_users_skills():
+    scores = _scores()
+    plotted, cut = _expected_radar(scores["skills"])
+    at = _run_app()
+    assert not at.exception
+    points = _radar_points(at)
+    assert len(points) == len(plotted) and set(points["skill"]) == {s["skill"] for s in plotted}
+    assert not (set(points["skill"]) & {s["skill"] for s in scores["skills"] if s["status"] == "rare"})
+    assert set(points.loc[points["mine"], "skill"]) == set(PERSONA_SKILLS)     # Aina's five skills
+    assert len(points[points["mine"]]) == 5
+    # a colour mark only for a tested Rising or Falling label; every other skill is grey
+    label_of = {s["skill"]: s["trend_label"] for s in scores["skills"]}
+    for row in points.itertuples():
+        tested = label_of[row.skill] in ("Rising", "Falling")
+        assert (row.mark != "grey") == tested, row.skill
+        assert (row.group == "No clear change") == (not tested), row.skill
+    robust = pd.read_csv(DATA / "exposure_robustness.csv")
+    contested = set(robust.loc[robust["stance_robust"].astype(str).str.lower() == "false", "skill"])
+    assert all(row.contested == (row.skill in contested) for row in points.itertuples())
+    assert all(row.mark == "hollow" for row in points.itertuples() if row.contested and row.mark != "grey")
+    # x is the latest share, y the change in share, both from the file
+    by_skill = {s["skill"]: s for s in plotted}
+    for row in points.itertuples():
+        s = by_skill[row.skill]
+        assert row.share == pytest.approx(s["demand_share_latest"])
+        change = (s["mentions_last12"] / s["posts_last12"]) / (s["mentions_prev12"] / s["posts_prev12"]) - 1
+        assert row.change == pytest.approx(change)
+
+
+@needs_real_data
+@needs_role_files
+@pytest.mark.parametrize("label", PERSONA_LABELS)
+def test_the_quadrant_counts_in_the_summary_sentences_match_the_data(label):
+    scores = _scores()
+    my = PERSONA_LABEL_SKILLS[label]
+    plotted, _ = _expected_radar(scores["skills"])
+    at = _run_app()
+    at.selectbox(key="role_persona").set_value(label).run()
+    assert not at.exception
+    want = _expected_user_counts(my, scores["skills"])
+    got = _parse_your_skills(_sentence(at, "Your skills: "))
+    assert got == {"strong": want["strong"], "small": want["small"],
+                   "rising": want["rising"], "falling": want["falling"]}
+    assert want["on_chart"] == want["strong"] + want["small"] + len(want["rising"]) + len(want["falling"])
+    n_rising = sum(s["trend_label"] == "Rising" for s in plotted)
+    n_falling = sum(s["trend_label"] == "Falling" for s in plotted)
+    assert _sentence(at, "Across all ") == (
+        f"Across all {len(plotted)} skills on the chart: {n_rising} rising, {n_falling} falling and "
+        f"{len(plotted) - n_rising - n_falling} with no clear change over the last 12 months.")
+    movers = _sentence(at, "Tested movers")
+    assert all(s["skill"] in movers for s in plotted if s["trend_label"] in ("Rising", "Falling"))
+
+
+@needs_real_data
+@needs_role_files
+def test_the_radar_caption_gives_the_backtest_hit_rate_and_how_to_read_it():
+    bt = json.loads((DATA / "backtest.json").read_text(encoding="utf-8"))["trend_label_backtest"]
+    at = _run_app()
+    caption = next(c.value for c in at.caption if c.value.startswith("How to read it"))
+    assert f"{bt['trend_label_hit_rate']:.0%} of the time" in caption and f"n = {bt['n']}" in caption
+    for needle in ("log scale", "Hacker News", "hollow", "Grey", "black ring"):
+        assert needle in caption
+
+
+@needs_real_data
+@needs_role_files
+def test_the_radar_follows_the_as_of_slider():
+    from engine.scores import build_scores
+
+    at = _run_app()
+    now = _radar_points(at).set_index("skill")
+    at.sidebar.select_slider[0].set_value("2023-12").run()
+    assert not at.exception
+    old = build_scores(as_of="2023-12")["skills"]
+    plotted, _ = _expected_radar(old)
+    points = _radar_points(at).set_index("skill")
+    assert set(points.index) == {s["skill"] for s in plotted}
+    for s in plotted:
+        assert points.loc[s["skill"], "share"] == pytest.approx(s["demand_share_latest"])
+    assert not points["share"].equals(now["share"].reindex(points.index))   # a different month, other shares
+
+
+@needs_real_data
+@needs_role_files
+def test_the_radar_survives_a_fixture_without_history(fixture_app):
+    at = _run_app(fixture_app)
+    assert not at.exception
+    assert "Future Skills Radar" in [s.value for s in at.subheader]
+
+
+@needs_real_data
+@needs_pathway_files
+def test_step_3_best_fit_line_and_the_next_buttons_move_the_journey():
+    at = _run_app()
+    top = _cards(at)[0]
+    name, match = _role_name(top), _matches(at)[0]
+    outlook = next(m for m in at.markdown if m.value.startswith("Role demand:") and "badge" in m.value).value
+    label = re.search(r":\w+-badge\[([^\]]+)\]", outlook).group(1)
+    assert f"**Best fit now: {name} ({match}% match, demand {label})**" in [m.value for m in at.markdown]
+    at.button(key="next_to_radar").click().run()
+    assert at.session_state["journey_step"] == "2 Skills radar"
+    at.button(key="next_to_roles").click().run()
+    assert at.session_state["journey_step"] == "3 Future roles"
+    assert not any(b.key == "next_to_plan" for b in at.button)    # only after a target is chosen
+    at.button(key=f"target_{ROLE_KEYS[name]}").click().run()
+    assert at.session_state["target_role"] == name
+    at.button(key="next_to_plan").click().run()
+    assert at.session_state["journey_step"] == "4 Your plan" and not at.exception
+    at.button(key="change_target_role").click().run()              # clearing the target returns to step 3
+    assert "target_role" not in at.session_state and at.session_state["journey_step"] == "3 Future roles"
+
+
+@needs_real_data
+@needs_pathway_files
+def test_step_4_leads_with_a_summary_card_and_the_no_regret_skills():
+    at, name = _pathway_app(target="Backend Engineer")
+    plan = _expected_plan(name)
+    metrics = {m.label: m.value for m in at.metric}
+    assert metrics == {"Skills to learn": str(plan["totals"]["steps"]),
+                       "Hours (estimate)": f"{plan['totals']['hours']:g}",
+                       "Finish date": plan["finish_date"]}
+    markdown = [m.value for m in at.markdown]
+    assert f"**Your plan in short:** become a {name}." in markdown
+    assert _no_regret(plan) == ["Node.js"]
+    assert "No-regret skills (useful for several of your roles): Node.js." in markdown
+    assert ("This plan still works if the forecast is wrong: it starts with skills useful for several of "
+            "your roles.") in markdown
+    # the card comes before the plan's stages
+    first_stage = next(i for i, v in enumerate(markdown) if v.startswith("### Stage 1"))
+    assert markdown.index(f"**Your plan in short:** become a {name}.") < first_stage
+
+
+@needs_real_data
+@needs_pathway_files
+def test_step_4_does_not_claim_a_no_regret_start_when_there_is_none():
+    at = _run_app()
+    at.selectbox(key="role_persona").set_value(PERSONA_LABELS[1]).run()      # Ben: no no-regret skills
+    target = _role_name(_cards(at)[0])
+    at.session_state["target_role"] = target
+    at.run()
+    assert not at.exception
+    assert _no_regret(_expected_plan(target, skills=PERSONA_LABEL_SKILLS[PERSONA_LABELS[1]])) == []
+    text = _joined(at)
+    assert "No-regret skills (useful for several of your roles)" not in text
+    assert "it starts with skills useful for several of your roles" not in text
+    assert "so this plan follows what employers ask for now, not the forecast" in text
+
+
+@needs_real_data
+def test_the_evidence_section_still_renders_skills_detail_and_method():
+    scores = _scores()
+    at = _run_app()
+    assert not at.exception
+    assert [t.label for t in at.tabs][-3:] == EVIDENCE_TABS
+    assert len(_skills_table(at)) == len(scores["skills"])                      # Skills
+    _pick_skill(at, "Python")                                                    # Skill detail
+    assert not at.exception and "Python" in [s.value for s in at.subheader]
+    assert "Trend label:" in _joined(at)
+    assert "How good is the forecast?" in _joined(at)                            # Method
+
+
+@needs_real_data
+def test_the_header_is_short_and_the_long_notes_sit_in_about_the_data():
+    at = _run_app()
+    about = next(e for e in at.expander if e.label == "About the data")
+    inside = " ".join(m.value for m in about.markdown) + " " + " ".join(c.value for c in about.caption)
+    assert "Forecast model: naive3 (mean of last 3 months)" in inside
+    assert "No LLM is used in this view." in inside
+    assert "File: data/skill_scores.json" in inside
+    assert "honest ranges, not with forecast numbers" in inside               # the finding that frames the product
+    top_level = [m.value for m in at.markdown]
+    assert ("Decision support under uncertainty: tested trend labels, honest ranges, and a plan that still "
+            "works if the forecast is wrong.") in top_level
+    assert "Estimates, not facts. You decide." in top_level
+    assert not about.proto.expanded                                            # collapsed by default

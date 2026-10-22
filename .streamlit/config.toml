@@ -1,0 +1,12 @@
+# Light, calm theme for the journey. Text on the page background and the primary colour on white
+# both pass WCAG AA (text #1c2b2a on #ffffff is about 15:1; primary #0f6b66 on #ffffff is about 6:1).
+[theme]
+base = "light"
+primaryColor = "#0f6b66"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#eef3f2"
+textColor = "#1c2b2a"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
