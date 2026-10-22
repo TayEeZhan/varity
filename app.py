@@ -37,11 +37,15 @@ SCENARIO_KEYS = ["moderate", "fast"]
 FIXTURE_BANNER = "Prototype: showing sample data, not real forecasts."
 PARTIAL_NOTE = "The latest month's thread is still open; its numbers can change."
 NO_LABEL = "No label"
+BUSY_NOTE = "A refresh is already running; try again in a few seconds."
+# Plain-words description of each production model (engine.forecast PRODUCTION_MODELS).
+MODEL_WORDS = {"naive": "last month's value", "naive3": "mean of last 3 months"}
 
 # Chart colours: slots 1 and 2 of the validated categorical palette (dataviz skill,
 # references/palette.md), light and dark. Grey is neutral ink for the thin monthly line.
 SERIES_BLUE = {"light": "#2a78d6", "dark": "#3987e5"}
 SERIES_ORANGE = {"light": "#eb6834", "dark": "#d95926"}
+SERIES_AQUA = {"light": "#1baf7a", "dark": "#199e70"}
 MUTED_GREY = "#8b8a84"
 
 
@@ -120,6 +124,11 @@ def pct(value, digits: int = 1) -> str:
     return f"{value:.{digits}%}" if _is_number(value) else NA
 
 
+def pp_plain(value, unit: bool = True) -> str:
+    """Percentage points with 1 decimal, or n/a. Never 0 for a missing value."""
+    return (f"{value:.1f}" + (" pp" if unit else "")) if _is_number(value) else NA
+
+
 def signed_pp(value) -> str:
     """Format percentage points with a sign."""
     return f"{value:+.1f} pp" if _is_number(value) else NA
@@ -182,10 +191,13 @@ def is_dark_theme() -> bool:
 # --------------------------------------------------------------------------------------
 
 def line_chart(long: pd.DataFrame, forecast: pd.DataFrame | None, domain: list[str],
-               colors: list[str], y_title: str) -> alt.Chart:
-    """Thin monthly line, thicker smoothed line, and an optional forecast point with a band.
+               colors: list[str], y_title: str, outcome: pd.DataFrame | None = None) -> alt.Chart:
+    """Thin monthly line, thicker smoothed line, an optional forecast point with a band and an
+    optional outcome marker (what happened).
 
     `long` has columns date, series, value. `forecast` has date, series, value, low, high.
+    `outcome` has date, series, value. `domain` lists the series names in the order of `colors`:
+    monthly, smoothed, then the forecast (if given), then the outcome (if given).
     A legend names every series, so colour is never the only cue.
     """
     scale = alt.Scale(domain=domain, range=colors)
@@ -210,13 +222,27 @@ def line_chart(long: pd.DataFrame, forecast: pd.DataFrame | None, domain: list[s
             x=x, y=alt.Y("low:Q", title=y_title), y2="high:Q", color=color, tooltip=fc_tooltip))
         layers.append(alt.Chart(forecast).mark_point(filled=True, size=90, opacity=1).encode(
             x=x, y=y, color=color, tooltip=fc_tooltip))
+    if outcome is not None and not outcome.empty:
+        out_tooltip = [alt.Tooltip("date:T", title="Target month", format="%Y-%m"),
+                       alt.Tooltip("value:Q", title="What happened", format=".1%")]
+        layers.append(alt.Chart(outcome).mark_point(
+            shape="diamond", filled=True, size=140, opacity=1, stroke="white", strokeWidth=1
+        ).encode(x=x, y=y, color=color, tooltip=out_tooltip))
     return alt.layer(*layers).properties(height=340)
 
 
 def skill_chart(skill_hist: pd.DataFrame, fc_row: dict | None, fc_month: str, labels: list[str],
-                dark: bool) -> alt.Chart:
+                dark: bool, outcome_value: float | None = None) -> alt.Chart:
+    """History up to the as-of month, plus the forecast at fc_month and, in an as-of view,
+    the actual value there. labels = [monthly, smoothed, forecast, what happened]."""
     mode = "dark" if dark else "light"
-    colors = [MUTED_GREY, SERIES_BLUE[mode], SERIES_ORANGE[mode]]
+    domain, colors = list(labels[:2]), [MUTED_GREY, SERIES_BLUE[mode]]
+    if fc_row is not None:
+        domain.append(labels[2])
+        colors.append(SERIES_ORANGE[mode])
+    if outcome_value is not None:
+        domain.append(labels[3])
+        colors.append(SERIES_AQUA[mode])
     hist = skill_hist.assign(date=pd.to_datetime(skill_hist["month"] + "-01"))
     long = pd.concat([
         hist[["date"]].assign(series=labels[0], value=hist["share"].to_numpy()),
@@ -227,8 +253,12 @@ def skill_chart(skill_hist: pd.DataFrame, fc_row: dict | None, fc_month: str, la
         forecast = pd.DataFrame([{"date": pd.Timestamp(fc_month + "-01"), "series": labels[2],
                                   "value": fc_row["value_12m"], "low": fc_row["low"],
                                   "high": fc_row["high"]}])
-    return line_chart(long, forecast, labels, colors,
-                      "Share of job posts that mention the skill")
+    outcome = None
+    if outcome_value is not None:
+        outcome = pd.DataFrame([{"date": pd.Timestamp(fc_month + "-01"), "series": labels[3],
+                                 "value": outcome_value}])
+    return line_chart(long, forecast, domain, colors,
+                      "Share of job posts that mention the skill", outcome)
 
 
 # --------------------------------------------------------------------------------------
@@ -237,6 +267,9 @@ def skill_chart(skill_hist: pd.DataFrame, fc_row: dict | None, fc_month: str, la
 
 def show_refresh_result(result: dict, current: dict) -> None:
     """Render the stored result of the last click on 'Refresh live data'."""
+    if result.get("busy") or "already running" in str(result.get("error") or ""):
+        st.info(BUSY_NOTE)
+        return
     if not result.get("ok"):
         st.error(f"Refresh failed: {result.get('error') or 'unknown error'}")
         fb = result.get("fallback") or {}
@@ -269,11 +302,18 @@ def show_refresh_result(result: dict, current: dict) -> None:
 
 st.session_state.setdefault("data_dir", None)
 st.session_state.setdefault("refresh_result", None)
+st.session_state.setdefault("live_fetched_at", None)
 
 
 def active_data_dir() -> Path:
     chosen = st.session_state.get("data_dir")
     return Path(chosen) if chosen else DEFAULT_DATA_DIR
+
+
+def using_runtime_folder() -> bool:
+    """True when the scores come from a refreshed runtime folder, not the committed data/ folder."""
+    chosen = st.session_state.get("data_dir")
+    return bool(chosen) and Path(chosen).resolve() != DEFAULT_DATA_DIR.resolve()
 
 
 def load_active() -> tuple[Path, Path, dict]:
@@ -310,9 +350,18 @@ if not is_fixture:
             st.session_state["refresh_result"] = result
             if result.get("ok") and result.get("data_dir"):
                 st.session_state["data_dir"] = result["data_dir"]
+                st.session_state["live_fetched_at"] = result.get("fetched_at")
                 st.session_state.pop("as_of_view", None)  # back to the newest month
                 data_dir, scores_path, scores = load_active()
                 latest_as_of = scores.get("as_of")
+        if using_runtime_folder() and st.button(
+                "Back to committed snapshot",
+                help="Drop the refreshed data in this session and show the committed files again."):
+            st.session_state["data_dir"] = None
+            st.session_state["live_fetched_at"] = None
+            st.session_state["refresh_result"] = None
+            st.session_state.pop("as_of_view", None)
+            st.rerun()
         if st.session_state["refresh_result"]:
             show_refresh_result(st.session_state["refresh_result"], scores)
 
@@ -357,6 +406,14 @@ past_view = view_as_of != latest_as_of
 st.title("Verity")
 st.subheader("Future-ready skills for tech developers")
 st.markdown(f"**Data as of:** {view.get('as_of') or NA} | generated {view.get('generated_at') or NA}")
+model_name = (view.get("interval") or {}).get("model")
+if model_name:
+    words = f" ({MODEL_WORDS[model_name]})" if model_name in MODEL_WORDS else ""
+    st.markdown(f"Forecast model: {model_name}{words}, {band_label}")
+if using_runtime_folder():
+    committed = read_json(DEFAULT_DATA_DIR / SCORES_NAME) or {}
+    st.info(f"Live refresh at {st.session_state.get('live_fetched_at') or NA}. Held only on this server until it "
+            f"restarts; the committed snapshot is dated {committed.get('generated_at') or NA}.")
 if view.get("partial_month") is True:
     st.info(PARTIAL_NOTE)
 if past_view:
@@ -441,8 +498,29 @@ with tab_detail:
         skill = skills[names.index(picked)]
         status = skill.get("status")
         fc = get_forecast(skill, scenario)
+        moderate = get_forecast(skill, "moderate")
         has_forecast = (status is None or status == "ok") and _is_number(fc.get("value_12m"))
+        has_moderate = (status is None or status == "ok") and _is_number(moderate.get("value_12m"))
         target_month = month_add(view_as_of, HORIZON_MONTHS) if view_as_of else None
+        scenario_short = scenario_label.split(" (")[0]
+
+        # What happened: graded against the Moderate band, the one the backtest calibrated, on
+        # the single target month (the same quantity the backtest uses).
+        outcome = None
+        outcome_text = None
+        target_row = None
+        if past_view and target_month and demand is not None:
+            target_rows = demand[(demand["skill"] == picked) & (demand["month"] == target_month)]
+            if target_rows.empty:
+                outcome_text = f"{target_month} is not in the data yet, so the outcome is not known."
+            elif not has_moderate:
+                outcome_text = ("No forecast was made for this skill at that date, "
+                                "so there is nothing to compare.")
+            else:
+                from engine.outcome import band_verdict
+
+                target_row = target_rows.iloc[0]
+                outcome = band_verdict(moderate, target_row["mentions"], target_row["n_posts"])
 
         st.subheader(picked)
         if has_forecast and target_month:
@@ -452,21 +530,23 @@ with tab_detail:
             st.write(skill["note"])
 
         if demand is not None and view_as_of:
+            # Only months up to the as-of month are drawn. The one exception is the outcome point.
             hist = demand[(demand["skill"] == picked) & (demand["month"] <= view_as_of)]
             hist = hist.sort_values("month")
             if hist.empty:
                 st.info("No monthly history for this skill in the data folder.")
             else:
                 labels = ["Monthly share", "3-month smoothed",
-                          f"Forecast {target_month} with band"]
+                          f"Forecast {target_month} ({scenario_short}) with band", "What happened"]
                 st.altair_chart(
                     skill_chart(hist, fc if has_forecast else None, target_month, labels,
-                                is_dark_theme()),
+                                is_dark_theme(), outcome["actual"] if outcome else None),
                     width="stretch")
                 st.caption("Share of the month's job posts that mention the skill (Hacker News "
                            "'Who is hiring?'). The smoothed line is the mean of the last 3 months."
                            + (f" The point and bar at the right are the forecast and its {band_label}."
-                              if has_forecast else ""))
+                              if has_forecast else "")
+                           + (" The diamond is what happened." if outcome else ""))
         else:
             st.info("The monthly history is not available for the sample data.")
 
@@ -484,15 +564,20 @@ with tab_detail:
                 f"{pprev} posts ({pct(mprev / pprev if pprev else None)}){p_text}. "
                 "This is observed, not a forecast.")
 
-        # Scenario shift
+        # Scenario shift. The band is asymmetric, so "inside" means low <= Fast value <= high.
         shift, width = skill.get("scenario_shift_pp"), skill.get("band_width_pp")
+        fast_value = get_forecast(skill, "fast").get("value_12m")
         if _is_number(shift) and _is_number(width):
-            inside = abs(shift) < width / 2
-            verdict = ("inside the band" if inside
-                       else "larger than half the band: outside the band")
+            low, high = moderate.get("low"), moderate.get("high")
+            if _is_number(fast_value) and _is_number(low) and _is_number(high):
+                verdict = ("inside the Moderate band" if low <= fast_value <= high
+                           else "outside the Moderate band")
+                verdict_text = f" The Fast forecast is {verdict} ({pct(low)} to {pct(high)})."
+            else:
+                verdict_text = ""
             st.markdown(
                 f"**Fast scenario shift:** {signed_pp(shift)} against the Moderate forecast, next "
-                f"to a band width of {width:.1f} pp. The shift is {verdict}.")
+                f"to a band width of {width:.1f} pp.{verdict_text}")
         if skill.get("note"):
             st.markdown(f"**Note:** {skill['note']}")
         st.markdown(f"**AI stance:** {skill.get('stance') or NA} | **SDG:** {sdg_text(skill)}")
@@ -500,39 +585,30 @@ with tab_detail:
         # What happened (as-of views only)
         if past_view and target_month and demand is not None:
             st.subheader("What happened")
-            last_data_month = demand["month"].max()
-            if target_month > last_data_month:
-                st.write(f"{target_month} is not in the data yet, so the outcome is not known.")
-            elif not has_forecast:
-                st.write("No forecast was made for this skill at that date, "
-                         "so there is nothing to compare.")
+            if outcome is None:
+                st.write(outcome_text)
             else:
+                open_note = (" That month's thread was still open, so the number can change."
+                             if scores.get("partial_month") is True and target_month == latest_as_of
+                             else "")
+                st.write(
+                    f"Graded against the Moderate band (the calibrated one): {pct(moderate['low'])} "
+                    f"to {pct(moderate['high'])}, from a forecast of {pct(moderate['value_12m'])} "
+                    f"made at {view_as_of}. The actual {target_month} value, smoothed the same way "
+                    f"as the model's input, was {pct(outcome['actual'])}. The actual value was "
+                    f"{outcome['place']} the band.{open_note}")
+                st.caption("The Fast band is an assumption and is not graded.")
                 window = [month_add(target_month, -i) for i in (2, 1, 0)]
                 rows_t = demand[(demand["skill"] == picked) & (demand["month"].isin(window))]
-                if len(rows_t) < len(window) or rows_t["n_posts"].sum() == 0:
-                    st.write("The three months ending at the target are not all in the data.")
-                else:
+                reference = ""
+                if len(rows_t) == len(window) and rows_t["n_posts"].sum() > 0:
                     m_sum, n_sum = int(rows_t["mentions"].sum()), int(rows_t["n_posts"].sum())
-                    actual = m_sum / n_sum
-                    low, high = fc["low"], fc["high"]
-                    if actual < low:
-                        place = "below the band"
-                    elif actual > high:
-                        place = "above the band"
-                    else:
-                        place = "inside the band"
-                    open_note = (" That month's thread was still open, so the number can change."
-                                 if scores.get("partial_month") is True and target_month == latest_as_of
-                                 else "")
-                    st.write(
-                        f"The pooled share over the 3 months ending {target_month} was "
-                        f"{pct(actual)} ({m_sum}/{n_sum} posts). The forecast made at {view_as_of} "
-                        f"was {pct(fc['value_12m'])} (band {pct(low)} to {pct(high)}, "
-                        f"{scenario_label}). The actual value was {place}.{open_note}")
-                    single = demand[(demand["skill"] == picked) & (demand["month"] == target_month)]
-                    if not single.empty:
-                        st.caption(f"For reference, {target_month} alone: "
-                                   f"{pct(float(single['share'].iloc[0]))}.")
+                    reference = (f" Pooled share over the 3 months ending {target_month}: "
+                                 f"{pct(m_sum / n_sum)} ({m_sum}/{n_sum} posts).")
+                st.caption(f"For reference only: {target_month} raw share "
+                           f"{pct(float(target_row['share']))} "
+                           f"({int(target_row['mentions'])}/{int(target_row['n_posts'])} posts)."
+                           f"{reference}")
 
         # Sources
         st.subheader("Sources")
@@ -581,19 +657,28 @@ def group_name(key: str) -> str:
     return key
 
 
+def signed(value) -> str:
+    return f"{value:+.2f}" if _is_number(value) else NA
+
+
+def gain_text(gain: dict, ci: list) -> str:
+    """'+0.14 (+0.07 to +0.22)'; 'n/a' pieces when the file has no number; 'baseline' for naive."""
+    if not gain:
+        return "baseline"
+    return f"{signed(gain.get('test_h12_mae_gain_pp'))} ({signed(ci[0])} to {signed(ci[1])})"
+
+
 def mae_table(models: dict) -> pd.DataFrame:
     rows = []
     for name, m in models.items():
         early, test = m.get("early_mae_pp") or {}, m.get("test_mae_pp") or {}
         gain = m.get("test_h12_vs_naive") or {}
-        ci = gain.get("ci95_skill_bootstrap") or [None, None]
+        ci = list(gain.get("ci95_skill_bootstrap") or []) + [None, None]
         rows.append({
             "Model": name,
             "Early h=1": early.get("h1"), "Early h=6": early.get("h6"), "Early h=12": early.get("h12"),
             "Test h=1": test.get("h1"), "Test h=6": test.get("h6"), "Test h=12": test.get("h12"),
-            "Test h=12 gain vs naive (bootstrap CI)":
-                f"{gain['test_h12_mae_gain_pp']:+.2f} ({ci[0]:+.2f} to {ci[1]:+.2f})"
-                if _is_number(gain.get("test_h12_mae_gain_pp")) else "baseline",
+            "Test h=12 gain vs naive (bootstrap CI)": gain_text(gain, ci),
             "In production": "yes" if m.get("in_production") else "no",
         })
     return pd.DataFrame(rows)
@@ -605,7 +690,10 @@ with tab_method:
                 "Run: python -m engine.backtest")
     else:
         origins = backtest.get("origins") or {}
+        bt_to = (backtest.get("data_window") or {}).get("to") or NA
         st.header("How good is the forecast?")
+        st.caption(f"Backtest numbers are computed on all data up to {bt_to}; they do not change "
+                   "with the As-of slider.")
         st.write(
             f"We replayed history. At each origin month we forecast 1 to 12 months ahead and compared "
             f"with what happened. Early origins: {' to '.join(origins.get('early') or [NA])} "
@@ -629,7 +717,7 @@ with tab_method:
         st.write(
             f"The {cov.get('label') or 'band'} covered {pct(cov.get('test_h12'))} of real values at "
             f"h=12 on the test origins (target {pct(cov.get('nominal'), 0)}), with a mean band width of "
-            f"{cov.get('test_mean_band_width_h12_pp', 0):.1f} pp. "
+            f"{pp_plain(cov.get('test_mean_band_width_h12_pp'))}. "
             "A coverage above the target means the band is wide, not tight. "
             f"Band type: {interval_bt.get('type') or NA}.")
         groups = cov.get("by_share_group") or {}
@@ -638,8 +726,7 @@ with tab_method:
                 {"Share group": group_name(key),
                  "Skill-origins": g.get("n_skill_origins"),
                  "Coverage at h=12": pct(g.get("h12")),
-                 "Mean band width at h=12 (pp)": f"{g['mean_band_width_h12_pp']:.1f}"
-                 if _is_number(g.get("mean_band_width_h12_pp")) else NA}
+                 "Mean band width at h=12 (pp)": pp_plain(g.get("mean_band_width_h12_pp"), unit=False)}
                 for key, g in groups.items()]), hide_index=True, width="stretch")
             if cov.get("share_group_definition"):
                 st.caption(f"Share group: {cov['share_group_definition']}.")
@@ -667,6 +754,8 @@ with tab_method:
     if ai_context is not None and not ai_context.empty:
         st.header("Share of job posts that mention AI at all (company context, not a skill)")
         ai_frame = ai_context.sort_values("month")
+        if view_as_of:  # an as-of view shows only what was known then
+            ai_frame = ai_frame[ai_frame["month"] <= view_as_of]
         ai_frame = ai_frame.assign(date=pd.to_datetime(ai_frame["month"] + "-01"))
         ai_labels = ["Monthly share", "3-month smoothed"]
         mode = "dark" if is_dark_theme() else "light"

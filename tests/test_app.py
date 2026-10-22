@@ -200,8 +200,10 @@ def test_skill_detail_shows_trend_shift_band_sources_and_a_chart():
     assert f"{skill['mentions_last12']} mentions in {skill['posts_last12']} posts" in text
     assert f"p = {skill['trend_p']:.3f}" in text
     assert f"band width of {skill['band_width_pp']:.1f} pp" in text
-    inside = abs(skill["scenario_shift_pp"]) < skill["band_width_pp"] / 2
-    assert ("The shift is inside the band." in text) == inside
+    band, fast = skill["forecast"]["moderate"], skill["forecast"]["fast"]["value_12m"]
+    inside = band["low"] <= fast <= band["high"]  # the band is asymmetric: no half-width rule
+    assert ("The Fast forecast is inside the Moderate band" in text) == inside
+    assert ("The Fast forecast is outside the Moderate band" in text) == (not inside)
     assert "What happened" not in text  # only in an as-of view
     for src in skill["sources"]:
         if src["url"].startswith("http"):
@@ -222,8 +224,9 @@ def test_as_of_2023_12_shows_what_happened_for_a_skill_with_data():
     assert "What happened" in [s.value for s in at.subheader]
     text = _joined(at)
     assert "Looking back: this view uses only data up to 2023-12." in text
-    assert "The pooled share over the 3 months ending 2024-12" in text
+    assert "Graded against the Moderate band (the calibrated one)" in text
     assert "The actual value was" in text
+    assert "For reference only: 2024-12 raw share" in text
     assert "**Data as of:** 2023-12 |" in text
     assert len(_skills_table(at)) == len(scores["skills"])
     assert _data_snapshot() == snapshot  # an as-of view writes no file
@@ -266,9 +269,31 @@ def test_refresh_success_shows_posts_fetched_at_and_changed_skills(monkeypatch, 
     assert "Fetched at 2026-10-22T09:00:00Z." in text
     assert "Python: 25.0% -> 26.0%" in text
     assert "generated 2026-10-30T00:00:00Z" in text  # scores come from the returned data_dir
+    committed = _scores()["generated_at"]
+    assert ("Live refresh at 2026-10-22T09:00:00Z. Held only on this server until it restarts; "
+            f"the committed snapshot is dated {committed}.") in text
     at.run()  # the new folder stays in use on the next rerun
     assert "generated 2026-10-30T00:00:00Z" in _joined(at)
     assert calls == [1]  # a rerun does not refresh again
+
+    labels = [b.label for b in at.sidebar.button]
+    assert labels == ["Refresh live data", "Back to committed snapshot"]
+    at.sidebar.button[1].click().run()
+    assert not at.exception
+    text = _joined(at)
+    assert f"generated {committed}" in text and "Live refresh at" not in text
+    assert [b.label for b in at.sidebar.button] == ["Refresh live data"]
+
+
+@needs_real_data
+def test_refresh_busy_is_an_info_not_an_error(monkeypatch):
+    busy = {"ok": False, "busy": True, "error": "a refresh is already running"}
+    monkeypatch.setattr(engine.refresh, "refresh", lambda *a, **k: busy)
+    at = _run_app()
+    at.sidebar.button[0].click().run()
+    assert not at.exception
+    assert "A refresh is already running; try again in a few seconds." in [i.value for i in at.info]
+    assert not [e.value for e in at.error if "Refresh failed" in e.value]
 
 
 @needs_real_data
@@ -323,3 +348,141 @@ def test_method_tab_renders_the_backtest_numbers_from_the_file():
     assert len(groups) == len(bt["coverage"]["by_share_group"])
     assert "Share of job posts that mention AI at all (company context, not a skill)" in text
     assert any("huggingface.co" in m.value and m.value.startswith("- [") for m in at.markdown)
+
+
+# --- header, method caption, calibration, no look-ahead -------------------------------------
+
+@needs_real_data
+def test_header_names_the_forecast_model_and_the_band():
+    scores = _scores()
+    at = _run_app()
+    assert scores["interval"]["model"] == "naive3"
+    assert f"Forecast model: naive3 (mean of last 3 months), {scores['interval']['label']}" in _joined(at)
+
+
+@needs_real_data
+def test_method_tab_says_the_backtest_does_not_move_with_the_slider():
+    bt = json.loads((DATA / "backtest.json").read_text(encoding="utf-8"))
+    at = _run_app()
+    at.sidebar.select_slider[0].set_value("2024-06").run()
+    assert (f"Backtest numbers are computed on all data up to {bt['data_window']['to']}; "
+            "they do not change with the As-of slider.") in _joined(at)
+
+
+def _chart_frames(at: AppTest) -> list:
+    """The data frame behind every layer of every Altair chart on the page."""
+    import pyarrow as pa
+
+    frames = []
+    for chart in at.get("vega_lite_chart") + at.get("arrow_vega_lite_chart"):
+        for dataset in chart.proto.datasets:
+            frames.append(pa.ipc.open_stream(dataset.data.data).read_all().to_pandas())
+    return frames
+
+
+@needs_real_data
+def test_no_as_of_view_draws_months_after_as_of_except_the_outcome_point():
+    import pandas as pd
+
+    at = _run_app()
+    for as_of in ("2023-12", "2024-06"):
+        at.sidebar.select_slider[0].set_value(as_of).run()
+        assert not at.exception
+        frames = _chart_frames(at)
+        assert frames
+        last_allowed = pd.Timestamp(as_of + "-01")
+        target = pd.Timestamp(str(pd.Period(as_of, freq="M") + 12) + "-01")
+        outcome_seen = False
+        for df in frames:
+            for series, rows in df.groupby("series"):
+                if series.startswith("Forecast") or series == "What happened":
+                    assert (rows["date"] == target).all()  # only the target month
+                    outcome_seen |= series == "What happened"
+                else:
+                    assert rows["date"].max() <= last_allowed, (as_of, series)
+        assert outcome_seen
+
+
+@needs_real_data
+def test_what_happened_is_graded_against_the_moderate_band_whatever_the_scenario():
+    at = _run_app()
+    at.sidebar.select_slider[0].set_value("2023-12").run()
+
+    def verdicts():
+        return [m.value for m in at.markdown if m.value.startswith("Graded against the Moderate band")]
+
+    names = at.selectbox(key="detail_skill").options
+    for name in names[:6]:
+        _pick_skill(at, name)
+        moderate_view = verdicts()
+        at.sidebar.radio[0].set_value("fast").run()
+        fast_view = verdicts()
+        at.sidebar.radio[0].set_value("moderate").run()
+        assert moderate_view == fast_view, name  # the Fast toggle never changes the verdict
+
+
+@needs_real_data
+def test_app_verdict_text_matches_band_verdict_for_a_skill():
+    import pandas as pd
+    from engine.outcome import band_verdict
+    from engine.scores import build_scores
+
+    demand = pd.read_csv(DATA / "demand_monthly.csv").set_index(["skill", "month"])
+    view = build_scores(as_of="2023-12")
+    at = _run_app()
+    at.sidebar.select_slider[0].set_value("2023-12").run()
+    for skill in [s for s in view["skills"] if s["status"] == "ok"][:5]:
+        _pick_skill(at, skill["skill"])
+        row = demand.loc[(skill["skill"], "2024-12")]
+        verdict = band_verdict(skill["forecast"]["moderate"], row["mentions"], row["n_posts"])
+        text = " ".join(m.value for m in at.markdown if m.value.startswith("Graded against"))
+        assert f"The actual value was {verdict['place']} the band." in text
+        assert f"was {verdict['actual']:.1%}." in text
+
+
+@needs_real_data
+def test_what_happened_reproduces_the_backtest_band_coverage():
+    """Grade every ok skill at every as-of month the backtest tested. The share graded
+    "inside" must equal coverage.test_h12 in backtest.json (the band is calibrated on the
+    single target month, not on a pooled 3-month share)."""
+    import pandas as pd
+    from engine.outcome import band_verdict
+    from engine.scores import build_scores
+
+    bt = json.loads((DATA / "backtest.json").read_text(encoding="utf-8"))
+    demand = pd.read_csv(DATA / "demand_monthly.csv").set_index(["skill", "month"])
+    first = _scores()["interval"]["earliest_supported_as_of"]
+    last_test = bt["origins"]["test"][1]
+    inside = total = 0
+    for as_of in pd.period_range(first, last_test, freq="M"):
+        as_of = str(as_of)
+        target = str(pd.Period(as_of, freq="M") + 12)
+        for skill in build_scores(as_of=as_of)["skills"]:
+            if skill["status"] != "ok":
+                continue
+            row = demand.loc[(skill["skill"], target)]
+            inside += band_verdict(skill["forecast"]["moderate"], row["mentions"], row["n_posts"])["inside"]
+            total += 1
+    assert total == bt["coverage"]["n_skill_origins"]
+    assert abs(inside / total - bt["coverage"]["test_h12"]) < 0.005
+
+
+@needs_real_data
+def test_method_tab_shows_na_for_missing_backtest_numbers(monkeypatch, data_copy):
+    bt = json.loads((data_copy / "backtest.json").read_text(encoding="utf-8"))
+    bt["models"]["naive3"]["test_h12_vs_naive"]["ci95_skill_bootstrap"] = None
+    bt["coverage"]["test_mean_band_width_h12_pp"] = None
+    for group in bt["coverage"]["by_share_group"].values():
+        group["mean_band_width_h12_pp"] = None
+    (data_copy / "backtest.json").write_text(json.dumps(bt), encoding="utf-8")
+    result = {"ok": True, "data_dir": str(data_copy), "month": "2026-10", "posts_before": 1,
+              "posts_after": 2, "fetched_at": "x", "scores_updated": True, "skills_changed": {}}
+    monkeypatch.setattr(engine.refresh, "refresh", lambda *a, **k: result)
+    at = _run_app()
+    at.sidebar.button[0].click().run()
+    assert not at.exception
+    assert "with a mean band width of n/a." in _joined(at)
+    mae = next(d.value for d in at.dataframe if "Test h=12" in d.value.columns)
+    assert mae.set_index("Model").loc["naive3", "Test h=12 gain vs naive (bootstrap CI)"].endswith("(n/a to n/a)")
+    groups = next(d.value for d in at.dataframe if "Share group" in d.value.columns)
+    assert set(groups["Mean band width at h=12 (pp)"]) == {"n/a"}

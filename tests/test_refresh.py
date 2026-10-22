@@ -242,8 +242,8 @@ def test_read_only_data_dir_falls_back_to_temp_dir(tmp_path, monkeypatch, stub_s
     monkeypatch.setattr(refresh_mod, "is_writable", lambda d: Path(d).resolve() != data.resolve())
     server = FakeSession(3, {3: _item(3, NEW_3)})
 
-    # source_dir is the read-only folder; work_dir None means "try the source first"
-    result = refresh_mod.refresh(None, source_dir=data, session=server, tmp_root=tmp_root)
+    # work_dir and source_dir are the read-only folder: the refresh falls back to the temp folder
+    result = refresh_mod.refresh(data, source_dir=data, session=server, tmp_root=tmp_root)
 
     work = tmp_root / "verity_data"
     assert result["ok"] is True
@@ -361,3 +361,54 @@ def test_refresh_adds_a_new_month_in_a_temp_dir_and_scores_follow(tmp_path):
     assert new["as_of"] == "2026-11"
     assert new["data_window"]["to"] == "2026-11"
     assert new["skills"][0]["sources"][2]["date"] == "2026-11-01"
+
+
+# --- the default work folder is never the committed data folder ------------------------
+
+def test_default_work_dir_is_a_runtime_folder_not_the_source(tmp_path, stub_scores):
+    data = make_data_dir(tmp_path)
+    committed = {p.name: p.read_bytes() for p in data.iterdir() if p.is_file()}
+    tmp_root = tmp_path / "tmp"
+    tmp_root.mkdir()
+    server = FakeSession(3, {3: _item(3, NEW_3)})
+
+    result = refresh_mod.refresh(None, source_dir=data, session=server, tmp_root=tmp_root)
+
+    assert result["ok"] is True
+    assert result["data_dir"] == str(tmp_root / "verity_data")
+    assert result["committed_data_untouched"] is True
+    assert read_rows(tmp_root / "verity_data" / "hn_threads.csv")[-1]["n_top_level"] == "5"
+    assert {p.name: p.read_bytes() for p in data.iterdir() if p.is_file()} == committed
+
+
+def test_runtime_dir_env_variable_is_used(tmp_path, monkeypatch, stub_scores):
+    data = make_data_dir(tmp_path)
+    target = tmp_path / "runtime"
+    monkeypatch.setenv(refresh_mod.RUNTIME_ENV, str(target))
+    assert refresh_mod.runtime_dir() == target
+    result = refresh_mod.refresh(None, source_dir=data, session=FakeSession(3, {3: _item(3, NEW_3)}))
+    assert result["ok"] is True and result["data_dir"] == str(target)
+    assert read_rows(target / "demand_monthly.csv")
+
+
+def test_runtime_dir_falls_back_to_the_system_temp_folder(monkeypatch):
+    monkeypatch.delenv(refresh_mod.RUNTIME_ENV, raising=False)
+    import tempfile
+
+    assert refresh_mod.runtime_dir() == Path(tempfile.gettempdir()) / "verity_data"
+
+
+def test_runtime_dir_equal_to_the_committed_folder_is_refused(tmp_path, monkeypatch, stub_scores):
+    data = make_data_dir(tmp_path)
+    monkeypatch.setenv(refresh_mod.RUNTIME_ENV, str(data))
+    result = refresh_mod.refresh(None, source_dir=data, session=FakeSession(3, {3: _item(3, NEW_3)}))
+    assert result["ok"] is False and "committed data folder" in result["error"]
+
+
+def test_a_second_refresh_while_one_runs_returns_busy(tmp_path):
+    assert refresh_mod._LOCK.acquire(blocking=False)
+    try:
+        result = refresh_mod.refresh(tmp_path)
+    finally:
+        refresh_mod._LOCK.release()
+    assert result == {"ok": False, "busy": True, "error": "a refresh is already running"}
