@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "source": {
+    "name": "MyMahir Malaysia Critical Occupations List (MyCOL) 2024/2025",
+    "publisher": "TalentCorp Malaysia (with the Critical Skills Monitoring Committee; ILMIA and the Ministry of Human Resources take part)",
+    "year": "2024/2025",
+    "landing_page": "https://www.talentcorp.com.my/mycol/",
+    "pdf_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+    "retrieved": "2026-10-23",
+    "how_read": "The PDF has 66 occupation chapters (one 'This occupation is included in the MyCOL' page each). Occupation names and MASCO codes are in page images, so they were read from the rendered pages by eye, not by text extraction. Job titles are copied from the 'Only the following job titles ... are included in the MyCOL' box of each chapter.",
+    "scope": "Tech-relevant occupations only: ICT managers and MASCO group 25 (ICT professionals) except the media-design codes listed in reviewed_not_included. 10 of the 66 occupations.",
+    "meaning": "MyCOL lists occupations in shortage (supply too small for demand), per TalentCorp's method: top-down indicators, a call-for-evidence survey and consultations. It is a shortage list, not a count of vacancies."
+  },
+  "occupations": [
+    {
+      "occupation": "Information and Communications Technology Managers",
+      "masco_code": "1511",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "143-144",
+      "job_titles_in_scope": ["Chief Information Technology Architect", "Information Technology Manager", "Computer Services Manager", "Information Technology Project Manager", "Information Technology Programme Manager", "Information Technology Business Development Manager", "Director of Cybersecurity", "Data Analytics Manager"]
+    },
+    {
+      "occupation": "Computer Systems Analysts",
+      "masco_code": "2511",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "243-244",
+      "job_titles_in_scope": ["Computer Systems Analyst", "Technical Specialist (.Net)", "Enterprise Systems Specialist (Information Technology)", "Information and Communication Technology (ICT) Specialist"]
+    },
+    {
+      "occupation": "Software Developers",
+      "masco_code": "2512",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "247-248",
+      "job_titles_in_scope": ["Software Developer", "Design Engineer", "Information Technology System Architect", "Software Engineer", "Linux Software Engineer", "System Developer", "Software Engineer (Python)"]
+    },
+    {
+      "occupation": "Application Programmers",
+      "masco_code": "2514",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "251-252",
+      "job_titles_in_scope": ["Computer Programmer", "Systems Programmer"]
+    },
+    {
+      "occupation": "Software and Application Developers and Analysts Not Elsewhere Classified",
+      "masco_code": "2519",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "255-256",
+      "job_titles_in_scope": ["Solution Architect (Information Technology)", "Internal Auditor (Information Technology)"]
+    },
+    {
+      "occupation": "Database Designers and Administrators",
+      "masco_code": "2521",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "259-260",
+      "job_titles_in_scope": ["Database Analyst", "Database Administrator"]
+    },
+    {
+      "occupation": "Information Technology System Administrators",
+      "masco_code": "2522",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "263-264",
+      "job_titles_in_scope": ["Information System Officer", "Information Technology Support Officer", "Systems Administrator", "Information Technology Executive", "Technical System Administrator", "BIM Coordinator (Building Information Modeling)"]
+    },
+    {
+      "occupation": "Computer Network Professionals",
+      "masco_code": "2523",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "267-268",
+      "job_titles_in_scope": []
+    },
+    {
+      "occupation": "Data Professionals",
+      "masco_code": "2524",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "271-272",
+      "job_titles_in_scope": ["Data Scientist", "Data Analyst", "Business Data Analyst", "Data Governance Migration Specialist"]
+    },
+    {
+      "occupation": "Cybersecurity Professionals",
+      "masco_code": "2531",
+      "year": "2024/2025",
+      "source_url": "https://www.talentcorp.com.my/images/uploads/publication/204/MyMahir-Malaysia-Critical-Occupations-List-MyCOL20242025-1773385490.pdf",
+      "pdf_page_spread": "275-276",
+      "job_titles_in_scope": ["Cybersecurity Specialist", "Information Security Officer", "Cybersecurity Analyst"]
+    }
+  ],
+  "notes": [
+    "job_titles_in_scope is empty for 2523: the chapter says no job-title restriction ('-') and that the occupation had no nominations; it was added after stakeholder validation (MDEC raised it).",
+    "pdf_page_spread is the printed page numbers at the foot of the spread that holds the occupation name box and the job-title list. The evidence text is on the next spread.",
+    "The PDF also names AI/ML development, SQL, Python, Tableau and UiPath/RPA as scarce skills inside the ICT Managers chapter (a banking-sector remark). None of the ten occupations above lists job titles for machine-learning engineers, AI engineers, DevOps or mobile developers."
+  ],
+  "reviewed_not_included": [
+    {"occupation": "Animation and Visual Effects Professionals", "masco_code": "2541", "reason": "Media and design work, not one of the engineering roles Verity tracks."},
+    {"occupation": "Digital Games and E-sport Professionals", "masco_code": "2542", "reason": "Games art and esports; the job titles are Computer Graphics and Sound Artist and Computer Graphics (CG) Artist."},
+    {"occupation": "Creative Contents Designer Professionals", "masco_code": "2543", "reason": "Mostly design and content titles. One in-scope title, Business Intelligence Analyst, is data-related, but the occupation is a design group."},
+    {"occupation": "Electronics Engineers", "masco_code": null, "reason": "Hardware and electronics engineering (the chapter lists Computer Engineer and PCB Design Engineer among others). Code not read from the page; left out as not a software role."}
+  ]
+}
