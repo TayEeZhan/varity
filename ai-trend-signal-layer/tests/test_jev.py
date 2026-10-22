@@ -96,6 +96,28 @@ def test_authentication_errors_close_the_client_for_the_run():
     assert len(fake.calls) == 1  # no second paid call after a fatal error
 
 
+def test_rate_limits_are_waited_out_then_answered():
+    from typesafe_sdk import TypeSafeRateLimitError
+
+    limited = TypeSafeRateLimitError(429, {}, httpx2.Headers())
+    waits = []
+    fake = FakeTypeSafe(limited, limited, response())
+    client = JevClient(fake, "m", sleep=waits.append)
+    assert client.decide(FEATURES).tier_probs["must_know"] == 0.72
+    assert waits == [2.0, 4.0] and client.open and client.calls == 1
+
+
+def test_a_persistent_rate_limit_closes_jev_for_the_run():
+    from typesafe_sdk import TypeSafeRateLimitError
+
+    fake = FakeTypeSafe(*[TypeSafeRateLimitError(429, {}, httpx2.Headers()) for _ in range(5)])
+    waits = []
+    client = JevClient(fake, "m", sleep=waits.append)
+    with pytest.raises(JevError, match="rate limit"):
+        client.decide(FEATURES)
+    assert not client.open and waits == [2.0, 4.0, 8.0, 16.0] and len(fake.calls) == 5
+
+
 def test_call_limit_stops_runaway_spend():
     client = JevClient(FakeTypeSafe(), "m", max_calls=1)
     client.decide(FEATURES)
