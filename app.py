@@ -618,7 +618,7 @@ def roles_tab() -> dict | None:
         st.markdown(
             "- **Match score** = weight of the role's skills you have / total weight of its skills. "
             "Weights are learned from real posts: the share of the role's single-role posts that mention the "
-            "skill, kept when the role asks for it at least 1.2 times as often as the average post.\n"
+            "skill, kept when the role asks for it at least 1.1 times as often as the average post.\n"
             "- **Outlook score** = 1.0 if the role's share of posts is Rising, 0.5 if No clear change or unknown, "
             "0.0 if Falling (same Welch test as the skill labels).\n"
             f"- **Rank score** = {formula['match_weight']} x match + {formula['future_weight']} x outlook. "
