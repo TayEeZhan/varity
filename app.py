@@ -5,9 +5,12 @@ data/fixtures/skill_scores.json. Every number on screen comes from a file in the
 (skill_scores.json, demand_monthly.csv, ai_context_monthly.csv, backtest.json, taxonomy.json,
 SOURCES.md). No statistic is written in this file. No LLM is used.
 
-Five tabs: Roles (role match for a chosen or edited skill set), Pathway (ordered plan and daily
-to-do list for the chosen target role, engine.pathway), Skills (table), Skill detail (chart, text,
-sources), Method (backtest).
+A four-step journey, then the evidence behind it:
+  1 You (example profile and skills; a CV upload slot comes later),
+  2 Skills radar (engine.radar: every skill by demand share and tested trend),
+  3 Future roles (role match for the chosen or edited skill set, engine.roles),
+  4 Your plan (ordered plan and daily to-do list for the target role, engine.pathway),
+  Evidence: Skills (table), Skill detail (chart, text, sources), Method (backtest).
 Sidebar: scenario, "As of" month (reruns the engine with data up to that month, nothing is
 written), and "Refresh live data" (engine.refresh.refresh).
 """
@@ -29,8 +32,9 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from engine import live  # noqa: E402  (shared snapshot store; needs BASE_DIR on sys.path)
+from engine import radar as radar_mod  # noqa: E402  (the name `radar` below is the new-skills file)
 
-st.set_page_config(page_title="Verity", layout="wide")
+st.set_page_config(page_title="Verity", page_icon=":material/explore:", layout="wide")
 
 DEFAULT_DATA_DIR = BASE_DIR / "data"
 SCORES_NAME = "skill_scores.json"
@@ -61,7 +65,13 @@ PERSONAS = {
     "Chloe, data analyst (synthetic)": ["SQL", "Python", "Snowflake", "dbt"],
 }
 ROLE_FILES = ("roles.json", "role_profiles.json", "role_demand_monthly.csv", "exposure.csv")
-NO_TARGET_PROMPT = "Choose a target role in the Roles tab first"
+NO_TARGET_PROMPT = "Choose a target role in step 3, Future roles, first"
+# The journey: tab labels are the step indicator. Labels are state keys, so keep them in one place.
+STEP_YOU, STEP_RADAR, STEP_ROLES, STEP_PLAN, STEP_EVIDENCE = (
+    "1 You", "2 Skills radar", "3 Future roles", "4 Your plan", "Evidence")
+JOURNEY_KEY = "journey_step"
+ROLE_DATA_MISSING = ("Role match needs the real data files (taxonomy, roles, role profiles, role demand, exposure). "
+                     "They are not available in this view.")
 TREND_BADGE = {"Rising": ":green-badge[Rising]", "Falling": ":red-badge[Falling]",
                "No clear change": ":gray-badge[No clear change]"}
 
@@ -206,7 +216,12 @@ def month_add(month: str, delta: int) -> str:
 
 
 def is_dark_theme() -> bool:
+    """True when the page is drawn dark. A theme fixed in .streamlit/config.toml wins: the browser's own
+    colour preference (which st.context.theme can report) does not change a fixed light theme."""
     try:
+        base = st.get_option("theme.base")
+        if base in ("light", "dark"):
+            return base == "dark"
         return st.context.theme.type == "dark"
     except Exception:  # not available in every runtime
         return False
@@ -285,6 +300,110 @@ def skill_chart(skill_hist: pd.DataFrame, fc_row: dict | None, fc_month: str, la
                                  "value": outcome_value}])
     return line_chart(long, forecast, domain, colors,
                       "Share of job posts that mention the skill", outcome)
+
+
+RADAR_INK = {"light": "#1f1f1e", "dark": "#f0efec"}
+RADAR_SOFT = {"light": "#8b8a84", "dark": "#a8a79f"}  # quadrant names and the dashed lines
+RADAR_GREY = {"light": "#b3b2ab", "dark": "#6f6e68"}  # "no clear change" marks: recessive, never the focus
+
+
+def label_offsets(df: pd.DataFrame) -> list[int]:
+    """Vertical nudge in pixels for each label, so labels of neighbouring points do not overlap.
+
+    Walks the labelled points from left to right. A point close to k points already placed (within 0.3 of
+    a decade in share and 0.12 in change) is moved to the k-th slot of 0, -16, +16, -32, +32 pixels.
+    """
+    import math
+
+    slots, placed, offsets = (0, -16, 16, -32, 32), [], {}
+    for i in df.sort_values("share").index:
+        x, y = math.log10(df.at[i, "share"]), df.at[i, "change"]
+        k = sum(abs(x - px) < 0.3 and abs(y - py) < 0.12 for px, py in placed)
+        offsets[i] = slots[k % len(slots)]
+        placed.append((x, y))
+    return [offsets.get(i, 0) for i in df.index]
+
+
+def radar_chart(radar: dict, dark: bool) -> alt.Chart:
+    """The Future Skills Radar from engine.radar.radar_points output.
+
+    Colour = AI stance, but only for skills with a tested Rising or Falling label. Filled mark:
+    tested and the stance is robust. Hollow mark: tested but the stance is contested. Grey: no clear
+    change. A black ring and a label mark the user's own skills. Quadrants split at the median share
+    (vertical) and at no change (horizontal). Slots 1 to 3 of the validated palette (dataviz skill).
+    """
+    mode = "dark" if dark else "light"
+    ink, soft = RADAR_INK[mode], RADAR_SOFT[mode]
+    palette = [SERIES_BLUE[mode], SERIES_ORANGE[mode], SERIES_AQUA[mode], RADAR_GREY[mode]]
+    df = pd.DataFrame(radar["points"])
+    df = df.assign(
+        share_text=df["share"].map(lambda v: f"{v:.1%}"),
+        change_text=df["change"].map(lambda v: f"{v:+.0%}"),
+        trend_text=[f"{r.trend_label}" + (f" (p = {r.trend_p:.3f})" if r.trend_p is not None else "")
+                    for r in df.itertuples()],
+        stance_text=[r.stance + (" (contested)" if r.contested else "") for r in df.itertuples()],
+        yours=["yes" if m else "" for m in df["mine"]])
+    tooltip = [alt.Tooltip("skill:N", title="Skill"),
+               alt.Tooltip("share_text:N", title="Share of posts now"),
+               alt.Tooltip("change_text:N", title="Change, last 12 vs prior 12 months"),
+               alt.Tooltip("trend_text:N", title="Trend label"),
+               alt.Tooltip("stance_text:N", title="AI stance"),
+               alt.Tooltip("yours:N", title="Your skill")]
+    lo, hi = df["share"].min() / 1.25, df["share"].max() * 1.25
+    ymin, ymax = min(df["change"].min(), 0) - 0.12, max(df["change"].max(), 0) + 0.12
+    x = alt.X("share:Q", title="Share of job posts that mention the skill now (log scale)",
+              scale=alt.Scale(type="log", domain=[lo, hi], nice=False), axis=alt.Axis(format="~%", grid=False))
+    y = alt.Y("change:Q", title="Change in share, last 12 months vs the 12 before",
+              scale=alt.Scale(domain=[ymin, ymax], nice=False), axis=alt.Axis(format="+.0%", grid=False))
+    color = alt.Color("group:N", title="AI stance (colour only when the trend is tested)",
+                      scale=alt.Scale(domain=list(radar_mod.COLOUR_GROUPS), range=palette),
+                      legend=alt.Legend(orient="top", columns=2, labelLimit=240, titleLimit=320))
+
+    def of(mark: str) -> pd.DataFrame:
+        return df[df["mark"] == mark]
+
+    cut = radar["share_cut"]
+    guides = alt.layer(
+        alt.Chart(pd.DataFrame({"share": [cut]})).mark_rule(strokeDash=[4, 4], color=soft, opacity=0.7).encode(x=x),
+        alt.Chart(pd.DataFrame({"change": [0.0]})).mark_rule(strokeDash=[4, 4], color=soft, opacity=0.7).encode(y=y))
+    corners = [  # (name, x, y, align, baseline): one text layer each, as align is a mark property
+        ("Small but rising", lo * 1.04, ymax - 0.02, "left", "top"),
+        ("Strong and growing", hi / 1.04, ymax - 0.02, "right", "top"),
+        ("Small and fading", lo * 1.04, ymin + 0.02, "left", "bottom"),
+        ("Strong but slowing", hi / 1.04, ymin + 0.02, "right", "bottom"),
+    ]
+    names = [alt.Chart(pd.DataFrame({"share": [cx], "change": [cy], "name": [label]})).mark_text(
+        fontSize=13, fontWeight="bold", color=soft, align=align, baseline=base).encode(x=x, y=y, text="name:N")
+        for label, cx, cy, align, base in corners]
+    layers = [
+        guides, *names,
+        alt.Chart(of("grey")).mark_point(filled=True, size=80, opacity=1).encode(
+            x=x, y=y, color=color, tooltip=tooltip),
+        alt.Chart(of("filled")).mark_point(filled=True, size=170, opacity=1).encode(
+            x=x, y=y, color=color, tooltip=tooltip),
+        alt.Chart(of("hollow")).mark_point(filled=False, size=170, strokeWidth=3).encode(
+            x=x, y=y, color=color, tooltip=tooltip),
+    ]
+    yours = df[df["mine"]]
+    if not yours.empty:
+        layers.append(alt.Chart(yours).mark_point(shape="circle", filled=False, size=520, strokeWidth=2,
+                                                  color=ink).encode(x=x, y=y, tooltip=tooltip))
+    named = df[df["mine"] | (df["mark"] != "grey")]
+    if not named.empty:
+        named = named.assign(dy=label_offsets(named))
+        layers.append(alt.Chart(named).mark_text(align="left", dx=13, fontSize=12, color=ink).encode(
+            x=x, y=y, text="skill:N", yOffset=alt.YOffset("dy:Q", scale=None), tooltip=tooltip))
+    return alt.layer(*layers).properties(height=460).configure_view(stroke=None)
+
+
+@st.cache_data(show_spinner=False)
+def radar_spec(radar: dict, dark: bool) -> dict:
+    """The radar as a Vega-Lite spec. Building and checking the chart takes about a second, so it is cached.
+
+    The key is the radar data itself (every point, flag and the median cut) and the theme, so a new
+    as-of month, scenario-free skill set or refreshed data builds a new spec and nothing stale is shown.
+    """
+    return radar_chart(radar, dark).to_dict()
 
 
 # --------------------------------------------------------------------------------------
@@ -440,11 +559,9 @@ past_view = view_as_of != latest_as_of
 
 st.title("Verity")
 st.subheader("Future-ready skills for tech developers")
+st.markdown("Decision support under uncertainty: tested trend labels, honest ranges, and a plan that still "
+            "works if the forecast is wrong.")
 st.markdown(f"**Data as of:** {view.get('as_of') or NA} | generated {view.get('generated_at') or NA}")
-model_name = (view.get("interval") or {}).get("model")
-if model_name:
-    words = f" ({MODEL_WORDS[model_name]})" if model_name in MODEL_WORDS else ""
-    st.markdown(f"Forecast model: {model_name}{words}, {band_label}")
 if using_runtime_folder():
     committed = read_json(DEFAULT_DATA_DIR / SCORES_NAME) or {}
     stored = live.folder_meta(data_dir)
@@ -461,12 +578,7 @@ if past_view:
 if is_fixture:
     st.warning(FIXTURE_BANNER)
 st.markdown("Estimates, not facts. You decide.")
-st.markdown("No LLM is used in this view.")
-try:
-    shown_file = scores_path.relative_to(BASE_DIR).as_posix()
-except ValueError:
-    shown_file = str(scores_path)
-st.caption(f"File: {shown_file} | scenario: {scenario_label}")
+about_box = st.container()  # "About the data", filled below once the backtest is loaded
 
 # --------------------------------------------------------------------------------------
 # Data shared by the tabs
@@ -496,11 +608,107 @@ contested_skills = (
     if _robust is not None and {"skill", "stance_robust"} <= set(_robust.columns) else set())
 
 
-tab_roles, tab_pathway, tab_skills, tab_detail, tab_method = st.tabs(
-    ["Roles", "Pathway", "Skills", "Skill detail", "Method"])
+model_name = (view.get("interval") or {}).get("model")
+with about_box:
+    with st.expander("About the data"):
+        if model_name:
+            words = f" ({MODEL_WORDS[model_name]})" if model_name in MODEL_WORDS else ""
+            st.markdown(f"Forecast model: {model_name}{words}, {band_label}")
+            if backtest and backtest.get("chosen_model") == model_name and model_name in MODEL_WORDS:
+                st.markdown(
+                    "In our backtest this simple model was chosen over the trend models, so expect 12-month "
+                    "demand close to today's level. That is why Verity leads with tested trend labels and "
+                    "honest ranges, not with forecast numbers.")
+        st.markdown("No LLM is used in this view.")
+        try:
+            shown_file = scores_path.relative_to(BASE_DIR).as_posix()
+        except ValueError:
+            shown_file = str(scores_path)
+        st.caption(f"File: {shown_file} | scenario: {scenario_label}")
+        st.caption("Demand data: Hacker News 'Who is hiring?' threads, counted as the share of posts that "
+                   "mention a skill. Full list with dates and licences: data/SOURCES.md (see Evidence, Method).")
+
+# The tab labels are the step indicator, so make them easy to read (size and weight only).
+st.markdown("<style>.stTabs [data-baseweb='tab'] p {font-size: 1.1rem; font-weight: 600;}</style>",
+            unsafe_allow_html=True)
+(tab_you, tab_radar, tab_roles, tab_plan, tab_evidence) = st.tabs(
+    [STEP_YOU, STEP_RADAR, STEP_ROLES, STEP_PLAN, STEP_EVIDENCE], key=JOURNEY_KEY, on_change="rerun")
+
+
+def go_to_step(step: str) -> None:
+    """Button callback: move the journey to `step` on the next run."""
+    st.session_state[JOURNEY_KEY] = step
+
+
+def next_button(label: str, step: str, key: str) -> None:
+    st.button(label, key=key, on_click=go_to_step, args=(step,), type="primary")
+
 
 # --------------------------------------------------------------------------------------
-# Tab: Roles
+# Step 1: You
+# --------------------------------------------------------------------------------------
+
+def role_data_ready() -> bool:
+    """True when the real role files exist (they are not in the sample-data view)."""
+    return not (is_fixture or taxonomy is None or not all((DEFAULT_DATA_DIR / n).exists() for n in ROLE_FILES))
+
+
+def cv_intake_slot() -> None:
+    """Hook for the CV upload (Sheng Kuan). Shows nothing today.
+
+    When the CV extractor lands, it renders the uploader here and writes the skills it found, as
+    taxonomy names, to st.session_state["role_skills"] (the multiselect above reads the same key).
+    """
+    return None
+
+
+def you_step() -> list[str]:
+    """Step 1: the example profile and the skill list. Returns the skills the user holds."""
+    st.subheader("Tell us about yourself")
+    st.caption("Tell us your skills. A CV upload is coming.")
+    if not role_data_ready():
+        st.info(ROLE_DATA_MISSING)
+        return []
+    st.caption("Pick an example profile (synthetic people, not real CVs), then add or remove skills.")
+    persona = st.selectbox("Example profile", list(PERSONAS), key="role_persona")
+    if st.session_state.get("role_persona_applied") != persona:  # a new persona resets the skill list
+        st.session_state["role_skills"] = list(PERSONAS[persona])
+        st.session_state["role_persona_applied"] = persona
+    skill_options = [t["skill"] for t in taxonomy if isinstance(t, dict) and t.get("skill")]
+    my_skills = st.multiselect("Your skills (add or remove)", skill_options, key="role_skills")
+    cv_intake_slot()
+    st.markdown("**Next:** see how your skills are trending.")
+    next_button("See the skills radar", STEP_RADAR, "next_to_radar")
+    return list(my_skills)
+
+
+with tab_you:
+    my_skills = you_step()
+
+# --------------------------------------------------------------------------------------
+# Step 2: Future Skills Radar
+# --------------------------------------------------------------------------------------
+
+def radar_step(held: list[str]) -> None:
+    """Step 2: every skill by demand share and tested trend. Uses the as-of scores."""
+    st.subheader("Future Skills Radar")
+    st.caption("Which skills employers ask for, and which are moving. Only a tested change gets a colour.")
+    data = radar_mod.radar_points(skills, held, contested_skills)
+    if not data["points"]:
+        st.info("No skill has enough job posts to place on the radar in this view.")
+        return
+    st.vega_lite_chart(radar_spec(data, is_dark_theme()), width="stretch")
+    for sentence in radar_mod.summary_sentences(data, held):
+        st.markdown(sentence)
+    st.caption(radar_mod.how_to_read(backtest))
+    next_button("See roles that fit you", STEP_ROLES, "next_to_roles")
+
+
+with tab_radar:
+    radar_step(my_skills)
+
+# --------------------------------------------------------------------------------------
+# Step 3: Future roles
 # --------------------------------------------------------------------------------------
 
 def role_card(role: dict, position: int, sort_by_match: bool, show_fast: bool) -> None:
@@ -545,43 +753,54 @@ def role_card(role: dict, position: int, sort_by_match: bool, show_fast: bool) -
             st.session_state["target_role"] = role["name"]
 
 
-def roles_tab() -> dict | None:
-    """The Roles tab: profile intake, ranked role cards, formula, sources.
+def compute_roles(held: list[str]) -> dict:
+    """Role match for the held skills: {"out", "profile", "trends", "problem"}.
 
-    Returns the match_roles output, so the Pathway tab uses the same profile, skills and as-of month.
-    Returns None when the role data is missing for this view.
+    `out` is the engine.roles.match_roles output. It is None, with a message in `problem`,
+    when the role data is missing or has no profile for the as-of month.
     """
-    role_dir = DEFAULT_DATA_DIR
-    if is_fixture or taxonomy is None or not all((role_dir / n).exists() for n in ROLE_FILES):
-        st.info("Role match needs the real data files (taxonomy, roles, role profiles, role demand, exposure). "
-                "They are not available in this view.")
-        return None
+    if not role_data_ready():
+        return {"out": None, "profile": None, "trends": None, "problem": ROLE_DATA_MISSING}
     import engine.roles as roles_mod
 
+    role_dir = DEFAULT_DATA_DIR
+    try:
+        profile = roles_mod.profile_for(view_as_of, read_json(role_dir / "role_profiles.json"))
+    except ValueError as exc:
+        return {"out": None, "profile": None, "trends": None,
+                "problem": f"No role profile for {view_as_of}: {exc}."}
+    demand_path, roles_path = role_dir / "role_demand_monthly.csv", role_dir / "roles.json"
+    trends = role_trends_as_of(str(demand_path), str(roles_path), view_as_of, demand_path.stat().st_mtime)
+    out = roles_mod.match_roles(set(held), profile, view, trends, scenario,
+                                exposure=roles_mod.load_exposure(role_dir / "exposure.csv"))
+    return {"out": out, "profile": profile, "trends": trends, "problem": None}
+
+
+def best_fit_line(ranked: list[dict]) -> str:
+    """'Best fit now: X (66% match, demand Rising)' for the top ranked role."""
+    if not ranked:
+        return "No role matches well yet. Add skills in step 1, or pick a target to see the gap."
+    top = ranked[0]
+    demand_label = top["outlook"].get("trend_label") or "no label"
+    return f"Best fit now: {top['name']} ({top['match_score']:.0%} match, demand {demand_label})"
+
+
+def roles_step(ctx: dict) -> dict | None:
+    """Step 3: ranked role cards, target choice, formula. Returns the match_roles output (or None)."""
     st.subheader("Which future roles fit you?")
-    st.caption("Pick an example profile (synthetic people, not real CVs) and edit the skills. A CV upload comes later.")
-    persona = st.selectbox("Example profile", list(PERSONAS), key="role_persona")
-    if st.session_state.get("role_persona_applied") != persona:  # a new persona resets the skill list
-        st.session_state["role_skills"] = list(PERSONAS[persona])
-        st.session_state["role_persona_applied"] = persona
-    skill_options = [t["skill"] for t in taxonomy if isinstance(t, dict) and t.get("skill")]
-    my_skills = st.multiselect("Your skills (add or remove)", skill_options, key="role_skills")
+    if ctx["out"] is None:
+        st.info(ctx["problem"])
+        return None
+    out, profile, trends = ctx["out"], ctx["profile"], ctx["trends"]
+    ranked, low_match = out["roles"], out["low_match"]
+    limit = out["formula"]["low_match_below"]
+    st.markdown(f"**{best_fit_line(ranked)}**")
+    st.caption("Role demand labels are tested trends, not forecasts. Match is how much of the role's skill "
+               "list you already have.")
     sort_by_match = st.toggle("Sort by match only", key="roles_sort_match",
                               help="Off: sorted by rank score (match and outlook).")
     target_box = st.container()
 
-    try:
-        profile = roles_mod.profile_for(view_as_of, read_json(role_dir / "role_profiles.json"))
-    except ValueError as exc:
-        st.info(f"No role profile for {view_as_of}: {exc}.")
-        return None
-    demand_path, roles_path = role_dir / "role_demand_monthly.csv", role_dir / "roles.json"
-    trends = role_trends_as_of(str(demand_path), str(roles_path), view_as_of, demand_path.stat().st_mtime)
-    out = roles_mod.match_roles(set(my_skills), profile, view, trends, scenario,
-                                exposure=roles_mod.load_exposure(role_dir / "exposure.csv"))
-
-    ranked, low_match = out["roles"], out["low_match"]
-    limit = out["formula"]["low_match_below"]
     if ranked:
         shown = sorted(ranked, key=lambda r: (-r["match_score"], r["rank"])) if sort_by_match else ranked
         for position, role in enumerate(shown, start=1):
@@ -603,7 +822,10 @@ def roles_tab() -> dict | None:
             role_card(role, position, False, show_fast=scenario == "fast")
 
     chosen = st.session_state.get("target_role")
-    target_box.markdown(f"**Target role:** {chosen}" if chosen else "**Target role:** none chosen yet")
+    with target_box:
+        st.markdown(f"**Target role:** {chosen}" if chosen else "**Target role:** none chosen yet")
+        if chosen:
+            next_button("See my plan", STEP_PLAN, "next_to_plan")
     for item in out["not_ranked"]:
         st.caption(f"{item['name']}: {item['note']}")
     if out["unmatched"]:
@@ -632,8 +854,9 @@ def roles_tab() -> dict | None:
     return out
 
 
+role_ctx = compute_roles(my_skills)
 with tab_roles:
-    role_out = roles_tab()
+    role_out = roles_step(role_ctx)
 
 # --------------------------------------------------------------------------------------
 # Tab: Pathway
@@ -646,12 +869,23 @@ def next_monday(today: date) -> date:
 
 def clear_target_role() -> None:
     st.session_state.pop("target_role", None)
+    go_to_step(STEP_ROLES)  # a new target is chosen in step 3 only
 
 
 def change_target_button() -> None:
-    """Link-style button. Choosing a role stays possible only in the Roles tab."""
+    """Link-style button. Choosing a role stays possible only in step 3, Future roles."""
     st.button("Change target role", key="change_target_role", type="tertiary", on_click=clear_target_role,
-              help="Clears the target. Pick a new one in the Roles tab.")
+              help="Clears the target and takes you to step 3 to pick a new one.")
+
+
+def sdg_sector_block(role: dict) -> None:
+    """Hook for the SDG sector data (branch feat/sdg-sectors). Shows nothing while data/role_sdg.json is missing.
+
+    `role` is the match_roles entry of the target role. The other branch reads the file and renders here.
+    """
+    if not (DEFAULT_DATA_DIR / "role_sdg.json").exists():
+        return None
+    return None
 
 
 def step_card(step: dict) -> None:
@@ -694,8 +928,27 @@ def todo_table(tasks: list[dict], sig: str, today: date) -> list[str]:
     return ticked
 
 
+def plan_summary(box, target: str, plan: dict) -> None:
+    """The lead card of step 4: target, number of skills, hours, finish date, and the no-regret skills."""
+    no_regret = [s["skill"] for s in plan["steps"] if s["stage"] == "no_regret"]
+    totals = plan["totals"]
+    with box.container(border=True):
+        st.markdown(f"**Your plan in short:** become a {target}.")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Skills to learn", totals["steps"])
+        c2.metric("Hours (estimate)", f"{totals['hours']:g}")
+        c3.metric("Finish date", plan["finish_date"] or NA)
+        if no_regret:
+            st.markdown("No-regret skills (useful for several of your roles): " + ", ".join(no_regret) + ".")
+            st.markdown("This plan still works if the forecast is wrong: it starts with skills useful for "
+                        "several of your roles.")
+        else:
+            st.markdown("No skill in your gap is needed by several of your roles yet, so this plan follows what "
+                        "employers ask for now, not the forecast. It still works if the forecast is wrong.")
+
+
 def pathway_tab(role_out: dict | None) -> None:
-    """The Pathway tab: staged plan, daily to-do list with progress, exports, SDG links."""
+    """Step 4, Your plan: summary card, staged plan, daily to-do list with progress, exports, SDG links."""
     from engine.pathway import (HRD_CORP_NOTE, PLACEHOLDER_RESOURCE, build_pathway, progress, sdg_headline,
                                 tasks_signature, to_ics, to_markdown, today_myt)
 
@@ -703,9 +956,11 @@ def pathway_tab(role_out: dict | None) -> None:
     target = st.session_state.get("target_role")
     if not target:
         st.info(NO_TARGET_PROMPT)
+        next_button("Choose a target role", STEP_ROLES, "choose_target_role")
         return
     st.subheader(f"Pathway to {target}")
     change_target_button()
+    summary_box = st.container()  # the summary card, filled once the plan is built
     resources_doc = read_json(DEFAULT_DATA_DIR / "resources.json")
     if role_out is None or resources_doc is None or taxonomy is None:
         st.info("The pathway needs the real data files (roles, taxonomy, resources). They are not available in this view.")
@@ -729,6 +984,7 @@ def pathway_tab(role_out: dict | None) -> None:
     role_gaps = [role["gap"]] + [r["gap"] for r in role_out["roles"] if r["name"] != target]
     plan = build_pathway(target, role["gap"], role_gaps, view, resources_doc,
                          scenario=scenario, hours_per_week=hours, start_date=start, taxonomy=taxonomy)
+    plan_summary(summary_box, target, plan)
     st.caption(f"Skill data as of {plan['skill_scores_as_of'] or NA}. Scenario: {plan['scenario_label']}. "
                f"{plan['totals']['steps']} skills, {plan['totals']['tasks']} daily tasks, about "
                f"{plan['totals']['hours']} hours (estimate), {hours} hours a week, Monday to Friday.")
@@ -790,6 +1046,7 @@ def pathway_tab(role_out: dict | None) -> None:
     st.markdown("### SDG links")
     for sentence in sdg_headline(plan, role["outlook"]):
         st.markdown(sentence)
+    sdg_sector_block(role)
     with st.expander("SDG tags per skill"):
         for step in plan["steps"]:
             if step["sdg"]:
@@ -797,14 +1054,19 @@ def pathway_tab(role_out: dict | None) -> None:
     st.caption(plan["notes"][0])  # the estimate note; the HRD Corp note is shown once, above
 
 
-with tab_pathway:
+with tab_plan:
     pathway_tab(role_out)
 
 # --------------------------------------------------------------------------------------
-# Tab: Skills
+# Evidence: Skills, Skill detail, Method (unchanged in function)
 # --------------------------------------------------------------------------------------
 
-with tab_skills:
+with tab_evidence:
+    st.caption("The numbers behind steps 2 to 4: the full skill table, one skill in detail, and how the "
+               "forecast was tested.")
+    ev_skills, ev_detail, ev_method = st.tabs(["Skills", "Skill detail", "Method"])
+
+with ev_skills:
     if not skills:
         st.info("No skills in the data file.")
     else:
@@ -849,7 +1111,7 @@ with tab_skills:
 # Tab: Skill detail
 # --------------------------------------------------------------------------------------
 
-with tab_detail:
+with ev_detail:
     if not skills:
         st.info("No skills in the data file.")
     else:
@@ -1045,7 +1307,7 @@ def mae_table(models: dict) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-with tab_method:
+with ev_method:
     if backtest is None:
         st.info("data/backtest.json was not found, so the method tab has nothing to show. "
                 "Run: python -m engine.backtest")
