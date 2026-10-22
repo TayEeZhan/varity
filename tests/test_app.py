@@ -1,6 +1,7 @@
 """Tests for the Streamlit front end (app.py), run with Streamlit's AppTest."""
 
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -137,7 +138,7 @@ def test_real_data_shows_the_header_and_the_fixed_lines():
     assert "Estimates, not facts. You decide." in text
     assert "No LLM is used in this view." in text
     assert (PARTIAL_NOTE in text) == bool(scores["partial_month"])
-    assert [t.label for t in at.tabs] == ["Skills", "Skill detail", "Method"]
+    assert [t.label for t in at.tabs] == ["Roles", "Skills", "Skill detail", "Method"]
     assert len(_skills_table(at)) == len(scores["skills"])
 
 
@@ -181,7 +182,7 @@ def test_low_volume_skill_shows_na_forecast_and_the_note():
 def test_table_filters_narrow_the_rows():
     scores = _scores()
     at = _run_app()
-    at.multiselect[0].set_value(["low_volume"]).run()
+    next(m for m in at.multiselect if m.label == "Status").set_value(["low_volume"]).run()
     assert not at.exception
     n_low = sum(s["status"] == "low_volume" for s in scores["skills"])
     assert len(_skills_table(at)) == n_low
@@ -486,3 +487,251 @@ def test_method_tab_shows_na_for_missing_backtest_numbers(monkeypatch, data_copy
     assert mae.set_index("Model").loc["naive3", "Test h=12 gain vs naive (bootstrap CI)"].endswith("(n/a to n/a)")
     groups = next(d.value for d in at.dataframe if "Share group" in d.value.columns)
     assert set(groups["Mean band width at h=12 (pp)"]) == {"n/a"}
+
+
+# --- Roles tab -----------------------------------------------------------------------
+
+needs_role_files = pytest.mark.skipif(
+    not all((DATA / n).exists() for n in ("role_profiles.json", "role_demand_monthly.csv", "roles.json",
+                                          "exposure.csv", "skill_scores.json")),
+    reason="role files not generated yet")
+PERSONA_LABELS = ["Aina, junior Python dev (synthetic)", "Ben, frontend dev (synthetic)",
+                  "Chloe, data analyst (synthetic)"]
+
+
+def _cards(at: AppTest) -> list[str]:
+    """Card titles in order, e.g. '#1 Backend Engineer'."""
+    return [m.value.removeprefix("### ") for m in at.markdown if m.value.startswith("### #")]
+
+
+def _matches(at: AppTest) -> list[int]:
+    return [int(p.text.removeprefix("Match ").removesuffix("%")) for p in at.progress]
+
+
+def _low(at: AppTest) -> dict[str, int]:
+    """Roles listed under 'Not a fit yet' with their match percent: '**Name**: match 12%'."""
+    found = {}
+    for m in at.markdown:
+        hit = re.fullmatch(r"\*\*(.+)\*\*: match (\d+)%", m.value)
+        if hit:
+            found[hit.group(1)] = int(hit.group(2))
+    return found
+
+
+def _all_matches(at: AppTest) -> dict[str, int]:
+    """Match percent of every role on screen: ranked cards and the low-match list."""
+    ranked = {_role_name(c): m for c, m in zip(_cards(at), _matches(at))}
+    return {**_low(at), **ranked}
+
+
+def _captions(at: AppTest) -> str:
+    return "\n".join(c.value for c in at.caption)
+
+
+def _role_name(card: str) -> str:
+    return card.split(" ", 1)[1].split(" (rank")[0]
+
+
+def test_roles_tab_is_first_and_degrades_on_the_fixture(fixture_app):
+    at = _run_app(fixture_app)
+    assert not at.exception
+    assert [t.label for t in at.tabs][0] == "Roles"
+    assert any("Role match needs the real data files" in i.value for i in at.info)
+    assert _cards(at) == []
+
+
+@needs_real_data
+@needs_role_files
+@pytest.mark.parametrize("label", PERSONA_LABELS)
+def test_roles_tab_renders_for_each_persona(label):
+    at = _run_app()
+    at.selectbox(key="role_persona").set_value(label).run()
+    assert not at.exception
+    cards = _cards(at)
+    assert cards and cards[0].startswith("#1 ")
+    assert len(cards) + len(_low(at)) == 8  # every ranked role has a card, the rest sit under "Not a fit yet"
+    assert "Analytics Engineer" not in " ".join(cards)
+    assert len(at.progress) == len(cards) and all(0 <= m <= 100 for m in _matches(at))
+    assert all(m >= 20 for m in _matches(at)) and all(m < 20 for m in _low(at).values())
+    text = _joined(at) + "\n" + _captions(at)
+    for needle in ("You have", "Gaps", "Role demand:", "% of posts", "Confidence:", "SDG:",
+                   "Analytics Engineer: Not ranked: too few posts to learn a profile",
+                   "Target role:"):
+        assert needle in text, needle
+    assert len(at.button(key="target_data_engineer").label) > 0
+    assert "Choose this as my target role" in {b.label for b in at.button}
+    assert at.multiselect(key="role_skills").value  # prefilled from the persona
+    assert any("How the rank is computed" in e.label for e in at.expander)
+
+
+@needs_real_data
+@needs_role_files
+def test_persona_prefills_the_skill_picker_and_all_taxonomy_skills_are_options():
+    at = _run_app()
+    picker = at.multiselect(key="role_skills")
+    assert set(picker.value) == {"Python", "SQL", "PostgreSQL", "Docker", "AWS"}
+    taxonomy = json.loads((DATA / "taxonomy.json").read_text(encoding="utf-8"))
+    assert len(picker.options) == len(taxonomy) == 40
+    at.selectbox(key="role_persona").set_value(PERSONA_LABELS[1]).run()
+    assert set(at.multiselect(key="role_skills").value) == {"JavaScript / TypeScript", "TypeScript", "React",
+                                                            "Node.js"}
+
+
+@needs_real_data
+@needs_role_files
+def test_editing_skills_changes_the_match_percent():
+    at = _run_app()
+    before = _all_matches(at)
+    assert len(before) == 8
+    at.multiselect(key="role_skills").set_value(["Python"]).run()
+    assert not at.exception
+    few = _all_matches(at)
+    assert few != before and len(few) == 8
+    assert all(few[name] <= before[name] for name in before)  # removing skills never raises a match
+    at.multiselect(key="role_skills").set_value([]).run()
+    assert set(_all_matches(at).values()) == {0}
+    at.multiselect(key="role_skills").set_value(["Python", "SQL", "PostgreSQL", "Docker", "AWS", "Go",
+                                                 "Kubernetes", "Terraform"]).run()
+    more = _all_matches(at)
+    assert more["Backend Engineer"] > before["Backend Engineer"]
+
+
+@needs_real_data
+@needs_role_files
+def test_fast_scenario_keeps_the_order_and_shows_the_estimate_line():
+    at = _run_app()
+    moderate_cards = _cards(at)
+    assert "Fast AI scenario (estimate)" not in _captions(at)
+    at.sidebar.radio[0].set_value("fast").run()
+    assert not at.exception
+    assert _cards(at) == moderate_cards
+    lines = [c.value for c in at.caption if c.value.startswith("Fast AI scenario (estimate): about ")]
+    assert len(lines) == len(moderate_cards) >= 1
+    assert all(line.endswith("role demand vs moderate. Does not change the ranking.") for line in lines)
+    assert all("%" in line for line in lines)
+
+
+@needs_real_data
+@needs_role_files
+def test_sort_by_match_only_reorders_by_match():
+    at = _run_app()
+    ranked = _cards(at)
+    at.toggle(key="roles_sort_match").set_value(True).run()
+    assert not at.exception
+    cards, matches = _cards(at), _matches(at)
+    assert matches == sorted(matches, reverse=True)
+    assert all("by rank score" in c for c in cards)
+    assert sorted(_role_name(c) for c in cards) == sorted(_role_name(c) for c in ranked)
+
+
+@needs_real_data
+@needs_role_files
+def test_as_of_slider_reruns_the_ranking_with_the_older_profile():
+    at = _run_app()
+    now_text = _captions(at)
+    now_cards = _cards(at)
+    assert "single-role HN 'Who is hiring?' posts, 2024-11 to 2026-10." in now_text
+    assert "Role demand from monthly shares to 2026-10." in now_text
+    at.sidebar.select_slider[0].set_value("2023-12").run()
+    assert not at.exception
+    old_text = _captions(at)
+    assert "posts, 2022-01 to 2023-12." in old_text
+    assert "Role demand from monthly shares to 2023-12." in old_text
+    assert "2024-11 to 2026-10" not in old_text
+    # Roles with too few single-role posts in the older window drop out of the ranking and are listed instead.
+    assert 3 <= len(_cards(at)) <= 8
+    assert _cards(at) != now_cards
+    profile = json.loads((DATA / "role_profiles.json").read_text(encoding="utf-8"))["profiles"]["2023-12"]
+    assert old_text.count("Not ranked:") == sum(1 for r in profile["roles"] if not r["ranked"])
+    assert len(_cards(at)) + len(_low(at)) == sum(1 for r in profile["roles"] if r["ranked"])
+
+
+@needs_real_data
+@needs_role_files
+def test_as_of_before_the_first_profile_says_so():
+    scores = _scores()
+    earliest = scores["interval"]["earliest_supported_as_of"]
+    if earliest >= "2023-12":
+        pytest.skip("the earliest as-of already has a profile")
+    at = _run_app()
+    at.sidebar.select_slider[0].set_value(earliest).run()
+    assert not at.exception
+    assert any("No role profile for" in i.value for i in at.info)
+
+
+@needs_real_data
+@needs_role_files
+def test_choosing_a_target_role_sets_session_state():
+    at = _run_app()
+    assert "**Target role:** none chosen yet" in _joined(at)
+    at.button(key="target_ml_engineer").click().run()
+    assert not at.exception
+    assert at.session_state["target_role"] == "ML Engineer"
+    assert "**Target role:** ML Engineer" in _joined(at)
+    at.button(key="target_backend_engineer").click().run()
+    assert at.session_state["target_role"] == "Backend Engineer"
+
+
+@needs_real_data
+@needs_role_files
+def test_source_line_names_the_post_count_and_window():
+    at = _run_app()
+    profile = json.loads((DATA / "role_profiles.json").read_text(encoding="utf-8"))["profiles"]["2026-10"]
+    n = sum(r["n_single_role_posts"] for r in profile["roles"] if r["ranked"])
+    assert f"Role skill weights learned from {n:,} single-role HN 'Who is hiring?' posts, 2024-11 to 2026-10."         in _captions(at)
+
+
+LOW_MATCH_LABEL = "Not a fit yet (under 20% match)"
+EMPTY_MESSAGE = "None of the roles match well yet; pick a target to see the gap"
+
+
+@needs_real_data
+@needs_role_files
+def test_low_match_roles_sit_in_a_collapsed_expander_with_match_and_gaps():
+    at = _run_app()
+    at.selectbox(key="role_persona").set_value(PERSONA_LABELS[1]).run()  # Ben: few roles reach 20%
+    assert not at.exception
+    low = _low(at)
+    assert low, "Ben should have roles under 20%"
+    expander = next(e for e in at.expander if e.label == LOW_MATCH_LABEL)
+    assert not expander.proto.expanded  # collapsed by default
+    assert all(name not in " ".join(_cards(at)) for name in low)  # not ranked, so no card
+    text = " ".join(m.value for m in expander.markdown)
+    assert all(f"**{name}**: match {pct}%" in text for name, pct in low.items())
+    assert "(weight " in text and "status " in text and "trend " in text  # gaps with skill status and trend
+    assert EMPTY_MESSAGE not in " ".join(i.value for i in at.info)
+    # a low-match role can still be chosen as the target
+    name_to_key = {"Backend Engineer": "backend_engineer", "Data Scientist": "data_scientist",
+                   "AI/LLM Application Engineer": "ai_app_engineer", "Data Engineer": "data_engineer",
+                   "ML Engineer": "ml_engineer", "Platform/DevOps Engineer": "platform_devops_engineer",
+                   "Mobile Developer": "mobile_developer", "Full-stack Web Developer": "fullstack_developer"}
+    first = next(iter(low))
+    at.button(key=f"target_{name_to_key[first]}").click().run()
+    assert at.session_state["target_role"] == first
+
+
+@needs_real_data
+@needs_role_files
+def test_when_no_role_matches_the_page_says_so_and_still_lists_them_by_match():
+    at = _run_app()
+    at.multiselect(key="role_skills").set_value([]).run()
+    assert not at.exception
+    assert EMPTY_MESSAGE in [i.value for i in at.info]
+    cards = _cards(at)
+    assert len(cards) == 8 and _low(at) == {}
+    assert not any(e.label == LOW_MATCH_LABEL for e in at.expander)
+    matches = _matches(at)
+    assert matches == sorted(matches, reverse=True) == [0] * 8
+    at.multiselect(key="role_skills").set_value(["Swift"]).run()  # only Mobile Developer reaches 20%
+    assert _cards(at) == ["#1 Mobile Developer"]
+    assert EMPTY_MESSAGE not in [i.value for i in at.info]
+    assert len(_low(at)) == 7
+
+
+@needs_real_data
+@needs_role_files
+def test_the_rank_formula_text_mentions_the_low_match_limit():
+    at = _run_app()
+    text = " ".join(m.value for e in at.expander if "How the rank" in e.label for m in e.markdown)
+    assert "under 20% match is not ranked (team judgement)" in text
+    assert "0.7 / 0.3 are team judgement" in text
