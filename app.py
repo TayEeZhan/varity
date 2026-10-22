@@ -28,6 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
+from engine import live  # noqa: E402  (shared snapshot store; needs BASE_DIR on sys.path)
+
 st.set_page_config(page_title="Verity", layout="wide")
 
 DEFAULT_DATA_DIR = BASE_DIR / "data"
@@ -307,6 +309,8 @@ def show_refresh_result(result: dict, current: dict) -> None:
     before_text = "new thread" if before is None else before
     st.success(f"Refreshed {result.get('month') or NA}: posts {before_text} -> {after}.")
     st.write(f"Fetched at {result.get('fetched_at') or NA}.")
+    if result.get("shared_note"):
+        st.caption(result["shared_note"])
     if result.get("scores_updated") is False:
         st.warning("The thread was updated, but the scores were not rebuilt: "
                    f"{result.get('scores_error') or 'unknown error'}. Old scores are shown.")
@@ -324,7 +328,8 @@ def show_refresh_result(result: dict, current: dict) -> None:
 # Load data
 # --------------------------------------------------------------------------------------
 
-st.session_state.setdefault("data_dir", None)
+# A session starts on the newest data in the shared store, if it is newer than the committed files.
+st.session_state.setdefault("data_dir", live.start_dir(DEFAULT_DATA_DIR))
 st.session_state.setdefault("refresh_result", None)
 st.session_state.setdefault("live_fetched_at", None)
 
@@ -371,6 +376,7 @@ if not is_fixture:
                     result = refresh_mod.refresh()
             except Exception as exc:  # the refresh function itself never raises; this is the import
                 result = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+            result["shared_note"] = live.publish(result)  # one click helps every visitor
             st.session_state["refresh_result"] = result
             if result.get("ok") and result.get("data_dir"):
                 st.session_state["data_dir"] = result["data_dir"]
@@ -384,6 +390,11 @@ if not is_fixture:
             st.session_state["data_dir"] = None
             st.session_state["live_fetched_at"] = None
             st.session_state["refresh_result"] = None
+            st.session_state.pop("as_of_view", None)
+            st.rerun()
+        if live.start_dir(DEFAULT_DATA_DIR) and st.button(
+                "Reload data", help="Check the shared store for newer data."):
+            st.session_state["data_dir"] = live.reload(DEFAULT_DATA_DIR)
             st.session_state.pop("as_of_view", None)
             st.rerun()
         if st.session_state["refresh_result"]:
@@ -436,8 +447,12 @@ if model_name:
     st.markdown(f"Forecast model: {model_name}{words}, {band_label}")
 if using_runtime_folder():
     committed = read_json(DEFAULT_DATA_DIR / SCORES_NAME) or {}
-    st.info(f"Live refresh at {st.session_state.get('live_fetched_at') or NA}. Held only on this server until it "
-            f"restarts; the committed snapshot is dated {committed.get('generated_at') or NA}.")
+    stored = live.folder_meta(data_dir)
+    if stored:
+        st.info(live.banner(stored, committed.get("generated_at")))
+    else:
+        st.info(f"Live refresh at {st.session_state.get('live_fetched_at') or NA}. Held only on this server until "
+                f"it restarts; the committed snapshot is dated {committed.get('generated_at') or NA}.")
 if view.get("partial_month") is True:
     st.info(PARTIAL_NOTE)
 if past_view:
