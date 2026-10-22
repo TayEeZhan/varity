@@ -14,7 +14,6 @@ written), and "Refresh live data" (engine.refresh.refresh).
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import sys
@@ -622,7 +621,7 @@ def change_target_button() -> None:
 
 
 def step_card(step: dict) -> None:
-    """One skill of the plan: reason, resource, SDG tags, deadline, source."""
+    """One skill of the plan: reason, resource, deadline, source. SDG tags sit in the SDG section."""
     res = step["resource"]
     with st.container(border=True):
         st.markdown(f"**{step['order']}. {step['skill']}**")
@@ -633,8 +632,6 @@ def step_card(step: dict) -> None:
         else:
             st.markdown(f"Resource: {step['resource_note']}")
             st.caption("No tasks are planned for this skill until a verified resource is added.")
-        if step["sdg"]:
-            st.markdown(f"SDG {', '.join(step['sdg'])}: {step['sdg_reason'] or NA}")
         if step["deadline"]:
             st.markdown(f"Step deadline: {step['deadline']}")
         st.caption(f"Source: {step['source']}")
@@ -665,7 +662,8 @@ def todo_table(tasks: list[dict], sig: str, today: date) -> list[str]:
 
 def pathway_tab(role_out: dict | None) -> None:
     """The Pathway tab: staged plan, daily to-do list with progress, exports, SDG links."""
-    from engine.pathway import HRD_CORP_NOTE, PLACEHOLDER_RESOURCE, build_pathway, progress, to_ics, to_markdown
+    from engine.pathway import (HRD_CORP_NOTE, PLACEHOLDER_RESOURCE, build_pathway, progress, sdg_headline,
+                                tasks_signature, to_ics, to_markdown, today_myt)
 
     st.session_state.setdefault("done_tasks", [])
     target = st.session_state.get("target_role")
@@ -689,12 +687,13 @@ def pathway_tab(role_out: dict | None) -> None:
 
     left, right = st.columns(2)
     hours = left.number_input("Hours per week", min_value=1, max_value=40, value=5, step=1, key="pathway_hours")
-    start = right.date_input("Start date", value=next_monday(date.today()), key="pathway_start")
-    start = start if isinstance(start, date) else next_monday(date.today())
+    today = today_myt()  # Malaysia time (UTC+8)
+    start = right.date_input("Start date", value=next_monday(today), key="pathway_start")
+    start = start if isinstance(start, date) else next_monday(today)
 
-    # The top 3 ranked roles set the "no-regret" stage. With no ranked role, the best low-match roles stand in.
-    top = (role_out["roles"] or role_out["low_match"])[:3]
-    plan = build_pathway(target, role["gap"], [r["gap"] for r in top], view, resources_doc,
+    # The no-regret stage counts the target role and every ranked role (match 20% or more), each once.
+    role_gaps = [role["gap"]] + [r["gap"] for r in role_out["roles"] if r["name"] != target]
+    plan = build_pathway(target, role["gap"], role_gaps, view, resources_doc,
                          scenario=scenario, hours_per_week=hours, start_date=start, taxonomy=taxonomy)
     st.caption(f"Skill data as of {plan['skill_scores_as_of'] or NA}. Scenario: {plan['scenario_label']}. "
                f"{plan['totals']['steps']} skills, {plan['totals']['tasks']} daily tasks, about "
@@ -717,8 +716,7 @@ def pathway_tab(role_out: dict | None) -> None:
 
     # Daily to-do list
     st.markdown("### Daily to-do list")
-    sig = hashlib.md5(f"{target}|{scenario}|{hours}|{start}|{view_as_of}".encode()).hexdigest()[:8]
-    today = date.today()
+    sig = tasks_signature(plan["tasks"])  # a tick belongs to this exact task list, not to the settings
     progress_box = st.container()  # filled after the checkboxes, so it shows this run's ticks
     if plan["tasks"]:
         ticked = todo_table(plan["tasks"], sig, today)
@@ -743,8 +741,8 @@ def pathway_tab(role_out: dict | None) -> None:
         st.markdown("Skills completed: " + (", ".join(done_skills) if done_skills else "none yet"))
         st.markdown(f"Plan finishes on {plan['finish_date']}" if plan["finish_date"]
                     else "Plan finishes on: no dated tasks")
-    st.caption("Ticks are kept while the plan stays the same. A new role, scenario, pace or start date makes a "
-               "new plan and clears them. Times are estimates.")
+    st.caption("Ticks are kept while the task list stays exactly the same. Any change to the tasks (role, skills, "
+               "scenario, pace or start date) makes a new plan and clears them. Times are estimates.")
 
     # Exports: the browser downloads the text. The server writes no file.
     st.markdown("### Export")
@@ -754,12 +752,14 @@ def pathway_tab(role_out: dict | None) -> None:
     e2.download_button("Download calendar (.ics)", to_ics(plan["tasks"]), file_name="verity_plan.ics",
                        mime="text/calendar", key="download_plan_ics", on_click="ignore")
 
-    # SDG links
+    # SDG links: the plan-level statements first, the per-skill tags second
     st.markdown("### SDG links")
-    sdg = plan["sdg_summary"]
-    for tag, n in sdg["counts"].items():
-        st.markdown(f"- SDG {tag}: {n} step{'' if n == 1 else 's'} ({', '.join(sdg['skills_by_target'][tag])})")
-    st.markdown(sdg["line"])
+    for sentence in sdg_headline(plan, role["outlook"]):
+        st.markdown(sentence)
+    with st.expander("SDG tags per skill"):
+        for step in plan["steps"]:
+            if step["sdg"]:
+                st.markdown(f"- {step['skill']}: SDG {', '.join(step['sdg'])}. {step['sdg_reason'] or ''}".rstrip())
     st.caption(plan["notes"][0])  # the estimate note; the HRD Corp note is shown once, above
 
 

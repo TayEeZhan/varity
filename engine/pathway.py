@@ -16,6 +16,7 @@ those keys, so it does not import the roles module.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 from datetime import date, datetime, timedelta, timezone
@@ -29,7 +30,7 @@ MAX_TASK_MINUTES = 45
 MIN_FRAGMENT_MINUTES = 10
 WORK_DAYS_PER_WEEK = 5
 NO_REGRET_MIN_ROLES = 2
-TOP_ROLES = 3
+MYT = timezone(timedelta(hours=8))  # Malaysia time, UTC+8, no daylight saving
 PLACEHOLDER_RESOURCE = "No verified free resource yet"
 
 HRD_CORP_NOTE = ("HRD Corp-claimable status not verified for these resources; "
@@ -38,8 +39,8 @@ ESTIMATE_NOTE = ("All times are estimates by the Verity team. The Fast scenario 
                  "the order of the stages. It is an assumption, not a forecast.")
 
 STAGE_LABELS = {
-    "no_regret": "Stage 1: no-regret (needed by several of your top roles, not falling)",
-    "near_term": "Stage 2: near-term demand (high share of job posts now)",
+    "no_regret": "Stage 1: no-regret (needed by 2 or more of your roles, not falling, not AI-substitutable)",
+    "near_term": "Stage 2: near-term demand (highest share of job posts among your gap skills)",
     "other": "Also in the gap (no strong trend or demand signal)",
     "future_bet": "Stage 3: future bet (rising, or AI-complement)",
 }
@@ -88,9 +89,24 @@ def _resource_index(resources: Mapping[str, Any] | Sequence[Mapping[str, Any]]) 
     return index
 
 
+def today_myt() -> date:
+    """Today's date in Malaysia (UTC+8). Early morning in Malaysia is still yesterday in UTC."""
+    return datetime.now(MYT).date()
+
+
+def tasks_signature(tasks: Iterable[Mapping[str, Any]]) -> str:
+    """Short hash of a task list (id, title and date of every task).
+
+    Two plans share a signature only when all their tasks are the same, so it is safe as a key
+    for ticks and as part of a calendar UID.
+    """
+    text = "\n".join(f"{t['id']}|{t['title']}|{t['date']}" for t in tasks)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:8]
+
+
 def _as_date(value: date | datetime | str | None) -> date:
     if value is None:
-        return date.today()
+        return today_myt()
     if isinstance(value, datetime):
         return value.date()
     if isinstance(value, date):
@@ -123,24 +139,29 @@ def _dedupe_gap(gap: Iterable[Mapping[str, Any]]) -> list[dict]:
     return out
 
 
-def _role_counts(gap_skills: Iterable[str], top_roles_gaps: Any) -> tuple[dict[str, int], int]:
-    """How many of the user's top roles have each skill in their gap."""
-    if isinstance(top_roles_gaps, Mapping):
-        top_roles_gaps = list(top_roles_gaps.values())
-    roles = [{g["skill"] for g in _gap_list(item)} for item in list(top_roles_gaps or [])[:TOP_ROLES]]
+def _role_counts(gap_skills: Iterable[str], role_gaps: Any) -> tuple[dict[str, int], int]:
+    """How many of the given roles have each skill in their gap. Every given role is counted."""
+    if isinstance(role_gaps, Mapping):
+        role_gaps = list(role_gaps.values())
+    roles = [{g["skill"] for g in _gap_list(item)} for item in list(role_gaps or [])]
     return {s: sum(s in r for r in roles) for s in gap_skills}, len(roles)
 
 
-def classify(gap: Sequence[Mapping[str, Any]], top_roles_gaps: Any,
+def classify(gap: Sequence[Mapping[str, Any]], role_gaps: Any,
              skill_scores: Mapping[str, Any] | Sequence[Mapping[str, Any]]) -> dict[str, dict]:
     """Assign each gap skill to a stage. Returns {skill: {"stage", "roles_needing", "roles_total"}}.
+
+    `role_gaps` holds the gap of the target role and of every ranked role (one list per role, the
+    target counted once). A skill is no-regret when it is in the gap of 2 or more of them, its trend is
+    not "Falling" and its stance is not "AI-substitutable". Near-term is relative: the top half of
+    the gap skills by share now.
 
     Precedence when a skill fits several stages: no_regret, then near_term, then future_bet.
     A skill that fits none is "other".
     """
     gap = _dedupe_gap(gap)
     scores = _skill_index(skill_scores)
-    counts, n_roles = _role_counts([g["skill"] for g in gap], top_roles_gaps)
+    counts, n_roles = _role_counts([g["skill"] for g in gap], role_gaps)
 
     # Near-term: status ok and share-now in the top half of the gap skills (by share).
     def share(skill: str) -> float:
@@ -154,7 +175,8 @@ def classify(gap: Sequence[Mapping[str, Any]], top_roles_gaps: Any,
     for g in gap:
         skill = g["skill"]
         trend = g.get("trend_label")
-        if counts[skill] >= NO_REGRET_MIN_ROLES and trend != "Falling":
+        if (counts[skill] >= NO_REGRET_MIN_ROLES and trend != "Falling"
+                and g.get("stance") != "AI-substitutable"):
             stage = "no_regret"
         elif g.get("status") == "ok" and skill in top_half and share(skill) >= 0:
             stage = "near_term"
@@ -179,12 +201,13 @@ def _reason(stage: str, g: Mapping[str, Any], rec: Mapping[str, Any], info: Mapp
     skill = g["skill"]
     trend = g.get("trend_label")
     if stage == "no_regret":
-        return (f"Needed by {info['roles_needing']} of your top {info['roles_total']} roles; "
-                f"trend: {trend or 'not enough data'}, so it is not Falling.")
+        return (f"Needed by {info['roles_needing']} of the {info['roles_total']} roles counted "
+                f"(your target and your ranked roles); trend: {trend or 'not enough data'}, "
+                f"so it is not Falling.")
     if stage == "near_term":
         share = rec.get("demand_share_latest")
         return (f"Demand now: {100 * share:.1f}% of recent job posts mention it, in the top half "
-                f"of your gap skills.")
+                f"of your gap skills (relative to your gap, not a fixed level).")
     if stage == "future_bet":
         pair = _share_pair(rec)
         if trend == "Rising" and pair:
@@ -210,10 +233,14 @@ def _source_line(rec: Mapping[str, Any], as_of: str | None) -> tuple[str, list[d
 
 
 def _pick_resource(options: Sequence[Mapping[str, Any]]) -> tuple[dict | None, list[dict]]:
-    """Prefer a verified HRD Corp course, else the first listed. Returns (chosen, alternatives)."""
+    """Prefer a verified HRD Corp course, then a beginner resource, then the first listed.
+
+    Returns (chosen, alternatives).
+    """
     if not options:
         return None, []
-    ordered = sorted(options, key=lambda r: 0 if r.get("hrd_corp") is True else 1)  # stable
+    ordered = sorted(options, key=lambda r: (0 if r.get("hrd_corp") is True else 1,
+                                             0 if r.get("level") == "beginner" else 1))  # stable
     return dict(ordered[0]), [dict(r) for r in ordered[1:]]
 
 
@@ -300,11 +327,40 @@ def sdg_summary(steps: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     return {"counts": ordered, "skills_by_target": skills_by_target, "line": line.strip()}
 
 
+def _outlook_text(outlook: Mapping[str, Any] | None) -> str:
+    """Role demand in words, from the role's own trend numbers only."""
+    outlook = outlook or {}
+    label = outlook.get("trend_label")
+    last, prev = outlook.get("share_last12"), outlook.get("share_prev12")
+    if label and last is not None and prev is not None:
+        return (f"{label}, {100 * last:.1f}% of posts in the last 12 months vs {100 * prev:.1f}% "
+                f"the 12 months before")
+    return "no trend label: too few posts"
+
+
+def sdg_headline(pathway: Mapping[str, Any], outlook: Mapping[str, Any] | None = None) -> list[str]:
+    """Two plan-level SDG sentences. Every number comes from the plan or the role's outlook.
+
+    SDG 4.4 uses indicator 4.4.1 (ICT skills for employment). The cost reads "RM0 ... free resources"
+    only when every chosen resource has cost "free"; otherwise "mostly free".
+    """
+    chosen = [s["resource"] for s in pathway["steps"] if s["resource"]]
+    all_free = bool(chosen) and all(str(r.get("cost", "")).strip().lower() == "free" for r in chosen)
+    cost = "at RM0 cost using free resources" if all_free else "using mostly free resources"
+    hours = pathway["totals"]["hours"]
+    return [
+        f"SDG 4.4 (indicator 4.4.1, ICT skills for employment): this plan adds {len(chosen)} job-listed "
+        f"skills in {hours} hours (estimate) {cost}.",
+        f"SDG 8.5 (full and productive employment): moves you toward {pathway['target_role']} "
+        f"(role demand: {_outlook_text(outlook)}).",
+    ]
+
+
 # ---------------------------------------------------------------- main entry
 
 def build_pathway(target_role: str,
                   gap: Sequence[Mapping[str, Any]],
-                  top_roles_gaps: Any,
+                  role_gaps: Any,
                   skill_scores: Mapping[str, Any] | Sequence[Mapping[str, Any]],
                   resources: Mapping[str, Any] | Sequence[Mapping[str, Any]],
                   scenario: str = "moderate",
@@ -314,8 +370,8 @@ def build_pathway(target_role: str,
     """Build the pathway for `target_role`.
 
     gap             [{skill, weight, status, trend_label, stance}, ...] ordered by weight.
-    top_roles_gaps  gap lists of the user's top roles (first 3 used). Items may also be role
-                    results with a "gap" key.
+    role_gaps       gap lists of the roles to count for the no-regret stage: the target role and
+                    every ranked role, each once. Items may also be role results with a "gap" key.
     skill_scores    data/skill_scores.json (dict) or its "skills" list.
     resources       data/resources.json (dict) or its "resources" list.
     taxonomy        data/taxonomy.json list; loaded from disk when None (for SDG reasons).
@@ -332,7 +388,7 @@ def build_pathway(target_role: str,
     tax = {t["skill"]: t for t in (taxonomy if taxonomy is not None else load_taxonomy())}
     as_of = skill_scores.get("as_of") if isinstance(skill_scores, Mapping) else None
 
-    staged = classify(gap, top_roles_gaps, skill_scores)
+    staged = classify(gap, role_gaps, skill_scores)
     gap_pos = {g["skill"]: i for i, g in enumerate(gap)}
     by_stage: dict[str, list[dict]] = {name: [] for name in STAGE_LABELS}
     for g in gap:
@@ -504,7 +560,11 @@ def _ics_fold(line: str) -> str:
 
 def to_ics(tasks: Sequence[Mapping[str, Any]], calendar_name: str = "Verity reskilling plan",
            now: datetime | None = None) -> str:
-    """Write the tasks as an RFC 5545 calendar: one all-day VEVENT per task, CRLF line ends."""
+    """Write the tasks as an RFC 5545 calendar: one all-day VEVENT per task, CRLF line ends.
+
+    The UID holds a short hash of the plan (`tasks_signature`), so two plans never share a UID.
+    """
+    plan_id = tasks_signature(tasks)
     stamp = (now or datetime.now(timezone.utc)).astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Verity//Pathway E8//EN",
              "CALSCALE:GREGORIAN", "METHOD:PUBLISH", f"X-WR-CALNAME:{_ics_escape(calendar_name)}"]
@@ -514,7 +574,7 @@ def to_ics(tasks: Sequence[Mapping[str, Any]], calendar_name: str = "Verity resk
                 f"Why: {t['reason']} Finish by {t['deadline']}.")
         lines += [
             "BEGIN:VEVENT",
-            f"UID:{t['id']}-{t['date']}@verity.pathway",
+            f"UID:{plan_id}-{t['id']}-{t['date']}@verity.pathway",
             f"DTSTAMP:{stamp}",
             f"DTSTART;VALUE=DATE:{day.strftime('%Y%m%d')}",
             f"DTEND;VALUE=DATE:{(day + timedelta(days=1)).strftime('%Y%m%d')}",
