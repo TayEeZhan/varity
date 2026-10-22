@@ -130,14 +130,14 @@ def run_jury(stories: list[dict], jurors: list[Juror], max_calls: int = MAX_CALL
         raise SystemExit(f"{len(stories) * len(jurors)} calls would exceed the cap of {max_calls}")
 
     def mark_all(juror: Juror) -> list[Vote]:
-        votes, failures = [], 0
+        votes, successes = [], 0
         for story in stories:
             try:
                 label, reason = juror.mark(story["title"], story.get("sources", ""))
+                successes += 1
             except (JuryError, httpx.HTTPError) as exc:
                 label, reason = "", f"error: {exc}"[:300]
-                failures += 1
-                if failures == 3 and not votes:  # first three calls all failed: the model is unusable
+                if successes == 0 and len(votes) == 2:  # first three calls all failed: the model is unusable
                     print(f"  skipping {juror.model}: {reason}")
                     return [Vote(s["url"], s["title"], juror.model, "", reason) for s in stories]
             votes.append(Vote(story["url"], story["title"], juror.model, label, reason))
@@ -179,11 +179,30 @@ def compare_with_humans(jury: list[dict], sheet: list[dict]) -> dict:
             "trusted": bool(pairs) and agreement >= TRUST_AGREEMENT}
 
 
-def list_models(http: httpx.Client, base_url: str, api_key: str) -> list[str]:
+PUBLIC_MODELS_URL = "https://openrouter.ai/api/v1/models"  # public, no key needed
+
+
+def list_models(http: httpx.Client, base_url: str, api_key: str) -> tuple[list[str], str]:
+    """Ask the Replit connection first; its proxy may not offer /models, so fall back to OpenRouter's
+    public list. Returns (model ids, where they came from)."""
     response = http.get(f"{base_url}/models", headers={"Authorization": f"Bearer {api_key}"}, timeout=30)
-    response.raise_for_status()
+    source = "Replit connection"
+    if response.status_code >= 400:
+        response = http.get(PUBLIC_MODELS_URL, timeout=30)
+        response.raise_for_status()
+        source = "OpenRouter's public list (Replit may not offer every one: try a short --limit 5 run first)"
     ids = [m.get("id", "") for m in (response.json().get("data") or [])]
-    return sorted(i for i in ids if i.startswith(MAKERS))
+    return sorted(i for i in ids if i.startswith(MAKERS)), source
+
+
+def model_summary(votes: list[Vote]) -> list[str]:
+    lines = []
+    for model in dict.fromkeys(v.model for v in votes):
+        mine = [v for v in votes if v.model == model]
+        ok = sum(1 for v in mine if v.vote)
+        first_error = next((v.reason for v in mine if not v.vote), "")
+        lines.append(f"  {model}: {ok}/{len(mine)} votes" + (f"; first error: {first_error[:160]}" if ok < len(mine) else ""))
+    return lines
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -210,8 +229,10 @@ def main(argv: list[str] | None = None) -> int:
     base, key = connection()
     with httpx.Client() as http:
         if args.command == "models":
-            for model in list_models(http, base, key):
-                print(model)
+            models, source = list_models(http, base, key)
+            print(f"from {source}:")
+            for model in models:
+                print(f"  {model}")
             return 0
         if any("jev" in m.lower() for m in args.models):
             raise SystemExit("Jev cannot be a juror: it is the model being tested")
@@ -220,6 +241,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"marking {len(stories)} stories with {len(jurors)} models ({len(stories) * len(jurors)} calls)...")
         votes = run_jury(stories, jurors)
     write_csv(VOTES_PATH, ("url", "title", "model", "vote", "reason"), [vars(v) for v in votes])
+    print("\n".join(model_summary(votes)))
     gold, report = jury_gold(votes)
     write_csv(JURY_GOLD_PATH, ("url", "gold_tier", "labeller", "note"), gold)
     print(f"{report['labelled']} of {report['stories']} stories labelled ({report['unanimous']} unanimous, "
