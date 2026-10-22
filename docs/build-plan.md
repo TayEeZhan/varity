@@ -3,7 +3,7 @@
 Team **Hokkien Mee Is Purple** (Ee Zhan, Sheng Kuan). XMUM SDC Hackathon 2026, Domain 1 (Aiversecity Future-Ready Workforce).
 Preliminary deadline: **Sun 25 Oct 2026, 07:59:59 MYT**. Our target: submit **Sat 24 Oct, 21:00**.
 Live prototype: https://verity--eezhan0805.replit.app (shows sample data until step A2 is done).
-Status on 22 Oct 2026: 18 commits, 221 tests pass.
+Status on 22 Oct 2026: 221 tests pass.
 
 Legend: ✅ built and tested · 🟡 built, not yet shown in the app · ⏳ planned · ❓ needs a team decision
 
