@@ -1,0 +1,6 @@
+-r requirements.txt
+# Only for the ML experiment (engine/ml_forecast.py, engine/ml_backtest.py).
+# Not used by the app, so not installed on Replit.
+scikit-learn==1.9.1
+joblib==1.6.0
+threadpoolctl==3.7.0
