@@ -482,6 +482,7 @@ def run_process(settings: Settings, sources: tuple[SourceConfig, ...], weights: 
         fallback_reason=fallback, scored=len(ranked), cost_usd=round(gate.run_cost, 5), run_id=run_id,
         ranked_by_jev=by_jev, ranked_by_formula=len(ranked) - by_jev,
         jev_answers=sum(1 for r in ranked if r.tier_probs is not None),
-        jev_note=jev.reason if jev is not None else "Jev not configured (set TYPESAFE_API_KEY)",
+        jev_note=jev.reason if jev is not None else
+        "Jev not configured (set TYPESAFE_API_KEY, or enable Replit AI Integrations for OpenRouter)",
         jev_cost_usd=jev.cost_usd if jev is not None else 0.0,
     )

@@ -26,6 +26,9 @@ def settings(tmp_path, monkeypatch):
     monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
     monkeypatch.delenv("ADMIN_TOKEN", raising=False)
     monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    for name in ("TYPESAFE_API_KEY", "TYPESAFE_BASE_URL", "AI_INTEGRATIONS_OPENROUTER_API_KEY",
+                 "AI_INTEGRATIONS_OPENROUTER_BASE_URL", "TRENDSIGNAL_JEV_MODEL", "TRENDSIGNAL_RANKER"):
+        monkeypatch.delenv(name, raising=False)  # a developer's or Replit's real Jev credentials must not leak in
     loaded = load_settings()
     init_schema(loaded.db_path)
     return loaded
