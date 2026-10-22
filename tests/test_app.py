@@ -1,6 +1,7 @@
 """Tests for the Streamlit front end (app.py), run with Streamlit's AppTest."""
 
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -507,6 +508,22 @@ def _matches(at: AppTest) -> list[int]:
     return [int(p.text.removeprefix("Match ").removesuffix("%")) for p in at.progress]
 
 
+def _low(at: AppTest) -> dict[str, int]:
+    """Roles listed under 'Not a fit yet' with their match percent: '**Name**: match 12%'."""
+    found = {}
+    for m in at.markdown:
+        hit = re.fullmatch(r"\*\*(.+)\*\*: match (\d+)%", m.value)
+        if hit:
+            found[hit.group(1)] = int(hit.group(2))
+    return found
+
+
+def _all_matches(at: AppTest) -> dict[str, int]:
+    """Match percent of every role on screen: ranked cards and the low-match list."""
+    ranked = {_role_name(c): m for c, m in zip(_cards(at), _matches(at))}
+    return {**_low(at), **ranked}
+
+
 def _captions(at: AppTest) -> str:
     return "\n".join(c.value for c in at.caption)
 
@@ -531,9 +548,11 @@ def test_roles_tab_renders_for_each_persona(label):
     at.selectbox(key="role_persona").set_value(label).run()
     assert not at.exception
     cards = _cards(at)
-    assert len(cards) == 8 and cards[0].startswith("#1 ")
+    assert cards and cards[0].startswith("#1 ")
+    assert len(cards) + len(_low(at)) == 8  # every ranked role has a card, the rest sit under "Not a fit yet"
     assert "Analytics Engineer" not in " ".join(cards)
-    assert len(at.progress) == 8 and all(0 <= m <= 100 for m in _matches(at))
+    assert len(at.progress) == len(cards) and all(0 <= m <= 100 for m in _matches(at))
+    assert all(m >= 20 for m in _matches(at)) and all(m < 20 for m in _low(at).values())
     text = _joined(at) + "\n" + _captions(at)
     for needle in ("You have", "Gaps", "Role demand:", "% of posts", "Confidence:", "SDG:",
                    "Analytics Engineer: Not ranked: too few posts to learn a profile",
@@ -562,17 +581,18 @@ def test_persona_prefills_the_skill_picker_and_all_taxonomy_skills_are_options()
 @needs_role_files
 def test_editing_skills_changes_the_match_percent():
     at = _run_app()
-    before = {_role_name(c): m for c, m in zip(_cards(at), _matches(at))}
+    before = _all_matches(at)
+    assert len(before) == 8
     at.multiselect(key="role_skills").set_value(["Python"]).run()
     assert not at.exception
-    few = {_role_name(c): m for c, m in zip(_cards(at), _matches(at))}
-    assert few != before
+    few = _all_matches(at)
+    assert few != before and len(few) == 8
     assert all(few[name] <= before[name] for name in before)  # removing skills never raises a match
     at.multiselect(key="role_skills").set_value([]).run()
-    assert set(_matches(at)) == {0}
+    assert set(_all_matches(at).values()) == {0}
     at.multiselect(key="role_skills").set_value(["Python", "SQL", "PostgreSQL", "Docker", "AWS", "Go",
                                                  "Kubernetes", "Terraform"]).run()
-    more = {_role_name(c): m for c, m in zip(_cards(at), _matches(at))}
+    more = _all_matches(at)
     assert more["Backend Engineer"] > before["Backend Engineer"]
 
 
@@ -586,7 +606,7 @@ def test_fast_scenario_keeps_the_order_and_shows_the_estimate_line():
     assert not at.exception
     assert _cards(at) == moderate_cards
     lines = [c.value for c in at.caption if c.value.startswith("Fast AI scenario (estimate): about ")]
-    assert len(lines) == 8
+    assert len(lines) == len(moderate_cards) >= 1
     assert all(line.endswith("role demand vs moderate. Does not change the ranking.") for line in lines)
     assert all("%" in line for line in lines)
 
@@ -619,10 +639,11 @@ def test_as_of_slider_reruns_the_ranking_with_the_older_profile():
     assert "Role demand from monthly shares to 2023-12." in old_text
     assert "2024-11 to 2026-10" not in old_text
     # Roles with too few single-role posts in the older window drop out of the ranking and are listed instead.
-    assert 5 <= len(_cards(at)) <= 8
+    assert 3 <= len(_cards(at)) <= 8
     assert _cards(at) != now_cards
-    dropped = 8 - len(_cards(at))
-    assert old_text.count("Not ranked:") == dropped + 1  # plus Analytics Engineer
+    profile = json.loads((DATA / "role_profiles.json").read_text(encoding="utf-8"))["profiles"]["2023-12"]
+    assert old_text.count("Not ranked:") == sum(1 for r in profile["roles"] if not r["ranked"])
+    assert len(_cards(at)) + len(_low(at)) == sum(1 for r in profile["roles"] if r["ranked"])
 
 
 @needs_real_data
@@ -658,3 +679,59 @@ def test_source_line_names_the_post_count_and_window():
     profile = json.loads((DATA / "role_profiles.json").read_text(encoding="utf-8"))["profiles"]["2026-10"]
     n = sum(r["n_single_role_posts"] for r in profile["roles"] if r["ranked"])
     assert f"Role skill weights learned from {n:,} single-role HN 'Who is hiring?' posts, 2024-11 to 2026-10."         in _captions(at)
+
+
+LOW_MATCH_LABEL = "Not a fit yet (under 20% match)"
+EMPTY_MESSAGE = "None of the roles match well yet; pick a target to see the gap"
+
+
+@needs_real_data
+@needs_role_files
+def test_low_match_roles_sit_in_a_collapsed_expander_with_match_and_gaps():
+    at = _run_app()
+    at.selectbox(key="role_persona").set_value(PERSONA_LABELS[1]).run()  # Ben: few roles reach 20%
+    assert not at.exception
+    low = _low(at)
+    assert low, "Ben should have roles under 20%"
+    expander = next(e for e in at.expander if e.label == LOW_MATCH_LABEL)
+    assert not expander.proto.expanded  # collapsed by default
+    assert all(name not in " ".join(_cards(at)) for name in low)  # not ranked, so no card
+    text = " ".join(m.value for m in expander.markdown)
+    assert all(f"**{name}**: match {pct}%" in text for name, pct in low.items())
+    assert "(weight " in text and "status " in text and "trend " in text  # gaps with skill status and trend
+    assert EMPTY_MESSAGE not in " ".join(i.value for i in at.info)
+    # a low-match role can still be chosen as the target
+    name_to_key = {"Backend Engineer": "backend_engineer", "Data Scientist": "data_scientist",
+                   "AI/LLM Application Engineer": "ai_app_engineer", "Data Engineer": "data_engineer",
+                   "ML Engineer": "ml_engineer", "Platform/DevOps Engineer": "platform_devops_engineer",
+                   "Mobile Developer": "mobile_developer", "Full-stack Web Developer": "fullstack_developer"}
+    first = next(iter(low))
+    at.button(key=f"target_{name_to_key[first]}").click().run()
+    assert at.session_state["target_role"] == first
+
+
+@needs_real_data
+@needs_role_files
+def test_when_no_role_matches_the_page_says_so_and_still_lists_them_by_match():
+    at = _run_app()
+    at.multiselect(key="role_skills").set_value([]).run()
+    assert not at.exception
+    assert EMPTY_MESSAGE in [i.value for i in at.info]
+    cards = _cards(at)
+    assert len(cards) == 8 and _low(at) == {}
+    assert not any(e.label == LOW_MATCH_LABEL for e in at.expander)
+    matches = _matches(at)
+    assert matches == sorted(matches, reverse=True) == [0] * 8
+    at.multiselect(key="role_skills").set_value(["Swift"]).run()  # only Mobile Developer reaches 20%
+    assert _cards(at) == ["#1 Mobile Developer"]
+    assert EMPTY_MESSAGE not in [i.value for i in at.info]
+    assert len(_low(at)) == 7
+
+
+@needs_real_data
+@needs_role_files
+def test_the_rank_formula_text_mentions_the_low_match_limit():
+    at = _run_app()
+    text = " ".join(m.value for e in at.expander if "How the rank" in e.label for m in e.markdown)
+    assert "under 20% match is not ranked (team judgement)" in text
+    assert "0.7 / 0.3 are team judgement" in text

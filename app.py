@@ -538,10 +538,27 @@ def roles_tab() -> None:
     out = roles_mod.match_roles(set(my_skills), profile, view, trends, scenario,
                                 exposure=roles_mod.load_exposure(role_dir / "exposure.csv"))
 
-    ranked = out["roles"]
-    shown = sorted(ranked, key=lambda r: (-r["match_score"], r["rank"])) if sort_by_match else ranked
-    for position, role in enumerate(shown, start=1):
-        role_card(role, position, sort_by_match, show_fast=scenario == "fast")
+    ranked, low_match = out["roles"], out["low_match"]
+    limit = out["formula"]["low_match_below"]
+    if ranked:
+        shown = sorted(ranked, key=lambda r: (-r["match_score"], r["rank"])) if sort_by_match else ranked
+        for position, role in enumerate(shown, start=1):
+            role_card(role, position, sort_by_match, show_fast=scenario == "fast")
+        if low_match:
+            with st.expander(f"Not a fit yet (under {limit:.0%} match)"):
+                st.caption("These roles are not ranked: with so few of their skills, the outlook alone "
+                           "should not put them on the list.")
+                for role in low_match:
+                    st.markdown(f"**{role['name']}**: match {role['match_score']:.0%}")
+                    st.markdown("\n".join(
+                        f"- {s['skill']} (weight {s['weight']:.0%}; status {s['status'] or NA}; "
+                        f"trend {s['trend_label'] or NO_LABEL})" for s in role["gap"]) or "- no gaps")
+                    if st.button("Choose this as my target role", key=f"target_{role['role_id']}"):
+                        st.session_state["target_role"] = role["name"]
+    else:
+        st.info("None of the roles match well yet; pick a target to see the gap")
+        for position, role in enumerate(low_match, start=1):  # sorted by match, not ranked
+            role_card(role, position, False, show_fast=scenario == "fast")
 
     chosen = st.session_state.get("target_role")
     target_box.markdown(f"**Target role:** {chosen}" if chosen else "**Target role:** none chosen yet")
@@ -550,7 +567,7 @@ def roles_tab() -> None:
     if out["unmatched"]:
         st.caption("Skills not in the taxonomy (ignored): " + ", ".join(out["unmatched"]))
 
-    n_posts = sum(r["n_single_role_posts"] for r in ranked)
+    n_posts = sum(r["n_single_role_posts"] for r in profile["roles"] if r["ranked"])
     win = profile["window"]
     st.caption(f"Role skill weights learned from {n_posts:,} single-role HN 'Who is hiring?' posts, "
                f"{win['from']} to {win['to']}. Role demand from monthly shares to {trends['as_of']}.")
@@ -567,7 +584,9 @@ def roles_tab() -> None:
             "- **Fast AI scenario** only adds an estimate of how the role's demand moves "
             f"(-k x sum of weight x AI exposure, k = {formula['k']}, an assumption). It never changes the ranking.\n"
             "- Having TypeScript counts as having JavaScript / TypeScript. Roles with fewer than 50 single-role "
-            "posts are not ranked; 50 to 149 are marked rough.")
+            "posts are not ranked; a profile with fewer than 150 posts or fewer than 5 skills is marked rough.\n"
+            f"- A role with under {formula['low_match_below']:.0%} match is not ranked (team judgement), so "
+            "it cannot rank on its outlook alone. It is listed under \"Not a fit yet\".")
 
 
 with tab_roles:

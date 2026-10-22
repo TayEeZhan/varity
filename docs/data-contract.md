@@ -155,8 +155,8 @@ None of these files holds post text. They hold counts, shares, skill names and H
 How profiles are learned (each rule fixes a measured problem):
 - **Title masking.** Before skills are tagged in a role post, the matched title span is replaced by spaces. The title cannot create its own skill ("LLM engineer" does not tag LLM / GenAI by itself).
 - **Single-role posts only.** Many role posts name 2 or more roles. These tell us little about either role, so profiles use only posts that match exactly ONE role. `n_role_posts` counts all matching posts, `n_single_role_posts` the ones used.
-- **Minimum evidence.** A skill must appear in at least 10 single-role posts (`MIN_SKILL_POSTS`), have `p_role >= 0.08` and `lift >= 1.2`.
-- **Confidence tier** from `n_single_role_posts`: `solid` (>= 150), `rough` (50 to 149, shown with a note), `not_ranked` (< 50, left out of the ranking). A role can also be switched off with `"ranked": false` in `roles.json` (Analytics Engineer: "Not ranked: too few posts to learn a profile").
+- **Minimum evidence.** A skill must appear in at least 10 single-role posts (`MIN_SKILL_POSTS`), have `p_role >= 0.08` and `lift >= 1.1`. Top 10 by `p_role`.
+- **Confidence tier** from `n_single_role_posts`: `solid` (>= 150 AND at least 5 profile skills), `rough` (>= 50 posts but not solid, shown with a note), `not_ranked` (< 50, left out of the ranking). A role can also be switched off with `"ranked": false` in `roles.json` (Analytics Engineer: "Not ranked: too few posts to learn a profile").
 - **As-of points.** One profile per as_of point (2023-12, 2024-06, 2024-12, 2025-06, 2025-12, 2026-10), each from the 24 months up to that point. `profile_for(as_of, doc)` picks the latest profile with point <= as_of, so the As-of slider never uses a profile that saw later posts. It raises `ValueError` before the first point.
 
 ### `data/roles.json`
@@ -166,7 +166,7 @@ How profiles are learned (each rule fixes a measured problem):
 ```json
 {
   "schema_version": 2, "generated_at": "2026-10-22T12:00:00Z",
-  "params": {"months": 24, "min_p_role": 0.08, "min_lift": 1.2, "min_skill_posts": 10, "top_k": 10, "...": "..."},
+  "params": {"months": 24, "min_p_role": 0.08, "min_lift": 1.1, "min_skill_posts": 10, "top_k": 10, "...": "..."},
   "as_of_points": ["2023-12", "2024-06", "2024-12", "2025-06", "2025-12", "2026-10"],
   "profiles": {
     "2026-10": {
@@ -208,7 +208,8 @@ Columns: `month, role_id, mentions, n_posts, share`. `mentions` = posts in that 
 - `user_skills`: set (or list) of canonical skill names, or a dict skill -> years. A plain string raises `TypeError`. Having `TypeScript` counts as having `JavaScript / TypeScript`. If a profile has both rows, the TypeScript weight is added to the combined row, so nobody sees "gap: TypeScript" after picking JS/TS.
 - `role_profiles`: ONE profile (from `profile_for`). `skill_scores`: the `skill_scores.json` for the same as_of (from `build_scores(as_of=...)` for a past view). `role_trends`: from `build_role_trends(..., as_of=...)`.
 - `exposure`: skill -> `e_s` from `exposure.csv` (`load_exposure`). `k`: from `skill_scores.scenario_params`.
-- Returns `{"scenario", "formula", "roles", "not_ranked", "unmatched"}`. `unmatched` = user skills that are not in the taxonomy. `not_ranked` lists the roles left out, with a note.
+- Returns `{"scenario", "formula", "roles", "low_match", "not_ranked", "unmatched"}`. `unmatched` = user skills that are not in the taxonomy. `not_ranked` lists the roles left out because of the profile (tier or `ranked: false`), with a note.
+- **Low match.** A role with `match_score < 0.20` is NOT ranked, so it cannot rank on its outlook alone. It goes to `low_match` (same fields as a ranked role, `rank` is null), sorted by `match_score`, highest first. `roles` can be empty: then the UI says "None of the roles match well yet; pick a target to see the gap" and still lists `low_match`. The limit is `formula.low_match_below` (0.20, team judgement). `low_match_below=0` ranks every role (used in tests).
 
 Per role in `roles` (sorted by `rank_score`; each has `rank` 1..n):
 | Field | Meaning |

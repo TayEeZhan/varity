@@ -37,6 +37,12 @@ PERSONAS = {
 
 # ---------------------------------------------------------------- helpers
 
+def M(*args, **kwargs):
+    """match_roles with the low-match split switched off, for tests of the score arithmetic."""
+    kwargs.setdefault("low_match_below", 0.0)
+    return R.match_roles(*args, **kwargs)
+
+
 def _post(text):
     return {"type": "comment", "text": text, "children": []}
 
@@ -351,13 +357,22 @@ def test_min_skill_posts_is_ten(tmp_path):
     assert [s["skill"] for s in run(10, "b")] == ["SQL"]
 
 
-def test_lift_filter_is_inclusive_at_1_2(tmp_path):
-    # Role posts: 50, 24 mention SQL (p_role 0.48). Others: 50, 16 mention SQL, so p_all = 0.4 -> lift 1.2.
-    posts = ["Data Engineer | SQL"] * 24 + ["Data Engineer"] * 26
-    posts += ["Misc | SQL"] * 16 + ["Misc"] * 34
-    doc = learn(tmp_path, spread(_month_list(2), posts))
-    skills = {s["skill"]: s for s in doc["roles"][0]["skills"]}
-    assert skills["SQL"]["lift"] == pytest.approx(1.2)
+def _lift_run(tmp_path, other_sql):
+    # 50 role posts, 22 mention SQL (p_role 0.44). 50 other posts, `other_sql` mention SQL.
+    posts = ["Data Engineer | SQL"] * 22 + ["Data Engineer"] * 28
+    posts += ["Misc | SQL"] * other_sql + ["Misc"] * (50 - other_sql)
+    return learn(tmp_path, spread(_month_list(2), posts))["roles"][0]["skills"]
+
+
+def test_lift_threshold_is_1_1_and_inclusive(tmp_path):
+    assert R.MIN_LIFT == 1.1
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    (tmp_path / "c").mkdir()
+    at_limit = _lift_run(tmp_path / "a", 18)  # p_all = 40 / 100 = 0.4 -> lift 1.1 exactly
+    assert [s["skill"] for s in at_limit] == ["SQL"] and at_limit[0]["lift"] == pytest.approx(1.1)
+    assert _lift_run(tmp_path / "b", 19) == []  # p_all = 0.41 -> lift 1.073: below 1.1
+    assert _lift_run(tmp_path / "c", 15)[0]["lift"] == pytest.approx(0.44 / 0.37, abs=1e-3)  # lift 1.19: kept
 
 
 def test_only_top_ten_skills_are_kept(tmp_path):
@@ -386,24 +401,50 @@ def test_profiles_use_single_role_posts_only(tmp_path):
 
 
 def test_tier_boundaries():
-    assert [R.tier_for(n) for n in (0, 49, 50, 149, 150, 1000)] == [
+    # solid needs >= 150 posts AND >= 5 skills; rough needs >= 50 posts; below 50 is not ranked
+    assert [R.tier_for(n, 8) for n in (0, 49, 50, 149, 150, 1000)] == [
         "not_ranked", "not_ranked", "rough", "rough", "solid", "solid"]
+    assert [R.tier_for(1000, k) for k in (0, 3, 4, 5, 10)] == ["rough", "rough", "rough", "solid", "solid"]
+    assert R.tier_for(49, 10) == "not_ranked"  # many skills do not rescue a tiny sample
+    assert R.tier_for(50, 0) == "rough"
 
 
 @pytest.mark.parametrize("n, tier, ranked", [(49, "not_ranked", False), (50, "rough", True),
-                                             (149, "rough", True), (150, "solid", True)])
-def test_profile_tier_and_note(tmp_path, n, tier, ranked):
+                                             (149, "rough", True), (150, "rough", True)])
+def test_profile_with_one_skill_is_at_best_rough(tmp_path, n, tier, ranked):
     posts = ["Data Engineer | Python"] * n + ["Other"] * 50
     doc = learn(tmp_path, spread(_month_list(2), posts))
     de = doc["roles"][0]
-    assert de["n_single_role_posts"] == n
+    assert de["n_single_role_posts"] == n and len(de["skills"]) <= 1
     assert (de["tier"], de["ranked"]) == (tier, ranked)
-    if tier == "solid":
-        assert de["note"] is None
-    else:
-        assert str(n) in de["note"]
-        assert ("Rough profile" in de["note"]) == (tier == "rough")
-        assert ("Not ranked" in de["note"]) == (tier == "not_ranked")
+    assert str(n) in de["note"] or "only 1 skill" in de["note"]
+    assert ("Rough profile" in de["note"]) == (tier == "rough")
+    assert ("Not ranked" in de["note"]) == (tier == "not_ranked")
+    if n == 150:
+        assert "only 1 skill passed" in de["note"] and "at least 5" in de["note"]
+
+
+def _skill_corpus(n_skills, n_role=150):
+    taxonomy = [{"skill": f"S{i}", "pattern": rf"\bs{i}\b", "case_sensitive": False} for i in range(n_skills)]
+    posts = ["Data Engineer " + " ".join(f"S{i}" for i in range(n_skills))] * n_role + ["Other"] * 100
+    return taxonomy, posts
+
+
+@pytest.mark.parametrize("n_skills, tier", [(4, "rough"), (5, "solid"), (6, "solid")])
+def test_solid_tier_needs_five_profile_skills(tmp_path, n_skills, tier):
+    taxonomy, posts = _skill_corpus(n_skills)
+    doc = learn(tmp_path, spread(_month_list(2), posts), taxonomy=taxonomy)
+    de = doc["roles"][0]
+    assert de["n_single_role_posts"] == 150 and len(de["skills"]) == n_skills
+    assert de["tier"] == tier and de["ranked"] is True
+    assert (de["note"] is None) == (tier == "solid")
+
+
+def test_few_posts_stay_rough_even_with_many_skills(tmp_path):
+    taxonomy, posts = _skill_corpus(8, n_role=149)
+    de = learn(tmp_path, spread(_month_list(2), posts), taxonomy=taxonomy)["roles"][0]
+    assert len(de["skills"]) == 8 and de["tier"] == "rough"
+    assert "149 single-role posts" in de["note"]
 
 
 def test_role_marked_ranked_false_in_roles_json_is_never_ranked(tmp_path):
@@ -411,7 +452,7 @@ def test_role_marked_ranked_false_in_roles_json_is_never_ranked(tmp_path):
     posts = ["Data Engineer | Python"] * 200 + ["Other"] * 50
     doc = learn(tmp_path, spread(_month_list(2), posts), roles=roles)
     de = doc["roles"][0]
-    assert de["tier"] == "solid" and de["ranked"] is False
+    assert de["tier"] in ("solid", "rough") and de["ranked"] is False
     assert de["note"] == "Not ranked: too few posts to learn a profile"
 
 
@@ -635,7 +676,7 @@ DE = _role("de", "Data Engineer", [("Python", 0.4), ("SQL", 0.3), ("Airflow", 0.
 
 
 def test_match_score_is_weight_of_owned_skills_over_total():
-    out = R.match_roles({"Python", "SQL"}, _profiles(DE), SCORES, _trends(de=("Rising", 182, 140)))
+    out = M({"Python", "SQL"}, _profiles(DE), SCORES, _trends(de=("Rising", 182, 140)))
     role = out["roles"][0]
     assert role["match_score"] == pytest.approx(0.7)
     assert [s["skill"] for s in role["have"]] == ["Python", "SQL"]
@@ -643,52 +684,52 @@ def test_match_score_is_weight_of_owned_skills_over_total():
 
 def test_match_score_normalises_weights_that_do_not_sum_to_one():
     prof = _role("de", "Data Engineer", [("Python", 2), ("SQL", 1), ("Airflow", 1)])
-    assert R.match_roles({"Python"}, _profiles(prof), SCORES, {})["roles"][0]["match_score"] == pytest.approx(0.5)
+    assert M({"Python"}, _profiles(prof), SCORES, {})["roles"][0]["match_score"] == pytest.approx(0.5)
 
 
 def test_match_score_extremes_and_empty_profile():
-    none = R.match_roles(set(), _profiles(DE), SCORES, {})["roles"][0]
+    none = M(set(), _profiles(DE), SCORES, {})["roles"][0]
     assert none["match_score"] == 0.0 and none["have"] == []
-    all_ = R.match_roles({"Python", "SQL", "Airflow", "dbt"}, _profiles(DE), SCORES, {})["roles"][0]
+    all_ = M({"Python", "SQL", "Airflow", "dbt"}, _profiles(DE), SCORES, {})["roles"][0]
     assert all_["match_score"] == pytest.approx(1.0) and all_["gap"] == []
-    empty = R.match_roles({"Python"}, _profiles(_role("x", "X", [], tier="rough", n=60)), SCORES, {})["roles"][0]
+    empty = M({"Python"}, _profiles(_role("x", "X", [], tier="rough", n=60)), SCORES, {})["roles"][0]
     assert empty["match_score"] == 0.0 and empty["fast_shift"] == 0.0
     assert "No skill profile" in empty["reason"]
 
 
 def test_skills_the_roles_do_not_use_are_ignored_for_the_score():
-    out = R.match_roles({"Python", "Cobol"}, _profiles(DE), SCORES, {})
+    out = M({"Python", "Cobol"}, _profiles(DE), SCORES, {})
     assert out["roles"][0]["match_score"] == pytest.approx(0.4)
 
 
 def test_unmatched_lists_user_skills_not_in_the_taxonomy():
-    out = R.match_roles({"Python", "Cobol", "Fortran"}, _profiles(DE), SCORES, {})
+    out = M({"Python", "Cobol", "Fortran"}, _profiles(DE), SCORES, {})
     assert out["unmatched"] == ["Cobol", "Fortran"]
-    assert R.match_roles({"Python"}, _profiles(DE), SCORES, {})["unmatched"] == []
+    assert M({"Python"}, _profiles(DE), SCORES, {})["unmatched"] == []
 
 
 def test_a_plain_string_is_rejected():
     with pytest.raises(TypeError, match="not a string"):
-        R.match_roles("Python", _profiles(DE), SCORES, {})
-    assert R.match_roles(["Python"], _profiles(DE), SCORES, {})["roles"]  # a list is fine
-    assert R.match_roles(("Python",), _profiles(DE), SCORES, {})["roles"]
+        M("Python", _profiles(DE), SCORES, {})
+    assert M(["Python"], _profiles(DE), SCORES, {})["roles"]  # a list is fine
+    assert M(("Python",), _profiles(DE), SCORES, {})["roles"]
 
 
 def test_user_skills_as_dict_keeps_years():
-    out = R.match_roles({"Python": 3, "SQL": 1.5}, _profiles(DE), SCORES, {})["roles"][0]
+    out = M({"Python": 3, "SQL": 1.5}, _profiles(DE), SCORES, {})["roles"][0]
     assert {s["skill"]: s["years"] for s in out["have"]} == {"Python": 3, "SQL": 1.5}
 
 
 def test_typescript_counts_as_javascript_typescript():
     prof = _role("fs", "Full", [("JavaScript / TypeScript", 0.6), ("Python", 0.4)])
-    role = R.match_roles({"TypeScript"}, _profiles(prof), SCORES, {})["roles"][0]
+    role = M({"TypeScript"}, _profiles(prof), SCORES, {})["roles"][0]
     assert role["match_score"] == pytest.approx(0.6)
     assert [s["skill"] for s in role["have"]] == ["JavaScript / TypeScript"]
 
 
 def test_profile_with_both_rows_is_merged_so_there_is_no_typescript_gap():
     prof = _role("fs", "Full", [("JavaScript / TypeScript", 0.3), ("TypeScript", 0.2), ("React", 0.5)])
-    role = R.match_roles({"JavaScript / TypeScript"}, _profiles(prof), SCORES, {})["roles"][0]
+    role = M({"JavaScript / TypeScript"}, _profiles(prof), SCORES, {})["roles"][0]
     assert [s["skill"] for s in role["gap"]] == ["React"]
     assert role["have"][0]["weight"] == pytest.approx(0.5)  # 0.3 + 0.2 merged into the combined row
     assert role["match_score"] == pytest.approx(0.5)
@@ -698,14 +739,14 @@ def test_profile_with_both_rows_is_merged_so_there_is_no_typescript_gap():
 
 def test_typescript_alone_in_a_profile_stays_as_typescript():
     prof = _role("fs", "Full", [("TypeScript", 0.5), ("React", 0.5)])
-    role = R.match_roles({"JavaScript / TypeScript"}, _profiles(prof), SCORES, {})["roles"][0]
+    role = M({"JavaScript / TypeScript"}, _profiles(prof), SCORES, {})["roles"][0]
     assert [s["skill"] for s in role["gap"]] == ["React", "TypeScript"]  # no merge: the profile has no combined row
     assert role["match_score"] == 0.0
 
 
 def test_gap_is_ordered_by_weight_and_carries_skill_facts():
     prof = _role("de", "Data Engineer", [("dbt", 0.1), ("Airflow", 0.2), ("SQL", 0.3), ("Python", 0.4)])
-    gap = R.match_roles({"SQL"}, _profiles(prof), SCORES, {})["roles"][0]["gap"]
+    gap = M({"SQL"}, _profiles(prof), SCORES, {})["roles"][0]["gap"]
     assert [g["skill"] for g in gap] == ["Python", "Airflow", "dbt"]
     assert gap[0] == {"skill": "Python", "weight": 0.4, "status": "ok", "trend_label": "No clear change",
                       "stance": "AI-substitutable"}
@@ -714,27 +755,27 @@ def test_gap_is_ordered_by_weight_and_carries_skill_facts():
 
 def test_gap_skill_missing_from_skill_scores_has_none_fields():
     prof = _role("x", "X", [("Mystery", 1.0)])
-    gap = R.match_roles(set(), _profiles(prof), SCORES, {})["roles"][0]["gap"]
+    gap = M(set(), _profiles(prof), SCORES, {})["roles"][0]["gap"]
     assert gap == [{"skill": "Mystery", "weight": 1.0, "status": None, "trend_label": None, "stance": None}]
 
 
 def test_equal_weights_break_ties_by_name():
     prof = _role("x", "X", [("SQL", 0.5), ("Airflow", 0.5)])
-    gap = R.match_roles(set(), _profiles(prof), SCORES, {})["roles"][0]["gap"]
+    gap = M(set(), _profiles(prof), SCORES, {})["roles"][0]["gap"]
     assert [g["skill"] for g in gap] == ["Airflow", "SQL"]
 
 
 @pytest.mark.parametrize("label, expected", [("Rising", 1.0), ("No clear change", 0.5), ("Falling", 0.0),
                                              (None, 0.5)])
 def test_future_score_from_trend(label, expected):
-    out = R.match_roles({"Python"}, _profiles(DE), SCORES, _trends(de=(label, 10, 10)))
+    out = M({"Python"}, _profiles(DE), SCORES, _trends(de=(label, 10, 10)))
     role = out["roles"][0]
     assert role["future_score"] == expected
     assert role["rank_score"] == pytest.approx(0.7 * 0.4 + 0.3 * expected)
 
 
 def test_missing_trend_entry_counts_as_unknown():
-    role = R.match_roles({"Python"}, _profiles(DE), SCORES, {})["roles"][0]
+    role = M({"Python"}, _profiles(DE), SCORES, {})["roles"][0]
     assert role["future_score"] == 0.5
     assert role["outlook"]["trend_label"] is None
 
@@ -746,8 +787,8 @@ def test_no_fast_adjustment_exists_and_rank_is_the_same_in_both_scenarios():
     mix = _role("mix", "Mix", [("Python", 0.5), ("LLM", 0.5)])
     trends = _trends(ai=("Rising", 1, 1), sub=("Falling", 1, 1), mix=("No clear change", 1, 1))
     prof = _profiles(ai, sub, mix)
-    mod = R.match_roles({"SQL"}, prof, SCORES, trends, "moderate")
-    fast = R.match_roles({"SQL"}, prof, SCORES, trends, "fast")
+    mod = M({"SQL"}, prof, SCORES, trends, "moderate")
+    fast = M({"SQL"}, prof, SCORES, trends, "fast")
     assert [r["role_id"] for r in mod["roles"]] == [r["role_id"] for r in fast["roles"]]
     for a, b in zip(mod["roles"], fast["roles"]):
         assert a["rank_score"] == b["rank_score"] and a["future_score"] == b["future_score"]
@@ -758,14 +799,14 @@ def test_no_fast_adjustment_exists_and_rank_is_the_same_in_both_scenarios():
 def test_fast_shift_is_minus_k_times_weighted_exposure():
     ai = _role("ai", "AI", [("LLM", 0.4), ("RAG", 0.3), ("SQL", 0.3)])
     exposure = {"LLM": -0.10, "RAG": -0.10, "SQL": 0.0, "Python": 0.02}
-    out = R.match_roles(set(), _profiles(ai), SCORES, {}, "fast", exposure=exposure)
+    out = M(set(), _profiles(ai), SCORES, {}, "fast", exposure=exposure)
     assert out["roles"][0]["fast_shift"] == pytest.approx(-2 * (0.4 * -0.10 + 0.3 * -0.10))  # +0.14
     assert out["roles"][0]["fast_shift"] > 0
     sub = _role("sub", "Sub", [("Python", 1.0)])
-    assert R.match_roles(set(), _profiles(sub), SCORES, {}, exposure=exposure)["roles"][0]["fast_shift"] \
+    assert M(set(), _profiles(sub), SCORES, {}, exposure=exposure)["roles"][0]["fast_shift"] \
         == pytest.approx(-0.04)
     # k comes from skill_scores unless given
-    assert R.match_roles(set(), _profiles(sub), SCORES, {}, exposure=exposure, k=3)["roles"][0]["fast_shift"] \
+    assert M(set(), _profiles(sub), SCORES, {}, exposure=exposure, k=3)["roles"][0]["fast_shift"] \
         == pytest.approx(-0.06)
 
 
@@ -773,21 +814,21 @@ def test_fast_shift_default_exposure_is_ai_exposure_minus_its_mean():
     scores = {"scenario_params": {"k": 2}, "skills": [
         {"skill": "A", "ai_exposure": 0.7}, {"skill": "B", "ai_exposure": 0.3}]}
     prof = _role("x", "X", [("A", 0.5), ("B", 0.5)])
-    assert R.match_roles(set(), _profiles(prof), scores, {})["roles"][0]["fast_shift"] == pytest.approx(0.0)
+    assert M(set(), _profiles(prof), scores, {})["roles"][0]["fast_shift"] == pytest.approx(0.0)
     prof = _role("x", "X", [("A", 1.0)])
-    assert R.match_roles(set(), _profiles(prof), scores, {})["roles"][0]["fast_shift"] == pytest.approx(-0.4)
+    assert M(set(), _profiles(prof), scores, {})["roles"][0]["fast_shift"] == pytest.approx(-0.4)
 
 
 def test_unknown_scenario_is_rejected():
     with pytest.raises(ValueError, match="scenario"):
-        R.match_roles(set(), _profiles(DE), SCORES, {}, "slow")
+        M(set(), _profiles(DE), SCORES, {}, "slow")
 
 
 def test_unranked_roles_are_left_out_of_the_ranking_and_listed():
     thin = _role("thin", "Thin", [("Python", 1.0)], tier="not_ranked", n=20, ranked=False)
     off = _role("off", "Off", [("Python", 1.0)], ranked=False)
     off["note"] = "Not ranked: too few posts to learn a profile"
-    out = R.match_roles({"Python"}, _profiles(DE, thin, off), SCORES, {})
+    out = M({"Python"}, _profiles(DE, thin, off), SCORES, {})
     assert [r["role_id"] for r in out["roles"]] == ["de"]
     assert {r["role_id"] for r in out["not_ranked"]} == {"thin", "off"}
     assert next(r for r in out["not_ranked"] if r["role_id"] == "off")["note"].startswith("Not ranked")
@@ -798,7 +839,7 @@ def test_ranking_order_and_rank_numbers():
     b = _role("b", "Beta", [("SQL", 1.0)])
     c = _role("c", "Gamma", [("Airflow", 1.0)])
     trends = _trends(a=("Falling", 1, 1), b=("Rising", 1, 1), c=("Rising", 1, 1))
-    out = R.match_roles({"Python"}, _profiles(a, b, c), SCORES, trends)
+    out = M({"Python"}, _profiles(a, b, c), SCORES, trends)
     assert [r["name"] for r in out["roles"]] == ["Alpha", "Beta", "Gamma"]  # Beta/Gamma tie: name order
     assert [r["rank"] for r in out["roles"]] == [1, 2, 3]
     assert out["roles"][0]["rank_score"] == pytest.approx(0.7)
@@ -808,19 +849,19 @@ def test_ranking_order_and_rank_numbers():
 def test_future_can_outrank_a_small_match_advantage():
     hi = _role("hi", "Hi", [("Python", 0.5), ("SQL", 0.5)])  # match 0.5, Falling -> 0.35
     lo = _role("lo", "Lo", [("Python", 0.4), ("SQL", 0.6)])  # match 0.4, Rising -> 0.58
-    out = R.match_roles({"Python"}, _profiles(hi, lo), SCORES, _trends(hi=("Falling", 1, 1), lo=("Rising", 1, 1)))
+    out = M({"Python"}, _profiles(hi, lo), SCORES, _trends(hi=("Falling", 1, 1), lo=("Rising", 1, 1)))
     assert [r["role_id"] for r in out["roles"]] == ["lo", "hi"]
 
 
 def test_output_states_the_team_judgement_constants():
-    f = R.match_roles(set(), _profiles(DE), SCORES, {})["formula"]
+    f = M(set(), _profiles(DE), SCORES, {})["formula"]
     assert (f["match_weight"], f["future_weight"]) == (0.7, 0.3)
     assert "team judgement" in f["basis"]
     assert "never used in rank_score" in f["fast_shift"]
 
 
 def test_reason_string_uses_shares_not_counts():
-    out = R.match_roles({"Python", "SQL"}, _profiles(DE), SCORES, _trends(de=("Rising", 106, 94)))
+    out = M({"Python", "SQL"}, _profiles(DE), SCORES, _trends(de=("Rising", 106, 94)))
     assert out["roles"][0]["reason"] == (
         "You have 2 of its top 4 skills (Python, SQL). Biggest gaps: Airflow, dbt. "
         "Role demand: Rising (10.6% of posts vs 9.4% the year before)."
@@ -828,31 +869,31 @@ def test_reason_string_uses_shares_not_counts():
 
 
 def test_reason_for_no_overlap_no_gap_no_trend_and_rough():
-    none = R.match_roles(set(), _profiles(DE), SCORES, {})["roles"][0]["reason"]
+    none = M(set(), _profiles(DE), SCORES, {})["roles"][0]["reason"]
     assert none.startswith("You have none of its top 4 skills.")
     assert "Role demand: too few posts to label a trend." in none
-    full = R.match_roles({"Python", "SQL", "Airflow", "dbt"}, _profiles(DE), SCORES, {})["roles"][0]["reason"]
+    full = M({"Python", "SQL", "Airflow", "dbt"}, _profiles(DE), SCORES, {})["roles"][0]["reason"]
     assert "No gaps among its top skills." in full
     rough = _role("t", "T", [("Python", 1.0)], tier="rough", n=60)
-    reason = R.match_roles({"Python"}, _profiles(rough), SCORES, {})["roles"][0]["reason"]
+    reason = M({"Python"}, _profiles(rough), SCORES, {})["roles"][0]["reason"]
     assert reason.endswith("Rough profile: learned from 60 single-role posts.")
 
 
 def test_reason_without_post_counts_falls_back_to_the_label():
     trends = {"roles": {"de": {"trend_label": "Rising", "mentions_last12": 5, "mentions_prev12": 3}}}
-    reason = R.match_roles({"Python"}, _profiles(DE), SCORES, trends)["roles"][0]["reason"]
+    reason = M({"Python"}, _profiles(DE), SCORES, trends)["roles"][0]["reason"]
     assert reason.endswith("Role demand: Rising.")
 
 
 def test_reason_shows_at_most_four_skills_and_three_gaps():
     prof = _role("x", "X", [(f"S{i}", 1 - i * 0.05) for i in range(10)])
-    reason = R.match_roles({f"S{i}" for i in range(5)}, _profiles(prof), SCORES, {})["roles"][0]["reason"]
+    reason = M({f"S{i}" for i in range(5)}, _profiles(prof), SCORES, {})["roles"][0]["reason"]
     assert "You have 5 of its top 10 skills (S0, S1, S2, S3)." in reason
     assert "Biggest gaps: S5, S6, S7." in reason
 
 
 def test_accepts_bare_lists_and_mappings():
-    out = R.match_roles({"Python"}, [DE], SCORES["skills"], _trends(de=("Rising", 2, 1))["roles"])
+    out = M({"Python"}, [DE], SCORES["skills"], _trends(de=("Rising", 2, 1))["roles"])
     assert out["roles"][0]["outlook"]["trend_label"] == "Rising"
 
 
@@ -872,10 +913,10 @@ def real_files():
             "rows": R.read_demand_rows(DATA / "role_demand_monthly.csv"), "roles": R.load_roles()}
 
 
-def _real_match(files, skills, as_of="2026-10", scenario="moderate"):
+def _real_match(files, skills, as_of="2026-10", scenario="moderate", **kwargs):
     profile = R.profile_for(as_of, files["profiles"])
     trends = R.build_role_trends(files["rows"], files["roles"], as_of=as_of)
-    return R.match_roles(skills, profile, files["scores"], trends, scenario, exposure=files["exposure"])
+    return R.match_roles(skills, profile, files["scores"], trends, scenario, exposure=files["exposure"], **kwargs)
 
 
 @needs_files
@@ -887,32 +928,34 @@ def test_committed_profiles_are_consistent(real_files):
         assert profile["as_of"] == point and profile["window"]["to"] == point
         assert profile["window"]["months"] == 24
         for role in profile["roles"]:
-            assert role["tier"] == R.tier_for(role["n_single_role_posts"])
+            assert role["tier"] == R.tier_for(role["n_single_role_posts"], len(role["skills"]))
             assert role["n_single_role_posts"] <= role["n_role_posts"]
             assert len(role["skills"]) <= 10
             if role["skills"]:
                 assert sum(s["weight"] for s in role["skills"]) == pytest.approx(1.0, abs=1e-4)
             for s in role["skills"]:
-                assert s["p_role"] >= 0.08 - 1e-9 and s["lift"] >= 1.2 - 1e-3
+                assert s["p_role"] >= 0.08 - 1e-9 and s["lift"] >= 1.1 - 1e-3
                 assert s["single_role_posts"] >= R.MIN_SKILL_POSTS
 
 
 @needs_files
 def test_latest_profile_has_eight_ranked_roles_and_analytics_engineer_is_dropped(real_files):
     out = _real_match(real_files, PERSONAS["Aina"])
-    assert len(out["roles"]) == 8
-    assert "Analytics Engineer" not in {r["name"] for r in out["roles"]}
-    assert "Data Scientist" in {r["name"] for r in out["roles"]}
+    everyone = out["roles"] + out["low_match"]
+    assert len(everyone) == 8
+    assert "Analytics Engineer" not in {r["name"] for r in everyone}
+    assert "Data Scientist" in {r["name"] for r in everyone}
+    assert all(r["match_score"] >= 0.2 for r in out["roles"]) and all(r["match_score"] < 0.2 for r in out["low_match"])
     assert [r["role_id"] for r in out["not_ranked"]] == ["analytics_engineer"]
     assert out["not_ranked"][0]["note"] == "Not ranked: too few posts to learn a profile"
-    assert {r["tier"] for r in out["roles"]} <= {"solid", "rough"}
+    assert {r["tier"] for r in everyone} <= {"solid", "rough"}
     ranks = [r["rank_score"] for r in out["roles"]]
     assert ranks == sorted(ranks, reverse=True) and all(0.0 <= r <= 1.0 for r in ranks)
 
 
 @needs_files
 def test_fast_shift_for_ai_app_engineer_is_positive_on_the_real_profile(real_files):
-    out = _real_match(real_files, PERSONAS["Aina"], scenario="fast")
+    out = _real_match(real_files, PERSONAS["Aina"], scenario="fast", low_match_below=0.0)
     shifts = {r["role_id"]: r["fast_shift"] for r in out["roles"]}
     assert shifts["ai_app_engineer"] > 0
     assert all(abs(v) < 0.5 for v in shifts.values())
@@ -920,10 +963,10 @@ def test_fast_shift_for_ai_app_engineer_is_positive_on_the_real_profile(real_fil
 
 @needs_files
 def test_default_exposure_matches_exposure_csv(real_files):
-    with_csv = _real_match(real_files, PERSONAS["Aina"])
+    with_csv = _real_match(real_files, PERSONAS["Aina"], low_match_below=0.0)
     profile = R.profile_for("2026-10", real_files["profiles"])
     trends = R.build_role_trends(real_files["rows"], real_files["roles"], as_of="2026-10")
-    derived = R.match_roles(PERSONAS["Aina"], profile, real_files["scores"], trends)
+    derived = M(PERSONAS["Aina"], profile, real_files["scores"], trends)
     assert {r["role_id"]: r["fast_shift"] for r in with_csv["roles"]} == pytest.approx(
         {r["role_id"]: r["fast_shift"] for r in derived["roles"]}, abs=1e-5)
 
@@ -940,7 +983,7 @@ def test_scenario_never_changes_the_ranking_on_real_data(real_files):
 @needs_files
 def test_typescript_user_has_no_typescript_gap_on_real_profiles(real_files):
     out = _real_match(real_files, PERSONAS["Ben"])
-    for role in out["roles"]:
+    for role in out["roles"] + out["low_match"]:
         have = {s["skill"] for s in role["have"]}
         gap = {s["skill"] for s in role["gap"]}
         if "JavaScript / TypeScript" in have:
@@ -979,9 +1022,89 @@ def test_as_of_trends_use_only_data_up_to_as_of(real_files):
 @needs_files
 def test_demo_personas_have_matching_reasons(real_files):
     for skills in PERSONAS.values():
-        for role in _real_match(real_files, skills)["roles"]:
+        out = _real_match(real_files, skills)
+        for role in out["roles"] + out["low_match"]:
             assert role["reason"].startswith("You have")
             assert "% of posts vs" in role["reason"] or "too few posts" in role["reason"]
+
+
+# ---------------------------------------------------------------- low match (not ranked on outlook alone)
+
+def _four_roles():
+    return _profiles(
+        _role("a", "Alpha", [("Python", 1.0)]),                      # match 1.0
+        _role("b", "Beta", [("SQL", 0.19), ("Airflow", 0.81)]),      # match 0.19: just under
+        _role("c", "Gamma", [("Python", 0.2), ("dbt", 0.8)]),        # match 0.2 exactly: stays ranked
+        _role("d", "Delta", [("dbt", 0.5), ("Airflow", 0.5)]),       # match 0
+    )
+
+
+def test_low_match_roles_are_split_off_and_not_ranked():
+    trends = _trends(a=("Falling", 1, 1), b=("Rising", 1, 1), c=("No clear change", 1, 1), d=("Rising", 1, 1))
+    out = R.match_roles({"Python", "SQL"}, _four_roles(), SCORES, trends)
+    assert [r["role_id"] for r in out["roles"]] == ["a", "c"]
+    assert [r["rank"] for r in out["roles"]] == [1, 2]
+    assert [r["role_id"] for r in out["low_match"]] == ["b", "d"]  # sorted by match, highest first
+    assert all(r["rank"] is None for r in out["low_match"])
+    assert out["low_match"][0]["match_score"] == pytest.approx(0.19)
+    assert next(r for r in out["roles"] if r["role_id"] == "c")["match_score"] == pytest.approx(0.2)  # inclusive
+
+
+def test_a_rising_role_with_a_tiny_match_cannot_outrank_a_better_fit():
+    good = _role("good", "Good", [("Python", 0.5), ("SQL", 0.5)])   # match 0.5, Falling -> rank 0.35
+    tiny = _role("tiny", "Tiny", [("Python", 0.05), ("dbt", 0.95)])  # match 0.05, Rising -> would be 0.335
+    trends = _trends(good=("Falling", 1, 1), tiny=("Rising", 1, 1))
+    out = R.match_roles({"Python"}, _profiles(good, tiny), SCORES, trends)
+    assert [r["role_id"] for r in out["roles"]] == ["good"]
+    assert [r["role_id"] for r in out["low_match"]] == ["tiny"]
+    # with the split switched off the Rising role would be listed
+    assert [r["role_id"] for r in R.match_roles({"Python"}, _profiles(good, tiny), SCORES, trends,
+                                                low_match_below=0.0)["roles"]] == ["good", "tiny"]
+
+
+def test_no_role_reaches_the_limit_gives_an_empty_ranking_and_a_sorted_low_match_list():
+    out = R.match_roles({"Cobol"}, _four_roles(), SCORES, {})
+    assert out["roles"] == []
+    assert [r["role_id"] for r in out["low_match"]] == ["a", "b", "d", "c"]  # all 0%: by name
+    matches = [r["match_score"] for r in out["low_match"]]
+    assert matches == sorted(matches, reverse=True)
+    assert len(out["low_match"]) == 4 and out["unmatched"] == ["Cobol"]
+    out = R.match_roles({"SQL"}, _four_roles(), SCORES, {})  # Beta is 0.19: still under the limit
+    assert out["roles"] == [] and [r["role_id"] for r in out["low_match"]][0] == "b"
+
+
+def test_low_match_limit_is_in_the_formula_as_team_judgement():
+    f = R.match_roles(set(), _four_roles(), SCORES, {})["formula"]
+    assert f["low_match_below"] == 0.2 == R.LOW_MATCH_BELOW
+    assert "team judgement" in f["basis"] and "0.20" in f["basis"]
+    assert R.match_roles(set(), _four_roles(), SCORES, {}, low_match_below=0.5)["formula"]["low_match_below"] == 0.5
+
+
+def test_low_match_roles_keep_their_gaps_and_scores():
+    out = R.match_roles({"Python", "SQL"}, _four_roles(), SCORES, {})
+    beta = next(r for r in out["low_match"] if r["role_id"] == "b")
+    assert [g["skill"] for g in beta["gap"]] == ["Airflow"]
+    assert beta["rank_score"] == pytest.approx(0.7 * 0.19 + 0.3 * 0.5)
+
+
+@needs_files
+def test_ai_app_engineer_profile_on_the_real_2026_10_data_is_honest_about_its_length(real_files):
+    # The data does NOT support 5 skills for this role: apart from LLM / GenAI, Python and RAG its single-role
+    # posts ask for the same skills as the average post (lift < 1.1). So the tier must say "rough".
+    profile = R.profile_for("2026-10", real_files["profiles"])
+    ai = next(r for r in profile["roles"] if r["role_id"] == "ai_app_engineer")
+    names = {s["skill"] for s in ai["skills"]}
+    assert {"LLM / GenAI", "RAG"} <= names
+    assert ai["tier"] == ("solid" if len(ai["skills"]) >= 5 else "rough")
+    assert ai["n_single_role_posts"] >= 150
+
+
+@needs_files
+def test_every_ranked_real_profile_has_at_least_two_skills_and_solid_ones_five(real_files):
+    for point, profile in real_files["profiles"]["profiles"].items():
+        for role in profile["roles"]:
+            if role["tier"] == "solid":
+                assert len(role["skills"]) >= 5, (point, role["role_id"])
 
 
 # ---------------------------------------------------------------- privacy and main
