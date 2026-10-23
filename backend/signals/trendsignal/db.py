@@ -10,6 +10,13 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = """
+-- Varity skill profiles (web/cv_api.py). Keyed by a hash of the browser's random token; no raw CV text.
+CREATE TABLE IF NOT EXISTS profiles (
+    token_hash TEXT PRIMARY KEY,
+    profile_json TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS source_state (
     source_id TEXT PRIMARY KEY,
     status TEXT NOT NULL DEFAULT 'ok',

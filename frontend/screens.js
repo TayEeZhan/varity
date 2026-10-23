@@ -155,7 +155,38 @@ function renderToday() {
 }
 
 /* ── CV & routes ───────────────────────────────────────────────── */
+/* The backend reads the CV (POST /api/cv/extract), the user ticks what is right, and Save keeps the
+   profile on the server (POST /api/profile/apply). STATE.saved is that profile; without it the screen
+   shows the bundled sample, so the page still works opened as a file. */
+const BASIS = { stated: "In your CV", implied: "Implied", suggested: "Suggested", self_reported: "Added by you" };
+const QUOTE_DROPS = new Set(["QUOTE_NOT_FOUND", "PHRASE_NOT_IN_QUOTE"]);
+const yearsText = (y) => (y == null ? "–" : `${y} yr`);
+
+function llmLine(status) {
+  if (status === "llm") return `Read by ${STATE.review.model}. Every quote was checked against your CV.`;
+  if (status === "cached") return "A saved AI reading of this sample CV (no API key needed). Every quote was checked again.";
+  return `The AI reading was not used (${status.replace("off:", "")}). These are keyword matches: tick the ones that are right.`;
+}
+
 function cvPanel() {
+  if (STATE.cv === "review") {
+    return `<div class="cvfile">
+      <div class="cvfile__name">${ICON.file}${esc(STATE.cvFile)}</div>
+      <p>${esc(llmLine(STATE.review.llm_status))}</p>
+      ${STATE.review.injection_hint ? `<p class="err" role="alert">Some lines look like instructions to an AI. They were read as CV text only, and skills on them are not ticked.</p>` : ""}
+      <p>Untick anything that is wrong, then save. Nothing is stored until you do.</p>
+      <button class="btn btn--primary" data-act="cv-save">Save ${STATE.keep.size} skills</button>
+      <button class="btn btn--quiet" data-act="cv-replace">Cancel</button>
+    </div>`;
+  }
+  if (STATE.cv === "parsed" && STATE.saved) {
+    return `<div class="cvfile">
+      <div class="cvfile__name">${ICON.file}Your saved profile</div>
+      <p>${STATE.saved.skills.length} skills · updated ${esc(STATE.saved.updated_at.slice(0, 10))}. Kept on Varity's server; only this browser holds the key to it.</p>
+      <button class="btn" data-act="cv-replace">Read another CV</button>
+      <button class="btn btn--quiet" data-act="profile-delete">Delete my profile</button>
+    </div>`;
+  }
   if (STATE.cv === "parsed") {
     return `<div class="cvfile">
       <div class="cvfile__name">${ICON.file}${esc(STATE.cvFile)}</div>
@@ -171,15 +202,37 @@ function cvPanel() {
   return `<div class="drop" data-drop>
       ${ICON.up}
       <strong>Drop your CV here</strong>
-      <p>PDF or DOCX, up to 5 MB. Use a public or synthetic CV: this prototype never stores files.</p>
+      <p>PDF or text, up to 5 MB and 4 pages. Use a public or synthetic CV. The file is read, not stored; only the skills you save are kept.</p>
       ${err}
-      <input type="file" accept=".pdf,.docx" hidden data-file>
+      <input type="file" accept=".pdf,.txt,.md" hidden data-file>
       <button class="btn" type="button" data-act="cv-choose">Choose a file</button>
       <button class="btn btn--quiet" type="button" data-act="cv-sample">Use the synthetic sample CV</button>
     </div>`;
 }
 
+function reviewTable() {
+  const r = STATE.review;
+  const rows = r.rows.map((row) => `<tr>
+      <td><input type="checkbox" class="keep" data-keep="${esc(row.skill_id)}" aria-label="Keep ${esc(row.name)}"${STATE.keep.has(row.skill_id) ? " checked" : ""}></td>
+      <td>${esc(row.name)}</td><td><span class="lvl">${BASIS[row.basis]}</span></td>
+      <td class="q">${row.quote ? `“${esc(row.why)}”` : esc(row.why)}${row.note ? `<br><span class="err">${esc(row.note)}</span>` : ""}</td>
+      <td>${yearsText(row.years)}</td></tr>`).join("");
+  const dropped = r.dropped.filter((d) => QUOTE_DROPS.has(d.reason));
+  return `<table class="skills"><thead><tr><th scope="col">Keep</th><th scope="col">Skill</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th></tr></thead><tbody>${rows}</tbody></table>
+    ${r.interests.length ? `<p class="empty"><b>Learning, not counted as skills:</b> ${r.interests.map((i) => esc(i.name)).join(", ")}</p>` : ""}
+    ${dropped.length ? `<p class="empty"><b>Dropped because the quote is not in your CV:</b> ${dropped.map((d) => esc(d.phrase)).join(", ")}</p>` : ""}`;
+}
+
+function savedTable() {
+  const why = (s) => (s.evidence_quote ? `“${esc(s.evidence_quote)}”` : esc((s.evidence.find((e) => e.rule) || {}).rule || "Added by you"));
+  return `<table class="skills"><thead><tr><th scope="col">Skill</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th><th scope="col">Edit</th></tr></thead>
+    <tbody>${STATE.saved.skills.map((s) => `<tr><td>${esc(s.name)}</td><td><span class="lvl">${BASIS[s.basis]}</span></td><td class="q">${why(s)}</td><td>${yearsText(s.years)}</td>
+      <td><button class="btn btn--quiet" data-act="skill-remove" data-id="${esc(s.skill_id)}" aria-label="Remove ${esc(s.name)}">Remove</button></td></tr>`).join("")}</tbody></table>`;
+}
+
 function skillsTable() {
+  if (STATE.cv === "review") return reviewTable();
+  if (STATE.cv === "parsed" && STATE.saved) return savedTable();
   if (STATE.cv === "parsing") {
     const row = `<tr><td><div class="skel" style="width:120px"></div></td><td><div class="skel" style="width:60px"></div></td><td><div class="skel"></div></td></tr>`;
     return `<table class="skills"><tbody>${row.repeat(4)}</tbody></table>`;
@@ -214,14 +267,22 @@ function routeRow(r) {
   </div>`;
 }
 
+function stationText() {
+  if (STATE.cv === "parsed" && STATE.saved) return [STATE.saved.name || "Your profile", `${STATE.saved.skills.length} skills, each with its evidence`];
+  if (STATE.cv === "parsed") return [PROFILE.name, `${PROFILE.years} · read from ${STATE.cvFile}`];
+  if (STATE.cv === "review") return ["Check your skills", `${STATE.review.rows.length} found in ${STATE.cvFile}`];
+  return ["Origin station", "Waiting for a CV"];
+}
+
 function renderProfile() {
   const parsed = STATE.cv === "parsed";
+  const [station, stationSub] = stationText();
   const html = `
-    ${head("Your CV and routes", "Varity reads your CV, shows the sentence behind every skill it finds, then plans routes to roles that are rising.", synth("Synthetic CV and match scores"))}
+    ${head("Your CV and routes", "Varity reads your CV, shows the sentence behind every skill it finds, then plans routes to roles that are rising.", synth(STATE.saved ? "Synthetic match scores" : "Synthetic CV and match scores"))}
     <div class="origin">
       <div>${cvPanel()}</div>
       <section aria-labelledby="org-h">
-        <div class="origin-stn"><span class="origin-stn__ring" aria-hidden="true"></span><div><h2 id="org-h">${parsed ? esc(PROFILE.name) : "Origin station"}</h2><p>${parsed ? `${PROFILE.years} · read from ${esc(STATE.cvFile)}` : "Waiting for a CV"}</p></div></div>
+        <div class="origin-stn"><span class="origin-stn__ring" aria-hidden="true"></span><div><h2 id="org-h">${esc(station)}</h2><p>${esc(stationSub)}</p></div></div>
         ${skillsTable()}
       </section>
     </div>
@@ -234,21 +295,58 @@ function renderProfile() {
   const bind = (root) => {
     const fileInput = root.querySelector("[data-file]");
     const drop = root.querySelector("[data-drop]");
-    const parse = (name) => {
+    const fail = (message) => { STATE.cv = "error"; STATE.cvError = message; rerender(); };
+    const read = async (name, body) => {
       STATE.cv = "parsing";
       STATE.cvFile = name;
       rerender();
-      setTimeout(() => { STATE.cv = "parsed"; rerender(); toast("CV read. Check each skill against its quote."); }, 1200);
-    };
-    const accept = (file) => {
-      if (!/\.(pdf|docx)$/i.test(file.name)) {
-        STATE.cv = "error";
-        STATE.cvError = `“${file.name}” is not a PDF or DOCX. Export your CV as a PDF and try again.`;
-        rerender();
+      try {
+        STATE.review = await api("/api/cv/extract", { method: "POST", body: JSON.stringify(body) });
+      } catch (err) {
+        if (err instanceof TypeError && body.sample) {
+          // No backend (page opened as a file): fall back to the bundled sample.
+          STATE.cv = "parsed";
+          STATE.cvFile = PROFILE.file;
+          rerender();
+          toast("Varity's server is not reachable, so this is the bundled sample CV.");
+          return;
+        }
+        fail(err instanceof TypeError ? "Could not reach Varity's server. Try again." : err.message);
         return;
       }
-      parse(file.name);
+      STATE.keep = new Set(STATE.review.rows.filter((r) => r.default_keep).map((r) => r.skill_id));
+      STATE.cv = "review";
+      rerender();
+      toast("CV read. Check each skill against its quote.");
     };
+    const accept = (file) => {
+      if (!/\.(pdf|txt|md)$/i.test(file.name)) return fail(`“${file.name}” is not a PDF or text file. Export your CV as a PDF and try again.`);
+      if (file.size > 5 * 1024 * 1024) return fail(`“${file.name}” is larger than 5 MB.`);
+      const reader = new FileReader();
+      reader.onload = () => read(file.name, { file_name: file.name, file_b64: String(reader.result).split(",")[1] || "" });
+      reader.onerror = () => fail(`“${file.name}” could not be opened.`);
+      reader.readAsDataURL(file);
+    };
+    const call = async (path, options, done) => {
+      try {
+        done(await api(path, options));
+      } catch (err) {
+        if (err.status === 410) {  // review expired or already saved: start again rather than leave a dead Save button
+          STATE.cv = "empty";
+          STATE.review = null;
+          rerender();
+        }
+        toast(err instanceof TypeError ? "Could not reach Varity's server. Try again." : err.message);
+      }
+    };
+    root.addEventListener("change", (e) => {
+      const box = e.target.closest("[data-keep]");
+      if (!box) return;
+      if (box.checked) STATE.keep.add(box.dataset.keep);
+      else STATE.keep.delete(box.dataset.keep);
+      const save = root.querySelector('[data-act="cv-save"]');
+      if (save) save.textContent = `Save ${STATE.keep.size} skills`;
+    });
     if (fileInput) fileInput.addEventListener("change", () => fileInput.files[0] && accept(fileInput.files[0]));
     if (drop) {
       drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("is-over"); });
@@ -263,9 +361,36 @@ function renderProfile() {
       const b = e.target.closest("[data-act]");
       if (!b) return;
       const act = b.dataset.act;
-      if (act === "cv-replace") { STATE.cv = "empty"; rerender(); }
+      if (act === "cv-replace") { STATE.cv = "empty"; STATE.review = null; rerender(); }
       else if (act === "cv-choose") fileInput.click();
-      else if (act === "cv-sample") parse(PROFILE.file);
+      else if (act === "cv-sample") read("aina.txt (synthetic sample)", { sample: "aina" });
+      else if (act === "cv-save") {
+        call("/api/profile/apply", { method: "POST", body: JSON.stringify({ review_id: STATE.review.review_id, kept_ids: [...STATE.keep] }) }, (data) => {
+          setProfileToken(data.token);
+          STATE.saved = data.profile;
+          STATE.review = null;
+          STATE.cv = "parsed";
+          rerender();
+          toast(`Saved ${data.profile.skills.length} skills to your profile.`);
+        });
+      }
+      else if (act === "skill-remove") {
+        call("/api/profile/remove", { method: "POST", body: JSON.stringify({ skill_id: b.dataset.id }) }, (data) => {
+          STATE.saved = data.profile;
+          rerender();
+          toast("Removed. It stays removed when you read another CV.");
+        });
+      }
+      else if (act === "profile-delete") {
+        if (!confirm("Delete your saved profile from Varity's server? This cannot be undone.")) return;
+        call("/api/profile", { method: "DELETE" }, () => {
+          setProfileToken(null);
+          STATE.saved = null;
+          STATE.cv = "empty";
+          rerender();
+          toast("Your profile was deleted.");
+        });
+      }
       else if (act === "route") {
         STATE.routeId = b.dataset.id;
         rerender();
