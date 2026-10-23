@@ -25,7 +25,7 @@ Verity helps a junior or mid-level tech developer in Malaysia plan a career move
 ### Design principles
 
 1. **Code computes every number.** A language model never produces a score, a rank, a forecast or a date.
-2. **LLMs only extract or word things.** An LLM may read a CV or write a sentence. Code checks what it returns.
+2. **LLMs only point or word things.** An LLM may point at skill mentions in a CV or write a sentence. Code checks what it returns. The forecast, role match, pathway and SDG parts use no LLM.
 3. **Every number has a source and a date.** The app shows both.
 4. **Tested before trusted.** A method enters the product only if a backtest on held-out data supports it. The simple method won the forecast test, so it ships (data/backtest.json).
 5. **The human decides.** Verity shows estimates and labels them. New skills and new roles need a person to approve them.
@@ -48,9 +48,9 @@ flowchart LR
     subgraph COL["Collectors"]
         BF["backfill_hn.py<br/>[LIVE]"]
         RF["refresh.py<br/>[LIVE]"]
-        TS["trendsignal collectors<br/>[BRANCH]"]
+        TS["trendsignal collectors<br/>[MERGED: backend/signals, not deployed]"]
         MJ["my_jobs.py + MyCOL<br/>[BRANCH: integrate]<br/>job sites gated"]
-        CVX["CV extractor, Claude Haiku<br/>[PLANNED]"]
+        CVX["CV extractor, Claude Haiku 4.5<br/>[MERGED: backend/signals/intake;<br/>not deployed yet]"]
     end
 
     subgraph ENG["Engine, engine/*.py, pure Python"]
@@ -76,7 +76,7 @@ flowchart LR
     end
 
     subgraph AIL["Sheng Kuan's AI-advancement layer, separate service"]
-        RK["trendsignal ranker<br/>[BRANCH]"]
+        RK["trendsignal ranker<br/>[MERGED: backend/signals, not deployed]"]
         RJ["data/ranked/latest.json"]
     end
 
@@ -333,9 +333,9 @@ flowchart LR
 - **What is wired.** Step 3 also carries the role forecast line, the SDG goal controls and the MyCOL badges (sections 3.14 and 3.15); the step 3 summary line adds the target role's 12-month estimate and its band. Step 4 uses `plan_sdg_summary`. Evidence > Method has the subsections SDG sector links and Malaysia data.
 - **Status.** [BRANCH: integrate] (`feat/journey-ui` with the other feature branches). Not in `main`.
 
-### 3.17 AI-advancement ranker (Sheng Kuan) [BRANCH] and its integration [PLANNED]
+### 3.17 AI-advancement ranker (Sheng Kuan) [MERGED, not deployed] and its integration [PLANNED]
 
-This is a separate package, `ai-trend-signal-layer/trendsignal/`, on the branch `origin/AI-trend-signal-layer`. Its design is in `ARCHITECTURE_JEV_RANKER.md`. The principle is: code extracts, Jev decides, code ranks. No LLM is in the scoring path by default.
+This is a separate package, now merged as `backend/signals/trendsignal/` (pull request 16). Its design is in `backend/signals/ARCHITECTURE_JEV_RANKER.md`. The principle is: code extracts, Jev decides, code ranks. Jev may rank signals through OpenRouter, but `TRENDSIGNAL_RANKER` defaults to the formula. Optional Claude use (category fallback, prose brief) is off by default.
 
 ```mermaid
 flowchart LR
@@ -356,13 +356,13 @@ flowchart LR
 - **Outputs.** `data/ranked/latest.json` (rank, title, link, sources, tier probabilities, expected impact, confidence, final score, top features).
 - **Why built this way.** The feature vector is code only, so every rank can be reproduced. A formula always runs, so if Jev fails, times out or is not configured, the formula ranks and the row says so. The promotion rule says Jev ranks by default only if it beats the formula on a hand-labelled gold set.
 - **How tested.** The package has its own test suite and runs without network. A branch review found 211 tests passing.
-- **Status.** [BRANCH]. It is not connected to the app.
+- **Status.** Merged in `backend/signals/`. It serves the Signals page of the Varity web app (`GET /api/signals`). The Streamlit app does not use it.
 
 **Integration. [PLANNED]**
 
 ```mermaid
 flowchart LR
-    RJ["data/ranked/latest.json<br/>[BRANCH]"] --> AN["engine/ai_news.py<br/>tag_text on title + excerpt<br/>with our 40 skills [PLANNED]"]
+    RJ["data/ranked/latest.json<br/>[LIVE]"] --> AN["engine/ai_news.py<br/>tag_text on title + excerpt<br/>with our 40 skills [PLANNED]"]
     AN --> W["data/ai_news_weekly.csv<br/>week, skill, n_stories, impact_sum,<br/>momentum, example_story_ids"]
     AN --> ST["data/ai_news_stories.json"]
     W --> UI["App block<br/>This week in AI for your skills"]
@@ -377,11 +377,11 @@ flowchart LR
 - Feeding `ext_momentum` into the forecaster happens only after a historical backfill and only if the backtest improves (section 4.3 and 4.4).
 - **Status.** [PLANNED]
 
-### 3.18 CV intake with Claude Haiku [PLANNED]
+### 3.18 CV intake with Claude Haiku 4.5 [MERGED, not deployed]
 
 ```mermaid
 flowchart LR
-    CV["CV text<br/>synthetic only in the demo"] --> LLM["Claude Haiku<br/>extract skill, evidence_quote, years"]
+    CV["CV text<br/>synthetic only in the demo"] --> LLM["Claude Haiku 4.5<br/>point at skill mentions,<br/>return a quote for each"]
     LLM --> Q{"Is evidence_quote<br/>an exact substring<br/>of the CV?"}
     Q -- no --> X["Code drops the skill"]
     Q -- yes --> V{"Skill name in<br/>taxonomy.json?"}
@@ -391,13 +391,15 @@ flowchart LR
     E --> RM["match_roles"]
 ```
 
-- **What it does.** Reads a CV and returns skills, each with an exact quote from the CV and the years of experience.
-- **Contract.** The LLM returns `{skill, evidence_quote, years}`. Code drops any skill whose quote is not in the CV text. Skill names must match `data/taxonomy.json` (docs/data-contract.md, `data/profile.json`).
-- **Why built this way.** The check stops the LLM from inventing a skill. The LLM only extracts. It does not score or rank.
+- **What it does.** Reads a CV and returns skills, each with an exact quote from the CV. Code reads the years of experience. The design is in `docs/skill-profile-intake-architecture.md`. The code is in `backend/signals/intake/`.
+- **Contract.** One Claude call returns `{skill, evidence_quote, years}` as schema-constrained JSON. The LLM points. Code proves: it drops any skill whose quote is not in the CV text, word for word. Skill names must match the skill graph.
+- **Model and credentials.** When the backend runs on Replit, it uses Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). With no credentials, a keyword pass takes over. This is the design. The live Streamlit app has no CV intake; the backend is not deployed yet.
+- **Cost cap.** A daily spend counter caps intake at $1 per day (`VERITY_INTAKE_DAILY_BUDGET_USD`, default 1.0).
+- **Why built this way.** The check stops the LLM from inventing a skill. The LLM does not score or rank.
 - **Human control.** The user can remove or add skills and sets the target role.
-- **Data.** Three synthetic CVs. No real CVs. A PDPA assessment and a retention rule are needed before real uploads (docs/submission/qa-prep.md).
-- **Owner.** Sheng Kuan. Being built, not on a branch yet.
-- **Status.** [PLANNED]. Today the app uses three synthetic example profiles (`PERSONAS` in `app.py`).
+- **Data.** Synthetic CVs only. No real CVs. CV text goes to Anthropic through Replit. A PDPA assessment and a retention rule are needed before real uploads (docs/submission/qa-prep.md).
+- **Owner.** Sheng Kuan.
+- **Status.** Merged (pull request 16). The Streamlit app still uses three synthetic example profiles (`PERSONAS` in `app.py`). The CV page belongs to the Varity web app.
 
 ---
 
@@ -561,9 +563,9 @@ Schemas are in `docs/data-contract.md`. Raw files are local only. They are liste
 | `data/role_sdg.json`, `data/skill_sdg.json`, `data/sdg_sectors.json` | `sdg.py` | Journey UI (step 3 goal, step 4 SDG lines, Method) | [BRANCH: integrate]. Optional: the app runs without them. |
 | `data/mycol.json`, `data/mycol_role_map.json` | By hand from the TalentCorp PDF (team judgement for the map) | Journey UI (role badges, Method) | [BRANCH: integrate]. Optional. |
 | `data/my_jobs_snapshots.csv`, `data/my_roles_snapshots.csv`, raw pages in `data/raw/my_jobs/` | `my_jobs.py` | Method (Malaysia data) | [BRANCH]. Header row only: no snapshot is collected until each site's written permission is on file. Aggregates only. |
-| `data/ranked/latest.json` | trendsignal ranker | `ai_news.py` | [BRANCH]. Inside Sheng Kuan's package. |
+| `data/ranked/latest.json` | trendsignal ranker | `ai_news.py` | [LIVE]. Inside Sheng Kuan's package, `backend/signals/`. |
 | `data/ai_news_weekly.csv`, `data/ai_news_stories.json` | `ai_news.py` | App block "This week in AI" | [PLANNED] |
-| `data/profile.json` | CV extractor | `match_roles` | [PLANNED] |
+| `data/profile.json` | CV extractor | `match_roles` | [PLANNED]. The merged intake keeps its own profile store (`backend/signals/intake/`). |
 | `data/diff.json` | "What changed" step | App | [PLANNED] |
 
 Rules that hold for every committed file: counts, shares, skill names and thread links only. No post text, no author names, no emails. A test checks that no committed data file holds an email address.
@@ -576,7 +578,7 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 - **Why Streamlit.** One Python program reads the engine directly. No separate server is needed, and Replit is compulsory for the hackathon.
 - **App Storage.** Holds the snapshots from section 3.13. The code is merged. The bucket is not created yet.
 - **Scheduled job.** `python -m engine.scheduled`, daily at 09:00 Malaysia time, as a Replit Scheduled deployment. The code is merged. The Replit UI setup is pending (docs/replit-schedule.md). Until then the Refresh button in the app does the same job by hand, and saves for every visitor.
-- **Secrets.** The refresh job needs none, because HN data is public. Two optional secrets exist: `VERITY_STORE=replit` and `VERITY_BUCKET`. Sheng Kuan's ranker needs its own keys if Jev or Haiku is turned on. They stay in Replit Secrets, never in git.
+- **Secrets.** The refresh job needs none, because HN data is public. Two optional secrets exist: `VERITY_STORE=replit` and `VERITY_BUCKET`. The CV intake needs no secret on Replit, because Replit AI Integrations supplies the credentials. A direct `ANTHROPIC_API_KEY`, and the ranker's Jev or Claude keys, stay in Replit Secrets, never in git.
 - **Pinned requirements.** `requirements.txt` pins every package, for example `streamlit==1.66.1`, `pillow==13.0.0` and `replit-object-storage==1.0.2`. Replit's package firewall blocks Pillow versions with known advisories, so each version was checked against the OSV database (docs/build-plan.md, P11).
 - **Dev requirements.** `requirements-dev.txt` adds scikit-learn, joblib and threadpoolctl for the ML experiment only. Replit does not install them.
 - **Tests.** Over 700 automated tests pass (docs/build-plan.md). The test files are in `tests/`.
@@ -585,11 +587,11 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 
 ## 7. Trust and safety
 
-- **Privacy.** The app collects no personal data and has no sign-in. Raw HN posts can hold names and contact details. They stay in gitignored folders on team machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored (docs/submission/tech-declaration.md). CV upload will need a PDPA assessment and a retention rule first.
+- **Privacy.** The app collects no personal data and has no sign-in. Raw HN posts can hold names and contact details. They stay in gitignored folders on team machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored (docs/submission/tech-declaration.md). The CV intake sends CV text to Anthropic through Replit. We use synthetic CVs only. Real CVs need a PDPA assessment and a retention rule first.
 - **No bot-protection bypass.** We fetch only from public APIs and from pages that `robots.txt` allows. When a site answers with a challenge, we stop. This is why JobStreet has no scraper (docs/jobstreet.md on branch `feat/jobstreet-my`). `docs/data-contract.md` also excludes LinkedIn and X from the engine's sources.
 - **Sources and licences.** `data/SOURCES.md` lists every dataset with URL, date and licence. AEI is CC BY. O*NET is CC BY 4.0 and is credited in the README. The AIOE data has no licence file, so we cite it and do not redistribute it (docs/exposure-crosscheck.md, section 5).
-- **AI disclosure.** Claude Code is the major development tool (code, tests, data pipeline and documents, from the team's prompts and plans). Replit Agent is a minor tool: environment setup, with two commits that change only `.replit` (docs/submission/tech-declaration.md). Jev and Claude Haiku are declared if and when they merge. Today the app runs no LLM ("No LLM is used in this view" in `app.py`).
-- **The LLM boundary.** An LLM may extract (CV skills with exact quotes, optional category fallback in the ranker) or word things. Code checks the output. No LLM sets a number, a rank, a forecast or a date.
+- **AI disclosure.** Claude Code is the major development tool (code, tests, data pipeline and documents, from the team's prompts and plans). Replit Agent is a minor tool: environment setup, with two commits that change only `.replit` (docs/submission/tech-declaration.md). Claude Haiku 4.5 in the CV intake is declared as an AI model (tech declaration, section 4.1). Jev is declared if it is turned on. The forecast, role match, pathway and SDG views of the Streamlit app run no LLM ("No LLM is used in this view" in `app.py`).
+- **The LLM boundary.** An LLM may point (CV skill mentions with exact quotes, optional category fallback in the ranker) or word things. Code checks the output. No LLM sets a number, a rank, a forecast or a date.
 
 ---
 
@@ -599,7 +601,7 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 |---|---|
 | Engine, app, docs, backtests, deployment | Ee Zhan |
 | AI-advancement ranker, `ai_news.py` integration | Sheng Kuan |
-| CV upload with Claude Haiku | Sheng Kuan |
+| CV intake with Claude Haiku 4.5 | Sheng Kuan |
 | `data/resources.json` fill and checks | Sheng Kuan (docs/data-contract.md) [TEAM TO CONFIRM] |
 | Per-module breakdown for the submission | [TEAM TO CONFIRM] |
 
@@ -614,7 +616,7 @@ Every major part gets a review by a stronger model before it is called done (doc
 3. **JobStreet route.** Ask JobStreet for a sanctioned route, use a file they send, use another Malaysian source, or drop the step (docs/jobstreet.md on branch `feat/jobstreet-my`). The team's written permission has not been seen by the engine side.
 4. **Sheng Kuan's branch fixes.** The fixes from the review of `AI-trend-signal-layer` are open. [TEAM TO CONFIRM: list and owner]
 5. **Gmail history.** Commits in `main` show a personal Gmail address as author. The repo goes public at submission. Options: switch future commits to the GitHub noreply address, or also rewrite history (docs/build-plan.md, docs/submission/README.md).
-6. **LLM naming.** Name the exact Haiku model ID once chosen. Decide whether the Jev route is used in the demo or shown as a second opinion only.
+6. **LLM naming.** The CV intake uses Claude Haiku 4.5 (`claude-haiku-4-5`) on Replit. Verify it on the deployed app. Decide whether the Jev route is used in the demo or shown as a second opinion only.
 7. **Scheduled job setup.** Create the App Storage bucket and the Scheduled deployment on Replit.
 8. **Role outlook scope.** The role level, band and backtest are built [BRANCH: integrate] (sections 4.2 and 4.4). Decide whether `feat/integrate` is merged into `main` before submission. Emerging-role discovery (section 4.3) stays a design.
 9. **Job-site snapshots.** Hiredly and Jobstore collectors are ready. Run them only when written permission from each site is on file (docs/malaysia-data.md).

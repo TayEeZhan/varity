@@ -16,6 +16,7 @@ Tick each box as you do it. Items marked [TEAM TO FILL] need a decision from you
 - [ ] Both members read `docs/ml-forecaster.md`, the backtest part of `docs/build-plan.md`, and `docs/submission/qa-prep.md`. Sheng Kuan speaks the forecast-test rows (5 and 8) and may get those questions.
 - [ ] Open https://verity--eezhan0805.replit.app in a private window. It must show real data. If the page shows "Prototype: showing sample data", the deployment is old: redeploy `main` first.
 - [ ] Compare the page with the numbers in section 4. If a value differs, find out why (a refresh, a new snapshot) and fix the script, not the screen.
+- [ ] CV intake: show it in the video only if you have run it on the deployed app. Use a synthetic CV only, never a real one. The Claude call is a design that is not yet verified on Replit. With no credentials, a keyword pass takes over, and the page then shows no Claude result. Check which of the two you will show.
 - [ ] Do not click "Refresh live data" before the take. Once App Storage is set up (Replit setup pending), it publishes to the shared store, so the numbers can change for everyone, including the judges. If someone clicked it, repeat the number check.
 - [ ] Open the app once on `main` locally (`streamlit run app.py`) as a second source for the backup take (section 6).
 - [ ] Choose the account for the recording: a clean browser profile with no extensions, no saved logins, and no bookmarks bar.
