@@ -1,0 +1,10 @@
+# Curated X accounts (one username per line, no @). Only read when the x_curated source
+# is enabled in sources.yaml. Keep this list to public figures who post about AI and dev tools.
+OpenAI
+AnthropicAI
+GoogleDeepMind
+AIatMeta
+MistralAI
+huggingface
+karpathy
+simonw

@@ -1,0 +1,32 @@
+AINA BINTI RAHMAN (synthetic CV for testing, not a real person)
+Kuala Lumpur, Malaysia | aina.rahman@example.com | +60 12-345 6789 | github.com/aina-example
+
+SUMMARY
+Junior Python developer with a finance background. I build data tools and small web APIs.
+
+EXPERIENCE
+Junior Software Developer, Kopi Data Sdn Bhd
+Jan 2024 - Present
+- Built REST APIs in Python with Flask for the billing team.
+- Wrote SQL queries on PostgreSQL to produce monthly revenue reports.
+- Added unit tests with pytest and set up GitHub Actions for CI.
+- Packaged the services with Docker for the staging server.
+
+Quant Research Intern, Bukit Capital
+Jun 2023 - Dec 2023
+- Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.
+- Plotted strategy returns with Matplotlib in Jupyter notebooks.
+
+PROJECTS
+Personal finance dashboard (2023)
+- Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.
+
+EDUCATION
+BSc Actuarial Science, Universiti Malaya, 2019 - 2023
+- Coursework in statistics and time series analysis.
+
+SKILLS
+Python, SQL, Git, Excel, Linux
+
+LEARNING
+Currently learning Rust in my free time.

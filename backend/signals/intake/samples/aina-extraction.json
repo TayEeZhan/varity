@@ -1,0 +1,36 @@
+{
+  "_about": "Cached run for data/cv_samples/aina.txt, used when no API key is set. Hand-written in the exact LLM output format, not a live model answer. It includes one invented quote (Kubernetes) and one misleading years line (NumPy) so the demo shows the gates working. The app re-checks every quote. Replace with a live run: python -m intake.llm_extract intake/samples/aina.txt intake/samples/aina-extraction.json",
+  "origin": "hand-written fixture",
+  "model": null,
+  "made_on": "2026-10-23",
+  "cv_sha256": "sha256:05925ec4b351a877435c9380f2838b35835fefcc392af6f881c3825779b29541",
+  "extraction": {
+    "mentions": [
+      {"phrase": "Python", "evidence_quote": "Built REST APIs in Python with Flask for the billing team.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "REST APIs", "evidence_quote": "Built REST APIs in Python with Flask for the billing team.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "Flask", "evidence_quote": "Built REST APIs in Python with Flask for the billing team.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "SQL", "evidence_quote": "Wrote SQL queries on PostgreSQL to produce monthly revenue reports.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "PostgreSQL", "evidence_quote": "Wrote SQL queries on PostgreSQL to produce monthly revenue reports.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "unit tests", "evidence_quote": "Added unit tests with pytest and set up GitHub Actions for CI.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "pytest", "evidence_quote": "Added unit tests with pytest and set up GitHub Actions for CI.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "GitHub Actions", "evidence_quote": "Added unit tests with pytest and set up GitHub Actions for CI.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "CI", "evidence_quote": "Added unit tests with pytest and set up GitHub Actions for CI.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "Docker", "evidence_quote": "Packaged the services with Docker for the staging server.", "context": "work", "years_quote": "Jan 2024 - Present"},
+      {"phrase": "Kubernetes", "evidence_quote": "Deployed the services on Kubernetes clusters.", "context": "work", "years_quote": null},
+      {"phrase": "backtest", "evidence_quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.", "context": "work", "years_quote": "Jun 2023 - Dec 2023"},
+      {"phrase": "pandas", "evidence_quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.", "context": "work", "years_quote": "Jun 2023 - Dec 2023"},
+      {"phrase": "NumPy", "evidence_quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.", "context": "work", "years_quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices."},
+      {"phrase": "Matplotlib", "evidence_quote": "Plotted strategy returns with Matplotlib in Jupyter notebooks.", "context": "work", "years_quote": "Jun 2023 - Dec 2023"},
+      {"phrase": "Jupyter", "evidence_quote": "Plotted strategy returns with Matplotlib in Jupyter notebooks.", "context": "work", "years_quote": "Jun 2023 - Dec 2023"},
+      {"phrase": "HTML", "evidence_quote": "Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.", "context": "project", "years_quote": "Personal finance dashboard (2023)"},
+      {"phrase": "CSS", "evidence_quote": "Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.", "context": "project", "years_quote": "Personal finance dashboard (2023)"},
+      {"phrase": "JavaScript", "evidence_quote": "Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.", "context": "project", "years_quote": "Personal finance dashboard (2023)"},
+      {"phrase": "statistics", "evidence_quote": "Coursework in statistics and time series analysis.", "context": "education", "years_quote": "BSc Actuarial Science, Universiti Malaya, 2019 - 2023"},
+      {"phrase": "time series analysis", "evidence_quote": "Coursework in statistics and time series analysis.", "context": "education", "years_quote": null},
+      {"phrase": "Git", "evidence_quote": "Python, SQL, Git, Excel, Linux", "context": "skills_list", "years_quote": null},
+      {"phrase": "Excel", "evidence_quote": "Python, SQL, Git, Excel, Linux", "context": "skills_list", "years_quote": null},
+      {"phrase": "Linux", "evidence_quote": "Python, SQL, Git, Excel, Linux", "context": "skills_list", "years_quote": null},
+      {"phrase": "Rust", "evidence_quote": "Currently learning Rust in my free time.", "context": "interest", "years_quote": null}
+    ]
+  }
+}
