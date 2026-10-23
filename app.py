@@ -81,9 +81,12 @@ NO_GOAL = "No preference"
 GOAL_LABEL = "What do you want your work to help with? (optional)"
 ORDER_BEST, ORDER_GOAL = "Best fit", "Fit for my goal"
 GOAL_KEY, ORDER_KEY = "sdg_goal", "roles_order_by"
-MYCOL_BADGE = "On Malaysia's Critical Occupations List"
+MYCOL_BADGE = "MyCOL shortage occupation"
 MYCOL_CAPTION = ("MyCOL is TalentCorp's list of occupations in short supply in Malaysia; the mapping to our "
-                 "roles is team judgement.")
+                 "roles is team judgement. Occupation names and MASCO codes were read by eye from the PDF's "
+                 "page images.")
+NO_ROLE_ESTIMATE = "Role estimate not available for this month yet"
+SLIDER_NOTE = "does not move with the As-of slider"
 NO_MY_SNAPSHOT = ("No Malaysian job-site snapshot yet: collectors need written permission from each site.")
 TREND_BADGE = {"Rising": ":green-badge[Rising]", "Falling": ":red-badge[Falling]",
                "No clear change": ":gray-badge[No clear change]"}
@@ -173,7 +176,8 @@ def default_scores_path(data_dir: Path) -> Path:
 # --------------------------------------------------------------------------------------
 
 def _is_number(value) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    """A real number: not a bool and not NaN (a missing value must show as n/a, never as 'nan')."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value == value
 
 
 def pct(value, digits: int = 1) -> str:
@@ -360,8 +364,8 @@ def radar_chart(radar: dict, dark: bool) -> alt.Chart:
     df = df.assign(
         share_text=df["share"].map(lambda v: f"{v:.1%}"),
         change_text=df["change"].map(lambda v: f"{v:+.0%}"),
-        trend_text=[f"{r.trend_label}" + (f" (p = {r.trend_p:.3f})" if r.trend_p is not None else "")
-                    for r in df.itertuples()],
+        trend_text=[f"{r.trend_label} (p = {r.trend_p:.3f})" if _is_number(r.trend_p)
+                    else f"{r.trend_label} (p = n/a)" for r in df.itertuples()],
         stance_text=[r.stance + (" (contested)" if r.contested else "") for r in df.itertuples()],
         yours=["yes" if m else "" for m in df["mine"]])
     tooltip = [alt.Tooltip("skill:N", title="Skill"),
@@ -388,10 +392,10 @@ def radar_chart(radar: dict, dark: bool) -> alt.Chart:
         alt.Chart(pd.DataFrame({"share": [cut]})).mark_rule(strokeDash=[4, 4], color=soft, opacity=0.7).encode(x=x),
         alt.Chart(pd.DataFrame({"change": [0.0]})).mark_rule(strokeDash=[4, 4], color=soft, opacity=0.7).encode(y=y))
     corners = [  # (name, x, y, align, baseline): one text layer each, as align is a mark property
-        ("Small but rising", lo * 1.04, ymax - 0.02, "left", "top"),
-        ("Strong and growing", hi / 1.04, ymax - 0.02, "right", "top"),
-        ("Small and fading", lo * 1.04, ymin + 0.02, "left", "bottom"),
-        ("Strong but slowing", hi / 1.04, ymin + 0.02, "right", "bottom"),
+        ("Small, share up", lo * 1.04, ymax - 0.02, "left", "top"),
+        ("Common, share up", hi / 1.04, ymax - 0.02, "right", "top"),
+        ("Small, share down", lo * 1.04, ymin + 0.02, "left", "bottom"),
+        ("Common, share down", hi / 1.04, ymin + 0.02, "right", "bottom"),
     ]
     names = [alt.Chart(pd.DataFrame({"share": [cx], "change": [cy], "name": [label]})).mark_text(
         fontSize=13, fontWeight="bold", color=soft, align=align, baseline=base).encode(x=x, y=y, text="name:N")
@@ -580,8 +584,8 @@ past_view = view_as_of != latest_as_of
 
 st.title("Verity")
 st.subheader("Future-ready skills for tech developers")
-st.markdown("Decision support under uncertainty: tested trend labels, honest ranges, and a plan that still "
-            "works if the forecast is wrong.")
+st.markdown("Decision support under uncertainty: tested trend labels, honest ranges, and a plan that does not "
+            "lean on one forecast.")
 st.markdown(f"**Data as of:** {view.get('as_of') or NA} | generated {view.get('generated_at') or NA}")
 if using_runtime_folder():
     committed = read_json(DEFAULT_DATA_DIR / SCORES_NAME) or {}
@@ -722,6 +726,8 @@ def radar_step(held: list[str]) -> None:
     for sentence in radar_mod.summary_sentences(data, held):
         st.markdown(sentence)
     st.caption(radar_mod.how_to_read(backtest))
+    if past_view and _is_number(((backtest or {}).get("trend_label_backtest") or {}).get("trend_label_hit_rate")):
+        st.caption(f"The hit rate uses all data and {SLIDER_NOTE}.")
     next_button("See roles that fit you", STEP_ROLES, "next_to_roles")
 
 
@@ -732,8 +738,11 @@ with tab_radar:
 # Step 3: Future roles
 # --------------------------------------------------------------------------------------
 
-def role_forecast_doc() -> tuple[dict, dict] | None:
-    """(role forecast, role backtest) for the As-of month, or None when a file is missing or too early.
+def role_forecast_doc() -> tuple[dict | None, dict] | None:
+    """(role forecast, role backtest) for the As-of month, or None when a file is missing.
+
+    The forecast part is None when the files exist but cannot be computed for this month (after a Refresh
+    that added a month the role table does not have yet).
 
     Numbers come from data/role_forecast.json and data/role_backtest.json. For an As-of month before the
     file's month, the forecast is recomputed from data up to that month (no later data).
@@ -747,13 +756,29 @@ def role_forecast_doc() -> tuple[dict, dict] | None:
         try:
             forecast = role_forecast_as_of(str(DEFAULT_DATA_DIR), view_as_of, demand_file.stat().st_mtime)
         except (ValueError, FileNotFoundError):
-            return None
+            return None, backtest_doc  # the files exist but this month has no role data yet (after a Refresh)
     return forecast, backtest_doc
+
+
+def backtest_coverage_text(backtest_doc: dict) -> str:
+    """How the 80% band did in the role backtest, from data/role_backtest.json (coverage, n_roles_used)."""
+    cov = backtest_doc.get("coverage") or {}
+    held, nominal, n = cov.get("test_h12"), cov.get("nominal"), cov.get("n_role_origins")
+    roles = backtest_doc.get("n_roles_used")
+    if not all(_is_number(v) for v in (held, nominal, n)):
+        return ""
+    verdict = "so it is wider than needed" if held > nominal else "so it is not wider than the target"
+    sample = f"{int(roles)} roles, " if _is_number(roles) else ""
+    text = (f"In the role backtest the band held {pct(held)} of {int(n)} overlapping test outcomes "
+            f"(target {pct(nominal, 0)}), {verdict}; {sample}a rough guide.")
+    return text + (f" The backtest uses all data and {SLIDER_NOTE}." if past_view else "")
 
 
 def role_forecast_line(role_id: str) -> str | None:
     """The role forecast line for a role card, or None (line hidden) if its files are missing or too early."""
     docs = role_forecast_doc()
+    if docs and docs[0] is None:
+        return NO_ROLE_ESTIMATE
     item = ((docs[0].get("roles") or {}).get(role_id)) if docs else None
     if not item:
         return None
@@ -763,9 +788,8 @@ def role_forecast_line(role_id: str) -> str | None:
     est = item["forecast_moderate"]
     if item["status"] != "ok" or est.get("value_12m") is None:
         return text + "too few posts a month for a 12-month estimate."
-    covered = (backtest_doc.get("coverage") or {}).get("test_h12")
     return (text + f"12-month estimate {pct(est['value_12m'])} (80% target band {pct(est['low'])}–{pct(est['high'])}). "
-            f"Band covered {pct(covered, 0)} of held-out outcomes for roles.")
+            + backtest_coverage_text(backtest_doc))
 
 
 def role_estimate_text(role_id: str) -> str | None:
@@ -774,7 +798,7 @@ def role_estimate_text(role_id: str) -> str | None:
     None when the role forecast files are missing, the role has too few posts, or it is not in the file.
     """
     docs = role_forecast_doc()
-    item = ((docs[0].get("roles") or {}).get(role_id)) if docs else None
+    item = ((docs[0].get("roles") or {}).get(role_id)) if docs and docs[0] else None
     est = (item or {}).get("forecast_moderate") or {}
     if not item or item.get("status") != "ok" or not _is_number(est.get("value_12m")):
         return None
@@ -848,6 +872,8 @@ def goal_controls(role_sdg: dict | None) -> tuple[str | None, bool]:
     left, right = st.columns([3, 2])
     picked = left.selectbox(GOAL_LABEL, [NO_GOAL, *options], key=GOAL_KEY)
     goal = options.get(picked)
+    if goal is None:
+        st.session_state[ORDER_KEY] = ORDER_BEST  # no goal: back to Best fit, never a disabled 'goal' choice
     order = right.radio("Order roles by:", [ORDER_BEST, ORDER_GOAL], key=ORDER_KEY, horizontal=True,
                         disabled=goal is None,
                         help="Best fit is the match-and-outlook order. Fit for my goal moves roles that hire "
@@ -945,9 +971,9 @@ def mycol_badges(items: list[dict]) -> None:
     for item in items:
         year = f" {item['year']}" if item["year"] else ""
         color = "blue" if item["strength"] == "direct" else "gray"
-        link = f" | [MyCOL source]({item['url']})" if item["url"] else ""
-        st.markdown(f":{color}-badge[{MYCOL_BADGE}{year}: {item['occupation']} (MASCO {item['masco_code']})] "
-                    f"{item['strength']} match{link}")
+        link = f" | [MyCOL{year} source]({item['url']})" if item["url"] else ""
+        st.markdown(f":{color}-badge[{MYCOL_BADGE}: {item['occupation']} (MASCO {item['masco_code']})], "
+                    f"our {item['strength']} match (team judgement){link}")
 
 
 def role_card(role: dict, position: int, show_rank: bool, show_fast: bool,
@@ -1050,16 +1076,21 @@ def roles_step(ctx: dict) -> dict | None:
     ranked = goal_out["roles"] if goal_out else out["roles"]
     low_match = goal_out["low_match"] if goal_out else out["low_match"]
     if by_goal:
+        from engine.sdg import MIN_EMPLOYERS, MIN_N, MIN_SECTOR_POSTS
+
         formula = goal_out["formula"]
         st.caption(f"Ordered by fit for {goal_out['sector_name']}: {formula['goal_fit_score']}. "
-                   "A role's score goes up only with a reliable over-representation; no score is lowered and no "
-                   "role is hidden.")
+                   f"A role's score goes up only when the cell has at least {MIN_N} role posts, {MIN_SECTOR_POSTS} "
+                   f"posts in the sector and {MIN_EMPLOYERS} employers; no score is lowered and no role is hidden.")
     sort_by_match = st.toggle("Sort by match only", key="roles_sort_match", disabled=by_goal,
                               help="Off: sorted by rank score (match and outlook). Not used when roles are "
                                    "ordered by fit for your goal.")
     mycol = mycol_by_role()
     if mycol:
         st.caption(MYCOL_CAPTION)
+        if past_view:
+            first = next(iter(mycol.values()))[0]
+            st.caption(f"MyCOL {first['year'] or 'list'} is one list and {SLIDER_NOTE}.")
     target_box = st.container()
 
     if ranked:
@@ -1199,11 +1230,11 @@ def plan_summary(box, target: str, plan: dict) -> None:
         c3.metric("Finish date", plan["finish_date"] or NA)
         if no_regret:
             st.markdown("No-regret skills (useful for several of your roles): " + ", ".join(no_regret) + ".")
-            st.markdown("This plan still works if the forecast is wrong: it starts with skills useful for "
-                        "several of your roles.")
+            st.markdown("It starts with skills that several of your roles need, so less of the plan depends on "
+                        "one forecast.")
         else:
             st.markdown("No skill in your gap is needed by several of your roles yet, so this plan follows what "
-                        "employers ask for now, not the forecast. It still works if the forecast is wrong.")
+                        "employers ask for now, not the forecast.")
 
 
 def pathway_tab(role_out: dict | None) -> None:
@@ -1307,6 +1338,10 @@ def pathway_tab(role_out: dict | None) -> None:
     role_sdg = load_role_sdg()
     for sentence in plan_sdg_lines(plan, role, role_sdg):
         st.markdown(sentence)
+    if past_view and role_sdg is not None and chosen_goal(role_sdg):
+        months = role_sdg.get("months")
+        st.caption(f"The sector share is for the {months if _is_number(months) else 'last few'} months to "
+                   f"{role_sdg.get('as_of') or NA} and {SLIDER_NOTE}.")
     with st.expander("SDG tags per skill"):
         for step in plan["steps"]:
             if step["sdg"]:
@@ -1583,7 +1618,7 @@ def precision_by_sector() -> dict[str, str]:
 
 def sdg_method_section(role_sdg: dict) -> None:
     """Evidence > Method > SDG sector links: method, precision table and limits. Numbers come from the files."""
-    from engine.sdg import GOAL_WEIGHT, MAX_EXCESS, MIN_EMPLOYERS, MIN_N
+    from engine.sdg import GOAL_WEIGHT, MAX_EXCESS, MIN_EMPLOYERS, MIN_N, MIN_SECTOR_POSTS
 
     window = role_sdg.get("window") or {}
     recent, previous = window.get("recent") or {}, window.get("previous") or {}
@@ -1595,8 +1630,9 @@ def sdg_method_section(role_sdg: dict) -> None:
         "the word patterns run.\n"
         f"- **Window.** {recent.get('from', NA)} to {recent.get('to', NA)} ({recent.get('n_posts', NA)} posts), "
         f"against {previous.get('from', NA)} to {previous.get('to', NA)} ({previous.get('n_posts', NA)} posts).\n"
-        f"- **Reliable** means at least {MIN_N} role posts and {MIN_EMPLOYERS} different employers in the "
-        "sector. A cell that is not reliable is marked rough and never moves a role.\n"
+        f"- **Reliable** means at least {MIN_N} role posts, {MIN_SECTOR_POSTS} of them in the sector, and "
+        f"{MIN_EMPLOYERS} different employers in the sector ({MIN_SECTOR_POSTS} is team judgement). A cell that "
+        "is not reliable is marked rough, with the reason, and never moves a role.\n"
         f"- **Fit for my goal** = rank score x (1 + {GOAL_WEIGHT} x min(max(lift - 1, 0), {MAX_EXCESS:g})). "
         "The weight and the cap are team judgement, not fitted. No score is lowered and no role is hidden.")
     precision = precision_by_sector()

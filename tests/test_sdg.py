@@ -13,6 +13,7 @@ from engine.sdg import (
     MAX_EXCESS,
     MIN_EMPLOYERS,
     MIN_N,
+    MIN_SECTOR_POSTS,
     load_sectors,
     plan_sdg_summary,
     rerank_for_goal,
@@ -405,6 +406,34 @@ def test_rerank_arithmetic_and_order():
     assert [r["role_id"] for r in out["roles"]] == ["a", "b", "c"]  # the original order is kept
 
 
+def test_a_thin_sector_cell_never_re_orders_even_when_the_file_says_reliable():
+    """The file can call a cell reliable with 4 posts (30 role posts, 3 employers). Under MIN_SECTOR_POSTS it is rough."""
+    assert MIN_SECTOR_POSTS == 10
+    doc = _role_sdg({"a": (0.13, 4, 31, True),      # lift 1.3 here, but only 4 posts in the sector
+                     "b": (0.30, 10, 200, True)})   # exactly the minimum: counts
+    doc["roles"]["a"]["sectors"]["climate_energy"]["lift"] = 6.0
+    doc["roles"]["a"]["sectors"]["climate_energy"]["employers_recent"] = 3
+    out = rerank_for_goal(_match({"a": 0.55, "b": 0.60}), doc, "climate_energy")
+    goal = {r["role_id"]: r["sdg_goal"] for r in out["roles"]}
+    assert goal["a"]["reliable"] is False and goal["a"]["multiplier"] == 1.0
+    assert goal["b"]["reliable"] is True and goal["b"]["multiplier"] > 1.0
+    assert "only 4 posts in the sector" in goal["a"]["sentence"] and "only 31" not in goal["a"]["sentence"]
+    # With the 1.45 boost a would reach 0.7975 and pass b (0.78). Not boosted, it stays second.
+    assert [r["role_id"] for r in out["by_goal_fit"]] == ["b", "a"]
+    boosted = {r["role_id"]: r["multiplier"] for r in out["by_goal_fit"]}
+    assert boosted == {"a": 1.0, "b": pytest.approx(1 + GOAL_WEIGHT * 2.0)}
+
+
+def test_the_rough_reason_names_the_real_threshold():
+    base = {"n": 200, "count": 50, "employers": 20}
+    assert sdg._why_rough({**base, "n": 12}) == "only 12 role posts"
+    assert sdg._why_rough({**base, "count": 4}) == "only 4 posts in the sector"
+    assert sdg._why_rough({**base, "employers": 2}) == "only 2 employers"
+    assert sdg._why_rough({**base, "n": 5, "count": 1, "employers": 1}) == (
+        "only 5 role posts, only 1 posts in the sector, only 1 employers")
+    assert "not reliable" in sdg._why_rough(base)      # nothing is thin: the file's own flag said no
+
+
 def test_rerank_boost_is_capped_and_never_negative():
     doc = _role_sdg({"a": (0.90, 90, 100, True), "b": (0.01, 3, 300, True)}, baseline_share=0.05)
     out = rerank_for_goal(_match({"a": 0.5, "b": 0.5}), doc, "climate_energy")
@@ -433,7 +462,8 @@ def test_rerank_sentence_uses_the_numbers():
     assert "3.0x the baseline" in sentence and "60 of 200 posts" in sentence
     assert "Too few" not in sentence
     rough = rerank_for_goal(_match({"a": 0.8}), _role_sdg({"a": (0.30, 3, 10, False)}), "climate_energy")
-    assert "Too few posts" in rough["roles"][0]["sdg_goal"]["sentence"]
+    sentence = rough["roles"][0]["sdg_goal"]["sentence"]
+    assert "Too few to count as a signal: only 10 role posts, only 3 posts in the sector." in sentence
 
 
 def test_rerank_keeps_the_input_unchanged_and_labels_the_formula():
@@ -503,7 +533,7 @@ def test_plan_summary_accepts_a_match_roles_result_and_a_role_name():
 
 def test_plan_summary_flags_rough_numbers_and_missing_roles():
     rough = plan_sdg_summary(PLAN, "a", _role_sdg({"a": (0.30, 3, 10, False)}), "climate_energy")
-    assert "Too few posts" in rough["lines"][2]
+    assert "Rough, not a signal (only 10 role posts, only 3 posts in the sector)" in rough["lines"][2]
     missing = plan_sdg_summary(PLAN, "zzz", _role_sdg({"a": (0.30, 60, 200, True)}), "climate_energy")
     assert "too few zzz posts" in missing["lines"][2] and missing["numbers"]["goal"] is None
     with pytest.raises(ValueError):

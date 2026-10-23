@@ -22,17 +22,17 @@ GREY_GROUP = "No clear change"
 STANCES = ("AI-complement", "AI-substitutable", "neutral")
 COLOUR_GROUPS = STANCES + (GREY_GROUP,)
 QUADRANT_NAMES = {
-    (True, True): "Strong and growing",
-    (True, False): "Strong but slowing",
-    (False, True): "Small but rising",
-    (False, False): "Small and fading",
+    (True, True): "Common, share up",
+    (True, False): "Common, share down",
+    (False, True): "Small, share up",
+    (False, False): "Small, share down",
 }
 # How a plotted skill is drawn: coloured and filled, coloured and hollow (stance contested), grey.
 MARK_FILLED, MARK_HOLLOW, MARK_GREY = "filled", "hollow", "grey"
 
 
 def _is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value == value  # not NaN
 
 
 def share_change(skill: Mapping[str, Any]) -> float | None:
@@ -125,9 +125,9 @@ def summary_sentences(radar: Mapping[str, Any], my_skills: Iterable[str]) -> lis
     if c["n"] == 0:
         first = "Pick your skills in step 1 to see where they sit on the chart."
     else:
-        parts = [f"{len(c['strong_steady'])} strong and steady"]
+        parts = [f"{len(c['strong_steady'])} strong, no clear change"]
         if c["small_steady"]:
-            parts.append(f"{len(c['small_steady'])} small and steady")
+            parts.append(f"{len(c['small_steady'])} small, no clear change")
         parts.append(f"{len(c['rising'])} rising" + (f" ({_names(c['rising'])})" if c["rising"] else ""))
         parts.append(f"{len(c['falling'])} falling" + (f" ({_names(c['falling'])})" if c["falling"] else ""))
         first = "Your skills: " + ", ".join(parts) + "."
@@ -153,7 +153,8 @@ def how_to_read(backtest: Mapping[str, Any] | None = None) -> str:
     return (
         "How to read it: further right means more job posts mention the skill (share of Hacker News 'Who is "
         "hiring?' posts, log scale). Higher means that share grew over the last 12 months against the 12 before. "
-        "A filled colour mark means a statistical test (Welch, p < 0.05) found a real change. A hollow mark means "
+        "A filled colour mark means a statistical test found a change unlikely to be chance alone (Welch, p < 0.05; "
+        "each skill is tested separately, so a few labels can be wrong). A hollow mark means "
         "the same, but the published AI-exposure indices disagree on its stance. Grey means no clear change: the true change may "
         "be zero, whatever the dot's height." + tested + " A black ring and a label mark your skills. "
         "The dashed lines split the chart at the median share and at no change.")

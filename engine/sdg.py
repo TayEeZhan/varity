@@ -62,11 +62,13 @@ SCHEMA_VERSION = 1
 WINDOW_MONTHS = 12
 MIN_N = 30  # a role or skill needs at least this many posts in the window for its shares to count
 MIN_EMPLOYERS = 3  # and at least this many different employers tagged in the sector (HN posts repeat monthly)
+MIN_SECTOR_POSTS = 10  # team judgement: and at least this many posts of the role in the sector, or the lift is rough
 EXAMPLE_THREADS = 2
 
 # Goal fit (team judgement, not fitted). goal_fit_score = rank_score * (1 + GOAL_WEIGHT * excess),
 # excess = min(max(lift - 1, 0), MAX_EXCESS), lift = role share / baseline share.
-# Only a reliable over-representation raises the score. Nothing is lowered and no role is hidden.
+# Only a reliable over-representation raises the score (reliable: MIN_N role posts, MIN_EMPLOYERS employers and
+# MIN_SECTOR_POSTS posts in the sector; the last one is checked here, in goal_numbers). Nothing is lowered and no role is hidden.
 GOAL_WEIGHT = 0.15
 MAX_EXCESS = 3.0
 
@@ -560,9 +562,21 @@ def goal_numbers(role_sdg: Mapping[str, Any], role_id: str, goal_sector: str) ->
         "count": sec["count_recent"],
         "employers": sec.get("employers_recent"),
         "n": entry["n_recent"],
-        "reliable": bool(sec["reliable"]),
+        "reliable": bool(sec["reliable"]) and sec["count_recent"] >= MIN_SECTOR_POSTS,
         "months": role_sdg["months"],
     }
+
+
+def _why_rough(nums: Mapping[str, Any]) -> str:
+    """The real reason a cell is not a signal: only N role posts, only N posts in the sector, only N employers."""
+    reasons = []
+    if nums["n"] is not None and nums["n"] < MIN_N:
+        reasons.append(f"only {nums['n']} role posts")
+    if nums["count"] is not None and nums["count"] < MIN_SECTOR_POSTS:
+        reasons.append(f"only {nums['count']} posts in the sector")
+    if nums.get("employers") is not None and nums["employers"] < MIN_EMPLOYERS:
+        reasons.append(f"only {nums['employers']} employers")
+    return ", ".join(reasons) or "the cell is marked not reliable in role_sdg.json"
 
 
 def _goal_sentence(nums: Mapping[str, Any] | None, sector_name: str) -> str:
@@ -574,7 +588,7 @@ def _goal_sentence(nums: Mapping[str, Any] | None, sector_name: str) -> str:
         text += f", {nums['lift']:.1f}x the baseline"
     text += f" ({nums['count']} of {nums['n']} posts)."
     if not nums["reliable"]:
-        text += f" Too few posts or employers (fewer than {MIN_N} posts, or {MIN_EMPLOYERS} employers in the sector) to count as a signal."
+        text += f" Too few to count as a signal: {_why_rough(nums)}."
     return text
 
 
@@ -640,7 +654,8 @@ def rerank_for_goal(match_roles_output: Mapping[str, Any], role_sdg: Mapping[str
             "goal_weight": GOAL_WEIGHT,
             "max_excess": MAX_EXCESS,
             "lift": "share of the role's single-role posts in the sector / share of all posts in the sector",
-            "reliable_only": f"lift counts only with at least {MIN_N} role posts and {MIN_EMPLOYERS} employers in the sector; "
+            "reliable_only": f"lift counts only with at least {MIN_N} role posts, {MIN_SECTOR_POSTS} role posts in the sector "
+                             f"and {MIN_EMPLOYERS} employers in the sector; "
                              "otherwise the multiplier is 1",
             "basis": "team judgement, not fitted: the weight and the cap are chosen by the team. "
                      "The original order and every role stay visible.",
@@ -699,7 +714,7 @@ def plan_sdg_summary(
                     f"{meta['name']} employers (SDG {targets}), against {_pct(nums['baseline_share'])} "
                     f"of all posts ({nums['count']} of {nums['n']} posts).")
             if not nums["reliable"]:
-                line += " Too few posts to count as a signal: treat it as rough."
+                line += f" Rough, not a signal ({_why_rough(nums)}): treat it with care."
             lines.append(line)
         numbers["goal"] = nums
     return {"lines": lines, "numbers": numbers}

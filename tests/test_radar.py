@@ -92,10 +92,22 @@ def test_quadrants_split_at_the_median_share_and_at_no_change(skills):
     for p in out["points"]:
         assert p["quadrant"] == radar.QUADRANT_NAMES[(p["share"] >= out["share_cut"], p["change"] >= 0)]
     pts = by_name(out)
-    assert pts["Big riser"]["quadrant"] == "Strong and growing"
-    assert pts["Big flat"]["quadrant"] == "Strong but slowing"
-    assert pts["Small riser"]["quadrant"] == "Small but rising"
-    assert pts["Small faller"]["quadrant"] == "Small and fading"
+    assert pts["Big riser"]["quadrant"] == "Common, share up"
+    assert pts["Big flat"]["quadrant"] == "Common, share down"
+    assert pts["Small riser"]["quadrant"] == "Small, share up"
+    assert pts["Small faller"]["quadrant"] == "Small, share down"
+
+
+def test_a_nan_trend_p_is_missing_never_nan(skills):
+    skills[0]["trend_p"] = float("nan")
+    out = radar.radar_points(skills)
+    assert by_name(out)[skills[0]["skill"]]["trend_p"] is None
+
+
+def test_the_caption_does_not_overclaim_the_welch_label():
+    text = radar.how_to_read(None)
+    assert "unlikely to be chance alone" in text and "a few labels can be wrong" in text
+    assert "real change" not in text
 
 
 def test_an_empty_input_gives_no_points_and_no_cut():
@@ -116,7 +128,7 @@ def test_user_counts_split_steady_into_strong_and_small(skills):
 def test_summary_sentences_are_built_from_the_counts(skills):
     out = radar.radar_points(skills, my_skills=["Big flat", "Small flat", "Big riser", "Rare"])
     first, second, third = radar.summary_sentences(out, ["Big flat", "Small flat", "Big riser", "Rare"])
-    assert first == ("Your skills: 1 strong and steady, 1 small and steady, 1 rising (Big riser), "
+    assert first == ("Your skills: 1 strong, no clear change, 1 small, no clear change, 1 rising (Big riser), "
                      "0 falling. 1 of your skills is too rare in posts to plot.")
     assert second == ("Across all 8 skills on the chart: 2 rising, 1 falling and 5 with no clear "
                       "change over the last 12 months.")

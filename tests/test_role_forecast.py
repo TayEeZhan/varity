@@ -454,6 +454,17 @@ def _app_texts(at):
     return [c.value for c in at.caption]
 
 
+def _coverage_tail(past: bool) -> str:
+    """The sentence after the estimate: how the band did in the role backtest (numbers from role_backtest.json)."""
+    b = json.loads((DATA / "role_backtest.json").read_text(encoding="utf-8"))
+    cov = b["coverage"]
+    assert cov["test_h12"] > cov["nominal"]
+    text = (f"In the role backtest the band held {cov['test_h12']:.1%} of {cov['n_role_origins']} overlapping "
+            f"test outcomes (target {cov['nominal']:.0%}), so it is wider than needed; "
+            f"{b['n_roles_used']} roles, a rough guide.")
+    return text + (" The backtest uses all data and does not move with the As-of slider." if past else "")
+
+
 @needs_real_data
 def test_role_card_shows_the_forecast_line_from_the_json_files():
     from streamlit.testing.v1 import AppTest
@@ -470,7 +481,7 @@ def test_role_card_shows_the_forecast_line_from_the_json_files():
     expected = (f"Share of HN hiring posts now {sample['share_now']['value']:.1%} "
                 f"({sample['share_now']['mentions']}/{sample['share_now']['posts']}); "
                 f"12-month estimate {f['value_12m']:.1%} (80% target band {f['low']:.1%}\u2013{f['high']:.1%}). "
-                f"Band covered {cov:.0%} of held-out outcomes for roles.")
+                + _coverage_tail(past=False))
     assert expected in lines
 
 
@@ -489,7 +500,7 @@ def test_role_card_line_follows_the_as_of_slider_without_later_data():
     assert (f"Share of HN hiring posts now {past['share_now']['value']:.1%} "
             f"({past['share_now']['mentions']}/{past['share_now']['posts']}); "
             f"12-month estimate {f['value_12m']:.1%} (80% target band {f['low']:.1%}\u2013{f['high']:.1%}). "
-            f"Band covered {cov:.0%} of held-out outcomes for roles.") in lines
+            + _coverage_tail(past=True)) in lines
 
 
 @needs_real_data

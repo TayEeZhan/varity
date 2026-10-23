@@ -1,5 +1,6 @@
 """Tests for engine/my_jobs.py. No test touches the network: sessions are fakes."""
 import csv
+import re
 import urllib.robotparser
 from pathlib import Path
 
@@ -503,3 +504,99 @@ def test_default_files_and_columns_match_the_documented_format():
         "devops", "machine learning", "AI engineer", "mobile developer",
     )
     assert my_jobs.MAX_PAGES == 3 and my_jobs.MIN_INTERVAL_S == 3.0 and my_jobs.TIMEOUT_S == 30
+
+
+# ---------------------------------------------------------------- review fixes
+def test_run_refuses_a_site_whose_terms_need_written_permission(tmp_path, monkeypatch):
+    fetched = []
+
+    class NoNetwork:
+        headers = {}
+
+        def get(self, *a, **k):  # pragma: no cover - must never be reached
+            fetched.append(a)
+            raise AssertionError("fetched without permission")
+
+    fetcher = PoliteFetcher(session=NoNetwork(), raw_dir=tmp_path / "raw")
+    assert JobStore.terms_status != "no_clause_found" and Hiredly.terms_status != "no_clause_found"
+    for sites in (["jobstore"], ["hiredly"], ["hiredly", "jobstore"]):
+        with pytest.raises(PermissionError, match="written permission"):
+            my_jobs.run(sites, fetcher=fetcher, write=False)
+    assert fetched == []
+    # with the flag the permission check passes and the run goes on (no site answers: a stopped site, no crash)
+    ft = FakeTime()
+    ok_fetcher, _, _ = make_fetcher({}, tmp_path, ft)
+    monkeypatch.setattr(my_jobs, "SKILLS_CSV", tmp_path / "s.csv")
+    monkeypatch.setattr(my_jobs, "ROLES_CSV", tmp_path / "r.csv")
+    results = my_jobs.run(["jobstore"], fetcher=ok_fetcher, write=False, permission_confirmed=True, max_pages=1)
+    assert [r.site for r in results] == ["jobstore"]
+
+
+def test_main_passes_the_permission_flag_to_run(monkeypatch):
+    seen = {}
+
+    def fake_run(sites, **kwargs):
+        seen.update(kwargs)
+        return []
+
+    monkeypatch.setattr(my_jobs, "run", fake_run)
+    assert my_jobs.main(["--sites", "jobstore", "--permission-confirmed", "--dry-run"]) == 0
+    assert seen["permission_confirmed"] is True
+
+
+def test_a_challenge_on_robots_txt_blocks_the_host_even_with_status_200(tmp_path):
+    just_a_moment = FakeResponse(200, "<html><head><title>Just a moment...</title></head></html>")
+    fetcher, session, _ = make_fetcher({"https://a.example/robots.txt": just_a_moment}, tmp_path)
+    with pytest.raises(ChallengeDetected):
+        fetcher.get("https://a.example/jobs")
+    assert "a.example" in fetcher.blocked_hosts
+    assert [c[0] for c in session.calls] == ["https://a.example/robots.txt"]       # the job page was never asked for
+    marker = FakeResponse(200, "User-agent: *\nAllow: /\n", headers={"cf-mitigated": "challenge"})
+    fetcher2, _, _ = make_fetcher({"https://b.example/robots.txt": marker}, tmp_path)
+    with pytest.raises(ChallengeDetected):
+        fetcher2.get("https://b.example/jobs")
+
+
+def test_a_redirect_target_is_checked_against_robots_before_it_is_fetched(tmp_path):
+    routes = {
+        "https://a.example/robots.txt": OPEN_ROBOTS,
+        "https://a.example/jobs": FakeResponse(302, "", headers={"Location": "https://c.example/private/list"}),
+        "https://c.example/robots.txt": FakeResponse(200, "User-agent: *\nDisallow: /private/\n"),
+        "https://c.example/private/list": FakeResponse(200, "<html>secret</html>"),
+    }
+    fetcher, session, _ = make_fetcher(routes, tmp_path)
+    with pytest.raises(RobotsDisallowed):
+        fetcher.get("https://a.example/jobs")
+    assert "https://c.example/private/list" not in [c[0] for c in session.calls]
+    assert "https://c.example/robots.txt" in [c[0] for c in session.calls]          # the new host's rules were read
+
+
+def test_an_allowed_redirect_is_followed_with_a_relative_location_and_the_final_url_is_kept(tmp_path):
+    routes = {
+        "https://a.example/robots.txt": OPEN_ROBOTS,
+        "https://a.example/jobs": FakeResponse(301, "", headers={"location": "/jobs/all"}),
+        "https://a.example/jobs/all": FakeResponse(200, "<html><title>Jobs</title>ok</html>"),
+    }
+    fetcher, session, _ = make_fetcher(routes, tmp_path)
+    page = fetcher.get("https://a.example/jobs")
+    assert page.status == 200 and page.url == "https://a.example/jobs/all"
+
+
+def test_redirects_stop_after_three_hops_and_automatic_redirects_are_off(tmp_path):
+    routes = {"https://a.example/robots.txt": OPEN_ROBOTS}
+    for i in range(6):
+        routes[f"https://a.example/r{i}"] = FakeResponse(302, "", headers={"Location": f"/r{i + 1}"})
+    seen_flags = []
+    fetcher, session, _ = make_fetcher(routes, tmp_path)
+    original = session.get
+
+    def spy(url, timeout=None, allow_redirects=True):
+        seen_flags.append(allow_redirects)
+        return original(url, timeout=timeout, allow_redirects=allow_redirects)
+
+    session.get = spy
+    with pytest.raises(FetchFailed, match="redirects"):
+        fetcher.get("https://a.example/r0")
+    assert seen_flags and not any(seen_flags)
+    hops = [c[0] for c in session.calls if re.search(r"/r[0-9]$", c[0])]
+    assert hops == [f"https://a.example/r{i}" for i in range(4)]                    # the first request plus 3 hops

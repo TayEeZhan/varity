@@ -36,7 +36,10 @@ A user who says "I want to work on health" then sees which roles and which skill
 5. **Shares.** For the last 12 months (up to `as_of`) and the 12 months before: `share = posts in sector / posts`.
    The **baseline** is the same share over all posts. `lift = share / baseline share`.
    Each cell also has: counts, a 95% Wilson interval, `employers_recent` and `reliable`.
-6. **Reliable** = at least 30 posts for the role (or skill) and at least 3 different employers tagged in the sector.
+6. **Reliable** = at least 30 posts for the role (or skill), at least 3 different employers tagged in the sector, and
+   (checked when the file is read, `MIN_SECTOR_POSTS` in `engine/sdg.py`, team judgement) at least 10 of the role's posts in
+   the sector. A cell with 4 sector posts out of 31 is therefore rough, whatever the `reliable` flag in the file says.
+   A rough cell says why: only N role posts, only N posts in the sector, or only N employers.
    HN posters repeat the same post every month, so one employer can fill 10 posts. The employer count uses the first
    segment of the first line of the post, in memory only. The files hold the count, never the key.
 7. **Privacy.** The outputs hold counts, shares, thread ids and thread URLs (2 example threads per cell). No post text,
@@ -61,9 +64,11 @@ Two hooks. The journey UI calls them; this module does not touch `app.py`.
   employers (SDG x.y), against Z% of all posts (a of b posts)." A cell that is not reliable says so.
 
 Example on the real data (a user with Python, SQL and PostgreSQL, goal "health"): Backend Engineer ranks first
-by match, with 7.9% of its posts in health against a 10.0% baseline (0.8x, below average). By fit for the goal,
-AI/LLM Application Engineer (15.7% of its posts, 1.6x) moves to first place (multiplier 1.09). The user sees both
-orders and the numbers behind the move.
+by match, with 7.9% of its posts in health against a 10% baseline (0.8x, below average). AI/LLM Application Engineer
+(15.7% of its posts, 1.6x) gets multiplier 1.09, which is too small to pass Backend Engineer, so both orders are the
+same. With goal "climate" no cell of her seven roles has the 10 sector posts needed, so the order is also unchanged:
+Data Scientist has 4 of 31 posts in climate (6.1x) and stays rough. On the committed data none of the example profiles
+changes order for any sector; the feature shows the numbers and keeps the order unless a cell is strong enough.
 
 ## Precision (hand check)
 
@@ -107,6 +112,6 @@ pattern. The list guard does more work.
   Analytics Engineer 6 (not ranked). Look at `n_recent`, the interval and `reliable`.
 - **Association, not impact.** "Hires for climate" does not mean the job reduces emissions. The link is to the
   employer's sector, not to the effect of the work.
-- **Weights are judgement.** The 0.15 weight, the cap of 3, the 30 posts and the 3 employers are chosen by the team.
+- **Weights are judgement.** The 0.15 weight, the cap of 3, the 30 posts, the 10 sector posts and the 3 employers are chosen by the team.
 - **Precision is a hand estimate** from 20 posts per sector by one reader. Recall was not measured.
 - **Partial month.** The last month in the window can be partial (as in `role_trends.json`).
