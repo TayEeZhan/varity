@@ -1,4 +1,4 @@
-"""Bridge between the shared snapshot store (engine.store) and the Streamlit app.
+"""Bridge between the shared snapshot store (engine.store) and the app.
 
 The app calls this module in three places and nothing else:
 
@@ -23,8 +23,6 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-import streamlit as st
-
 from engine.store import SnapshotStore, get_store
 
 log = logging.getLogger("verity.live")
@@ -33,7 +31,6 @@ ROOT = Path(__file__).resolve().parent.parent
 SCORES_NAME = "skill_scores.json"
 LIVE_META_NAME = "live_meta.json"     # written into a live folder; marks it as a store snapshot
 LIVE_DIR_ENV = "VERITY_LIVE_DIR"
-CACHE_SECONDS = 600
 KEEP_LOCAL_FOLDERS = 3
 
 
@@ -108,28 +105,13 @@ def _prune_folders(base: Path, keep: int, current: Path) -> None:
             shutil.rmtree(old, ignore_errors=True)
 
 
-@st.cache_data(ttl=CACHE_SECONDS, show_spinner=False)
-def _cached_start_dir(committed_dir: str) -> str | None:
+def start_dir(committed_dir: str | Path) -> str | None:
+    """Folder with newer stored data, or None to use the committed data. Never raises."""
     try:
         return load_newer_snapshot(committed_dir)
-    except Exception as exc:  # noqa: BLE001 - the store must never break the app
+    except Exception as exc:  # noqa: BLE001 - the store must never break the caller
         log.warning("could not read the shared store: %s: %s", type(exc).__name__, exc)
         return None
-
-
-def start_dir(committed_dir: str | Path) -> str | None:
-    """Folder with newer stored data (cached for 10 minutes), or None to use the committed data."""
-    folder = _cached_start_dir(str(committed_dir))
-    if folder is not None and not (Path(folder) / LIVE_META_NAME).is_file():
-        _cached_start_dir.clear()  # the folder was cleaned up since it was cached
-        folder = _cached_start_dir(str(committed_dir))
-    return folder
-
-
-def reload(committed_dir: str | Path) -> str | None:
-    """Forget the cached answer and ask the store again (the "Reload data" button)."""
-    _cached_start_dir.clear()
-    return start_dir(committed_dir)
 
 
 def folder_meta(folder: str | Path | None) -> dict | None:

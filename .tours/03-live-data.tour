@@ -31,13 +31,7 @@
       "file": "engine/live.py",
       "line": 70,
       "title": "Using a newer snapshot",
-      "description": "load_newer_snapshot compares the stored snapshot's generated time with the committed scores file. If the stored one is newer, the app uses a folder copy of it, and start_dir on line 120 caches that choice for 10 minutes. Any store problem returns nothing, so the app shows the committed data. Judge asks: What if the store is down? Short answer: The app still works, using the committed data."
-    },
-    {
-      "file": "app.py",
-      "line": 379,
-      "title": "Manual refresh is shared",
-      "description": "The Refresh button runs refresh, then calls live.publish on line 379. A good manual refresh is saved so every visitor sees it. The app shows the note that publish returns, which says whether the save reached shared storage or only this machine. Judge asks: Does one click change the data for everyone? Short answer: Yes, after a good refresh, and only when shared storage is set up."
+      "description": "load_newer_snapshot compares the stored snapshot's generated time with the committed scores file. If the stored one is newer, the app uses a folder copy of it, and start_dir wraps it so that any store error returns nothing. Any store problem returns nothing, so the app shows the committed data. Judge asks: What if the store is down? Short answer: The app still works, using the committed data."
     }
   ]
 }

@@ -25,6 +25,7 @@ if str(VERITY_ROOT) not in sys.path:
 
 from engine import pathway as pathway_mod  # noqa: E402
 from engine import roles as roles_mod  # noqa: E402
+from engine import sdg as sdg_mod  # noqa: E402
 
 DATA_DIR = VERITY_ROOT / "data"
 SCENARIOS = roles_mod.SCENARIOS
@@ -32,6 +33,20 @@ STEP_REASONS_SHOWN = 2
 FILES = {"profiles": "role_profiles.json", "scores": "skill_scores.json", "trends": "role_trends.json",
          "forecast": "role_forecast.json", "resources": "resources.json", "taxonomy": "taxonomy.json",
          "exposure": "exposure.csv"}
+# Left out of the answer (not an error) when missing, as app.py does.
+OPTIONAL_FILES = {"role_sdg": "role_sdg.json", "mycol": "mycol.json", "mycol_map": "mycol_role_map.json"}
+SCENARIO_LABELS = {"moderate": "Moderate (estimate)", "fast": "Fast AI disruption (estimate)"}
+# Short names for the SDG targets that data/ uses (plain paraphrase of the UN target text).
+SDG_LABELS = {
+    "1.4": "Access to basic services", "2.3": "Small food producers' income", "2.4": "Sustainable food production",
+    "3.8": "Universal health coverage", "3.b": "Health research", "3.d": "Health risk early warning",
+    "4.3": "Technical and tertiary education", "4.4": "Skills for employment", "7.2": "Renewable energy",
+    "7.3": "Energy efficiency", "8.2": "Productivity through technology", "8.5": "Productive employment",
+    "8.10": "Access to financial services", "9.5": "Research and innovation", "9.c": "ICT access",
+    "10.2": "Inclusion of all", "11.1": "Adequate housing", "11.2": "Sustainable transport",
+    "13.2": "Climate policy", "16.6": "Effective institutions", "16.7": "Inclusive decision-making",
+}
+MYCOL_LABEL = "TalentCorp MyCOL"
 
 
 class RoleNotFound(ValueError):
@@ -50,11 +65,65 @@ def _read(path: str, mtime: float) -> Any:
 
 def load_data(data_dir: Path = DATA_DIR) -> dict[str, Any]:
     """The engine files. Raises FileNotFoundError when one is missing."""
-    return {key: _read(str(data_dir / name), (data_dir / name).stat().st_mtime) for key, name in FILES.items()}
+    data = {key: _read(str(data_dir / name), (data_dir / name).stat().st_mtime) for key, name in FILES.items()}
+    for key, name in OPTIONAL_FILES.items():
+        try:
+            data[key] = _read(str(data_dir / name), (data_dir / name).stat().st_mtime)
+        except (OSError, ValueError):
+            data[key] = None
+    return data
 
 
 def role_ids(data: Mapping[str, Any]) -> set[str]:
     return set(data["trends"]["roles"])
+
+
+def pathway_role_ids(profile: Profile, data: Mapping[str, Any]) -> set[str]:
+    """Roles a pathway can be built for: the ranked ones and the low-match ones (not the unranked)."""
+    out = _match(profile, data, "moderate")[0]
+    return {r["role_id"] for r in out["roles"] + out["low_match"]}
+
+
+def sdg_tags(targets: Sequence[str], source: str) -> list[dict]:
+    return [{"target": t, "label": SDG_LABELS.get(t, f"SDG {t}"), "source": source} for t in targets]
+
+
+def _role_sdg(role: Mapping[str, Any], data: Mapping[str, Any]) -> dict:
+    """SDG targets of the role (data/roles.json) and the sectors where its posts are over-represented (data/role_sdg.json)."""
+    doc = data.get("role_sdg") or {}
+    names = {x["id"]: x for x in doc.get("sectors", [])}
+    sectors = []
+    for sid in (doc.get("roles", {}).get(role["role_id"]) or {}).get("sectors", {}):
+        nums = sdg_mod.goal_numbers(doc, role["role_id"], sid)
+        if nums and nums["reliable"] and nums["lift"] and nums["lift"] > 1 and sid in names:
+            sectors.append({"sector": sid, "name": names[sid]["name"], "tags": sdg_tags(names[sid]["sdg"], "data/role_sdg.json"),
+                            "sharePct": round(nums["share"] * 100, 1), "baselinePct": round(nums["baseline_share"] * 100, 1),
+                            "lift": round(nums["lift"], 1), "count": nums["count"], "posts": nums["n"],
+                            "months": nums["months"], "asOf": doc.get("as_of")})
+    sectors.sort(key=lambda x: -x["lift"])
+    return {"tags": sdg_tags(role.get("sdg") or [], "data/roles.json"), "sectors": sectors[:2]}
+
+
+def mycol_by_role(data: Mapping[str, Any]) -> dict[str, list[dict]]:
+    """{role_id: MyCOL occupations}, direct matches first (port of app.py mycol_by_role). {} when a file is missing."""
+    mycol, mapping = data.get("mycol"), data.get("mycol_map")
+    if not mycol or not mapping or not isinstance(mycol.get("occupations"), list) or not isinstance(mapping.get("mappings"), list):
+        return {}
+    source = mycol.get("source") if isinstance(mycol.get("source"), dict) else {}
+    by_code = {o.get("masco_code"): o for o in mycol["occupations"] if isinstance(o, dict)}
+    found: dict[str, list[dict]] = {}
+    for m in mapping["mappings"]:
+        occ = by_code.get(m.get("masco_code")) if isinstance(m, dict) else None
+        if occ is None or not m.get("role_id") or m.get("strength") not in ("direct", "partial"):
+            continue
+        url = occ.get("source_url") or source.get("pdf_url") or source.get("landing_page") or ""
+        found.setdefault(m["role_id"], []).append({
+            "label": MYCOL_LABEL, "occupation": occ.get("occupation") or m.get("occupation"), "mascoCode": m["masco_code"],
+            "strength": m["strength"], "year": occ.get("year") or source.get("year") or "",
+            "url": url if str(url).startswith(("http://", "https://")) else ""})
+    for items in found.values():
+        items.sort(key=lambda i: i["strength"] != "direct")
+    return found
 
 
 def _match(profile: Profile, data: Mapping[str, Any], scenario: str) -> tuple[dict, dict, list[str]]:
@@ -106,13 +175,15 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
     as_of = _as_of(profile, data, run_id)
     momentum, links = _momentum(momentum_rows), chip_mod.watch_map(data["taxonomy"], _watch_terms(momentum_rows))
     minutes, forecasts = _minutes_by_skill(data["resources"]), data["forecast"]["roles"]
+    mycol = mycol_by_role(data)
     roles = []
     for r in out["roles"]:
         chips = chip_mod.role_chips(r, forecasts.get(r["role_id"]), momentum, links, minutes, hours_per_week, as_of)
         roles.append({"roleId": r["role_id"], "name": r["name"], "formulaRank": r["rank"],
                       "matchPct": round(r["match_score"] * 100), "trendLabel": r["outlook"]["trend_label"],
                       "outlook": _outlook(forecasts.get(r["role_id"]), as_of["forecast"]), "tier": r["tier"],
-                      "have": [s["skill"] for s in r["have"]], "gap": [s["skill"] for s in r["gap"]], "chips": chips})
+                      "have": [s["skill"] for s in r["have"]], "gap": [s["skill"] for s in r["gap"]], "chips": chips,
+                      "fastShift": r["fast_shift"], "sdg": _role_sdg(r, data), "mycol": mycol.get(r["role_id"], [])})
 
     status, checked = "off:NO_ROLES", {"order": None, "roles": {}}
     if roles and use_llm:
@@ -124,6 +195,7 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
     elif not use_llm:
         status = "off:SWITCHED_OFF"
 
+    pathway_ids = {r["role_id"] for r in out["roles"] + out["low_match"]}
     by_id = {r["roleId"]: r for r in roles}
     order = checked["order"] or [r["roleId"] for r in roles]
     ranked = []
@@ -131,18 +203,20 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
         role, llm = by_id[role_id], checked["roles"].get(role_id, {})
         reasons, watch = chip_mod.default_pick(role["chips"])
         ranked.append({**{k: v for k, v in role.items() if k != "chips"}, "rank": rank,
-                       "fitLabel": llm.get("fitLabel") or chip_mod.fit_label(role["matchPct"] / 100, role["trendLabel"]),
+                       "fitLabel": chip_mod.fit_label(role["matchPct"] / 100, role["trendLabel"]),
                        "summary": llm.get("summary"), "reasons": llm.get("reasons") or reasons,
                        "watchOut": llm.get("watchOut") or watch, "salary": None})
     return {
         "rankedBy": "llm" if checked["order"] else "formula", "llmStatus": status, "scenario": scenario,
         "inputs": {"profileUpdatedAt": profile.updated_at, "signalsRunId": run_id,
                    "forecastAsOf": as_of["forecast"], "skillsAsOf": as_of["skills"]},
-        "targetRoleId": profile.target_role, "roles": ranked,
+        "targetRoleId": profile.target_role if profile.target_role in pathway_ids else None, "roles": ranked,
+        "scenarioLabel": SCENARIO_LABELS[scenario],
         "lowMatch": [{"roleId": r["role_id"], "name": r["name"], "matchPct": round(r["match_score"] * 100)}
                      for r in out["low_match"]],
         "notRanked": [{"roleId": r["role_id"], "name": r["name"], "note": r.get("note")} for r in out["not_ranked"]],
         "unmappedSkills": unmapped, "formula": out["formula"]["rank_score"],
+        "formulaWeights": {"match": out["formula"]["match_weight"], "future": out["formula"]["future_weight"]},
     }
 
 
@@ -177,7 +251,8 @@ def _step_out(s: Mapping[str, Any]) -> dict:
     return {"order": s["order"], "skill": s["skill"], "stage": s["stage"], "stageLabel": s["stage_label"],
             "reason": s["reason"], "reasons": s["reasons"], "whyForYou": s.get("whyForYou"), "resource": s["resource"],
             "resourceNote": s["resource_note"], "alternatives": s["alternatives"], "minutes": s["minutes"],
-            "trendLabel": s["trend_label"], "sdg": s["sdg"], "startDate": s.get("start_date"),
+            "trendLabel": s["trend_label"], "sdg": s["sdg"], "sdgTags": sdg_tags(s["sdg"], "data/taxonomy.json"),
+            "sdgReason": s.get("sdg_reason"), "startDate": s.get("start_date"),
             "deadline": s.get("deadline"), "taskIds": s.get("task_ids", []), "source": s["source"]}
 
 
@@ -229,4 +304,6 @@ def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], ru
         "unresolved": [s["skill"] for s in steps if not s["resource"]],
         "totals": {"steps": len(steps), "tasks": len(tasks), "minutes": minutes, "hours": round(minutes / 60, 1)},
         "notes": plan["notes"],
+        "sdgSummary": {**plan["sdg_summary"], "lines": sdg_mod.plan_sdg_summary(plan, role, data.get("role_sdg") or {})["lines"]},
+        "roleSdg": _role_sdg(role, data), "mycol": mycol_by_role(data).get(role_id, []),
     }

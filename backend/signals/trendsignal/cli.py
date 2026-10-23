@@ -10,7 +10,7 @@ import sys
 from dataclasses import replace
 from pathlib import Path
 
-from trendsignal.jobs import PipelineBusy, load_context, make_digest, run_pipeline, write_ranking_outputs
+from trendsignal.jobs import PipelineBusy, bootstrap_if_empty, load_context, make_digest, run_pipeline, write_ranking_outputs
 from trendsignal.output import format_table, to_csv
 from trendsignal.queries import feed, source_health
 
@@ -113,6 +113,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.scheduler:
             os.environ["TRENDSIGNAL_SCHEDULER"] = "1"
+        bootstrap_if_empty(load_context())
         uvicorn.run("trendsignal.web.app:create_app", factory=True, host=args.host, port=args.port)
         return 0
 

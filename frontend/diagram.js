@@ -4,6 +4,9 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
 
+/* Links come from crawled feeds or the API: allow only http(s). */
+const safeUrl = (u) => (/^https?:\/\//i.test(u) ? u : "#");
+
 /* Split a label into lines of roughly `max` characters on word boundaries. */
 function wrap(text, max) {
   const lines = [];
