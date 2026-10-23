@@ -124,3 +124,26 @@ def test_root_serves_the_frontend_and_the_feed_moves(settings, client, tmp_path)
 def test_root_falls_back_to_the_feed_without_a_frontend(settings, tmp_path):
     app_client = TestClient(create_app(load_context(replace(settings, frontend_dir=tmp_path / "missing"))))
     assert app_client.get("/").url.path == "/feed"
+
+
+def test_role_forecast_serves_the_engine_file(settings, tmp_path):
+    path = tmp_path / "role_forecast.json"
+    path.write_text('{"as_of": "2026-10", "roles": {"data_engineer": {"name": "Data Engineer", "status": "ok"}}}',
+                    encoding="utf-8")
+    app_client = TestClient(create_app(load_context(replace(settings, role_forecast_path=path))))
+    body = app_client.get("/api/roles/forecast").json()
+    assert body["success"] and body["data"]["as_of"] == "2026-10"
+    assert body["data"]["roles"]["data_engineer"]["name"] == "Data Engineer"
+
+
+def test_role_forecast_is_404_when_the_file_is_missing(settings, tmp_path):
+    missing = replace(settings, role_forecast_path=tmp_path / "missing.json")
+    response = TestClient(create_app(load_context(missing))).get("/api/roles/forecast")
+    assert response.status_code == 404 and response.json()["error"]
+
+
+def test_role_forecast_is_500_when_the_file_is_broken(settings, tmp_path):
+    path = tmp_path / "role_forecast.json"
+    path.write_text("{not json", encoding="utf-8")
+    response = TestClient(create_app(load_context(replace(settings, role_forecast_path=path)))).get("/api/roles/forecast")
+    assert response.status_code == 500 and not response.json()["success"]
