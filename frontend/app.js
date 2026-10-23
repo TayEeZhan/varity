@@ -12,7 +12,7 @@ const STATE = {
   keep: new Set(),        // skill ids ticked in the review
   saved: null,            // the profile kept on the server (GET /api/profile)
   routeId: "llm-app",
-  scenario: "moderate",   // moderate | fast
+  forecastLive: false,    // true once GET /api/roles/forecast replaced the saved copy
   filter: "all",
   flowSel: "f7",
 };
@@ -105,6 +105,21 @@ async function loadSignals() {
   if (run) run.textContent = SIGNAL_RUN.runId;
 }
 
+/* Swap the saved copy of the role forecast for the backend's file. Keeps the copy if the API is unreachable
+   or has no forecast yet. */
+async function loadForecast() {
+  try {
+    const res = await fetch("/api/roles/forecast", { headers: { Accept: "application/json" } });
+    const body = await res.json();
+    if (!res.ok || !body.success || !body.data || !body.data.roles) return;
+    Object.keys(FORECAST).forEach((k) => delete FORECAST[k]);
+    Object.assign(FORECAST, body.data);
+    STATE.forecastLive = true;
+  } catch (e) {
+    return;
+  }
+}
+
 /* The saved profile is reached with a random token only this browser holds. */
 const TOKEN_KEY = "varity.profileToken";
 function profileToken() {
@@ -138,4 +153,4 @@ async function loadProfile() {
 }
 
 window.addEventListener("hashchange", navigate);
-Promise.all([loadSignals(), loadProfile()]).finally(navigate);
+Promise.all([loadSignals(), loadForecast(), loadProfile()]).finally(navigate);
