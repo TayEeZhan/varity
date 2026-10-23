@@ -31,8 +31,8 @@ How to use this sheet:
 ## Innovation and Creativity (30%)
 
 **1. Isn't this just a chatbot? Where is the AI?**
-No. Verity has no chatbot, and the running app calls no language model, because a language model can invent numbers and the brief forbids invented statistics. The AI is statistical learning: role profiles learned from 2,569 single-role posts, forecasts with tested bands, and a gradient-boosting model we trained and then rejected. Language models appear only in planned or unmerged work: CV extraction with Claude Haiku, and Sheng Kuan's AI-news ranker on the branch `AI-trend-signal-layer`.
-Relies on: `app.py` ("No LLM is used in this view"); `docs/ml-forecaster.md`; `docs/build-plan.md` item S1; `docs/submission/tech-declaration.md`.
+No. Verity has no chatbot. The forecast, role match, pathway and SDG parts use no language model, because a language model can invent numbers and the brief forbids invented statistics. The AI there is statistical learning: role profiles learned from 2,569 single-role posts, forecasts with tested bands, and a gradient-boosting model we trained and then rejected. One part uses a language model: CV intake, where Claude Haiku 4.5 only points at skill mentions and code checks every quote (see #26). Optional Claude use in Sheng Kuan's signal ranker is off by default.
+Relies on: `app.py` ("No LLM is used in this view"); `docs/ml-forecaster.md`; `docs/skill-profile-intake-architecture.md`; `docs/submission/tech-declaration.md` section 4.1.
 
 **2. Why trust a forecast that is basically "no change"?**
 We tested the alternatives and "no change" won: over 616 held-out forecasts, naive3 had 1.66 points of error, trend lines had 2.13 and 2.27, and gradient boosting had 2.06. So the app shows a level with a band that held 93.8% of real values, plus an observed trend label that pointed the right way 67.2% of the time. We make no claim of a precise future, and the user decides.
@@ -95,7 +95,7 @@ Refresh keeps the last good data and shows its date with the error, for example 
 Relies on: `docs/build-plan.md` P10; `app.py` (`show_refresh_result`); `docs/replit-schedule.md`; `BRIEF.md` (final deliverables).
 
 **16. Privacy and PDPA?**
-The app collects no personal data: the three profiles are synthetic and it has no sign-in. We commit only counts and thread links; raw post text stays in gitignored folders on our machines and, during a refresh, in a temporary folder on the Replit server. Tests check that no committed data file holds an email address and that radar output holds no author names. When CV upload arrives, we need a PDPA assessment and a retention rule. [TEAM TO FILL: retention rule]
+The app has no sign-in, and the three profiles are synthetic. We use synthetic CVs only. CV text goes to Anthropic through Replit, and code redacts contact details and ID numbers first, but names can remain. We commit only counts and thread links; raw post text stays in gitignored folders on our machines and, during a refresh, in a temporary folder on the Replit server. Tests check that no committed data file holds an email address and that radar output holds no author names. Real CVs would need a PDPA assessment and a retention rule. [TEAM TO FILL: retention rule]
 Relies on: `docs/submission/tech-declaration.md` section 6.1; `docs/build-plan.md` P2 and P12; `docs/skill-discovery.md`.
 
 **17. What is your hardest technical risk, and what is the fallback?**
@@ -103,11 +103,11 @@ The hardest risk is forecast skill: 12-month demand is close to no change, and 1
 Relies on: `data/skill_scores.json` (`status`); `docs/build-plan.md` P8.
 
 **18. What is built, and what is only planned?**
-Built and merged: forecast, bands, trend labels, scenarios, as-of view, role match, pathway with exports, live refresh, exposure cross-check, k estimate and the radar, with over 700 tests passing on 22 Oct. Not in the app: CV upload (the app takes a profile and a skill picker), the AI-news feed (Sheng Kuan's ranker sits on an unmerged branch), JobStreet data, and a full "what changed" diff (Refresh lists changed skills only). Claude Haiku for CV extraction is planned and not built.
+Built and merged: forecast, bands, trend labels, scenarios, as-of view, role match, pathway with exports, live refresh, exposure cross-check, k estimate and the radar, with over 700 tests passing on 22 Oct. Not in the Streamlit app: the CV upload and the AI-signal ranker, which live in the merged `backend/signals/` service behind the Varity web app. JobStreet data and a full "what changed" diff are also missing (Refresh lists changed skills only). The CV intake calls Claude Haiku 4.5 through Replit AI Integrations. This is the design. We have not yet verified it on the live Replit app. [TEAM TO FILL: update after the first live run]
 Relies on: `docs/build-plan.md` (status table, 22 Oct).
 
 **19. What is the stack, which model, and where is Replit?**
-Python and Streamlit 1.66.1 on a Replit Autoscale deployment, with pandas 3.0.6, numpy 2.5.4, scipy 1.18.1 and statsmodels 0.15.0. The app calls no language model and uses no GPU, so there is no RunPod use; the organisers confirmed on 22 Oct that RunPod proof is not needed. Claude Code is declared as a major development tool.
+Python and Streamlit 1.66.1 on a Replit Autoscale deployment, with pandas 3.0.6, numpy 2.5.4, scipy 1.18.1 and statsmodels 0.15.0. The forecast, role match and pathway call no language model. The CV intake calls Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations, billed to Replit credits, with a $1 per day cap. We use no GPU, so there is no RunPod use; the organisers confirmed on 22 Oct that RunPod proof is not needed. Claude Code is declared as a major development tool.
 Relies on: `requirements.txt`; `docs/submission/tech-declaration.md`; `BRIEF.md` (answered 22 Oct).
 
 **20. How do you know the code is correct?**
@@ -121,7 +121,7 @@ Claude Code wrote much of the code from our prompts and plans, and we declared i
 Relies on: `docs/submission/tech-declaration.md` section 4.3; `data/backtest.json` (`interval`, `coverage`); `docs/build-plan.md` P6.
 
 **22. What did each member build?**
-The git log shows 42 commits on `main`: 40 from Ee Zhan's GitHub account (TayEeZhan, under the names greenrobot8888 and Tay Ee Zhan), covering the engine, the app, role match, pathway, the ML experiment, the exposure cross-check and the radar, plus 2 setup commits from Replit Agent. Sheng Kuan's 11 commits (22 Oct, as GOH SHENG KUAN) are on the branch `origin/AI-trend-signal-layer`: AI-news collectors, story clustering, a ranker and a web feed; they are not merged and not connected to the app. [TEAM TO FILL: Sheng Kuan's other parts, such as `data/resources.json`, document drafts and the CV plan]
+On 24 Oct, `main` has 59 non-merge commits: 43 from Ee Zhan's GitHub account (TayEeZhan, under the names greenrobot8888 and Tay Ee Zhan), covering the engine, the Streamlit app, role match, pathway, the ML experiment, the exposure cross-check and the radar; 14 from Sheng Kuan (GOH SHENG KUAN), covering `backend/signals/` (AI-news collectors, story clustering, a ranker, the CV intake) and the Varity frontend; plus 2 setup commits from Replit Agent. Sheng Kuan's work is merged (PR #16) but not yet deployed: the live Streamlit app does not call it. [TEAM TO FILL: Sheng Kuan's other parts, such as `data/resources.json`, document drafts and the CV plan]
 Relies on: `git log --format="%an %s"` and `git log --all` in the repo; `docs/build-plan.md` (who does what).
 Prepare for this follow-up: six of the 11 branch commits share one timestamp (22 Oct 13:13) and the branch adds about 9,400 lines. The organisers say one big late commit can disqualify a final-round repo, so be ready to say when and how that code was written, and declare any part that pre-dates the build clock (19 Oct, 8 PM MYT). [TEAM TO FILL]
 
@@ -136,6 +136,10 @@ Relies on: the "How the rank is computed" panel in `app.py`; `data/role_profiles
 **25. Your band covered 93.8% against an 80% target. Is it useless?**
 It is wider than it needs to be, and the Method tab says "a coverage above the target means the band is wide, not tight". The mean width at 12 months is 8.4 points. The window of 24 forecasts was set in advance, and windows of 36 forecasts or all history gave 92.9% and 91.9%, so one choice does not cause the over-coverage; the first fixed-width band covered only 65.9%, so we prefer to err wide.
 Relies on: `data/backtest.json` (`coverage`, `interval_sensitivity`); `docs/build-plan.md` P6.
+
+**26. Why an LLM, and how do you stop it inventing skills?**
+CVs are free text, and people name the same skill in many ways. The LLM only points: it returns where a skill is mentioned, with a quote. Code proves: it drops any skill whose quote is not in the CV word for word, and it reads the years itself. If the call fails or no credentials exist, a keyword pass takes over.
+Relies on: `docs/skill-profile-intake-architecture.md` (the LLM contract); `backend/signals/intake/llm_extract.py`.
 
 ## Questions to expect that this sheet does not answer
 

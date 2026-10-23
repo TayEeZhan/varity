@@ -23,12 +23,22 @@ import pydantic
 from intake.models import Extraction
 from intake.normalise import clean_cv_text
 
-MODEL = os.environ.get("VERITY_INTAKE_MODEL", "claude-haiku-5-5")
-MODEL_LABEL = "Claude Haiku 5.5 (Anthropic)"
+def _replit_route() -> bool:
+    """Same rule as trendsignal.config.use_replit_anthropic, copied so intake stays free of trendsignal.
+    It only reads the environment: trendsignal.config maps the keys at startup, and extract_mentions does it if not (also the CLI)."""
+    key, base = os.environ.get("AI_INTEGRATIONS_ANTHROPIC_API_KEY"), os.environ.get("AI_INTEGRATIONS_ANTHROPIC_BASE_URL")
+    return bool(key and base) and not os.environ.get("ANTHROPIC_AUTH_TOKEN") and os.environ.get("ANTHROPIC_API_KEY", key) == key
+
+
+REPLIT = _replit_route()
+MODEL = os.environ.get("VERITY_INTAKE_MODEL", "claude-haiku-4-5" if REPLIT else "claude-haiku-5-5")
+# USD per million tokens, prompts up to 100K tokens. An unknown model gets the higher price.
+PRICES_PER_M = {"claude-haiku-5-5": (0.10, 0.50), "claude-haiku-4-5": (1.00, 5.00)}
+PRICE_IN_PER_M, PRICE_OUT_PER_M = PRICES_PER_M.get(MODEL, PRICES_PER_M["claude-haiku-4-5"])
+_NAMES = {"claude-haiku-5-5": "Claude Haiku 5.5", "claude-haiku-4-5": "Claude Haiku 4.5"}
+MODEL_LABEL = f"{_NAMES.get(MODEL, MODEL)} (Anthropic{' via Replit AI Integrations' if REPLIT else ''})"
 MAX_TOKENS = 8000
 TIMEOUT_S = 45.0
-# USD per million tokens for claude-haiku-5-5, prompts up to 100K tokens.
-PRICE_IN_PER_M, PRICE_OUT_PER_M = 0.10, 0.50
 DAILY_BUDGET_USD = float(os.environ.get("VERITY_INTAKE_DAILY_BUDGET_USD", "1.0"))
 # Few characters per token, so the cost reserved before a call is never too small.
 CHARS_PER_TOKEN = 3
@@ -123,6 +133,9 @@ def extract_mentions(
 ) -> Extraction:
     """One structured-output call. Raises LlmUnavailable instead of returning anything unusable."""
     if client is None:
+        if _replit_route():
+            os.environ.setdefault("ANTHROPIC_API_KEY", os.environ["AI_INTEGRATIONS_ANTHROPIC_API_KEY"])
+            os.environ.setdefault("ANTHROPIC_BASE_URL", os.environ["AI_INTEGRATIONS_ANTHROPIC_BASE_URL"])
         if not os.environ.get("ANTHROPIC_API_KEY"):
             raise LlmUnavailable("NO_KEY")
         client = anthropic.Anthropic(max_retries=0, timeout=TIMEOUT_S)
