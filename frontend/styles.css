@@ -251,6 +251,14 @@ h2.sec small { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { font-size: var(--t-sm); padding: 3px 10px; border-radius: 13px; border: 1px solid var(--ink); background: #fff; }
 .chip--gap { border-style: dashed; border-color: var(--ink-3); color: var(--ink-2); }
+.route__summary { margin-top: 6px; font-size: var(--t-sm); color: var(--ink-2); }
+.route__why { padding: 0 0 12px 112px; }
+.route.is-current .route__why { padding-right: 14px; padding-left: 126px; }
+.reason { border-color: var(--rule); background: var(--paper-2); }
+.reason--watch { border-color: var(--ink-3); background: #fff8d6; }
+.route-note { font-size: var(--t-sm); color: var(--ink-2); margin: 0 0 12px; }
+.pstop__why { margin-top: 6px; font-size: var(--t-sm); color: var(--ink-2); }
+.pstop .chips { margin-top: 6px; }
 .current-tag { font-size: var(--t-sm); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
 .current-tag i { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 3px var(--signal); }
 
@@ -375,6 +383,7 @@ h2.sec small { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); }
   .route__row { grid-template-columns: 80px minmax(0, 1fr) 100px 110px; }
   .route__row > :last-child { grid-column: 2 / -1; justify-self: start; }
   .route__gap { padding-left: 96px; }
+  .route__why { padding-left: 96px; }
   .fc__axis, .fc__row { grid-template-columns: minmax(150px, 210px) minmax(0, 1fr) 64px; }
   .fc__drv { grid-column: 1 / -1; }
   .fc__axis > :last-child { display: none; }
@@ -412,6 +421,7 @@ h2.sec small { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); }
   .route__row > :last-child { grid-column: 2; }
   .route__match { font-size: 1.5rem; }
   .route__gap { grid-template-columns: 1fr; padding-left: 0; gap: 14px; }
+  .route__why, .route.is-current .route__why { padding-left: 0; }
   .notice { grid-template-columns: 34px minmax(0, 1fr); }
   .notice__score { grid-column: 2; text-align: left; display: flex; gap: 8px; align-items: baseline; font-size: var(--t-md); }
   .notice__score small { margin: 0; }
