@@ -159,6 +159,14 @@ def _profile_out(profile: Profile, token: str | None = None) -> dict:
     return data
 
 
+def client_ip(request: Request) -> str:
+    # Behind Replit's proxy request.client is the proxy; the proxy appends the real address last.
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[-1].strip()
+    return request.client.host if request.client else "unknown"
+
+
 def add_cv_routes(app: FastAPI, settings: Settings) -> None:
     graph = load_graph()
     patterns = build_patterns(graph)
@@ -166,12 +174,7 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
     cv_limiter = RateLimiter(CV_LIMIT_PER_MINUTE)
     profile_limiter = RateLimiter(PROFILE_LIMIT_PER_MINUTE)
 
-    def client(request: Request) -> str:
-        # Behind Replit's proxy request.client is the proxy; the proxy appends the real address last.
-        forwarded = request.headers.get("x-forwarded-for")
-        if forwarded:
-            return forwarded.split(",")[-1].strip()
-        return request.client.host if request.client else "unknown"
+    client = client_ip
 
     @app.post("/api/cv/extract")
     def api_cv_extract(payload: CvIn, request: Request, x_profile_token: str | None = Header(default=None)):

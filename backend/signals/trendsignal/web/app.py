@@ -305,6 +305,8 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
 
     from trendsignal.web.cv_api import add_cv_routes  # imported here: cv_api uses envelope and RateLimiter from this module
     add_cv_routes(app, ctx.settings)
+    from trendsignal.web.roles_api import add_role_routes  # same reason as cv_api
+    add_role_routes(app, ctx)
 
     # Mounted last so every route above wins over the static files.
     frontend = ctx.settings.frontend_dir
