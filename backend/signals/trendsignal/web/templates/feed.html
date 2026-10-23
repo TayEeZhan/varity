@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "_card.html" import card %}
+{% block content %}
+<section class="hero">
+  <h1>What in AI and tech is worth your time</h1>
+  <p class="lede">Official sources, research and developer communities, merged into stories and ranked by importance.
+    Must-know is capped at five a day, so it stays meaningful.</p>
+  <form class="filters" method="get">
+    <label>Category
+      <select name="category">
+        <option value="">All</option>
+        {% for c in categories %}<option value="{{ c }}"{% if c == category %} selected{% endif %}>{{ category_labels[c] }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>For
+      <select name="audience">
+        <option value="">Everyone</option>
+        {% for a in audiences %}<option value="{{ a }}"{% if a == audience %} selected{% endif %}>{{ a|replace("_", " ")|title }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Window
+      <select name="hours">
+        {% for value, label in [(24, "Last 24 hours"), (72, "Last 3 days"), (168, "Last 7 days")] %}
+          <option value="{{ value }}"{% if value == hours %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">Apply</button>
+  </form>
+</section>
+
+<section>
+  <h2 class="tier-h must">🔴 Must-know <span class="count">{{ groups.must_know|length }}</span></h2>
+  {% for s in groups.must_know %}{{ card(s) }}{% else %}
+    <p class="empty">Nothing cleared the Must-know bar in this window, so there is nothing urgent to catch up on.</p>
+  {% endfor %}
+</section>
+
+<section>
+  <h2 class="tier-h worth">🟠 Worth a look <span class="count">{{ groups.worth_a_look|length }}</span></h2>
+  <div class="grid">{% for s in groups.worth_a_look %}{{ card(s, full=false) }}{% endfor %}</div>
+</section>
+
+{% if groups.emerging %}
+<section>
+  <h2 class="tier-h emerging">🟡 Emerging <span class="hint">social posts only, not yet confirmed</span></h2>
+  <div class="grid">{% for s in groups.emerging %}{{ card(s, full=false) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+<section>
+  <details class="minor">
+    <summary><span class="tier-h minor">⚪ Minor / FYI</span> <span class="count">{{ minor_total }}</span></summary>
+    <ul class="minor-list">
+      {% for s in groups.minor %}
+        <li><a href="/story/{{ s.id }}">{{ s.title }}</a>
+          <span class="muted">{{ category_labels.get(s.category, s.category) }}{% if s.sources %} · {{ s.sources[0].name }}{% endif %}</span></li>
+      {% endfor %}
+    </ul>
+  </details>
+</section>
+{% endblock %}

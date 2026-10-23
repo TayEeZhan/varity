@@ -1,0 +1,26 @@
+DANIEL TAN WEI MING (synthetic CV for testing, not a real person)
+Penang, Malaysia | daniel.tan@example.com | 012-987 6543
+
+SUMMARY
+Accountant moving into data and product work. Excellent written communication.
+
+EXPERIENCE
+Finance Executive, Example Trading Sdn Bhd
+Mar 2020 - Aug 2025
+- Built monthly cash-flow reports in Excel with VBA macros that cut closing time by two days.
+- Created Power BI dashboards for the sales team from SQL Server data.
+- Led an Agile project to move the invoice approval process online, tracked in Jira.
+
+PROJECTS
+Study system (2024 - Present)
+- Built my study vault in Obsidian with Dataview queries and templates written in Markdown.
+- Planned the data course modules in Notion.
+
+Budget app mock-up (2025)
+- Designed the screens and a clickable prototype in Figma.
+
+SKILLS
+Excel, Google Sheets, SQL, familiar with Python
+
+GOALS
+Planning to learn React next year.

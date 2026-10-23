@@ -1,0 +1,24 @@
+PRIYA NAIR (synthetic CV for testing, not a real person)
+Cyberjaya, Malaysia | priya.nair@example.com | linkedin.com/in/priya-example
+
+SUMMARY
+DevOps engineer with 5 years of experience running Kubernetes on AWS.
+
+EXPERIENCE
+Senior DevOps Engineer, Awan Cloud Sdn Bhd
+Feb 2023 - Present
+- Run 40 microservices on Amazon EKS, deployed with Helm charts.
+- Wrote Terraform modules for VPCs, EKS clusters and S3 buckets.
+- Moved builds from Jenkins to GitLab CI and cut deploy time from 40 to 12 minutes.
+- Set up Prometheus and Grafana alerts for the payment services.
+
+DevOps Engineer, Example Telco
+Jan 2021 - Jan 2023
+- Built Docker images and Ansible playbooks for Linux servers behind Nginx.
+- Wrote internal CLI tools in Go and maintenance scripts in Bash and Python.
+
+CERTIFICATIONS
+Certified Kubernetes Administrator (CKA), 2022
+
+SKILLS
+Kubernetes, Docker, Terraform, AWS, Linux, Git
