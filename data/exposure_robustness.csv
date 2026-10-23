@@ -1,0 +1,41 @@
+skill,category,production_stance,stance_robust,n_families_voting,n_families_support,families_supporting,families_vetoing,direction_robust
+Python,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+JavaScript / TypeScript,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+TypeScript,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+Java,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+Go,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+Rust,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+C,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+C++,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+C#,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+Swift,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+PHP,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+Perl,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+Ruby,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+R,language,AI-substitutable,true,4,3,aei;gpts;aioe,,true
+React,framework,neutral,false,4,2,aei;gpts,,true
+React Native,framework,neutral,false,4,2,aei;gpts,,true
+AngularJS,framework,neutral,false,4,2,aei;gpts,,true
+jQuery,framework,neutral,false,4,2,aei;gpts,,true
+Node.js,framework,neutral,false,4,2,aei;gpts,,true
+SQL,data,neutral,false,4,2,aei;msft,,true
+PostgreSQL,data,neutral,false,4,2,aei;msft,,true
+MongoDB,data,neutral,false,4,2,aei;msft,,true
+Spark,data,neutral,false,4,2,aei;msft,,true
+Hadoop,data,neutral,false,4,2,aei;msft,,true
+Kafka,data,neutral,false,4,2,aei;msft,,true
+Snowflake,data,neutral,false,4,2,aei;msft,,true
+dbt,data,neutral,false,4,2,aei;msft,,true
+Airflow,data,neutral,false,4,2,aei;msft,,true
+AWS,cloud_devops,AI-substitutable,false,4,1,aei,gpts;aioe;msft,false
+GCP,cloud_devops,AI-substitutable,false,4,1,aei,gpts;aioe;msft,false
+Azure,cloud_devops,AI-substitutable,false,4,1,aei,gpts;aioe;msft,false
+Kubernetes,cloud_devops,AI-substitutable,false,4,1,aei,gpts;aioe;msft,false
+Docker,cloud_devops,AI-substitutable,false,4,1,aei,gpts;aioe;msft,false
+Terraform,cloud_devops,AI-substitutable,false,4,1,aei,gpts;aioe;msft,false
+LLM / GenAI,ai_ml,AI-complement,false,3,2,aei;gpts,msft,true
+RAG,ai_ml,AI-complement,false,3,2,aei;gpts,msft,true
+Vector Databases,ai_ml,AI-complement,false,3,2,aei;gpts,msft,true
+PyTorch,ai_ml,AI-complement,false,3,2,aei;gpts,msft,true
+Machine Learning,ai_ml,AI-complement,false,3,2,aei;gpts,msft,true
+Microservices,practice,neutral,false,4,1,aei,,false

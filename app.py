@@ -1,24 +1,100 @@
 """Verity: Streamlit front end for skill forecasts.
 
-Reads data/skill_scores.json (engine output) when it exists, otherwise the
-sample file data/fixtures/skill_scores.json.
+Reads data/skill_scores.json (engine output) when it exists, otherwise the sample file
+data/fixtures/skill_scores.json. Every number on screen comes from a file in the data folder
+(skill_scores.json, demand_monthly.csv, ai_context_monthly.csv, backtest.json, taxonomy.json,
+SOURCES.md). No statistic is written in this file. No LLM is used.
+
+A four-step journey, then the evidence behind it:
+  1 You (example profile and skills; a CV upload slot comes later),
+  2 Skills radar (engine.radar: every skill by demand share and tested trend),
+  3 Future roles (role match for the chosen or edited skill set, engine.roles; an optional SDG goal
+    re-orders the roles on request, engine.sdg; MyCOL badges, data/mycol_role_map.json),
+  4 Your plan (ordered plan and daily to-do list for the target role, engine.pathway; its SDG lines
+    come from engine.sdg.plan_sdg_summary),
+  Evidence: Skills (table), Skill detail (chart, text, sources), Method (backtest, SDG sector links,
+  Malaysia data).
+Files for the SDG goal and the Malaysia badges (role_sdg.json, sdg_sectors.json, mycol.json,
+mycol_role_map.json) are optional: when one is missing or unreadable, its part is left out.
+Sidebar: scenario, "As of" month (reruns the engine with data up to that month, nothing is
+written), and "Refresh live data" (engine.refresh.refresh).
 """
 
+from __future__ import annotations
+
 import json
+import re
+import sys
+from datetime import date, timedelta
 from pathlib import Path
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
-st.set_page_config(page_title="Verity", layout="wide")
-
 BASE_DIR = Path(__file__).resolve().parent
-ENGINE_PATH = BASE_DIR / "data" / "skill_scores.json"
-FIXTURE_PATH = BASE_DIR / "data" / "fixtures" / "skill_scores.json"
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
-SCENARIOS = {"Moderate": "moderate", "Fast disruption": "fast"}
+from engine import live  # noqa: E402  (shared snapshot store; needs BASE_DIR on sys.path)
+from engine import radar as radar_mod  # noqa: E402  (the name `radar` below is the new-skills file)
+
+st.set_page_config(page_title="Verity", page_icon=":material/explore:", layout="wide")
+
+DEFAULT_DATA_DIR = BASE_DIR / "data"
+SCORES_NAME = "skill_scores.json"
+FIXTURE_PATH = DEFAULT_DATA_DIR / "fixtures" / SCORES_NAME
+
 NA = "n/a"
+HORIZON_MONTHS = 12  # months between as_of and the forecast target
+SCENARIO_KEYS = ["moderate", "fast"]
+FIXTURE_BANNER = "Prototype: showing sample data, not real forecasts."
+PARTIAL_NOTE = "The latest month's thread is still open; its numbers can change."
+NO_LABEL = "No label"
+BUSY_NOTE = "A refresh is already running; try again in a few seconds."
+# Plain-words description of each production model (engine.forecast PRODUCTION_MODELS).
+MODEL_WORDS = {"naive": "last month's value", "naive3": "mean of last 3 months"}
 
+# Chart colours: slots 1 and 2 of the validated categorical palette (dataviz skill,
+# references/palette.md), light and dark. Grey is neutral ink for the thin monthly line.
+SERIES_BLUE = {"light": "#2a78d6", "dark": "#3987e5"}
+SERIES_ORANGE = {"light": "#eb6834", "dark": "#d95926"}
+SERIES_AQUA = {"light": "#1baf7a", "dark": "#199e70"}
+MUTED_GREY = "#8b8a84"
+
+# Role match (engine.roles). Three synthetic example profiles until the CV extractor lands.
+# The skill names must be taxonomy names. They are examples, not real people.
+PERSONAS = {
+    "Aina, junior Python dev (synthetic)": ["Python", "SQL", "PostgreSQL", "Docker", "AWS"],
+    "Ben, frontend dev (synthetic)": ["JavaScript / TypeScript", "TypeScript", "React", "Node.js"],
+    "Chloe, data analyst (synthetic)": ["SQL", "Python", "Snowflake", "dbt"],
+}
+ROLE_FILES = ("roles.json", "role_profiles.json", "role_demand_monthly.csv", "exposure.csv")
+NO_TARGET_PROMPT = "Choose a target role in step 3, Future roles, first"
+# The journey: tab labels are the step indicator. Labels are state keys, so keep them in one place.
+STEP_YOU, STEP_RADAR, STEP_ROLES, STEP_PLAN, STEP_EVIDENCE = (
+    "1 You", "2 Skills radar", "3 Future roles", "4 Your plan", "Evidence")
+JOURNEY_KEY = "journey_step"
+ROLE_DATA_MISSING = ("Role match needs the real data files (taxonomy, roles, role profiles, role demand, exposure). "
+                     "They are not available in this view.")
+NO_GOAL = "No preference"
+GOAL_LABEL = "What do you want your work to help with? (optional)"
+ORDER_BEST, ORDER_GOAL = "Best fit", "Fit for my goal"
+GOAL_KEY, ORDER_KEY = "sdg_goal", "roles_order_by"
+MYCOL_BADGE = "MyCOL shortage occupation"
+MYCOL_CAPTION = ("MyCOL is TalentCorp's list of occupations in short supply in Malaysia; the mapping to our "
+                 "roles is team judgement. Occupation names and MASCO codes were read by eye from the PDF's "
+                 "page images.")
+NO_ROLE_ESTIMATE = "Role estimate not available for this month yet"
+SLIDER_NOTE = "does not move with the As-of slider"
+NO_MY_SNAPSHOT = ("No Malaysian job-site snapshot yet: collectors need written permission from each site.")
+TREND_BADGE = {"Rising": ":green-badge[Rising]", "Falling": ":red-badge[Falling]",
+               "No clear change": ":gray-badge[No clear change]"}
+
+
+# --------------------------------------------------------------------------------------
+# Loading (cached by path and modification time)
+# --------------------------------------------------------------------------------------
 
 @st.cache_data
 def load_scores(path: str, mtime: float) -> dict:
@@ -31,23 +107,92 @@ def load_scores(path: str, mtime: float) -> dict:
         return json.load(fh)
 
 
-def active_scores_path() -> Path:
-    """Prefer engine output, fall back to the fixture."""
-    return ENGINE_PATH if ENGINE_PATH.exists() else FIXTURE_PATH
+@st.cache_data
+def load_json(path: str, mtime: float):
+    """Read any JSON file. `mtime` only keys the cache."""
+    with Path(path).open(encoding="utf-8") as fh:
+        return json.load(fh)
 
+
+@st.cache_data
+def load_csv(path: str, mtime: float) -> pd.DataFrame:
+    """Read any CSV file. `mtime` only keys the cache."""
+    return pd.read_csv(path)
+
+
+@st.cache_data(show_spinner=False)
+def load_text(path: str, mtime: float) -> str:
+    """Read any text file. `mtime` only keys the cache."""
+    return Path(path).read_text(encoding="utf-8")
+
+
+def read_json(path: Path):
+    """Cached JSON from `path`, or None when the file does not exist."""
+    return load_json(str(path), path.stat().st_mtime) if path.exists() else None
+
+
+def read_csv(path: Path) -> pd.DataFrame | None:
+    """Cached CSV from `path`, or None when the file does not exist."""
+    return load_csv(str(path), path.stat().st_mtime) if path.exists() else None
+
+
+@st.cache_data(show_spinner=False)
+def scores_as_of(data_dir: str, as_of: str, demand_mtime: float) -> dict:
+    """Engine output with data up to `as_of`. Cached by as_of. Writes no file.
+
+    `demand_mtime` only keys the cache, so a refresh that changes the demand table
+    makes the cached as-of views stale and they are computed again.
+    """
+    from engine.scores import build_scores
+
+    return build_scores(as_of=as_of, data_dir=data_dir)
+
+
+@st.cache_data(show_spinner=False)
+def role_trends_as_of(demand_path: str, roles_path: str, as_of: str, mtime: float) -> dict:
+    """Role trend labels cut at `as_of` from role_demand_monthly.csv (never later months). Writes no file."""
+    import engine.roles as roles_mod
+
+    return roles_mod.build_role_trends(roles_mod.read_demand_rows(demand_path), roles_mod.load_roles(roles_path),
+                                       as_of=as_of)
+
+
+@st.cache_data(show_spinner=False)
+def role_forecast_as_of(data_dir: str, as_of: str, mtime: float) -> dict:
+    """Role forecast cut at `as_of` (engine.role_forecast.role_forecast_for, no later months). Writes no file."""
+    from engine.role_forecast import role_forecast_for
+
+    return role_forecast_for(as_of=as_of, data_dir=data_dir)
+
+
+def default_scores_path(data_dir: Path) -> Path:
+    """Engine output in `data_dir` if it exists, otherwise the sample fixture."""
+    candidate = data_dir / SCORES_NAME
+    return candidate if candidate.exists() else FIXTURE_PATH
+
+
+# --------------------------------------------------------------------------------------
+# Formatting
+# --------------------------------------------------------------------------------------
 
 def _is_number(value) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    """A real number: not a bool and not NaN (a missing value must show as n/a, never as 'nan')."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value == value
 
 
-def pct(value) -> str:
-    """Format a share (0 to 1) as a percent with 1 decimal."""
-    return f"{value:.1%}" if _is_number(value) else NA
+def pct(value, digits: int = 1) -> str:
+    """Format a share (0 to 1) as a percent."""
+    return f"{value:.{digits}%}" if _is_number(value) else NA
 
 
-def index_value(value) -> str:
-    """Format an index (0 to 1) as a number with 2 decimals."""
-    return f"{value:.2f}" if _is_number(value) else NA
+def pp_plain(value, unit: bool = True) -> str:
+    """Percentage points with 1 decimal, or n/a. Never 0 for a missing value."""
+    return (f"{value:.1f}" + (" pp" if unit else "")) if _is_number(value) else NA
+
+
+def signed_pp(value) -> str:
+    """Format percentage points with a sign."""
+    return f"{value:+.1f} pp" if _is_number(value) else NA
 
 
 def get_forecast(skill: dict, scenario: str) -> dict:
@@ -59,85 +204,1667 @@ def get_forecast(skill: dict, scenario: str) -> dict:
     return fc if isinstance(fc, dict) else {}
 
 
-# Sidebar
-# The button is read before the data is loaded, so a click clears the cache
-# first and the rerun reads the file again.
-if st.sidebar.button("Reload data"):
-    st.cache_data.clear()
-    st.rerun()
+def forecast_text(skill: dict, scenario: str) -> str:
+    """'value (low to high)' as percents, or 'n/a' when the status is not ok or no value exists."""
+    status = skill.get("status")
+    fc = get_forecast(skill, scenario)
+    if (status is not None and status != "ok") or not _is_number(fc.get("value_12m")):
+        return NA
+    return f"{pct(fc['value_12m'])} ({pct(fc.get('low'))} to {pct(fc.get('high'))})"
 
-path = active_scores_path()
-source_file = path.relative_to(BASE_DIR).as_posix()
-scores = load_scores(str(path), path.stat().st_mtime)
-skills = scores.get("skills") or []
 
-scenario_label = st.sidebar.radio("Scenario", list(SCENARIOS), index=0)
-scenario = SCENARIOS[scenario_label]
-st.sidebar.markdown("Predictions are estimates. You decide.")
-st.sidebar.markdown("LLM: not used yet")
+def share_text(skill: dict) -> str:
+    """'share (mentions/posts posts)'."""
+    base = pct(skill.get("demand_share_latest"))
+    m, n = skill.get("mentions_last3"), skill.get("posts_last3")
+    return f"{base} ({m}/{n} posts)" if _is_number(m) and _is_number(n) else base
 
-# Main page
-st.title("Verity")
-st.subheader("Future-ready skills for tech developers")
-st.markdown(
-    f"**Data as of:** {scores.get('as_of') or NA} | "
-    f"generated {scores.get('generated_at') or NA}"
-)
 
-if scores.get("fixture") is True:
-    st.warning("Prototype: showing sample data, not real forecasts.")
+def trend_text(skill: dict) -> str:
+    """'Rising (309 vs 273 mentions)'. The counts are mentions in the last 12 months vs the 12 before."""
+    label = skill.get("trend_label")
+    m12, mprev = skill.get("mentions_last12"), skill.get("mentions_prev12")
+    counts = f" ({m12} vs {mprev} mentions)" if _is_number(m12) and _is_number(mprev) else ""
+    if label is None:
+        return NO_LABEL + counts if counts else NA
+    return f"{label}{counts}"
+
+
+def sdg_text(skill: dict) -> str:
+    sdg = skill.get("sdg") or []
+    return ", ".join(str(tag) for tag in sdg) if sdg else NA
+
+
+def month_add(month: str, delta: int) -> str:
+    """'2023-12' + 12 -> '2024-12'."""
+    return str(pd.Period(month, freq="M") + delta)
+
+
+def is_dark_theme() -> bool:
+    """True when the page is drawn dark. A theme fixed in .streamlit/config.toml wins: the browser's own
+    colour preference (which st.context.theme can report) does not change a fixed light theme."""
+    try:
+        base = st.get_option("theme.base")
+        if base in ("light", "dark"):
+            return base == "dark"
+        return st.context.theme.type == "dark"
+    except Exception:  # not available in every runtime
+        return False
+
+
+# --------------------------------------------------------------------------------------
+# Charts
+# --------------------------------------------------------------------------------------
+
+def line_chart(long: pd.DataFrame, forecast: pd.DataFrame | None, domain: list[str],
+               colors: list[str], y_title: str, outcome: pd.DataFrame | None = None) -> alt.Chart:
+    """Thin monthly line, thicker smoothed line, an optional forecast point with a band and an
+    optional outcome marker (what happened).
+
+    `long` has columns date, series, value. `forecast` has date, series, value, low, high.
+    `outcome` has date, series, value. `domain` lists the series names in the order of `colors`:
+    monthly, smoothed, then the forecast (if given), then the outcome (if given).
+    A legend names every series, so colour is never the only cue.
+    """
+    scale = alt.Scale(domain=domain, range=colors)
+    color = alt.Color("series:N", scale=scale, legend=alt.Legend(title=None, orient="top"))
+    x = alt.X("date:T", title=None)
+    y = alt.Y("value:Q", title=y_title, axis=alt.Axis(format="%"), scale=alt.Scale(zero=True))
+    tooltip = [alt.Tooltip("date:T", title="Month", format="%Y-%m"),
+               alt.Tooltip("series:N", title="Series"),
+               alt.Tooltip("value:Q", title="Share", format=".1%")]
+    raw = long[long["series"] == domain[0]]
+    smooth = long[long["series"] == domain[1]]
+    layers = [
+        alt.Chart(raw).mark_line(strokeWidth=1).encode(x=x, y=y, color=color, tooltip=tooltip),
+        alt.Chart(smooth).mark_line(strokeWidth=2.5).encode(x=x, y=y, color=color, tooltip=tooltip),
+    ]
+    if forecast is not None and not forecast.empty:
+        fc_tooltip = [alt.Tooltip("date:T", title="Target month", format="%Y-%m"),
+                      alt.Tooltip("value:Q", title="Forecast", format=".1%"),
+                      alt.Tooltip("low:Q", title="Band low", format=".1%"),
+                      alt.Tooltip("high:Q", title="Band high", format=".1%")]
+        layers.append(alt.Chart(forecast).mark_rule(strokeWidth=3).encode(
+            x=x, y=alt.Y("low:Q", title=y_title), y2="high:Q", color=color, tooltip=fc_tooltip))
+        layers.append(alt.Chart(forecast).mark_point(filled=True, size=90, opacity=1).encode(
+            x=x, y=y, color=color, tooltip=fc_tooltip))
+    if outcome is not None and not outcome.empty:
+        out_tooltip = [alt.Tooltip("date:T", title="Target month", format="%Y-%m"),
+                       alt.Tooltip("value:Q", title="What happened", format=".1%")]
+        layers.append(alt.Chart(outcome).mark_point(
+            shape="diamond", filled=True, size=140, opacity=1, stroke="white", strokeWidth=1
+        ).encode(x=x, y=y, color=color, tooltip=out_tooltip))
+    return alt.layer(*layers).properties(height=340)
+
+
+def skill_chart(skill_hist: pd.DataFrame, fc_row: dict | None, fc_month: str, labels: list[str],
+                dark: bool, outcome_value: float | None = None) -> alt.Chart:
+    """History up to the as-of month, plus the forecast at fc_month and, in an as-of view,
+    the actual value there. labels = [monthly, smoothed, forecast, what happened]."""
+    mode = "dark" if dark else "light"
+    domain, colors = list(labels[:2]), [MUTED_GREY, SERIES_BLUE[mode]]
+    if fc_row is not None:
+        domain.append(labels[2])
+        colors.append(SERIES_ORANGE[mode])
+    if outcome_value is not None:
+        domain.append(labels[3])
+        colors.append(SERIES_AQUA[mode])
+    hist = skill_hist.assign(date=pd.to_datetime(skill_hist["month"] + "-01"))
+    long = pd.concat([
+        hist[["date"]].assign(series=labels[0], value=hist["share"].to_numpy()),
+        hist[["date"]].assign(series=labels[1], value=hist["share_smooth"].to_numpy()),
+    ])
+    forecast = None
+    if fc_row is not None:
+        forecast = pd.DataFrame([{"date": pd.Timestamp(fc_month + "-01"), "series": labels[2],
+                                  "value": fc_row["value_12m"], "low": fc_row["low"],
+                                  "high": fc_row["high"]}])
+    outcome = None
+    if outcome_value is not None:
+        outcome = pd.DataFrame([{"date": pd.Timestamp(fc_month + "-01"), "series": labels[3],
+                                 "value": outcome_value}])
+    return line_chart(long, forecast, domain, colors,
+                      "Share of job posts that mention the skill", outcome)
+
+
+RADAR_INK = {"light": "#1f1f1e", "dark": "#f0efec"}
+RADAR_SOFT = {"light": "#8b8a84", "dark": "#a8a79f"}  # quadrant names and the dashed lines
+RADAR_GREY = {"light": "#b3b2ab", "dark": "#6f6e68"}  # "no clear change" marks: recessive, never the focus
+
+
+def label_offsets(df: pd.DataFrame) -> list[int]:
+    """Vertical nudge in pixels for each label, so labels of neighbouring points do not overlap.
+
+    Walks the labelled points from left to right. A point close to k points already placed (within 0.3 of
+    a decade in share and 0.12 in change) is moved to the k-th slot of 0, -16, +16, -32, +32 pixels.
+    """
+    import math
+
+    slots, placed, offsets = (0, -16, 16, -32, 32), [], {}
+    for i in df.sort_values("share").index:
+        x, y = math.log10(df.at[i, "share"]), df.at[i, "change"]
+        k = sum(abs(x - px) < 0.3 and abs(y - py) < 0.12 for px, py in placed)
+        offsets[i] = slots[k % len(slots)]
+        placed.append((x, y))
+    return [offsets.get(i, 0) for i in df.index]
+
+
+def radar_chart(radar: dict, dark: bool) -> alt.Chart:
+    """The Future Skills Radar from engine.radar.radar_points output.
+
+    Colour = AI stance, but only for skills with a tested Rising or Falling label. Filled mark:
+    tested and the stance is robust. Hollow mark: tested but the stance is contested. Grey: no clear
+    change. A black ring and a label mark the user's own skills. Quadrants split at the median share
+    (vertical) and at no change (horizontal). Slots 1 to 3 of the validated palette (dataviz skill).
+    """
+    mode = "dark" if dark else "light"
+    ink, soft = RADAR_INK[mode], RADAR_SOFT[mode]
+    palette = [SERIES_BLUE[mode], SERIES_ORANGE[mode], SERIES_AQUA[mode], RADAR_GREY[mode]]
+    df = pd.DataFrame(radar["points"])
+    df = df.assign(
+        share_text=df["share"].map(lambda v: f"{v:.1%}"),
+        change_text=df["change"].map(lambda v: f"{v:+.0%}"),
+        trend_text=[f"{r.trend_label} (p = {r.trend_p:.3f})" if _is_number(r.trend_p)
+                    else f"{r.trend_label} (p = n/a)" for r in df.itertuples()],
+        stance_text=[r.stance + (" (contested)" if r.contested else "") for r in df.itertuples()],
+        yours=["yes" if m else "" for m in df["mine"]])
+    tooltip = [alt.Tooltip("skill:N", title="Skill"),
+               alt.Tooltip("share_text:N", title="Share of posts now"),
+               alt.Tooltip("change_text:N", title="Change, last 12 vs prior 12 months"),
+               alt.Tooltip("trend_text:N", title="Trend label"),
+               alt.Tooltip("stance_text:N", title="AI stance"),
+               alt.Tooltip("yours:N", title="Your skill")]
+    lo, hi = df["share"].min() / 1.25, df["share"].max() * 1.25
+    ymin, ymax = min(df["change"].min(), 0) - 0.12, max(df["change"].max(), 0) + 0.12
+    x = alt.X("share:Q", title="Share of job posts that mention the skill now (log scale)",
+              scale=alt.Scale(type="log", domain=[lo, hi], nice=False), axis=alt.Axis(format="~%", grid=False))
+    y = alt.Y("change:Q", title="Change in share, last 12 months vs the 12 before",
+              scale=alt.Scale(domain=[ymin, ymax], nice=False), axis=alt.Axis(format="+.0%", grid=False))
+    color = alt.Color("group:N", title="AI stance (colour only when the trend is tested)",
+                      scale=alt.Scale(domain=list(radar_mod.COLOUR_GROUPS), range=palette),
+                      legend=alt.Legend(orient="top", columns=2, labelLimit=240, titleLimit=320))
+
+    def of(mark: str) -> pd.DataFrame:
+        return df[df["mark"] == mark]
+
+    cut = radar["share_cut"]
+    guides = alt.layer(
+        alt.Chart(pd.DataFrame({"share": [cut]})).mark_rule(strokeDash=[4, 4], color=soft, opacity=0.7).encode(x=x),
+        alt.Chart(pd.DataFrame({"change": [0.0]})).mark_rule(strokeDash=[4, 4], color=soft, opacity=0.7).encode(y=y))
+    corners = [  # (name, x, y, align, baseline): one text layer each, as align is a mark property
+        ("Small, share up", lo * 1.04, ymax - 0.02, "left", "top"),
+        ("Common, share up", hi / 1.04, ymax - 0.02, "right", "top"),
+        ("Small, share down", lo * 1.04, ymin + 0.02, "left", "bottom"),
+        ("Common, share down", hi / 1.04, ymin + 0.02, "right", "bottom"),
+    ]
+    names = [alt.Chart(pd.DataFrame({"share": [cx], "change": [cy], "name": [label]})).mark_text(
+        fontSize=13, fontWeight="bold", color=soft, align=align, baseline=base).encode(x=x, y=y, text="name:N")
+        for label, cx, cy, align, base in corners]
+    layers = [
+        guides, *names,
+        alt.Chart(of("grey")).mark_point(filled=True, size=80, opacity=1).encode(
+            x=x, y=y, color=color, tooltip=tooltip),
+        alt.Chart(of("filled")).mark_point(filled=True, size=170, opacity=1).encode(
+            x=x, y=y, color=color, tooltip=tooltip),
+        alt.Chart(of("hollow")).mark_point(filled=False, size=170, strokeWidth=3).encode(
+            x=x, y=y, color=color, tooltip=tooltip),
+    ]
+    yours = df[df["mine"]]
+    if not yours.empty:
+        layers.append(alt.Chart(yours).mark_point(shape="circle", filled=False, size=520, strokeWidth=2,
+                                                  color=ink).encode(x=x, y=y, tooltip=tooltip))
+    named = df[df["mine"] | (df["mark"] != "grey")]
+    if not named.empty:
+        named = named.assign(dy=label_offsets(named))
+        layers.append(alt.Chart(named).mark_text(align="left", dx=13, fontSize=12, color=ink).encode(
+            x=x, y=y, text="skill:N", yOffset=alt.YOffset("dy:Q", scale=None), tooltip=tooltip))
+    return alt.layer(*layers).properties(height=460).configure_view(stroke=None)
+
+
+@st.cache_data(show_spinner=False)
+def radar_spec(radar: dict, dark: bool) -> dict:
+    """The radar as a Vega-Lite spec. Building and checking the chart takes about a second, so it is cached.
+
+    The key is the radar data itself (every point, flag and the median cut) and the theme, so a new
+    as-of month, scenario-free skill set or refreshed data builds a new spec and nothing stale is shown.
+    """
+    return radar_chart(radar, dark).to_dict()
+
+
+# --------------------------------------------------------------------------------------
+# Sidebar helpers
+# --------------------------------------------------------------------------------------
+
+def show_refresh_result(result: dict, current: dict) -> None:
+    """Render the stored result of the last click on 'Refresh live data'."""
+    if result.get("busy") or "already running" in str(result.get("error") or ""):
+        st.info(BUSY_NOTE)
+        return
+    if not result.get("ok"):
+        st.error(f"Refresh failed: {result.get('error') or 'unknown error'}")
+        fb = result.get("fallback") or {}
+        st.write(
+            "The last good data is shown: data as of "
+            f"{fb.get('as_of') or current.get('as_of') or NA}, generated "
+            f"{fb.get('generated_at') or current.get('generated_at') or NA}."
+        )
+        return
+    before, after = result.get("posts_before"), result.get("posts_after")
+    before_text = "new thread" if before is None else before
+    st.success(f"Refreshed {result.get('month') or NA}: posts {before_text} -> {after}.")
+    st.write(f"Fetched at {result.get('fetched_at') or NA}.")
+    if result.get("shared_note"):
+        st.caption(result["shared_note"])
+    if result.get("scores_updated") is False:
+        st.warning("The thread was updated, but the scores were not rebuilt: "
+                   f"{result.get('scores_error') or 'unknown error'}. Old scores are shown.")
+    changed = result.get("skills_changed") or {}
+    if changed:
+        with st.expander(f"Changed skills ({len(changed)})"):
+            for skill, pair in changed.items():
+                old, new = (list(pair) + [None, None])[:2]
+                st.write(f"{skill}: {pct(old)} -> {pct(new)}")
+    elif result.get("scores_updated"):
+        st.write("No skill's share changed.")
+
+
+# --------------------------------------------------------------------------------------
+# Load data
+# --------------------------------------------------------------------------------------
+
+# A session starts on the newest data in the shared store, if it is newer than the committed files.
+st.session_state.setdefault("data_dir", live.start_dir(DEFAULT_DATA_DIR))
+st.session_state.setdefault("refresh_result", None)
+st.session_state.setdefault("live_fetched_at", None)
+
+
+def active_data_dir() -> Path:
+    chosen = st.session_state.get("data_dir")
+    return Path(chosen) if chosen else DEFAULT_DATA_DIR
+
+
+def using_runtime_folder() -> bool:
+    """True when the scores come from a refreshed runtime folder, not the committed data/ folder."""
+    chosen = st.session_state.get("data_dir")
+    return bool(chosen) and Path(chosen).resolve() != DEFAULT_DATA_DIR.resolve()
+
+
+def load_active() -> tuple[Path, Path, dict]:
+    """(data folder, scores file, scores dict) for the folder the app currently reads."""
+    folder = active_data_dir()
+    scores_path = default_scores_path(folder)
+    return folder, scores_path, load_scores(str(scores_path), scores_path.stat().st_mtime)
+
+
+data_dir, scores_path, scores = load_active()
+latest_as_of = scores.get("as_of")
+is_fixture = scores.get("fixture") is True
+
+# Sidebar layout: containers keep the visual order while the code handles Refresh first,
+# so a successful refresh can reset the As-of slider before the slider is created.
+with st.sidebar:
+    st.header("Controls")
+    scenario_box = st.container()
+    asof_box = st.container()
+    refresh_box = st.container()
+
+if not is_fixture:
+    with refresh_box:
+        st.divider()
+        if st.button("Refresh live data", help="Download the newest Hacker News hiring thread "
+                                               "and rebuild the scores."):
+            try:
+                import engine.refresh as refresh_mod
+
+                with st.spinner("Fetching the newest hiring thread and rebuilding the scores..."):
+                    result = refresh_mod.refresh()
+            except Exception as exc:  # the refresh function itself never raises; this is the import
+                result = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+            result["shared_note"] = live.publish(result)  # one click helps every visitor
+            st.session_state["refresh_result"] = result
+            if result.get("ok") and result.get("data_dir"):
+                st.session_state["data_dir"] = result["data_dir"]
+                st.session_state["live_fetched_at"] = result.get("fetched_at")
+                st.session_state.pop("as_of_view", None)  # back to the newest month
+                data_dir, scores_path, scores = load_active()
+                latest_as_of = scores.get("as_of")
+        if using_runtime_folder() and st.button(
+                "Back to committed snapshot",
+                help="Drop the refreshed data in this session and show the committed files again."):
+            st.session_state["data_dir"] = None
+            st.session_state["live_fetched_at"] = None
+            st.session_state["refresh_result"] = None
+            st.session_state.pop("as_of_view", None)
+            st.rerun()
+        if live.start_dir(DEFAULT_DATA_DIR) and st.button(
+                "Reload data", help="Check the shared store for newer data."):
+            st.session_state["data_dir"] = live.reload(DEFAULT_DATA_DIR)
+            st.session_state.pop("as_of_view", None)
+            st.rerun()
+        if st.session_state["refresh_result"]:
+            show_refresh_result(st.session_state["refresh_result"], scores)
 
 params = scores.get("scenario_params") or {}
-st.caption(f"File: {source_file} | k = {params.get('k', NA)}")
+k_text = params.get("k", NA)
+scenario_labels = {"moderate": "Moderate",
+                   "fast": f"Fast AI disruption (k = {k_text}, an assumption)"}
+with scenario_box:
+    scenario = st.radio("Scenario", SCENARIO_KEYS, index=0, format_func=scenario_labels.get)
+scenario_label = scenario_labels[scenario]
 
-st.header(f"Skills: {scenario_label} scenario")
-rows = []
-for s in skills:
-    fc = get_forecast(s, scenario)
-    sdg = s.get("sdg") or []
-    rows.append(
-        {
-            "Skill": s.get("skill") or NA,
-            "Latest demand share": pct(s.get("demand_share_latest")),
-            "12-month forecast": pct(fc.get("value_12m")),
-            "Low": pct(fc.get("low")),
-            "High": pct(fc.get("high")),
-            "AI exposure index (0-1)": index_value(s.get("ai_exposure")),
-            "SDG tags": ", ".join(str(tag) for tag in sdg) if sdg else NA,
-        }
-    )
-st.dataframe(pd.DataFrame(rows), hide_index=True)
-st.caption("Low and High are the forecast range for the chosen scenario.")
+# As-of view
+interval = scores.get("interval") or {}
+earliest = interval.get("earliest_supported_as_of")
+view = scores
+view_as_of = latest_as_of
+if not is_fixture and earliest and latest_as_of and earliest < latest_as_of:
+    options = [str(p) for p in pd.period_range(earliest, latest_as_of, freq="M")]
+    if st.session_state.get("as_of_view") not in options:
+        st.session_state.pop("as_of_view", None)
+    with asof_box:
+        chosen_as_of = st.select_slider(
+            "As of", options=options, value=latest_as_of, key="as_of_view",
+            help="Rerun the engine with only the data known at that month.")
+    if chosen_as_of != latest_as_of:
+        demand_path = data_dir / "demand_monthly.csv"
+        try:
+            with st.spinner(f"Recomputing with data up to {chosen_as_of} "
+                            "(a few seconds the first time)..."):
+                view = scores_as_of(str(data_dir), chosen_as_of, demand_path.stat().st_mtime)
+            view_as_of = chosen_as_of
+        except (ValueError, OSError, KeyError) as exc:
+            st.sidebar.error(f"Could not compute {chosen_as_of}: {exc}. Showing the latest month.")
+skills = view.get("skills") or []
+band_label = (view.get("interval") or {}).get("label") or "target band"
+past_view = view_as_of != latest_as_of
 
-st.header("Sources")
-if skills:
-    names = [s.get("skill") or NA for s in skills]
-    idx = st.selectbox(
-        "Pick a skill",
-        range(len(skills)),
-        format_func=lambda i: names[i],
-    )
-    selected = skills[idx]
-    choice = names[idx]
-    fc = get_forecast(selected, scenario)
-    st.write(
-        f"{choice}: {pct(fc.get('value_12m'))} in 12 months ({scenario_label}), "
-        f"range {pct(fc.get('low'))} to {pct(fc.get('high'))}."
-    )
+# --------------------------------------------------------------------------------------
+# Header
+# --------------------------------------------------------------------------------------
 
-    sources = [src for src in (selected.get("sources") or []) if isinstance(src, dict)]
-    if sources:
-        for src in sources:
-            name = src.get("name") or NA
-            date = src.get("date") or NA
-            url = src.get("url")
-            link = f"[{name}]({url})" if url else name
-            st.markdown(f"- {link}, {date}")
+st.title("Verity")
+st.subheader("Future-ready skills for tech developers")
+st.markdown("Decision support under uncertainty: tested trend labels, honest ranges, and a plan that does not "
+            "lean on one forecast.")
+st.markdown(f"**Data as of:** {view.get('as_of') or NA} | generated {view.get('generated_at') or NA}")
+if using_runtime_folder():
+    committed = read_json(DEFAULT_DATA_DIR / SCORES_NAME) or {}
+    stored = live.folder_meta(data_dir)
+    if stored:
+        st.info(live.banner(stored, committed.get("generated_at")))
     else:
-        st.write(f"Sources: {NA}")
+        st.info(f"Live refresh at {st.session_state.get('live_fetched_at') or NA}. Held only on this server until "
+                f"it restarts; the committed snapshot is dated {committed.get('generated_at') or NA}.")
+if view.get("partial_month") is True:
+    st.info(PARTIAL_NOTE)
+if past_view:
+    st.info(f"Looking back: this view uses only data up to {view_as_of}. "
+            "The data folder is not changed.")
+if is_fixture:
+    st.warning(FIXTURE_BANNER)
+st.markdown("Estimates, not facts. You decide.")
+about_box = st.container()  # "About the data", filled below once the backtest is loaded
 
-    evidence = selected.get("evidence") or []
-    evidence_text = ", ".join(str(e) for e in evidence) if evidence else NA
-    st.caption("Evidence IDs: " + evidence_text)
-else:
-    st.info("No skills in the data file.")
+# --------------------------------------------------------------------------------------
+# Data shared by the tabs
+# --------------------------------------------------------------------------------------
+
+demand = read_csv(data_dir / "demand_monthly.csv") if not is_fixture else None
+taxonomy = read_json(data_dir / "taxonomy.json") if not is_fixture else None
+category_of = {t.get("skill"): t.get("category") for t in taxonomy or [] if isinstance(t, dict)}
+backtest = read_json(data_dir / "backtest.json") if not is_fixture else None
+
+
+def read_static(name: str, reader):
+    """A file that the refresh does not rewrite: look in the active folder, then in data/."""
+    for folder in (data_dir, DEFAULT_DATA_DIR):
+        value = reader(folder / name)
+        if value is not None:
+            return value
+    return None
+
+
+# Exposure cross-check (engine/exposure_indices.py, engine/k_estimate.py). Missing files hide it.
+exposure_agreement = read_static("exposure_agreement.json", read_json) if not is_fixture else None
+k_estimate = read_static("k_estimate.json", read_json) if not is_fixture else None
+_robust = read_static("exposure_robustness.csv", read_csv) if not is_fixture else None
+contested_skills = (
+    set(_robust.loc[_robust["stance_robust"].astype(str).str.lower() == "false", "skill"])
+    if _robust is not None and {"skill", "stance_robust"} <= set(_robust.columns) else set())
+
+
+model_name = (view.get("interval") or {}).get("model")
+with about_box:
+    with st.expander("About the data"):
+        if model_name:
+            words = f" ({MODEL_WORDS[model_name]})" if model_name in MODEL_WORDS else ""
+            st.markdown(f"Forecast model: {model_name}{words}, {band_label}")
+            if backtest and backtest.get("chosen_model") == model_name and model_name in MODEL_WORDS:
+                st.markdown(
+                    "In our backtest this simple model was chosen over the trend models, so expect 12-month "
+                    "demand close to today's level. That is why Verity leads with tested trend labels and "
+                    "honest ranges, not with forecast numbers.")
+        st.markdown("No LLM is used in this view.")
+        try:
+            shown_file = scores_path.relative_to(BASE_DIR).as_posix()
+        except ValueError:
+            shown_file = str(scores_path)
+        st.caption(f"File: {shown_file} | scenario: {scenario_label}")
+        st.caption("Demand data: Hacker News 'Who is hiring?' threads, counted as the share of posts that "
+                   "mention a skill. Full list with dates and licences: data/SOURCES.md (see Evidence, Method).")
+
+# The tab labels are the step indicator, so make them easy to read (size and weight only).
+st.markdown("<style>.stTabs [data-baseweb='tab'] p {font-size: 1.1rem; font-weight: 600;}</style>",
+            unsafe_allow_html=True)
+(tab_you, tab_radar, tab_roles, tab_plan, tab_evidence) = st.tabs(
+    [STEP_YOU, STEP_RADAR, STEP_ROLES, STEP_PLAN, STEP_EVIDENCE], key=JOURNEY_KEY, on_change="rerun")
+
+
+def go_to_step(step: str) -> None:
+    """Button callback: move the journey to `step` on the next run."""
+    st.session_state[JOURNEY_KEY] = step
+
+
+def next_button(label: str, step: str, key: str) -> None:
+    st.button(label, key=key, on_click=go_to_step, args=(step,), type="primary")
+
+
+# --------------------------------------------------------------------------------------
+# Step 1: You
+# --------------------------------------------------------------------------------------
+
+def role_data_ready() -> bool:
+    """True when the real role files exist (they are not in the sample-data view)."""
+    return not (is_fixture or taxonomy is None or not all((DEFAULT_DATA_DIR / n).exists() for n in ROLE_FILES))
+
+
+def cv_intake_slot() -> None:
+    """Hook for the CV upload (Sheng Kuan). Shows nothing today.
+
+    When the CV extractor lands, it renders the uploader here and writes the skills it found, as
+    taxonomy names, to st.session_state["role_skills"] (the multiselect above reads the same key).
+    """
+    return None
+
+
+def you_step() -> list[str]:
+    """Step 1: the example profile and the skill list. Returns the skills the user holds."""
+    st.subheader("Tell us about yourself")
+    st.caption("Tell us your skills. A CV upload is coming.")
+    if not role_data_ready():
+        st.info(ROLE_DATA_MISSING)
+        return []
+    st.caption("Pick an example profile (synthetic people, not real CVs), then add or remove skills.")
+    persona = st.selectbox("Example profile", list(PERSONAS), key="role_persona")
+    if st.session_state.get("role_persona_applied") != persona:  # a new persona resets the skill list
+        st.session_state["role_skills"] = list(PERSONAS[persona])
+        st.session_state["role_persona_applied"] = persona
+    skill_options = [t["skill"] for t in taxonomy if isinstance(t, dict) and t.get("skill")]
+    my_skills = st.multiselect("Your skills (add or remove)", skill_options, key="role_skills")
+    cv_intake_slot()
+    st.markdown("**Next:** see how your skills are trending.")
+    next_button("See the skills radar", STEP_RADAR, "next_to_radar")
+    return list(my_skills)
+
+
+with tab_you:
+    my_skills = you_step()
+
+# --------------------------------------------------------------------------------------
+# Step 2: Future Skills Radar
+# --------------------------------------------------------------------------------------
+
+def radar_step(held: list[str]) -> None:
+    """Step 2: every skill by demand share and tested trend. Uses the as-of scores."""
+    st.subheader("Future Skills Radar")
+    st.caption("Which skills employers ask for, and which are moving. Only a tested change gets a colour.")
+    data = radar_mod.radar_points(skills, held, contested_skills)
+    if not data["points"]:
+        st.info("No skill has enough job posts to place on the radar in this view.")
+        return
+    st.vega_lite_chart(radar_spec(data, is_dark_theme()), width="stretch")
+    for sentence in radar_mod.summary_sentences(data, held):
+        st.markdown(sentence)
+    st.caption(radar_mod.how_to_read(backtest))
+    if past_view and _is_number(((backtest or {}).get("trend_label_backtest") or {}).get("trend_label_hit_rate")):
+        st.caption(f"The hit rate uses all data and {SLIDER_NOTE}.")
+    next_button("See roles that fit you", STEP_ROLES, "next_to_roles")
+
+
+with tab_radar:
+    radar_step(my_skills)
+
+# --------------------------------------------------------------------------------------
+# Step 3: Future roles
+# --------------------------------------------------------------------------------------
+
+def role_forecast_doc() -> tuple[dict | None, dict] | None:
+    """(role forecast, role backtest) for the As-of month, or None when a file is missing.
+
+    The forecast part is None when the files exist but cannot be computed for this month (after a Refresh
+    that added a month the role table does not have yet).
+
+    Numbers come from data/role_forecast.json and data/role_backtest.json. For an As-of month before the
+    file's month, the forecast is recomputed from data up to that month (no later data).
+    """
+    forecast = read_json(DEFAULT_DATA_DIR / "role_forecast.json")
+    backtest_doc = read_json(DEFAULT_DATA_DIR / "role_backtest.json")
+    demand_file = DEFAULT_DATA_DIR / "role_demand_monthly.csv"
+    if forecast is None or backtest_doc is None or not demand_file.exists():
+        return None
+    if forecast.get("as_of") != view_as_of:
+        try:
+            forecast = role_forecast_as_of(str(DEFAULT_DATA_DIR), view_as_of, demand_file.stat().st_mtime)
+        except (ValueError, FileNotFoundError):
+            return None, backtest_doc  # the files exist but this month has no role data yet (after a Refresh)
+    return forecast, backtest_doc
+
+
+def backtest_coverage_text(backtest_doc: dict) -> str:
+    """How the 80% band did in the role backtest, from data/role_backtest.json (coverage, n_roles_used)."""
+    cov = backtest_doc.get("coverage") or {}
+    held, nominal, n = cov.get("test_h12"), cov.get("nominal"), cov.get("n_role_origins")
+    roles = backtest_doc.get("n_roles_used")
+    if not all(_is_number(v) for v in (held, nominal, n)):
+        return ""
+    verdict = "so it is wider than needed" if held > nominal else "so it is not wider than the target"
+    sample = f"{int(roles)} roles, " if _is_number(roles) else ""
+    text = (f"In the role backtest the band held {pct(held)} of {int(n)} overlapping test outcomes "
+            f"(target {pct(nominal, 0)}), {verdict}; {sample}a rough guide.")
+    return text + (f" The backtest uses all data and {SLIDER_NOTE}." if past_view else "")
+
+
+def role_forecast_line(role_id: str) -> str | None:
+    """The role forecast line for a role card, or None (line hidden) if its files are missing or too early."""
+    docs = role_forecast_doc()
+    if docs and docs[0] is None:
+        return NO_ROLE_ESTIMATE
+    item = ((docs[0].get("roles") or {}).get(role_id)) if docs else None
+    if not item:
+        return None
+    backtest_doc = docs[1]
+    now = item["share_now"]
+    text = f"Share of HN hiring posts now {pct(now['value'])} ({now['mentions']}/{now['posts']}); "
+    est = item["forecast_moderate"]
+    if item["status"] != "ok" or est.get("value_12m") is None:
+        return text + "too few posts a month for a 12-month estimate."
+    return (text + f"12-month estimate {pct(est['value_12m'])} (80% target band {pct(est['low'])}–{pct(est['high'])}). "
+            + backtest_coverage_text(backtest_doc))
+
+
+def role_estimate_text(role_id: str) -> str | None:
+    """'12-month estimate 10.4% of HN hiring posts (80% target band 8.3%–12.9%)' for the step 3 summary line.
+
+    None when the role forecast files are missing, the role has too few posts, or it is not in the file.
+    """
+    docs = role_forecast_doc()
+    item = ((docs[0].get("roles") or {}).get(role_id)) if docs and docs[0] else None
+    est = (item or {}).get("forecast_moderate") or {}
+    if not item or item.get("status") != "ok" or not _is_number(est.get("value_12m")):
+        return None
+    label = (docs[0].get("interval") or {}).get("label") or "target band"
+    return (f"12-month estimate {pct(est['value_12m'])} of HN hiring posts "
+            f"({label} {pct(est.get('low'))}–{pct(est.get('high'))})")
+
+
+# --- SDG goal (engine.sdg) and Malaysia badges (MyCOL). Both read optional files: a missing or unreadable
+# file hides its part of the page and never stops the app. ---
+
+def read_optional_json(name: str, dict_keys: tuple[str, ...] = ()) -> dict | None:
+    """data/<name> as a dict that holds `dict_keys`, or None when it is missing, unreadable or the wrong shape."""
+    try:
+        doc = read_json(DEFAULT_DATA_DIR / name)
+    except (OSError, ValueError):
+        return None
+    return doc if isinstance(doc, dict) and all(k in doc for k in dict_keys) else None
+
+
+def read_optional_csv(name: str) -> pd.DataFrame | None:
+    """data/<name> as a table, or None when the file is missing or cannot be read."""
+    try:
+        return read_csv(DEFAULT_DATA_DIR / name)
+    except (OSError, ValueError, pd.errors.ParserError):
+        return None
+
+
+def load_role_sdg() -> dict | None:
+    """data/role_sdg.json (engine.sdg), or None. None hides the goal selector, the goal sentences and the Method part."""
+    doc = read_optional_json("role_sdg.json", ("sectors", "roles", "baseline"))
+    if doc is None or not doc["sectors"] or not isinstance(doc["sectors"], list)             or not isinstance(doc["roles"], dict) or not isinstance(doc["baseline"], dict):
+        return None
+    return doc
+
+
+def goal_options(role_sdg: dict | None) -> dict[str, str]:
+    """{label: sector id} for the goal selector: '<name> (SDG x.y)', sectors from data/sdg_sectors.json.
+
+    Only sectors that role_sdg.json has numbers for are offered. The sector list in role_sdg.json is the
+    fallback when data/sdg_sectors.json is missing.
+    """
+    if role_sdg is None:
+        return {}
+    known = {s.get("id") for s in role_sdg["sectors"] if isinstance(s, dict)}
+    listed = read_optional_json("sdg_sectors.json", ("sectors",))
+    sectors = listed["sectors"] if listed and isinstance(listed["sectors"], list) else role_sdg["sectors"]
+    options = {}
+    for sector in sectors:
+        if isinstance(sector, dict) and sector.get("id") in known and sector.get("name"):
+            targets = " / ".join(str(t) for t in sector.get("sdg") or [])
+            options[f"{sector['name']} (SDG {targets})" if targets else sector["name"]] = sector["id"]
+    return options
+
+
+def chosen_goal(role_sdg: dict | None) -> str | None:
+    """The sector id picked in step 3, or None for 'No preference' (or when the goal data is missing)."""
+    return goal_options(role_sdg).get(st.session_state.get(GOAL_KEY))
+
+
+def goal_controls(role_sdg: dict | None) -> tuple[str | None, bool]:
+    """The goal selector, the order radio and one caption. Returns (sector id or None, ordered by goal?).
+
+    Nothing is drawn when the goal data is missing.
+    """
+    options = goal_options(role_sdg)
+    if not options:
+        return None, False
+    if st.session_state.get(GOAL_KEY) not in (NO_GOAL, *options):
+        st.session_state.pop(GOAL_KEY, None)  # a label from an older file: back to 'No preference'
+    left, right = st.columns([3, 2])
+    picked = left.selectbox(GOAL_LABEL, [NO_GOAL, *options], key=GOAL_KEY)
+    goal = options.get(picked)
+    if goal is None:
+        st.session_state[ORDER_KEY] = ORDER_BEST  # no goal: back to Best fit, never a disabled 'goal' choice
+    order = right.radio("Order roles by:", [ORDER_BEST, ORDER_GOAL], key=ORDER_KEY, horizontal=True,
+                        disabled=goal is None,
+                        help="Best fit is the match-and-outlook order. Fit for my goal moves roles that hire "
+                             "for your goal up a little. No role is hidden in either order.")
+    months = role_sdg.get("months")
+    st.caption(f"Goal fit compares the share of each role's single-role HN posts from employers in this sector "
+               f"over the last {months if _is_number(months) else 'few'} months with the share across all posts; "
+               "it shows who hires, not what the work achieves, the sample is mostly US, and the weight is team "
+               "judgement (Evidence > Method > SDG sector links).")
+    if past_view:
+        st.caption(f"Sector shares are for the {months if _is_number(months) else 'last few'} months to "
+                   f"{role_sdg.get('as_of') or NA} and do not move with the As-of slider.")
+    return goal, goal is not None and order == ORDER_GOAL
+
+
+def apply_goal(out: dict, role_sdg: dict | None, goal: str | None) -> dict | None:
+    """engine.sdg.rerank_for_goal on the match_roles output, or None (no goal, or the file cannot be used)."""
+    if goal is None or role_sdg is None:
+        return None
+    from engine.sdg import rerank_for_goal
+
+    try:
+        return rerank_for_goal(out, role_sdg, goal)
+    except (ValueError, KeyError, TypeError) as exc:
+        st.caption(f"The goal view is not available: data/role_sdg.json could not be used ({type(exc).__name__}).")
+        return None
+
+
+def goal_order(goal_out: dict) -> list[dict]:
+    """The ranked roles of a rerank_for_goal result in 'Fit for my goal' order (goal_rank 1 first)."""
+    by_id = {r["role_id"]: r for r in goal_out["roles"]}
+    return [by_id[row["role_id"]] for row in goal_out["by_goal_fit"] if row["role_id"] in by_id]
+
+
+def sdg_sector_block(role: dict) -> None:
+    """The goal sentence of one role card, from engine.sdg.rerank_for_goal ("sdg_goal" on the role).
+
+    Shows nothing when the role has no goal view (no goal chosen, or no role_sdg.json). A cell that is not
+    reliable is called rough: it does not re-order anything.
+    """
+    goal = role.get("sdg_goal")
+    if not goal:
+        return None
+    sentence = goal["sentence"]
+    if goal.get("share") is not None and not goal.get("reliable"):
+        st.caption(f"For your goal (rough, not used to re-order): {sentence}")
+    else:
+        st.caption(f"For your goal: {sentence}")
+    return None
+
+
+def plan_sdg_lines(plan: dict, role: dict, role_sdg: dict | None) -> list[str]:
+    """The SDG sentences of step 4: engine.sdg.plan_sdg_summary with the goal chosen in step 3.
+
+    With no role_sdg.json (or one that cannot be used) the summary has the plan-level lines only.
+    """
+    from engine.sdg import plan_sdg_summary
+
+    try:
+        return plan_sdg_summary(plan, role, role_sdg or {}, chosen_goal(role_sdg))["lines"]
+    except (KeyError, TypeError, ValueError):
+        return plan_sdg_summary(plan, role, {}, None)["lines"]
+
+
+def mycol_by_role() -> dict[str, list[dict]]:
+    """{role_id: [mapped MyCOL occupations]} from data/mycol_role_map.json and data/mycol.json; {} when either is missing.
+
+    Each item: occupation, masco_code, strength ('direct' or 'partial'), year, url (the source in mycol.json).
+    Direct matches come first. A mapping whose occupation is not in mycol.json is left out.
+    """
+    mycol = read_optional_json("mycol.json", ("occupations",))
+    mapping = read_optional_json("mycol_role_map.json", ("mappings",))
+    if mycol is None or mapping is None or not isinstance(mycol["occupations"], list) \
+            or not isinstance(mapping["mappings"], list):
+        return {}
+    source = mycol.get("source") if isinstance(mycol.get("source"), dict) else {}
+    by_code = {o.get("masco_code"): o for o in mycol["occupations"] if isinstance(o, dict)}
+    found: dict[str, list[dict]] = {}
+    for m in mapping["mappings"]:
+        occ = by_code.get(m.get("masco_code")) if isinstance(m, dict) else None
+        if occ is None or not m.get("role_id") or m.get("strength") not in ("direct", "partial"):
+            continue
+        url = occ.get("source_url") or source.get("pdf_url") or source.get("landing_page") or ""
+        found.setdefault(m["role_id"], []).append({
+            "occupation": occ.get("occupation") or m.get("occupation") or NA, "masco_code": m["masco_code"],
+            "strength": m["strength"], "year": occ.get("year") or source.get("year") or "",
+            "url": url if str(url).startswith(("http://", "https://")) else ""})
+    for items in found.values():
+        items.sort(key=lambda i: i["strength"] != "direct")
+    return found
+
+
+def mycol_badges(items: list[dict]) -> None:
+    """One small badge line per MyCOL occupation mapped to the role, with the strength and the source link."""
+    for item in items:
+        year = f" {item['year']}" if item["year"] else ""
+        color = "blue" if item["strength"] == "direct" else "gray"
+        link = f" | [MyCOL{year} source]({item['url']})" if item["url"] else ""
+        st.markdown(f":{color}-badge[{MYCOL_BADGE}: {item['occupation']} (MASCO {item['masco_code']})], "
+                    f"our {item['strength']} match (team judgement){link}")
+
+
+def role_card(role: dict, position: int, show_rank: bool, show_fast: bool,
+              mycol: dict[str, list[dict]] | None = None) -> None:
+    """One bordered card for one ranked role. Every number comes from engine.roles.match_roles."""
+    with st.container(border=True):
+        title = f"#{position} {role['name']}"
+        if show_rank:
+            title += f" (rank #{role['rank']} by rank score)"
+        st.markdown(f"### {title}")
+        st.progress(min(max(role["match_score"], 0.0), 1.0), text=f"Match {role['match_score']:.0%}")
+
+        outlook = role["outlook"]
+        label = outlook.get("trend_label")
+        if label and outlook.get("share_last12") is not None and outlook.get("share_prev12") is not None:
+            p_text = f", p = {outlook['trend_p']:.3f}" if _is_number(outlook.get("trend_p")) else ""
+            st.markdown(f"Role demand: {TREND_BADGE.get(label, label)} "
+                        f"{outlook['share_last12']:.1%} of posts in the last 12 months vs "
+                        f"{outlook['share_prev12']:.1%} the 12 months before{p_text}")
+        else:
+            st.markdown("Role demand: :gray-badge[No label] too few posts to label a trend")
+
+        forecast_line = role_forecast_line(role["role_id"])
+        if forecast_line:
+            st.caption(forecast_line)
+        mycol_badges((mycol or {}).get(role["role_id"], []))
+
+        left, right = st.columns(2)
+        with left:
+            st.markdown("**You have**")
+            st.markdown("\n".join(f"- {s['skill']} (weight {s['weight']:.0%})" for s in role["have"]) or "- none")
+        with right:
+            st.markdown("**Gaps**")
+            st.markdown("\n".join(
+                f"- {s['skill']} (weight {s['weight']:.0%}; status {s['status'] or NA}; "
+                f"trend {s['trend_label'] or NO_LABEL})" for s in role["gap"]) or "- none")
+
+        st.write(role["reason"])
+        confidence = f"Confidence: {role['tier']} ({role['n_single_role_posts']} single-role posts)"
+        if role["tier"] == "rough":
+            confidence += ". Rough profile: treat the weights as approximate."
+        st.caption(confidence)
+        st.caption("SDG: " + (", ".join(str(t) for t in role["sdg"]) if role["sdg"] else NA))
+        sdg_sector_block(role)
+        if show_fast:
+            st.caption(f"Fast AI scenario (estimate): about {role['fast_shift']:+.1%} role demand vs moderate. "
+                       "Does not change the ranking.")
+        if st.button("Choose this as my target role", key=f"target_{role['role_id']}"):
+            st.session_state["target_role"] = role["name"]
+
+
+def compute_roles(held: list[str]) -> dict:
+    """Role match for the held skills: {"out", "profile", "trends", "problem"}.
+
+    `out` is the engine.roles.match_roles output. It is None, with a message in `problem`,
+    when the role data is missing or has no profile for the as-of month.
+    """
+    if not role_data_ready():
+        return {"out": None, "profile": None, "trends": None, "problem": ROLE_DATA_MISSING}
+    import engine.roles as roles_mod
+
+    role_dir = DEFAULT_DATA_DIR
+    try:
+        profile = roles_mod.profile_for(view_as_of, read_json(role_dir / "role_profiles.json"))
+    except ValueError as exc:
+        return {"out": None, "profile": None, "trends": None,
+                "problem": f"No role profile for {view_as_of}: {exc}."}
+    demand_path, roles_path = role_dir / "role_demand_monthly.csv", role_dir / "roles.json"
+    trends = role_trends_as_of(str(demand_path), str(roles_path), view_as_of, demand_path.stat().st_mtime)
+    out = roles_mod.match_roles(set(held), profile, view, trends, scenario,
+                                exposure=roles_mod.load_exposure(role_dir / "exposure.csv"))
+    return {"out": out, "profile": profile, "trends": trends, "problem": None}
+
+
+def best_fit_line(ranked: list[dict]) -> str:
+    """'Best fit now: X (66% match, demand Rising)' for the top ranked role."""
+    if not ranked:
+        return "No role matches well yet. Add skills in step 1, or pick a target to see the gap."
+    top = ranked[0]
+    demand_label = top["outlook"].get("trend_label") or "no label"
+    return f"Best fit now: {top['name']} ({top['match_score']:.0%} match, demand {demand_label})"
+
+
+def roles_step(ctx: dict) -> dict | None:
+    """Step 3: ranked role cards, target choice, formula. Returns the match_roles output (or None)."""
+    st.subheader("Which future roles fit you?")
+    if ctx["out"] is None:
+        st.info(ctx["problem"])
+        return None
+    out, profile, trends = ctx["out"], ctx["profile"], ctx["trends"]
+    limit = out["formula"]["low_match_below"]
+    st.markdown(f"**{best_fit_line(out['roles'])}**")
+    st.caption("Role demand labels are tested trends, not forecasts. Match is how much of the role's skill "
+               "list you already have.")
+    role_sdg = load_role_sdg()
+    goal, by_goal = goal_controls(role_sdg)
+    goal_out = apply_goal(out, role_sdg, goal)
+    by_goal = by_goal and goal_out is not None
+    # With a goal, the cards come from the rerank output: same roles, each with its goal sentence.
+    ranked = goal_out["roles"] if goal_out else out["roles"]
+    low_match = goal_out["low_match"] if goal_out else out["low_match"]
+    if by_goal:
+        from engine.sdg import MIN_EMPLOYERS, MIN_N, MIN_SECTOR_POSTS
+
+        formula = goal_out["formula"]
+        st.caption(f"Ordered by fit for {goal_out['sector_name']}: {formula['goal_fit_score']}. "
+                   f"A role's score goes up only when the cell has at least {MIN_N} role posts, {MIN_SECTOR_POSTS} "
+                   f"posts in the sector and {MIN_EMPLOYERS} employers; no score is lowered and no role is hidden.")
+    sort_by_match = st.toggle("Sort by match only", key="roles_sort_match", disabled=by_goal,
+                              help="Off: sorted by rank score (match and outlook). Not used when roles are "
+                                   "ordered by fit for your goal.")
+    mycol = mycol_by_role()
+    if mycol:
+        st.caption(MYCOL_CAPTION)
+        if past_view:
+            first = next(iter(mycol.values()))[0]
+            st.caption(f"MyCOL {first['year'] or 'list'} is one list and {SLIDER_NOTE}.")
+    target_box = st.container()
+
+    if ranked:
+        if by_goal:
+            shown = goal_order(goal_out)
+        else:
+            shown = sorted(ranked, key=lambda r: (-r["match_score"], r["rank"])) if sort_by_match else ranked
+        reordered = by_goal or sort_by_match
+        for position, role in enumerate(shown, start=1):
+            role_card(role, position, reordered, show_fast=scenario == "fast", mycol=mycol)
+        if low_match:
+            with st.expander(f"Not a fit yet (under {limit:.0%} match)"):
+                st.caption("These roles are not ranked: with so few of their skills, the outlook alone "
+                           "should not put them on the list.")
+                for role in low_match:
+                    st.markdown(f"**{role['name']}**: match {role['match_score']:.0%}")
+                    st.markdown("\n".join(
+                        f"- {s['skill']} (weight {s['weight']:.0%}; status {s['status'] or NA}; "
+                        f"trend {s['trend_label'] or NO_LABEL})" for s in role["gap"]) or "- no gaps")
+                    sdg_sector_block(role)
+                    if st.button("Choose this as my target role", key=f"target_{role['role_id']}"):
+                        st.session_state["target_role"] = role["name"]
+    else:
+        st.info("None of the roles match well yet; pick a target to see the gap")
+        for position, role in enumerate(low_match, start=1):  # sorted by match, not ranked
+            role_card(role, position, False, show_fast=scenario == "fast", mycol=mycol)
+
+    chosen = st.session_state.get("target_role")
+    with target_box:
+        summary = f"**Target role:** {chosen}" if chosen else "**Target role:** none chosen yet"
+        target_id = next((r["role_id"] for r in out["roles"] + out["low_match"] if r["name"] == chosen), None)
+        estimate = role_estimate_text(target_id) if target_id else None
+        st.markdown(f"{summary}. {estimate}." if estimate else summary)
+        if chosen:
+            next_button("See my plan", STEP_PLAN, "next_to_plan")
+    for item in out["not_ranked"]:
+        st.caption(f"{item['name']}: {item['note']}")
+    if out["unmatched"]:
+        st.caption("Skills not in the taxonomy (ignored): " + ", ".join(out["unmatched"]))
+
+    n_posts = sum(r["n_single_role_posts"] for r in profile["roles"] if r["ranked"])
+    win = profile["window"]
+    st.caption(f"Role skill weights learned from {n_posts:,} single-role HN 'Who is hiring?' posts, "
+               f"{win['from']} to {win['to']}. Role demand from monthly shares to {trends['as_of']}.")
+    with st.expander("How the rank is computed"):
+        formula = out["formula"]
+        st.markdown(
+            "- **Match score** = weight of the role's skills you have / total weight of its skills. "
+            "Weights are learned from real posts: the share of the role's single-role posts that mention the "
+            "skill, kept when the role asks for it at least 1.1 times as often as the average post.\n"
+            "- **Outlook score** = 1.0 if the role's share of posts is Rising, 0.5 if No clear change or unknown, "
+            "0.0 if Falling (same Welch test as the skill labels).\n"
+            f"- **Rank score** = {formula['match_weight']} x match + {formula['future_weight']} x outlook. "
+            "0.7 / 0.3 are team judgement, not fitted to data.\n"
+            "- **Fast AI scenario** only adds an estimate of how the role's demand moves "
+            f"(-k x sum of weight x AI exposure, k = {formula['k']}, an assumption). It never changes the ranking.\n"
+            "- Having TypeScript counts as having JavaScript / TypeScript. Roles with fewer than 50 single-role "
+            "posts are not ranked; a profile with fewer than 150 posts or fewer than 5 skills is marked rough.\n"
+            f"- A role with under {formula['low_match_below']:.0%} match is not ranked (team judgement), so "
+            "it cannot rank on its outlook alone. It is listed under \"Not a fit yet\".")
+    return out
+
+
+role_ctx = compute_roles(my_skills)
+with tab_roles:
+    role_out = roles_step(role_ctx)
+
+# --------------------------------------------------------------------------------------
+# Tab: Pathway
+# --------------------------------------------------------------------------------------
+
+def next_monday(today: date) -> date:
+    """The first Monday after `today` (a Monday gives the Monday a week later)."""
+    return today + timedelta(days=7 - today.weekday())
+
+
+def clear_target_role() -> None:
+    st.session_state.pop("target_role", None)
+    go_to_step(STEP_ROLES)  # a new target is chosen in step 3 only
+
+
+def change_target_button() -> None:
+    """Link-style button. Choosing a role stays possible only in step 3, Future roles."""
+    st.button("Change target role", key="change_target_role", type="tertiary", on_click=clear_target_role,
+              help="Clears the target and takes you to step 3 to pick a new one.")
+
+
+def step_card(step: dict) -> None:
+    """One skill of the plan: reason, resource, deadline, source. SDG tags sit in the SDG section."""
+    res = step["resource"]
+    with st.container(border=True):
+        st.markdown(f"**{step['order']}. {step['skill']}**")
+        st.markdown(f"Why: {step['reason']}")
+        if res:
+            st.markdown(f"Resource: [{res['title']}]({res['url']}) | {res['provider']} | cost: {res['cost']} | "
+                        f"about {step['minutes']} minutes (estimate)")
+        else:
+            st.markdown(f"Resource: {step['resource_note']}")
+            st.caption("No tasks are planned for this skill until a verified resource is added.")
+        if step["deadline"]:
+            st.markdown(f"Step deadline: {step['deadline']}")
+        st.caption(f"Source: {step['source']}")
+
+
+def todo_table(tasks: list[dict], sig: str, today: date) -> list[str]:
+    """One row per task with a checkbox. Returns the ids that are ticked."""
+    before = (set(st.session_state.get("done_tasks") or [])
+              if st.session_state.get("done_plan_sig") == sig else set())
+    widths = [0.7, 1.9, 0.9, 6, 1.2]
+    head = st.columns(widths)
+    for col, text in zip(head, ("Done", "Date", "Minutes", "Task", "Link")):
+        col.markdown(f"**{text}**")
+    ticked = []
+    for t in tasks:
+        c_done, c_date, c_min, c_task, c_link = st.columns(widths, vertical_alignment="center")
+        done = c_done.checkbox(f"Done: {t['title']}", value=t["id"] in before,
+                               key=f"done_{sig}_{t['id']}", label_visibility="collapsed")
+        if done:
+            ticked.append(t["id"])
+        overdue = not done and date.fromisoformat(t["date"]) < today
+        c_date.markdown(f"{t['date']} (overdue)" if overdue else t["date"])
+        c_min.markdown(str(t["minutes"]))
+        c_task.markdown(f"~~{t['title']}~~" if done else t["title"])
+        c_link.markdown(f"[Open]({t['resource_url']})")
+    return ticked
+
+
+def plan_summary(box, target: str, plan: dict) -> None:
+    """The lead card of step 4: target, number of skills, hours, finish date, and the no-regret skills."""
+    no_regret = [s["skill"] for s in plan["steps"] if s["stage"] == "no_regret"]
+    totals = plan["totals"]
+    with box.container(border=True):
+        st.markdown(f"**Your plan in short:** become a {target}.")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Skills to learn", totals["steps"])
+        c2.metric("Hours (estimate)", f"{totals['hours']:g}")
+        c3.metric("Finish date", plan["finish_date"] or NA)
+        if no_regret:
+            st.markdown("No-regret skills (useful for several of your roles): " + ", ".join(no_regret) + ".")
+            st.markdown("It starts with skills that several of your roles need, so less of the plan depends on "
+                        "one forecast.")
+        else:
+            st.markdown("No skill in your gap is needed by several of your roles yet, so this plan follows what "
+                        "employers ask for now, not the forecast.")
+
+
+def pathway_tab(role_out: dict | None) -> None:
+    """Step 4, Your plan: summary card, staged plan, daily to-do list with progress, exports, SDG links."""
+    from engine.pathway import (HRD_CORP_NOTE, PLACEHOLDER_RESOURCE, build_pathway, progress, tasks_signature,
+                                to_ics, to_markdown, today_myt)
+
+    st.session_state.setdefault("done_tasks", [])
+    target = st.session_state.get("target_role")
+    if not target:
+        st.info(NO_TARGET_PROMPT)
+        next_button("Choose a target role", STEP_ROLES, "choose_target_role")
+        return
+    st.subheader(f"Pathway to {target}")
+    change_target_button()
+    summary_box = st.container()  # the summary card, filled once the plan is built
+    resources_doc = read_json(DEFAULT_DATA_DIR / "resources.json")
+    if role_out is None or resources_doc is None or taxonomy is None:
+        st.info("The pathway needs the real data files (roles, taxonomy, resources). They are not available in this view.")
+        return
+    everyone = role_out["roles"] + role_out["low_match"]
+    role = next((r for r in everyone if r["name"] == target), None)
+    if role is None:
+        st.warning(f"{target} is not in the role list for this view (as of {view_as_of}). Change the target role.")
+        return
+    if not role["gap"]:
+        st.success(f"You already have every skill in the {target} profile, so there is no gap to plan.")
+        return
+
+    left, right = st.columns(2)
+    hours = left.number_input("Hours per week", min_value=1, max_value=40, value=5, step=1, key="pathway_hours")
+    today = today_myt()  # Malaysia time (UTC+8)
+    start = right.date_input("Start date", value=next_monday(today), key="pathway_start")
+    start = start if isinstance(start, date) else next_monday(today)
+
+    # The no-regret stage counts the target role and every ranked role (match 20% or more), each once.
+    role_gaps = [role["gap"]] + [r["gap"] for r in role_out["roles"] if r["name"] != target]
+    plan = build_pathway(target, role["gap"], role_gaps, view, resources_doc,
+                         scenario=scenario, hours_per_week=hours, start_date=start, taxonomy=taxonomy)
+    plan_summary(summary_box, target, plan)
+    st.caption(f"Skill data as of {plan['skill_scores_as_of'] or NA}. Scenario: {plan['scenario_label']}. "
+               f"{plan['totals']['steps']} skills, {plan['totals']['tasks']} daily tasks, about "
+               f"{plan['totals']['hours']} hours (estimate), {hours} hours a week, Monday to Friday.")
+    st.info(f"HRD Corp: {resources_doc.get('hrd_corp_note') or HRD_CORP_NOTE}")
+    if scenario == "fast":
+        st.info("Fast AI scenario (an assumption, not a forecast): future bets (Stage 3) are moved earlier, to "
+                "second place, ahead of near-term demand. Only the order of the stages changes.")
+
+    # Stages
+    for stage in plan["stages"]:
+        st.markdown(f"### {stage['label']}")
+        steps = [s for s in plan["steps"] if s["stage"] == stage["name"]]
+        if not steps:
+            st.caption("No skills in this stage.")
+        for step in steps:
+            step_card(step)
+    if plan["unresolved"]:
+        st.caption(f"{PLACEHOLDER_RESOURCE}: {', '.join(plan['unresolved'])}.")
+
+    # Daily to-do list
+    st.markdown("### Daily to-do list")
+    sig = tasks_signature(plan["tasks"])  # a tick belongs to this exact task list, not to the settings
+    progress_box = st.container()  # filled after the checkboxes, so it shows this run's ticks
+    if plan["tasks"]:
+        ticked = todo_table(plan["tasks"], sig, today)
+    else:
+        ticked = []
+        st.info("No daily tasks yet: no skill in this gap has a verified resource.")
+    st.session_state["done_tasks"] = ticked
+    st.session_state["done_plan_sig"] = sig
+    prog = progress(plan["tasks"], ticked, today)
+    with progress_box:
+        st.progress(min(max(prog["percent_done"] / 100, 0.0), 1.0),
+                    text=f"{prog['percent_done']:.0f}% done ({prog['tasks_done']} of {prog['tasks_total']} tasks, "
+                         f"{prog['minutes_done']} of {prog['minutes_total']} minutes)")
+        n_over = len(prog["overdue"])
+        st.markdown(f"Overdue as of {prog['as_of']}: {n_over} task{'' if n_over == 1 else 's'}")
+        nxt = prog["next_task"]
+        if nxt:
+            st.markdown(f"Next task: {nxt['title']} ({nxt['minutes']} min, {nxt['date']})")
+        else:
+            st.markdown("Next task: none left" if plan["tasks"] else "Next task: none")
+        done_skills = prog["completed_skills"] if plan["tasks"] else []
+        st.markdown("Skills completed: " + (", ".join(done_skills) if done_skills else "none yet"))
+        st.markdown(f"Plan finishes on {plan['finish_date']}" if plan["finish_date"]
+                    else "Plan finishes on: no dated tasks")
+    st.caption("Ticks are kept while the task list stays exactly the same. Any change to the tasks (role, skills, "
+               "scenario, pace or start date) makes a new plan and clears them. Times are estimates.")
+
+    # Exports: the browser downloads the text. The server writes no file.
+    st.markdown("### Export")
+    e1, e2 = st.columns(2)
+    e1.download_button("Download plan (Markdown)", to_markdown(plan), file_name="verity_plan.md",
+                       mime="text/markdown", key="download_plan_md", on_click="ignore")
+    e2.download_button("Download calendar (.ics)", to_ics(plan["tasks"]), file_name="verity_plan.ics",
+                       mime="text/calendar", key="download_plan_ics", on_click="ignore")
+
+    # SDG links: the plan-level statements first (engine.sdg.plan_sdg_summary), the per-skill tags second.
+    # Without data/role_sdg.json the summary still gives the SDG 4.4 and 8.5 lines (no goal line).
+    st.markdown("### SDG links")
+    role_sdg = load_role_sdg()
+    for sentence in plan_sdg_lines(plan, role, role_sdg):
+        st.markdown(sentence)
+    if past_view and role_sdg is not None and chosen_goal(role_sdg):
+        months = role_sdg.get("months")
+        st.caption(f"The sector share is for the {months if _is_number(months) else 'last few'} months to "
+                   f"{role_sdg.get('as_of') or NA} and {SLIDER_NOTE}.")
+    with st.expander("SDG tags per skill"):
+        for step in plan["steps"]:
+            if step["sdg"]:
+                st.markdown(f"- {step['skill']}: SDG {', '.join(step['sdg'])}. {step['sdg_reason'] or ''}".rstrip())
+    st.caption(plan["notes"][0])  # the estimate note; the HRD Corp note is shown once, above
+
+
+with tab_plan:
+    pathway_tab(role_out)
+
+# --------------------------------------------------------------------------------------
+# Evidence: Skills, Skill detail, Method (unchanged in function)
+# --------------------------------------------------------------------------------------
+
+with tab_evidence:
+    st.caption("The numbers behind steps 2 to 4: the full skill table, one skill in detail, and how the "
+               "forecast was tested.")
+    ev_skills, ev_detail, ev_method = st.tabs(["Skills", "Skill detail", "Method"])
+
+with ev_skills:
+    if not skills:
+        st.info("No skills in the data file.")
+    else:
+        status_options = sorted({s.get("status") or NA for s in skills})
+        trend_options = sorted({s.get("trend_label") or NO_LABEL for s in skills})
+        category_options = sorted({category_of.get(s.get("skill")) or NA for s in skills})
+        f1, f2, f3 = st.columns(3)
+        with f1:
+            status_pick = st.multiselect("Status", status_options, default=status_options)
+        with f2:
+            trend_pick = st.multiselect("Trend label", trend_options, default=trend_options)
+        with f3:
+            category_pick = st.multiselect("Category", category_options, default=category_options)
+
+        rows = []
+        for s in skills:
+            status = s.get("status") or NA
+            trend = s.get("trend_label") or NO_LABEL
+            category = category_of.get(s.get("skill")) or NA
+            if status not in status_pick or trend not in trend_pick or category not in category_pick:
+                continue
+            rows.append({
+                "Skill": s.get("skill") or NA,
+                "Category": category,
+                "Status": status,
+                "Trend label (mentions last 12 vs prior 12)": trend_text(s),
+                "Share now": share_text(s),
+                f"12-month forecast, {scenario_labels[scenario].split(' (')[0]} (low to high)":
+                    forecast_text(s, scenario),
+                "AI stance": s.get("stance") or NA,
+                "SDG": sdg_text(s),
+                "Note": s.get("note") or "",
+            })
+        st.caption(f"Showing {len(rows)} of {len(skills)} skills. "
+                   "The forecast is the share of job posts 12 months after the as-of month, "
+                   f"with its {band_label}.")
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+        st.caption("Trend label is observed (last 12 months against the 12 before), not a forecast. "
+                   "n/a means the data volume is too low for a forecast.")
+
+# --------------------------------------------------------------------------------------
+# Tab: Skill detail
+# --------------------------------------------------------------------------------------
+
+with ev_detail:
+    if not skills:
+        st.info("No skills in the data file.")
+    else:
+        names = [s.get("skill") or NA for s in skills]
+        picked = st.selectbox("Skill", names, key="detail_skill")
+        skill = skills[names.index(picked)]
+        status = skill.get("status")
+        fc = get_forecast(skill, scenario)
+        moderate = get_forecast(skill, "moderate")
+        has_forecast = (status is None or status == "ok") and _is_number(fc.get("value_12m"))
+        has_moderate = (status is None or status == "ok") and _is_number(moderate.get("value_12m"))
+        target_month = month_add(view_as_of, HORIZON_MONTHS) if view_as_of else None
+        scenario_short = scenario_label.split(" (")[0]
+
+        # What happened: graded against the Moderate band, the one the backtest calibrated, on
+        # the single target month (the same quantity the backtest uses).
+        outcome = None
+        outcome_text = None
+        target_row = None
+        if past_view and target_month and demand is not None:
+            target_rows = demand[(demand["skill"] == picked) & (demand["month"] == target_month)]
+            if target_rows.empty:
+                outcome_text = f"{target_month} is not in the data yet, so the outcome is not known."
+            elif not has_moderate:
+                outcome_text = ("No forecast was made for this skill at that date, "
+                                "so there is nothing to compare.")
+            else:
+                from engine.outcome import band_verdict
+
+                target_row = target_rows.iloc[0]
+                outcome = band_verdict(moderate, target_row["mentions"], target_row["n_posts"])
+
+        st.subheader(picked)
+        if has_forecast and target_month:
+            st.write(f"Forecast for {target_month} ({scenario_label}): {pct(fc['value_12m'])}, "
+                     f"{band_label} {pct(fc.get('low'))} to {pct(fc.get('high'))}.")
+        elif skill.get("note"):
+            st.write(skill["note"])
+
+        if demand is not None and view_as_of:
+            # Only months up to the as-of month are drawn. The one exception is the outcome point.
+            hist = demand[(demand["skill"] == picked) & (demand["month"] <= view_as_of)]
+            hist = hist.sort_values("month")
+            if hist.empty:
+                st.info("No monthly history for this skill in the data folder.")
+            else:
+                labels = ["Monthly share", "3-month smoothed",
+                          f"Forecast {target_month} ({scenario_short}) with band", "What happened"]
+                st.altair_chart(
+                    skill_chart(hist, fc if has_forecast else None, target_month, labels,
+                                is_dark_theme(), outcome["actual"] if outcome else None),
+                    width="stretch")
+                st.caption("Share of the month's job posts that mention the skill (Hacker News "
+                           "'Who is hiring?'). The smoothed line is the mean of the last 3 months."
+                           + (f" The point and bar at the right are the forecast and its {band_label}."
+                              if has_forecast else "")
+                           + (" The diamond is what happened." if outcome else ""))
+        else:
+            st.info("The monthly history is not available for the sample data.")
+
+        # Trend label
+        label = skill.get("trend_label")
+        m12, p12 = skill.get("mentions_last12"), skill.get("posts_last12")
+        mprev, pprev = skill.get("mentions_prev12"), skill.get("posts_prev12")
+        if all(_is_number(v) for v in (m12, p12, mprev, pprev)):
+            p_value = skill.get("trend_p")
+            p_text = f", p = {p_value:.3f}" if _is_number(p_value) else ""
+            head = label if label else "No trend label (too few mentions)"
+            st.markdown(
+                f"**Trend label: {head}.** Last 12 months: {m12} mentions in {p12} posts "
+                f"({pct(m12 / p12 if p12 else None)}). The 12 months before: {mprev} mentions in "
+                f"{pprev} posts ({pct(mprev / pprev if pprev else None)}){p_text}. "
+                "This is observed, not a forecast.")
+
+        # Scenario shift. The band is asymmetric, so "inside" means low <= Fast value <= high.
+        shift, width = skill.get("scenario_shift_pp"), skill.get("band_width_pp")
+        fast_value = get_forecast(skill, "fast").get("value_12m")
+        if _is_number(shift) and _is_number(width):
+            low, high = moderate.get("low"), moderate.get("high")
+            if _is_number(fast_value) and _is_number(low) and _is_number(high):
+                verdict = ("inside the Moderate band" if low <= fast_value <= high
+                           else "outside the Moderate band")
+                verdict_text = f" The Fast forecast is {verdict} ({pct(low)} to {pct(high)})."
+            else:
+                verdict_text = ""
+            st.markdown(
+                f"**Fast scenario shift:** {signed_pp(shift)} against the Moderate forecast, next "
+                f"to a band width of {width:.1f} pp.{verdict_text}")
+        if skill.get("note"):
+            st.markdown(f"**Note:** {skill['note']}")
+        contested = " (contested across indices)" if picked in contested_skills else ""
+        st.markdown(f"**AI stance:** {skill.get('stance') or NA}{contested} | **SDG:** {sdg_text(skill)}")
+
+        # What happened (as-of views only)
+        if past_view and target_month and demand is not None:
+            st.subheader("What happened")
+            if outcome is None:
+                st.write(outcome_text)
+            else:
+                open_note = (" That month's thread was still open, so the number can change."
+                             if scores.get("partial_month") is True and target_month == latest_as_of
+                             else "")
+                st.write(
+                    f"Graded against the Moderate band (the calibrated one): {pct(moderate['low'])} "
+                    f"to {pct(moderate['high'])}, from a forecast of {pct(moderate['value_12m'])} "
+                    f"made at {view_as_of}. The actual {target_month} value, smoothed the same way "
+                    f"as the model's input, was {pct(outcome['actual'])}. The actual value was "
+                    f"{outcome['place']} the band.{open_note}")
+                st.caption("The Fast band is an assumption and is not graded.")
+                window = [month_add(target_month, -i) for i in (2, 1, 0)]
+                rows_t = demand[(demand["skill"] == picked) & (demand["month"].isin(window))]
+                reference = ""
+                if len(rows_t) == len(window) and rows_t["n_posts"].sum() > 0:
+                    m_sum, n_sum = int(rows_t["mentions"].sum()), int(rows_t["n_posts"].sum())
+                    reference = (f" Pooled share over the 3 months ending {target_month}: "
+                                 f"{pct(m_sum / n_sum)} ({m_sum}/{n_sum} posts).")
+                st.caption(f"For reference only: {target_month} raw share "
+                           f"{pct(float(target_row['share']))} "
+                           f"({int(target_row['mentions'])}/{int(target_row['n_posts'])} posts)."
+                           f"{reference}")
+
+        # Sources
+        st.subheader("Sources")
+        sources = [src for src in (skill.get("sources") or []) if isinstance(src, dict)]
+        if sources:
+            for src in sources:
+                name = src.get("name") or NA
+                url = src.get("url") or ""
+                date = src.get("date") or NA
+                if url.startswith(("http://", "https://")):
+                    st.markdown(f"- [{name}]({url}), {date}")
+                elif url:
+                    st.markdown(f"- {name} (file `{url}`), {date}")
+                else:
+                    st.markdown(f"- {name}, {date}")
+        else:
+            st.write(f"Sources: {NA}")
+        evidence = skill.get("evidence") or []
+        st.caption("Evidence IDs: " + (", ".join(str(e) for e in evidence) if evidence else NA))
+
+# --------------------------------------------------------------------------------------
+# Tab: Method
+# --------------------------------------------------------------------------------------
+
+def source_links(sources_md: str) -> list[tuple[str, str]]:
+    """(title, first URL) for each numbered section of data/SOURCES.md."""
+    found = []
+    for block in re.split(r"(?m)^## ", sources_md)[1:]:
+        title, _, body = block.partition("\n")
+        if not re.match(r"\d+\.", title):
+            continue
+        url = re.search(r"https?://[^\s)>`,]+", body)
+        if url:
+            found.append((title.strip(), url.group(0).rstrip(".")))
+    return found
+
+
+def group_name(key: str) -> str:
+    """Readable name for a backtest share-group key (lt_<n>pct, <a>_to_<b>pct, gt_<n>pct)."""
+    if m := re.fullmatch(r"lt_(\d+)pct", key):
+        return f"under {m.group(1)}%"
+    if m := re.fullmatch(r"(\d+)_to_(\d+)pct", key):
+        return f"{m.group(1)}% to {m.group(2)}%"
+    if m := re.fullmatch(r"gt_(\d+)pct", key):
+        return f"over {m.group(1)}%"
+    return key
+
+
+def signed(value) -> str:
+    return f"{value:+.2f}" if _is_number(value) else NA
+
+
+def gain_text(gain: dict, ci: list) -> str:
+    """'+0.14 (+0.07 to +0.22)'; 'n/a' pieces when the file has no number; 'baseline' for naive."""
+    if not gain:
+        return "baseline"
+    return f"{signed(gain.get('test_h12_mae_gain_pp'))} ({signed(ci[0])} to {signed(ci[1])})"
+
+
+def mae_table(models: dict) -> pd.DataFrame:
+    rows = []
+    for name, m in models.items():
+        early, test = m.get("early_mae_pp") or {}, m.get("test_mae_pp") or {}
+        gain = m.get("test_h12_vs_naive") or {}
+        ci = list(gain.get("ci95_skill_bootstrap") or []) + [None, None]
+        rows.append({
+            "Model": name,
+            "Early h=1": early.get("h1"), "Early h=6": early.get("h6"), "Early h=12": early.get("h12"),
+            "Test h=1": test.get("h1"), "Test h=6": test.get("h6"), "Test h=12": test.get("h12"),
+            "Test h=12 gain vs naive (bootstrap CI)": gain_text(gain, ci),
+            "In production": "yes" if m.get("in_production") else "no",
+        })
+    return pd.DataFrame(rows)
+
+
+def precision_by_sector() -> dict[str, str]:
+    """{sector name: hand-checked precision text} from the 'Precision' table of docs/sdg-links.md ({} if absent)."""
+    path = BASE_DIR / "docs" / "sdg-links.md"
+    if not path.exists():
+        return {}
+    match = re.search(r"(?ms)^## Precision[^\n]*\n(.*?)(?=^## |\Z)", path.read_text(encoding="utf-8"))
+    found = {}
+    for line in (match.group(1).splitlines() if match else []):
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if line.startswith("|") and len(cells) >= 2 and cells[0] != "Sector" and not set(line) <= set("|- "):
+            found[cells[0]] = cells[1]
+    return found
+
+
+def sdg_method_section(role_sdg: dict) -> None:
+    """Evidence > Method > SDG sector links: method, precision table and limits. Numbers come from the files."""
+    from engine.sdg import GOAL_WEIGHT, MAX_EXCESS, MIN_EMPLOYERS, MIN_N, MIN_SECTOR_POSTS
+
+    window = role_sdg.get("window") or {}
+    recent, previous = window.get("recent") or {}, window.get("previous") or {}
+    baseline = role_sdg["baseline"].get("sectors") or {}
+    st.header("SDG sector links")
+    st.write(role_sdg.get("method") or "data/role_sdg.json has no method text.")
+    st.markdown(
+        "- **Sectors** are tied to SDG targets in data/sdg_sectors.json. Perk and legal lines are removed before "
+        "the word patterns run.\n"
+        f"- **Window.** {recent.get('from', NA)} to {recent.get('to', NA)} ({recent.get('n_posts', NA)} posts), "
+        f"against {previous.get('from', NA)} to {previous.get('to', NA)} ({previous.get('n_posts', NA)} posts).\n"
+        f"- **Reliable** means at least {MIN_N} role posts, {MIN_SECTOR_POSTS} of them in the sector, and "
+        f"{MIN_EMPLOYERS} different employers in the sector ({MIN_SECTOR_POSTS} is team judgement). A cell that "
+        "is not reliable is marked rough, with the reason, and never moves a role.\n"
+        f"- **Fit for my goal** = rank score x (1 + {GOAL_WEIGHT} x min(max(lift - 1, 0), {MAX_EXCESS:g})). "
+        "The weight and the cap are team judgement, not fitted. No score is lowered and no role is hidden.")
+    precision = precision_by_sector()
+    rows = []
+    for sector in role_sdg["sectors"]:
+        base = baseline.get(sector.get("id")) or {}
+        rows.append({"Sector": sector.get("name") or NA,
+                     "SDG": " / ".join(str(t) for t in sector.get("sdg") or []) or NA,
+                     "Precision (hand check, docs/sdg-links.md)": precision.get(sector.get("name")) or NA,
+                     "Tagged posts, last window": base.get("count_recent", NA),
+                     "Different employers": base.get("employers_recent", NA)})
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+    st.caption("Precision is the share of tagged posts that really say the employer works in the sector, judged "
+               "by one reader on a small random sample per sector (sample size and error margin: "
+               "docs/sdg-links.md). Recall was not measured.")
+    thin = [f"{s['name']} ({baseline[s['id']]['count_recent']} posts)" for s in role_sdg["sectors"]
+            if _is_number((baseline.get(s.get("id")) or {}).get("count_recent"))
+            and baseline[s["id"]]["count_recent"] < MIN_N]
+    small = [f"{r.get('name', rid)} ({r['n_recent']} posts)" for rid, r in role_sdg["roles"].items()
+             if isinstance(r, dict) and _is_number(r.get("n_recent")) and r["n_recent"] < MIN_N]
+    st.markdown("**Limits**")
+    st.markdown(
+        "- Hacker News 'Who is hiring?' leans to US start-ups and software firms. Read the shares as 'among HN "
+        "posts', not as the Malaysian job market.\n"
+        "- The sector comes from words in the company description, by pattern. A post that never says what the "
+        "company does gets no sector.\n"
+        "- The link is to the employer's sector, not to the effect of the work: association, not impact.\n"
+        "- Employers repost every month, so shares count posts, not companies.\n"
+        + (f"- Sectors with fewer than {MIN_N} tagged posts are too thin for a role-level claim: "
+           f"{', '.join(thin)}.\n" if thin else "")
+        + (f"- Roles with fewer than {MIN_N} single-role posts in the window: {', '.join(small)}.\n"
+           if small else "")
+        + "- The sector shares come from one build and do not move with the As-of slider.")
+    st.caption("Full method, hand-check notes and the fixes they led to: docs/sdg-links.md.")
+
+
+def malaysia_data_section() -> None:
+    """Evidence > Method > Malaysia data: MyCOL source and year, and the job-site snapshots (or why there are none)."""
+    st.header("Malaysia data")
+    mycol = read_optional_json("mycol.json", ("source", "occupations"))
+    mapping = read_optional_json("mycol_role_map.json", ("mappings",))
+    if mycol is not None and isinstance(mycol["source"], dict) and isinstance(mycol["occupations"], list):
+        source = mycol["source"]
+        mapped = [m for m in (mapping or {}).get("mappings") or [] if isinstance(m, dict)]
+        strengths = [m.get("strength") for m in mapped]
+        silent = (mapping or {}).get("roles_without_mycol_signal") or {}
+        st.markdown(f"**MyCOL {source.get('year') or NA}** ({source.get('name') or NA}), published by "
+                    f"{source.get('publisher') or NA}. Retrieved {source.get('retrieved') or NA}.")
+        if str(source.get("landing_page") or "").startswith(("http://", "https://")):
+            st.markdown(f"Source: [{source['landing_page']}]({source['landing_page']})")
+        st.markdown(
+            f"- {len(mycol['occupations'])} tech-relevant occupations are in data/mycol.json. "
+            f"{source.get('scope') or ''}\n"
+            f"- {source.get('meaning') or ''}\n"
+            + (f"- data/mycol_role_map.json maps them to our roles: {len(mapped)} links, "
+               f"{strengths.count('direct')} direct and {strengths.count('partial')} partial. "
+               f"{mapping.get('basis') or ''}\n" if mapping else ""))
+        if silent.get("roles"):
+            st.caption(f"Roles with no MyCOL occupation: {', '.join(str(r) for r in silent['roles'])}. "
+                       f"{silent.get('reason') or ''}")
+        st.caption("MyCOL is a shortage list, not a vacancy count. Do not compare it with job-ad shares. "
+                   "The mapping is team judgement, not an official crosswalk.")
+    snapshots = read_optional_csv("my_jobs_snapshots.csv")
+    if snapshots is None or snapshots.empty:
+        st.markdown(NO_MY_SNAPSHOT)
+        return
+    for site, frame in snapshots.groupby("site"):
+        day = frame["snapshot_date"].max()
+        latest = frame[frame["snapshot_date"] == day]
+        st.markdown(f"**{site}**: snapshot of {day}, {int(latest['n_listings'].max())} listings. "
+                    "Top skills by share of listings:")
+        top = latest.sort_values("share", ascending=False).head(10)
+        st.dataframe(pd.DataFrame({"Skill": top["skill"], "Listings": top["mentions"],
+                                   "Share of listings": top["share"].map(pct)}), hide_index=True, width="stretch")
+    st.caption("One dated snapshot per site and no history: it is a cross-check, not a trend. A listing is one "
+               "role and a Hacker News post is one company, so the shares are not comparable "
+               "(docs/malaysia-data.md).")
+
+
+with ev_method:
+    if backtest is None:
+        st.info("data/backtest.json was not found, so the method tab has nothing to show. "
+                "Run: python -m engine.backtest")
+    else:
+        origins = backtest.get("origins") or {}
+        bt_to = (backtest.get("data_window") or {}).get("to") or NA
+        st.header("How good is the forecast?")
+        st.caption(f"Backtest numbers are computed on all data up to {bt_to}; they do not change "
+                   "with the As-of slider.")
+        st.write(
+            f"We replayed history. At each origin month we forecast 1 to 12 months ahead and compared "
+            f"with what happened. Early origins: {' to '.join(origins.get('early') or [NA])} "
+            f"({origins.get('n_early', NA)} origins). Test origins: "
+            f"{' to '.join(origins.get('test') or [NA])} ({origins.get('n_test', NA)} origins), "
+            "used only for the scores below. Errors are mean absolute errors of the share, in "
+            "percentage points (pp). Lower is better.")
+        table = mae_table(backtest.get("models") or {})
+        numeric = ["Early h=1", "Early h=6", "Early h=12", "Test h=1", "Test h=6", "Test h=12"]
+        st.dataframe(table.style.format({c: "{:.2f}" for c in numeric}, na_rep=NA),
+                     hide_index=True, width="stretch")
+        st.subheader(f"Chosen model: {backtest.get('chosen_model') or NA}")
+        if backtest.get("chosen_because"):
+            st.write(backtest["chosen_because"])
+        if backtest.get("verdict"):
+            st.write(backtest["verdict"])
+
+        cov = backtest.get("coverage") or {}
+        interval_bt = backtest.get("interval") or {}
+        st.header("How good is the band?")
+        st.write(
+            f"The {cov.get('label') or 'band'} covered {pct(cov.get('test_h12'))} of real values at "
+            f"h=12 on the test origins (target {pct(cov.get('nominal'), 0)}), with a mean band width of "
+            f"{pp_plain(cov.get('test_mean_band_width_h12_pp'))}. "
+            "A coverage above the target means the band is wide, not tight. "
+            f"Band type: {interval_bt.get('type') or NA}.")
+        groups = cov.get("by_share_group") or {}
+        if groups:
+            st.dataframe(pd.DataFrame([
+                {"Share group": group_name(key),
+                 "Skill-origins": g.get("n_skill_origins"),
+                 "Coverage at h=12": pct(g.get("h12")),
+                 "Mean band width at h=12 (pp)": pp_plain(g.get("mean_band_width_h12_pp"), unit=False)}
+                for key, g in groups.items()]), hide_index=True, width="stretch")
+            if cov.get("share_group_definition"):
+                st.caption(f"Share group: {cov['share_group_definition']}.")
+
+        tl = backtest.get("trend_label_backtest") or {}
+        st.header("How good is the trend label?")
+        st.write(
+            f"In the backtest the Rising or Falling label pointed the right way for the next 12 months "
+            f"{pct(tl.get('trend_label_hit_rate'))} of the time (n = {tl.get('n', NA)} labelled "
+            f"skill-origins). Rising: {pct(tl.get('hit_rate_rising'))} (n = {tl.get('n_rising', NA)}). "
+            f"Falling: {pct(tl.get('hit_rate_falling'))} (n = {tl.get('n_falling', NA)}).")
+        if tl.get("definition"):
+            st.caption(tl["definition"])
+        if tl.get("caveat"):
+            st.caption(tl["caveat"])
+
+        st.header("Caveats")
+        for caveat in backtest.get("caveats") or []:
+            st.markdown(f"- {caveat}")
+        for note in scores.get("notes") or []:
+            if note not in (backtest.get("caveats") or []):
+                st.markdown(f"- {note}")
+
+    if exposure_agreement:
+        from engine.exposure_indices import agreement_text, correlation_text, crosscheck_rows
+
+        st.header("Exposure cross-check")
+        st.write(
+            "Our AI stance comes from one source, the Anthropic Economic Index (AEI). We checked it against "
+            "three other published indices at the occupation level. Each cell is the category's z-score "
+            "(0 = average of the 40 skills) and the stance that source would give. The two GPTs variants "
+            "and the two AIOE variants are averaged into one source each.")
+        st.dataframe(pd.DataFrame(crosscheck_rows(exposure_agreement)), hide_index=True, width="stretch")
+        if correlation_text(exposure_agreement):
+            st.markdown(correlation_text(exposure_agreement))
+        st.markdown(agreement_text(exposure_agreement))
+        st.caption(
+            "A polar stance (substitutable or complement) is supported by a source that puts the category on "
+            "the same side of the average; a neutral stance, by a source that puts it near the average. "
+            "'Contested' means that half or fewer of the sources support it. Eight occupations and four "
+            "sources make this a sanity check, not a measurement. AEI and Microsoft measure chatbot "
+            "use; GPTs and AIOE rate what a model could do, so some disagreement is expected.")
+        if k_estimate:
+            from engine.k_estimate import k_caption, k_line
+
+            st.markdown(f"**k from data:** {k_line(k_estimate)}")
+            st.caption(k_caption(k_estimate))
+
+    ai_context = read_csv(data_dir / "ai_context_monthly.csv") if not is_fixture else None
+    if ai_context is not None and not ai_context.empty:
+        st.header("Share of job posts that mention AI at all (company context, not a skill)")
+        ai_frame = ai_context.sort_values("month")
+        if view_as_of:  # an as-of view shows only what was known then
+            ai_frame = ai_frame[ai_frame["month"] <= view_as_of]
+        ai_frame = ai_frame.assign(date=pd.to_datetime(ai_frame["month"] + "-01"))
+        ai_labels = ["Monthly share", "3-month smoothed"]
+        mode = "dark" if is_dark_theme() else "light"
+        ai_long = pd.concat([
+            ai_frame[["date"]].assign(series=ai_labels[0], value=ai_frame["share"].to_numpy()),
+            ai_frame[["date"]].assign(series=ai_labels[1], value=ai_frame["share_smooth"].to_numpy()),
+        ])
+        st.altair_chart(
+            line_chart(ai_long, None, ai_labels, [MUTED_GREY, SERIES_BLUE[mode]],
+                       "Share of job posts that mention AI"),
+            width="stretch")
+        st.caption("Posts that only say 'AI' in a company blurb are counted here and not as a skill. "
+                   "This is a signal about hiring context, not about one skill.")
+
+    if not is_fixture:
+        method_sdg = load_role_sdg()
+        if method_sdg is not None:
+            sdg_method_section(method_sdg)
+        malaysia_data_section()
+
+    sources_path = data_dir / "SOURCES.md"
+    if not sources_path.exists():
+        sources_path = DEFAULT_DATA_DIR / "SOURCES.md"
+    if sources_path.exists() and not is_fixture:
+        st.header("Data sources")
+        st.write("Full list with dates and licences: `data/SOURCES.md`.")
+        for title, url in source_links(load_text(str(sources_path), sources_path.stat().st_mtime)):
+            st.markdown(f"- [{title}]({url})")
+
+    # New skills radar: data/skill_candidates.json from engine/discover.py. A person adds a skill to taxonomy.json.
+    radar_path = data_dir / "skill_candidates.json"
+    radar = read_json(radar_path if radar_path.exists() else DEFAULT_DATA_DIR / "skill_candidates.json")
+    if radar and radar.get("candidates") and not is_fixture:
+        st.header("Candidate new skills (not yet in Verity; need human review)")
+        bt_main = (radar.get("backtest") or {}).get("main") or {}
+        st.caption(
+            f"Terms that look like tech names in Hacker News hiring posts up to {radar.get('as_of', NA)} and are not "
+            "in the taxonomy. Shares are the share of posts in the last 12 months / the 12 months before. "
+            "Growth is the first share divided by the second (a term absent before shows 'new since'). "
+            "Nothing here changes the Skills tab until a person adds the skill to data/taxonomy.json. "
+            f"Backtest at {bt_main.get('as_of', NA)}: {bt_main.get('hits', NA)} of the top {bt_main.get('top_n', NA)} "
+            f"candidates grew in the next 12 months (all candidates: {pct(bt_main.get('base_rate_all_candidates'), 0)}). "
+            f"{(radar.get('backtest') or {}).get('verdict', '')} Read the evidence before you decide.")
+        radar_rows = []
+        for c in radar["candidates"][:15]:
+            links = [e.get("thread_url") for e in c.get("examples") or []] + [None, None]
+            radar_rows.append({
+                "Term": c.get("term"),
+                "Share last 12 / prior 12 months": f"{pct(c.get('share_last'), 2)} / {pct(c.get('share_prior'), 2)}",
+                "Growth": f"new since {c['new_since']}" if c.get("new_since") else f"x{c.get('growth')}",
+                "Trend label": c.get("label") or NO_LABEL,
+                "First seen": c.get("first_seen"),
+                "Co-occurring skills": ", ".join(s["skill"] for s in c.get("co_occurring_skills") or []) or NA,
+                "Source 1": links[0], "Source 2": links[1],
+            })
+        st.dataframe(
+            pd.DataFrame(radar_rows), hide_index=True, width="stretch",
+            column_config={k: st.column_config.LinkColumn(k, display_text="thread")
+                           for k in ("Source 1", "Source 2")})
