@@ -4,6 +4,8 @@ Verity takes a tech developer's skills (a CV upload is planned), forecasts which
 
 **Live prototype:** https://verity--eezhan0805.replit.app
 
+**Architecture:** [docs/architecture.md](docs/architecture.md) covers every feature, its status, and how future job roles are predicted.
+
 ## Run locally
 
 ```

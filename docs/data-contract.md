@@ -223,6 +223,44 @@ Per role in `roles` (sorted by `rank_score`; each has `rank` 1..n):
 | `tier`, `tier_note`, `n_role_posts`, `n_single_role_posts` | Confidence of the profile. |
 | `reason` | Plain sentence, for example "You have 4 of its top 7 skills (Python, AWS, PostgreSQL, Docker). Biggest gaps: Go, Kubernetes, Terraform. Role demand: Rising (10.6% of posts vs 9.4% the year before)." |
 
+### `data/role_forecast.json` (role level and band)
+Code: `engine/role_forecast.py`. Build: `python -m engine.role_backtest` first, then `python -m engine.role_forecast`. Tests: `tests/test_role_forecast.py`. UI: one line on each role card in the Roles tab (hidden if the file is missing).
+It applies the skill machinery of `engine/forecast.py` to the 8 ranked roles in `role_demand_monthly.csv` (`role_id` is renamed to `skill`; no maths is copied). Same series `y = logit((mentions + 0.5) / (n_posts + 1))`, same model choice (naive or naive3 by mean share-scale |error| at h=12 over origins whose target is <= the forecast date), same rolling W=24 symmetric volatility-scaled conformal 80% band (one pooled `q` over the roles), same Welch trend label as `role_trends.json`, same minimum-data rule (mean mentions per month over the last 12 months >= 5).
+```json
+{ "schema_version": 1, "generated_at": "...", "as_of": "2026-10", "partial_month": true,
+  "interval": {"label": "80% target band", "level": 0.8, "model": "naive3", "window_origins": 24,
+               "q_h12": 1.55, "model_scores_h12_pp": {"naive": 1.63, "naive3": 1.58},
+               "n_roles_pooled": 8, "earliest_supported_as_of": "2023-11"},
+  "notes": ["..."], "data_window": {"from": "2019-01", "to": "2026-10"},
+  "excluded_roles": [{"role_id": "analytics_engineer", "name": "Analytics Engineer", "reason": "..."}],
+  "roles": { "backend_engineer": {
+      "name": "Backend Engineer", "status": "ok", "note": null,
+      "share_now": {"value": 0.102, "mentions": 76, "posts": 743, "months": ["2026-08", "2026-09", "2026-10"]},
+      "level_now": 0.104,
+      "forecast_moderate": {"value_12m": 0.104, "low": 0.083, "high": 0.129}, "band_width_pp": 4.7,
+      "trend": {"label": "Rising", "p": 0.017, "share_last12": 0.106, "share_prev12": 0.094,
+                "mentions_last12": 393, "posts_last12": 3714, "mentions_prev12": 366, "posts_prev12": 3914},
+      "sources": [{"name": "Ask HN: Who is hiring? (October 2026)", "url": "...", "date": "2026-10-01"},
+                  {"name": "Verity role backtest (data/role_backtest.json)", "url": "data/role_backtest.json", "date": "2026-10-22"}],
+      "as_of": "2026-10", "partial_month": true } } }
+```
+| Field | Meaning |
+|---|---|
+| `status` | `ok`: a forecast and a band. `low_volume`: mean mentions per month over the last 12 months below 5; counts and trend label only, `forecast_moderate` values and `band_width_pp` are `null`, and `note` says why. Roles have only these two statuses. A role with fewer than 30 mentions in 24 months has a `null` trend label, as in `role_trends.json`. |
+| `share_now` | Raw share, pooled over the last 3 months: `mentions / posts` (shown as m/n). Display value. |
+| `level_now` | Model-scale level: `inv_logit(mean of the last 3 values of y)`. Change over 12 months is `value_12m - level_now`. Never subtract `share_now.value` from `value_12m`. With naive3 the 12-month value equals `level_now` (a persistence forecast). |
+| `forecast_moderate` | `value_12m` and the 80% target band `low` / `high`, as shares. The band is `inv_logit(point +/- q_h12 * sigma)`. It is a rolling conformal target, not a guarantee: see the coverage in `role_backtest.json`. There is no Fast scenario for roles here; `fast_shift` in the role match output stays a labelled estimate. |
+| `trend` | Observed Welch label with p and the pooled shares (not a forecast). It equals `role_trends.json` for the same month. |
+| `sources` | The HN threads of the last 3 months and `data/role_backtest.json`. |
+| `excluded_roles` | Roles that are not ranked in `roles.json` (Analytics Engineer). They are not forecast and do not enter the pooled `q`. |
+
+`role_forecast_for(as_of=None, backtest=None, demand=None, today=None, data_dir=None)` builds the same dict from data with month <= `as_of` only. It writes nothing. The earliest supported `as_of` is 2023-11, as for skills. The Roles tab uses the file for the latest month and calls this function for an older As-of month.
+
+### `data/role_backtest.json` (role backtest)
+Code: `engine/role_backtest.py` (`python -m engine.role_backtest`, about 30 seconds). It calls `engine.backtest.run_backtest` on the role table, so the design is the skill design: rolling origins 2021-12 to 2025-10, early 2021-12..2023-10, test 2023-11..2025-10, share-scale MAE in pp at h = 1, 6, 12 for naive, naive3, drift and damped (only naive and naive3 ship), coverage of the 80% target band at h=12 and as a mean over h on test origins with the model choice and `q` re-made at every origin from earlier data, mean band width at h=12, and the trend-label hit rate (pooled share over the next 12 months against the last 12, Rising or Falling only).
+The keys of `backtest.json` are kept with `skill` read as `role`: `n_roles_total`, `n_role_origin_pairs` (`early`, `test`, `excluded`), `models.<m>.early_mae_pp` / `test_mae_pp` (`h1`, `h6`, `h12`, `mean_h1_12`), `coverage` (`test_h12`, `test_mean_over_h`, `test_by_h`, `by_share_group`, `test_mean_band_width_h12_pp`, `n_role_origins`), `interval_sensitivity`, `trend_label_hit_rate`, `trend_label_backtest` (`n`, `n_rising`, `n_falling`, `caveat`). Extra keys: `kind` (`"role"`), `role_ids`, `sample_note` and `caveats`.
+Small sample: only 8 ranked roles. `n_role_origin_pairs` and `trend_label_backtest.n` are counts of correlated role-origins, not independent tests. Treat the rates as a rough guide. Nothing was tuned on the test origins.
+
 ## `data/diff.json` ("what changed and why")
 ```json
 { "from_run": "2026-10-23T10:00:00Z", "to_run": "2026-10-24T09:00:00Z",
