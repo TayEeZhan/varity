@@ -14,6 +14,7 @@ from trendsignal.timeutil import now_utc
 # USD per million tokens (input, output), first-party API list prices.
 PRICES_PER_MTOK = {
     "claude-haiku-5-5": (0.10, 0.50),
+    "claude-haiku-4-5": (1.00, 5.00),
     "claude-sonnet-5-5": (2.00, 10.00),
     "claude-opus-5-5": (4.00, 20.00),
 }
@@ -22,7 +23,8 @@ CLIENT_TIMEOUT_SECONDS = 120.0
 
 
 def make_client() -> anthropic.Anthropic:
-    """Credentials come from the environment (ANTHROPIC_API_KEY or an `ant auth login` profile)."""
+    """Credentials come from the environment (ANTHROPIC_API_KEY, an `ant auth login` profile, or
+    the Replit AI Integrations pair that config.use_replit_anthropic maps to ANTHROPIC_*)."""
     return anthropic.Anthropic(max_retries=2, timeout=CLIENT_TIMEOUT_SECONDS)
 
 
@@ -56,7 +58,7 @@ class LlmGate:
         self.run_cost = 0.0
         self.reason: str | None = None
         if not settings.has_llm_credentials:
-            self.reason = "no Claude credentials (set ANTHROPIC_API_KEY) or TRENDSIGNAL_LLM=off"
+            self.reason = "no Claude credentials (set ANTHROPIC_API_KEY, or enable Replit AI Integrations for Anthropic) or TRENDSIGNAL_LLM=off"
         elif spent_today >= self._budget:
             self.reason = f"daily LLM budget of ${self._budget:.2f} reached"
 
