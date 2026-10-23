@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -20,13 +22,13 @@ def client(settings, weights, watchlist):
 
 
 def test_home_page_renders_tiers(client):
-    page = client.get("/")
+    page = client.get("/feed")
     assert page.status_code == 200
     assert "Must-know" in page.text and "Introducing GPT-6 for developers" in page.text
 
 
 def test_feed_filters_reject_unknown_values_quietly(client):
-    assert client.get("/?category=nonsense&audience=<script>").status_code == 200
+    assert client.get("/feed?category=nonsense&audience=<script>").status_code == 200
 
 
 def test_api_stories_uses_the_envelope(client):
@@ -85,3 +87,40 @@ def test_brief_html_escapes_markup_from_the_model():
     rendered = render_brief_html("# Brief\n<script>alert(1)</script> line [S5]")
     assert "<script>" not in rendered and "&lt;script&gt;" in rendered
     assert '<a class="cite" href="/story/5">S5</a>' in rendered
+
+
+def test_api_signals_matches_the_varity_page_shape(client):
+    body = client.get("/api/signals").json()
+    assert body["success"] is True
+    run, stories, skills = body["data"]["run"], body["data"]["stories"], body["data"]["skills"]
+    assert run["runId"] and run["storyCount"] == 1 and run["rankedBy"] == "deterministic formula"
+    story = stories[0]
+    assert set(story) == {"rank", "score", "tier", "category", "date", "title", "url", "sources", "why"}
+    assert story["title"].startswith("Introducing GPT-6") and story["sources"] == [OPENAI.name]
+    assert story["tier"] in ("Must-know", "Worth a look", "Minor") and story["category"] == "Model release"
+    assert all(len(s["weekly"]) == 5 and {"skill", "avgBefore", "momentum"} <= set(s) for s in skills)
+
+
+def test_signals_page_categories_match_its_filter_labels():
+    from trendsignal.models import CATEGORIES
+    from trendsignal.web.app import UI_CATEGORIES
+
+    assert set(UI_CATEGORIES) == set(CATEGORIES)
+    # frontend/screens-explore.js FILTERS match these exact labels
+    assert {UI_CATEGORIES[c] for c in ("security_incident", "research", "product_feature", "model_release")} == {
+        "Security incident", "Research", "Product feature", "Model release"}
+    assert "API" in UI_CATEGORIES["api_pricing_change"] and "Policy" in UI_CATEGORIES["policy_regulation"]
+
+
+def test_root_serves_the_frontend_and_the_feed_moves(settings, client, tmp_path):
+    (tmp_path / "frontend").mkdir()
+    (tmp_path / "frontend" / "index.html").write_text("<title>Varity</title>", encoding="utf-8")
+    ctx = load_context(replace(settings, frontend_dir=tmp_path / "frontend"))
+    app_client = TestClient(create_app(ctx))
+    assert "Varity" in app_client.get("/").text
+    assert app_client.get("/feed").status_code == 200 and app_client.get("/api/signals").status_code == 200
+
+
+def test_root_falls_back_to_the_feed_without_a_frontend(settings, tmp_path):
+    app_client = TestClient(create_app(load_context(replace(settings, frontend_dir=tmp_path / "missing"))))
+    assert app_client.get("/").url.path == "/feed"

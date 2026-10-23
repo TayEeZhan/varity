@@ -9,13 +9,15 @@ import threading
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 from xml.sax.saxutils import escape
+from zoneinfo import ZoneInfo
 
 import markdown as md
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -23,8 +25,10 @@ from pydantic import BaseModel
 from trendsignal.agents.template import CATEGORY_LABELS
 from trendsignal.jobs import AppContext, load_context, make_digest, run_pipeline_if_idle
 from trendsignal.models import AUDIENCES, CATEGORIES
+from trendsignal.output import latest_run_id, ranking_rows
 from trendsignal.queries import (feed, get_story, last_run, latest_digest, record_feedback, skill_momentum,
                                  source_health, story_reports, trend_counts)
+from trendsignal.timeutil import parse_iso
 
 WEB_DIR = Path(__file__).parent
 TIER_ORDER = ("must_know", "worth_a_look", "emerging", "minor")
@@ -32,6 +36,16 @@ TIER_LABELS = {"must_know": "Must-know", "worth_a_look": "Worth a look", "emergi
 MINOR_SHOWN = 60
 FEEDBACK_LIMIT_PER_MINUTE = 30
 ADMIN_LIMIT_PER_MINUTE = 10
+SIGNALS_TOP = 10
+# Labels the Varity Signals page shows; its filter buttons (frontend/screens-explore.js) match on them.
+UI_CATEGORIES = {
+    "model_release": "Model release", "research": "Research", "product_feature": "Product feature",
+    "dev_tool_release": "Tool release", "api_pricing_change": "API / pricing change",
+    "security_incident": "Security incident", "policy_regulation": "Policy / regulation",
+    "funding_business": "Business", "benchmark": "Benchmark", "opinion": "Opinion",
+}
+RANKED_BY_LABELS = {"formula": "deterministic formula", "jev": "Jev",
+                    "mixed": "Jev, with the formula where Jev had no answer"}
 
 
 class FeedbackIn(BaseModel):
@@ -91,6 +105,36 @@ def _check_admin(ctx: AppContext, token: str | None) -> None:
         raise HTTPException(status_code=403, detail="invalid admin token")
 
 
+def _local(iso: str, tz: ZoneInfo) -> datetime:
+    return parse_iso(iso).astimezone(tz)
+
+
+def signals_payload(ctx: AppContext) -> dict:
+    """Data for Varity's Signals page, in the same shape as frontend/data.js (SIGNAL_RUN, STORIES, SKILLS)."""
+    tz = ZoneInfo(ctx.settings.timezone)
+    run_id = latest_run_id(ctx.settings)
+    rows = ranking_rows(ctx.settings, ctx.source_map, run_id)
+    finished = last_run(ctx.settings, "process")
+    run = None
+    if rows:
+        rankers = {row["ranked_by"] for row in rows}
+        ranked_by = rankers.pop() if len(rankers) == 1 else "mixed"
+        at = _local(finished, tz) if finished else None
+        run = {"runId": run_id, "storyCount": len(rows), "rankedBy": RANKED_BY_LABELS[ranked_by],
+               "generatedAt": f"{at:%d %b %Y, %H:%M}" if at else None,
+               "generatedIso": at.isoformat(timespec="minutes") if at else None}
+    stories = []
+    for row in rows[:SIGNALS_TOP]:
+        seen = _local(row["first_seen_at"], tz)
+        stories.append({"rank": row["rank"], "score": row["final_score"], "tier": TIER_LABELS[row["tier"]],
+                        "category": UI_CATEGORIES.get(row["category"], row["category"]),
+                        "date": f"{seen.day} {seen:%b}", "title": row["title"], "url": row["url"],
+                        "sources": row["sources"], "why": row["top_features"]})
+    skills = [{"skill": s["skill"], "weekly": s["weekly_counts"][::-1], "avgBefore": s["weekly_average_before"],
+               "momentum": s["momentum"]} for s in skill_momentum(ctx.settings, ctx.watchlist)]
+    return {"run": run, "stories": stories, "skills": skills}
+
+
 def create_app(ctx: AppContext | None = None) -> FastAPI:
     ctx = ctx or load_context()
 
@@ -126,7 +170,7 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
 
     # ------------------------------------------------------------------ HTML pages
 
-    @app.get("/", response_class=HTMLResponse)
+    @app.get("/feed", response_class=HTMLResponse)
     def home(request: Request, category: str | None = None, audience: str | None = None,
              hours: int = Query(72, ge=6, le=24 * 14)):
         category = category if category in CATEGORIES else None
@@ -196,6 +240,11 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
         return envelope(skill_momentum(ctx.settings, ctx.watchlist),
                         meta={"definition": "momentum = (this week - avg of previous 4 weeks) / max(avg, 1)"})
 
+    @app.get("/api/signals")
+    def api_signals():
+        """Varity's Signals page: run summary, top 10 stories and skill momentum (weekly: oldest -> this week)."""
+        return envelope(signals_payload(ctx))
+
     @app.get("/api/health")
     def api_health():
         return envelope(source_health(ctx.settings, ctx.sources), meta=page_status())
@@ -236,9 +285,18 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
             for v in views[:40]
         )
         body = (f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel>'
-                f"<title>AI Trend Signal: Must-know and Worth a look</title><link>{escape(base)}/</link>"
+                f"<title>AI Trend Signal: Must-know and Worth a look</title><link>{escape(base)}/feed</link>"
                 f"<description>Ranked AI and tech updates for CS students and developers</description>{items}"
                 f"</channel></rss>")
         return Response(body, media_type="application/rss+xml")
+
+    # Mounted last so every route above wins over the static files.
+    frontend = ctx.settings.frontend_dir
+    if frontend and (frontend / "index.html").exists():
+        app.mount("/", StaticFiles(directory=frontend, html=True), name="frontend")
+    else:
+        @app.get("/", include_in_schema=False)
+        def root():
+            return RedirectResponse("/feed")
 
     return app

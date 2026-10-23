@@ -4,7 +4,25 @@ Verity reads a tech developer's CV, forecasts which skills are rising or falling
 
 **Live prototype:** https://verity--eezhan0805.replit.app
 
-## Run locally
+## Repository layout
+
+| Folder | What it is |
+|---|---|
+| `frontend/` | Varity web app (static HTML/CSS/JS, no build step) |
+| `backend/signals/` | AI trend signal system: collects, ranks and serves the Signals page data (`GET /api/signals`) |
+| `app.py`, `engine/`, `data/` | Current Streamlit prototype (skill forecast); moves into `backend/` later |
+
+## Run the Varity web app
+
+```
+cd backend/signals
+pip install -r requirements.txt
+python -m trendsignal serve --scheduler --port 8000
+```
+
+Open http://localhost:8000. The backend serves `frontend/` at `/`, re-ranks every 15 minutes, and the Signals page loads live data from `/api/signals`. The old ranker feed is at `/feed`. Opened without the backend, the page shows the bundled snapshot in `frontend/data.js`.
+
+## Run the Streamlit prototype locally
 
 ```
 pip install -r requirements.txt
