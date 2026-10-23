@@ -34,11 +34,11 @@ function stationMark(x, y, status) {
 function pathwaySVG() {
   const T = 1110; // terminus x
   const y = (line) => LINES[line].y;
-  const lines = [
-    `<path class="ln ln--guard" data-line="guard" d="M 280 ${y("guard")} H ${T}"/>`,
-    `<path class="ln ln--apps" data-line="apps" d="M 60 ${y("apps")} H ${T}"/>`,
-    `<path class="ln ln--serve" data-line="serve" d="M 560 ${y("serve")} H ${T}"/>`,
-  ].join("");
+  // Each line starts just before its first station; a line with no station is not drawn.
+  const lines = ["guard", "apps", "serve"].map((l) => {
+    const xs = PATHWAY.filter((s) => s.line === l || s.interchange === l).map((s) => s.x);
+    return xs.length ? `<path class="ln ln--${l}" data-line="${l}" d="M ${Math.min(...xs) - 20} ${y(l)} H ${T}"/>` : "";
+  }).join("");
 
   const stations = PATHWAY.map((s) => {
     const sy = y(s.line);
@@ -62,18 +62,19 @@ function pathwaySVG() {
 
   const terminus = `<g class="stn" data-line="apps guard serve">
       <rect x="${T - 11}" y="56" width="22" height="248" rx="11" fill="#fff" stroke="#121212" stroke-width="4"/>
-      <text class="stn__label" x="${T + 26}" y="172" style="font-size:17px;font-weight:800">LLM application</text>
-      <text class="stn__label" x="${T + 26}" y="192" style="font-size:17px;font-weight:800">engineer</text>
-      <text class="stn__sub" x="${T + 26}" y="212">Target role</text>
+      ${textBlock(T + 26, 172, wrap(TARGET.role, 16), { anchor: "start", lh: 20 }).replace(/class="stn__label"/g, 'class="stn__label" style="font-size:17px;font-weight:800"')}
+      <text class="stn__sub" x="${T + 26}" y="${172 + wrap(TARGET.role, 16).length * 20}">Target role</text>
     </g>`;
 
-  return `<svg viewBox="0 0 1280 360" role="img" aria-labelledby="pm-title"><title id="pm-title">Route map: Apps, Guard and Serving lines converging on LLM application engineer</title>${lines}${stations}${terminus}</svg>`;
+  const names = [...new Set(PATHWAY.map((s) => LINES[s.line].name))].join(", ");
+  return `<svg viewBox="0 0 1280 360" role="img" aria-labelledby="pm-title"><title id="pm-title">Route map: ${esc(names)} converging on ${esc(TARGET.role)}</title>${lines}${stations}${terminus}</svg>`;
 }
 
 /* ── Today's route strip: the whole pathway as one ride ────────── */
 function stripSVG() {
+  if (!PATHWAY.length) return "";
   const W = 1060, Y = 128, x0 = 40, x1 = 840;
-  const step = (x1 - x0) / (PATHWAY.length - 1);
+  const step = (x1 - x0) / Math.max(PATHWAY.length - 1, 1);
   const pts = PATHWAY.map((s, i) => ({ ...s, sx: x0 + i * step }));
   const segs = pts.slice(1).map((p, i) => `<line x1="${pts[i].sx}" y1="${Y}" x2="${p.sx}" y2="${Y}" stroke="var(--${p.line})" stroke-width="10" stroke-linecap="round"/>`).join("")
     + `<line x1="${pts[pts.length - 1].sx}" y1="${Y}" x2="${W - 166}" y2="${Y}" stroke="var(--apps)" stroke-width="10" stroke-linecap="round"/>`;
@@ -82,12 +83,12 @@ function stripSVG() {
     const lbl = `<text class="stn__label" transform="translate(${p.sx + 6} ${Y - 24}) rotate(-35)" style="font-size:12px;font-weight:${weight}">${esc(p.title)}</text>`;
     return `<g>${stationMark(p.sx, Y, p.status)}${lbl}</g>`;
   }).join("");
-  const cur = pts.find((p) => p.status === "current");
+  const cur = pts.find((p) => p.status === "current") || pts[pts.length - 1];
   const here = `<rect x="${cur.sx - 46}" y="${Y + 24}" width="92" height="22" rx="3" fill="#fccc0a"/><text x="${cur.sx}" y="${Y + 39}" text-anchor="middle" style="font-size:12px;font-weight:800">You are here</text>`;
   const term = `<rect x="${W - 172}" y="${Y - 18}" width="18" height="36" rx="9" fill="#fff" stroke="#121212" stroke-width="4"/>`
-    + `<text class="stn__label" transform="translate(${W - 158} ${Y - 28}) rotate(-35)" style="font-size:13px;font-weight:800">LLM application engineer</text>`;
-  const n = PATHWAY.indexOf(PATHWAY.find((p) => p.status === "current")) + 1;
-  return `<svg viewBox="0 0 ${W} 172" role="img" aria-label="Your route: ${PATHWAY.length} stops to LLM application engineer. You are at stop ${n}.">${segs}${stns}${here}${term}</svg>`;
+    + `<text class="stn__label" transform="translate(${W - 158} ${Y - 28}) rotate(-35)" style="font-size:13px;font-weight:800">${esc(TARGET.role)}</text>`;
+  const n = pts.indexOf(cur) + 1;
+  return `<svg viewBox="0 0 ${W} 172" role="img" aria-label="Your route: ${PATHWAY.length} stops to ${esc(TARGET.role)}. You are at stop ${n}.">${segs}${stns}${here}${term}</svg>`;
 }
 
 /* ── User-flow map ─────────────────────────────────────────────── */

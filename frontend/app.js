@@ -12,7 +12,9 @@ const STATE = {
   keep: new Set(),        // skill ids ticked in the review
   saved: null,            // the profile kept on the server (GET /api/profile)
   routeId: "llm-app",
-  scenario: "moderate",   // moderate | fast
+  suggest: null,          // GET /api/roles/suggestions for the saved profile
+  plan: null,             // GET /api/pathway for the chosen route; null = the bundled sample pathway
+  forecastLive: false,    // true once GET /api/roles/forecast replaced the saved copy
   filter: "all",
   flowSel: "f7",
 };
@@ -105,6 +107,21 @@ async function loadSignals() {
   if (run) run.textContent = SIGNAL_RUN.runId;
 }
 
+/* Swap the saved copy of the role forecast for the backend's file. Keeps the copy if the API is unreachable
+   or has no forecast yet. */
+async function loadForecast() {
+  try {
+    const res = await fetch("/api/roles/forecast", { headers: { Accept: "application/json" } });
+    const body = await res.json();
+    if (!res.ok || !body.success || !body.data || !body.data.roles) return;
+    Object.keys(FORECAST).forEach((k) => delete FORECAST[k]);
+    Object.assign(FORECAST, body.data);
+    STATE.forecastLive = true;
+  } catch (e) {
+    return;
+  }
+}
+
 /* The saved profile is reached with a random token only this browser holds. */
 const TOKEN_KEY = "varity.profileToken";
 function profileToken() {
@@ -137,5 +154,98 @@ async function loadProfile() {
   }
 }
 
+/* ── Routes and pathway from the saved profile ─────────────────── */
+/* The bundled sample pathway, restored when the profile is deleted. */
+const SAMPLE = { pathway: PATHWAY.slice(), lines: JSON.parse(JSON.stringify(LINES)), today: { ...TODAY }, target: TARGET.role, match: TARGET.match };
+/* Pathway stages drawn as the three map lines (colours in styles.css). */
+const STAGE_LINE = { no_regret: "apps", near_term: "serve", other: "serve", future_bet: "guard" };
+const LIVE_LINES = {
+  apps: { letter: "N", name: "No-regret line", skill: "skills most of your best-fit roles need" },
+  serve: { letter: "D", name: "Demand line", skill: "skills job posts ask for now" },
+  guard: { letter: "F", name: "Future line", skill: "rising or AI-complement skills" },
+};
+const DAY_MS = 86400000;
+
+async function loadRoutes() {
+  STATE.suggest = null;
+  if (!STATE.saved) return;
+  try {
+    STATE.suggest = await api("/api/roles/suggestions");
+    // No saved route yet: show the top suggestion's pathway rather than the sample.
+    STATE.routeId = STATE.suggest.targetRoleId || (STATE.suggest.roles[0] || {}).roleId || null;
+  } catch (e) {
+    return;  // offline or no role data: the screen shows the sample routes
+  }
+}
+
+async function loadPlan() {
+  if (!STATE.saved || !STATE.routeId) return applyPlan(null);
+  try {
+    applyPlan(await api(`/api/pathway?roleId=${encodeURIComponent(STATE.routeId)}`));
+  } catch (e) {
+    applyPlan(null);
+  }
+}
+
+/* Reload routes and pathway after the profile changed, then redraw. */
+async function refreshRoutes() {
+  STATE.done = new Set();  // task ids are positional, so old ticks would land on the rebuilt plan's tasks
+  await loadRoutes();
+  await loadPlan();
+  rerender();
+}
+
+function stepStatus(step, firstOpen) {
+  if (step.taskIds.length && step.taskIds.every((id) => STATE.done.has(id))) return "done";
+  return step === firstOpen ? "current" : "next";
+}
+
+/* Re-mark done / current / next after a tick. */
+function refreshStatus() {
+  if (!STATE.plan) return;
+  const steps = STATE.plan.steps;
+  const firstOpen = steps.find((s) => !(s.taskIds.length && s.taskIds.every((id) => STATE.done.has(id))));
+  PATHWAY.forEach((p, i) => { p.status = stepStatus(steps[i], firstOpen); });
+}
+
+/* Fill PATHWAY, LINES, TODAY and TARGET (the shapes the screens draw) from GET /api/pathway, or restore the sample. */
+function applyPlan(plan) {
+  STATE.plan = plan;
+  if (!plan) {
+    PATHWAY.splice(0, PATHWAY.length, ...SAMPLE.pathway);
+    Object.assign(LINES, JSON.parse(JSON.stringify(SAMPLE.lines)));
+    Object.assign(TODAY, SAMPLE.today);
+    Object.assign(TARGET, { role: SAMPLE.target, match: SAMPLE.match, live: false });
+    return;
+  }
+  Object.keys(LIVE_LINES).forEach((id) => Object.assign(LINES[id], LIVE_LINES[id]));
+  const start = new Date(plan.startDate).getTime();
+  const gap = 920 / Math.max(plan.steps.length - 1, 1);
+  const byStep = {};
+  PATHWAY.splice(0, PATHWAY.length, ...plan.steps.map((s, i) => {
+    const res = s.resource || {};
+    const stop = {
+      id: `s${s.order}`, line: STAGE_LINE[s.stage] || "serve", x: Math.round(80 + i * gap),
+      week: s.startDate ? Math.floor((new Date(s.startDate).getTime() - start) / DAY_MS / 7) + 1 : "–",
+      status: "next", title: s.skill, mins: s.minutes, resource: res.title || s.resourceNote, url: res.url || "#",
+      cost: res.cost === "free" ? "Free" : res.cost || "–", sdg: s.sdg[0] || "–", why: s.whyForYou, reasons: s.reasons,
+    };
+    byStep[s.order] = { stop, step: s };
+    return stop;
+  }));
+  refreshStatus();
+  const next = plan.tasks.find((t) => !STATE.done.has(t.id));
+  const day = next ? next.date : null;
+  const tasks = plan.tasks.filter((t) => t.date === day).map((t) => {
+    const { stop, step } = byStep[t.step];
+    const chip = step.reasons[0];
+    return { id: t.id, station: stop.id, line: stop.line, mins: t.minutes, title: t.title, resource: t.resourceTitle,
+      url: t.resourceUrl, why: step.whyForYou || (chip ? chip.text : t.reason), source: chip ? `${SOURCE_TEXT[chip.source] || chip.source}, ${chip.asOf || "undated"}` : "Pathway" };
+  });
+  const label = day ? new Date(`${day}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }) : "nothing left";
+  Object.assign(TODAY, { date: label, replan: null, tasks, cancelled: [] });
+  Object.assign(TARGET, { role: plan.targetRole, match: `${plan.matchPct}% match`, live: true });
+}
+
 window.addEventListener("hashchange", navigate);
-Promise.all([loadSignals(), loadProfile()]).finally(navigate);
+Promise.all([loadSignals(), loadForecast(), loadProfile().then(loadRoutes).then(loadPlan)]).finally(navigate);

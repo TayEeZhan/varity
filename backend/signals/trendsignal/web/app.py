@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hmac
 import html
+import json
+import json
 import re
 import threading
 import time
@@ -245,6 +247,17 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
         """Varity's Signals page: run summary, top 10 stories and skill momentum (weekly: oldest -> this week)."""
         return envelope(signals_payload(ctx))
 
+    @app.get("/api/roles/forecast")
+    def api_role_forecast():
+        """Varity's Job forecast page: data/role_forecast.json as the engine wrote it (read only, never recomputed)."""
+        path = ctx.settings.role_forecast_path
+        if not path or not path.is_file():
+            return envelope(error="no role forecast yet: run engine/role_forecast.py", status=404)
+        try:
+            return envelope(json.loads(path.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            return envelope(error="role forecast file could not be read", status=500)
+
     @app.get("/api/health")
     def api_health():
         return envelope(source_health(ctx.settings, ctx.sources), meta=page_status())
@@ -292,6 +305,8 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
 
     from trendsignal.web.cv_api import add_cv_routes  # imported here: cv_api uses envelope and RateLimiter from this module
     add_cv_routes(app, ctx.settings)
+    from trendsignal.web.roles_api import add_role_routes  # same reason as cv_api
+    add_role_routes(app, ctx)
 
     # Mounted last so every route above wins over the static files.
     frontend = ctx.settings.frontend_dir
