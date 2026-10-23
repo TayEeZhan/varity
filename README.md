@@ -50,6 +50,12 @@ Full sources and licences: data/SOURCES.md
 
 This product includes information from O*NET OnLine by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). Used under the CC BY 4.0 license.
 
+AI models in the running app:
+
+- CV intake: Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). With no credentials, a keyword pass takes over. The model only points at skill mentions. Code checks every quote word for word. A daily cap of $1 applies (`VERITY_INTAKE_DAILY_BUDGET_USD`). This is the design; we have not yet verified it on the live Replit app. Use synthetic CVs only: CV text goes to Anthropic through Replit.
+- The skill forecast, role match, pathway and SDG parts use no LLM.
+- The signal ranker (`backend/signals/`) can use Claude and Jev (TypeSafe AI), but both are off by default.
+
 AI tools used in development: Claude Code (Anthropic).
 
 ## Code tour

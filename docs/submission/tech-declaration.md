@@ -23,11 +23,13 @@ Where a field has nothing to declare, we write "None".
 
 Verity is one Python program. A Streamlit app imports the engine modules.
 
-**Data flow.** The engine downloads every monthly Hacker News "Who is hiring?" thread through the Algolia HN Search API: 94 threads and 48,508 job posts, January 2019 to October 2026. A tagger finds 40 taxonomy skills in each post with regular expressions. The engine turns the tags into a monthly share per skill. It forecasts 12 months ahead, adds a conformal band and a Welch trend label, and joins an AI exposure score from the Anthropic Economic Index. The role module learns role profiles from posts that name one role. The pathway module orders the learning plan. A discovery module lists candidate new skills for human review.
+**Data flow.** The engine downloads every monthly Hacker News "Who is hiring?" thread through the Algolia HN Search API: 94 threads and 48,508 job posts, January 2019 to October 2026. A tagger finds 40 taxonomy skills in each post with regular expressions. The engine turns the tags into a monthly share per skill. It forecasts 12 months ahead, adds a conformal band and a Welch trend label, and joins an AI exposure score from the Anthropic Economic Index. The role module learns role profiles from posts that name one role. The pathway module orders the learning plan. A discovery module lists new-skill candidates.
 
 **Storage and refresh.** The repository holds only aggregates. Raw post text stays in gitignored folders on the team's machines and, during a refresh, in a temporary folder on the Replit server. A daily Replit Scheduled Deployment (code merged; Replit setup pending) will fetch the newest thread, rebuild the scores and save a snapshot to Replit App Storage. The app reads the newest snapshot, or else the committed files.
 
-(186/200 words)
+The CV intake uses Claude Haiku 4.5 to point at skills; code checks each quote.
+
+(197/200 words)
 
 ### 2.2 Libraries, versions and licences
 
@@ -57,14 +59,16 @@ Versions are exact. They come from `requirements.txt` and `requirements-dev.txt`
 |---|---|---|
 | Algolia HN Search API, https://hn.algolia.com/api | Free. Public. No key or account. | Lists the monthly "Who is hiring?" threads and fetches each thread. The backfill makes one request at a time, with pauses and retries. The daily job fetches only the newest thread. |
 | HTTP GET requests to learning-resource URLs | Free. Public web pages. | One-time check on 22 Oct 2026 that each of the 77 links in `data/resources.json` returns HTTP 200. We keep only links that returned 200. This check is not part of the running app. |
+| Anthropic Messages API (Claude Haiku 4.5), through Replit AI Integrations | Replit-managed credentials, billed to Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). | One call per CV. The model returns skill mentions with exact quotes. Details in 4.1. |
 
-No other API is used. The app calls no LLM API.
+No other API is used. Only the CV intake calls an LLM API. The forecast, role match, pathway and SDG parts call none.
 
 ### 3.2 Cloud platform and plan
 
 | Service | Use | Plan and region |
 |---|---|---|
 | Replit Autoscale deployment | Hosts the Streamlit app. Build: `pip install -r requirements.txt`. | Plan: [TEAM TO FILL: Replit plan on the deploying account]. Region: [TEAM TO FILL: region shown in Replit] |
+| Replit AI Integrations (Anthropic) | Gives the CV intake its Claude Haiku 4.5 credentials. Replit bills the calls to Replit credits. | Design: not yet verified on the live app. [TEAM TO FILL: confirm the integration is enabled on the deployment] |
 | Replit App Storage | Will store the newest data snapshot (keeps the last 14). | Code merged; Replit setup pending. [TEAM TO FILL: confirm the bucket exists] |
 | Replit Scheduled Deployment | Will run `python -m engine.scheduled` daily at 09:00 Malaysia time (cron `0 1 * * *` in UTC). | Code merged; Replit setup pending. [TEAM TO FILL: confirm the Scheduled Deployment is created and has run once] |
 
@@ -74,13 +78,19 @@ Status note: the code for App Storage and the scheduled job is merged, but the R
 
 ### 4.1 AI models
 
-**The app uses no LLM today.** The app uses no GPU and no self-hosted model.
+**One part of the app uses an LLM: the CV intake.** Every other part uses no LLM. The forecast, the Welch label, the role match, the learning pathway and the SDG sector links are code and statistics. The app uses no GPU and no self-hosted model.
 
 | Model | Provider | Use | Status |
 |---|---|---|---|
 | Statistical models: naive, mean of last 3 months ("naive3"), drift, damped trend; Welch t-test; conformal band | Our code, with SciPy and statsmodels | Forecast, band and Rising / Falling label | In production: naive3 and the band. Drift and damped trend lost the backtest and are not shipped. |
 | HistGradientBoostingRegressor (scikit-learn 1.9.1) | scikit-learn | Experiment: a correction to the naive3 forecast | **Not deployed.** It lost the backtest (error 2.06 against 1.66 percentage points). |
-| Claude Haiku | Anthropic | CV skill extraction, with an exact-quote check | **Planned. Not built.** [TEAM TO FILL: exact model ID once chosen] |
+| Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations | Anthropic, via Replit | CV intake. One call per CV. The model only points at skill mentions in the CV text and returns a quote for each. Code checks that every quote appears word for word in the CV. Code turns the phrase into a skill id and reads the years. The model sets no score, rank, forecast or date. | Design. Replit manages the credentials and bills Replit credits. Not yet verified on the live app. [TEAM TO FILL: confirm after the first live run] |
+| Claude Haiku (default `claude-haiku-5-5`) with a direct `ANTHROPIC_API_KEY` | Anthropic | The same job, when a direct key is set (for example in local runs) | Alternative route. Same checks. |
+| Keyword pass | Our code | The same job with no credentials, or when the Claude call fails: matches skill names in the CV text | Fallback. Needs no key and costs nothing. |
+
+**Budget cap.** The CV intake keeps a daily spend counter. The default cap is $1 per day (`VERITY_INTAKE_DAILY_BUDGET_USD`, default 1.0). When the cap is reached, the keyword pass takes over.
+
+**Optional uses in the signal ranker (`backend/signals/`).** Claude can pick a story category when the rules are unsure, and can write a prose brief. Both are off by default. Jev (TypeSafe AI) can score signals through Replit AI Integrations or OpenRouter, but `TRENDSIGNAL_RANKER` defaults to the formula. [TEAM TO FILL: declare Jev's exact model id and the OpenRouter models if you turn this on for the demo.]
 
 ### 4.2 Datasets
 
@@ -115,9 +125,9 @@ A stronger model reviews each major part before we call it done. The team review
 
 ## 5. Sponsor resources
 
-**Replit** (Core plan: [TEAM TO FILL: confirm]). We use it for hosting. We plan to use App Storage and Scheduled Deployments (code merged; Replit setup pending). Replit is essential for the hackathon (compulsory). It is replaceable. The app is plain Python and Streamlit, and `engine/store.py` has a local-folder store beside the Replit store. Any host with a scheduler and file storage could take its place. Proof of use: the live URL https://verity--eezhan0805.replit.app. [TEAM TO FILL: attach any extra proof, such as a project history link.]
+**Replit** (Core plan: [TEAM TO FILL: confirm]). We use it for hosting and for Replit AI Integrations (Claude Haiku 4.5, billed to Replit credits). We plan to use App Storage and Scheduled Deployments (code merged; Replit setup pending). Replit is essential for the hackathon (compulsory). It is replaceable. `engine/store.py` has a local-folder store, and a direct Anthropic key replaces AI Integrations. Proof of use: the live URL https://verity--eezhan0805.replit.app. [TEAM TO FILL: attach any extra proof, such as a project history link.]
 
-(85/100 words)
+(81/100 words)
 
 **RunPod:** Not used. We do no GPU work. The organisers confirmed on 22 Oct 2026 that RunPod proof is not needed without GPU use.
 
@@ -125,9 +135,9 @@ A stronger model reviews each major part before we call it done. The team review
 
 ### 6.1 Data handling and privacy
 
-The app collects no personal data. Raw Hacker News posts can hold names and contact details. They stay in gitignored folders on the team's machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored: monthly counts per skill and role, thread links and derived scores. The code strips HTML and links before it tags skills. A test checks that no committed data file holds an email address. Outputs never hold post text, author names or per-post links. The three example profiles are synthetic. We use no real CVs. The app has no sign-in. We design for the Personal Data Protection Act 2010 (PDPA) by collecting no personal data in the demo.
+The app has no sign-in and stores no account data. Raw Hacker News posts can hold names and contact details. They stay in gitignored folders on the team's machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored: monthly counts per skill and role, thread links and derived scores. The code strips HTML and links before it tags skills. A test checks that no committed data file holds an email address. Outputs never hold post text, author names or per-post links. The three example profiles are synthetic. We use synthetic CVs only and no real CVs. CV text goes to Anthropic through Replit. Code redacts phone numbers, emails and ID numbers first, but names can remain. We design for the Personal Data Protection Act 2010 (PDPA) by keeping real personal data out of the demo.
 
-(120/150 words)
+(145/150 words)
 
 ### 6.2 Known limitations and risks
 
@@ -138,9 +148,9 @@ The app collects no personal data. Raw Hacker News posts can hold names and cont
 5. New-skill discovery is late and weak: 3 hits in 15 at the 2023-06 test. A term needs 30 posts in 12 months.
 6. JobStreet Malaysia is blocked by a bot challenge, so we use no Malaysian job feed.
 7. The October 2026 month is partial: its thread was still open.
-8. CV intake is planned, not built.
+8. CV intake can miss a skill. The user edits the list. The Claude call is not yet verified live.
 
-(132/150 words)
+(145/150 words)
 
 ## 7. Compliance checklist
 
@@ -152,7 +162,7 @@ The app collects no personal data. Raw Hacker News posts can hold names and cont
 - [x] The live prototype is a working deployment, not a video or mock-up: https://verity--eezhan0805.replit.app
 - [x] Replit is part of the solution. RunPod proof is not needed (no GPU work).
 - [ ] We declared every AI development tool we used. Claude Code and Replit Agent are declared. [TEAM TO FILL: tick after you confirm no other tool was used]
-- [x] We use no real CVs and no personal data in the demo. The personas are synthetic.
+- [x] We use no real CVs in the demo. The personas and test CVs are synthetic. CV text goes to Anthropic through Replit (see 6.1).
 - [x] Every dataset and library is listed with its licence. Open point: AIOE has no licence file (see 4.2).
 - [ ] Both members completed the mandatory GenAI, Database and Cloud Deployment workshops. [TEAM TO FILL: tick only if both completed all three]
 - [ ] Both members can explain every part of the project. [TEAM TO FILL: tick after you rehearse]
