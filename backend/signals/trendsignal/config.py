@@ -129,8 +129,23 @@ def _jev_connection() -> dict[str, str | None]:
             "jev_model": _env("TRENDSIGNAL_JEV_MODEL", "jev-1.13.0")}
 
 
+def use_replit_anthropic() -> bool:
+    """With no Anthropic key, route the anthropic SDK through Replit AI Integrations. The SDK reads
+    ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL itself. Returns True when that route is active."""
+    key, base = _env("AI_INTEGRATIONS_ANTHROPIC_API_KEY"), _env("AI_INTEGRATIONS_ANTHROPIC_BASE_URL")
+    if not (key and base) or os.environ.get("ANTHROPIC_AUTH_TOKEN"):
+        return False
+    if os.environ.get("ANTHROPIC_API_KEY", key) != key:  # a real key wins; our own earlier mapping is fine
+        return False
+    os.environ.setdefault("ANTHROPIC_API_KEY", key)
+    os.environ.setdefault("ANTHROPIC_BASE_URL", base)
+    return True
+
+
 def load_settings() -> Settings:
     load_dotenv(PROJECT_ROOT / ".env")
+    # Replit's catalogue has no Haiku 5.5 or Sonnet 5.5, so its default models differ.
+    replit = use_replit_anthropic()
     config_dir = Path(_env("TRENDSIGNAL_CONFIG_DIR", str(PROJECT_ROOT / "config")))
     llm_mode = _env("TRENDSIGNAL_LLM", "auto")
     if llm_mode not in ("auto", "off"):
@@ -144,8 +159,8 @@ def load_settings() -> Settings:
     return Settings(
         db_path=Path(_env("TRENDSIGNAL_DB", str(PROJECT_ROOT / "data" / "trendsignal.db"))),
         config_dir=config_dir,
-        enrich_model=_env("TRENDSIGNAL_ENRICH_MODEL", "claude-haiku-5-5"),
-        editor_model=_env("TRENDSIGNAL_EDITOR_MODEL", "claude-sonnet-5-5"),
+        enrich_model=_env("TRENDSIGNAL_ENRICH_MODEL", "claude-haiku-4-5" if replit else "claude-haiku-5-5"),
+        editor_model=_env("TRENDSIGNAL_EDITOR_MODEL", "claude-sonnet-5" if replit else "claude-sonnet-5-5"),
         llm_mode=llm_mode,
         llm_daily_budget_usd=float(_env("TRENDSIGNAL_LLM_DAILY_BUDGET_USD", "2.0")),
         timezone=_env("TRENDSIGNAL_TZ", "Asia/Kuala_Lumpur"),

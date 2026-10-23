@@ -18,13 +18,13 @@ Confirm the file-name spacing rule in the organisers' submission video. The merm
 - Section 3.2: any real user interviews (or delete the sentence), and the number of volunteer users for Phase 2 testing.
 - Section 4: the full Hays Asia Salary Guide 2025 and MOSTI references with links (copy them from the Domain 1 brief).
 - Section 5: tick the eligibility box (both members) and the workshops box (only if both members finished the GenAI, Database and Cloud workshops). Match each line to the official template wording.
-- Section 6.2: licence of the chart colour values; Claude Haiku model ID once chosen.
+- Section 6.2: licence of the chart colour values. Claude Haiku 4.5 is named; check the model ID after the first live run on Replit.
 - Section 6.3: permission evidence (if you claim any) and any other declaration the template asks for.
 - Section 7: declaration wording, signature and date.
 
 ### Tech declaration
 - Section 3.2: Replit plan, region. Create the App Storage bucket and the Scheduled Deployment (code is merged; setup is pending), run it once, then remove "pending" from the proposal (3.1, 3.2, diagram) and from this declaration (2.1, 3.2, 5).
-- Section 4.1: Claude Haiku model ID once chosen.
+- Section 4.1 and 3.2: Claude Haiku 4.5 through Replit AI Integrations is written as the design. Verify it on the deployed app, then remove "not yet verified" (also in the proposal, `qa-prep.md` #18 and #26, the root `README.md` and `docs/architecture.md` 3.18). Declare Jev's exact model id if you enable the ranker.
 - Section 4.3: Replit Agent model (if shown), and any other AI tool either member used.
 - Section 5: confirm the Replit plan; attach any extra proof of use.
 - Section 7: tick "repository is public", "committee accounts added", "every AI tool declared", "workshops done", "both members can explain every part".
@@ -44,8 +44,8 @@ Confirm the file-name spacing rule in the organisers' submission video. The merm
 
 ## If Sheng Kuan's AI-trend-signal-layer branch is merged
 
-- [ ] Declare Jev (TypeSafe AI, via Replit AI Integrations / OpenRouter) and any Claude models (Haiku, Sonnet) in the tech declaration, sections 4.1 and 5.
+- [ ] Declare Jev (TypeSafe AI, via Replit AI Integrations / OpenRouter) and any Claude models (Haiku, Sonnet) in the tech declaration, sections 4.1 and 5. Done for Claude Haiku 4.5 in the CV intake. Still open for Jev and the ranker's Sonnet use: they are off by default, and 4.1 says so.
 - [ ] Declare the new data sources (RSS, arXiv, HF papers, HN, Bluesky, X API, Threads) in section 4.2 with their terms and personal-data flags.
-- [ ] Change every "no LLM" line: the `app.py` header, tech declaration 3.1 and 4.1, pitch row 10, qa-prep #1 and #19, deck slide 7.
+- [x] Change every "no LLM" line: tech declaration 3.1 and 4.1, pitch row 10, qa-prep #1, #18 and #19, deck slide 7, `docs/architecture.md`, `docs/build-plan.md`, root `README.md`. The wording now says that only the CV intake uses an LLM. Still open: the `app.py` header and the "No LLM is used in this view" text. Code was out of scope here. Check that they still read true.
 - [ ] Resolve the conflict with the "we did not use X" statements (for example the X and Bluesky lines in the proposal 3.2, `docs/data-contract.md` and `docs/build-plan.md`).
 - [ ] Be ready to explain the six commits that share one timestamp (22 Oct 13:13).

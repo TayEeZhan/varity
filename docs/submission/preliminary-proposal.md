@@ -47,13 +47,13 @@ Verity is a decision aid. It forecasts skill demand, ranks roles and builds a le
 - **Welch trend test.** A t-test compares the last 12 months with the 12 before and labels each skill Rising, Falling or No clear change. The direction held in 67.2% of 720 backtest cases.
 - **Learned role profiles.** We learn skill weights for 9 tech roles (8 with enough posts to rank) from Hacker News posts that name exactly one role.
 - **A model that lost.** We trained a gradient-boosting model (HistGradientBoostingRegressor) on all skills. Its error was 2.06 points, worse than 1.66. We did not ship it.
-- **Planned: CV extraction with Claude Haiku.** It will return each skill with an exact CV quote. Code will drop any skill without one. Not built yet.
+- **CV intake with Claude Haiku 4.5.** The model only points at skills and gives a quote for each. Code drops any skill whose quote is not in the CV, word for word.
 
-Code, not a language model, sets the role ranking and the plan order. Two scenarios, Moderate and Fast AI disruption, are labelled as estimates. Today the user enters skills in a form (example profiles plus a skill picker). HRD Corp status is shown as not verified.
+Only the CV intake uses a language model. Code, not a model, sets the forecast, the role ranking and the plan order. Two scenarios, Moderate and Fast AI disruption, are labelled as estimates. The user can also enter skills in a form (example profiles plus a skill picker). HRD Corp status is shown as not verified.
 
-The build also uses the workshop topics in general terms: generative AI (planned extraction), data handling (stored snapshots) and cloud deployment (Replit).
+The build also uses the workshop topics in general terms: generative AI (CV intake), data handling (stored snapshots) and cloud deployment (Replit).
 
-(281/300 words)
+(297/300 words)
 
 ## 3. Technical Approach
 
@@ -64,9 +64,9 @@ The build also uses the workshop topics in general terms: generative AI (planned
 - **Machine-learning experiment:** scikit-learn (not used in the app).
 - **Data sources:** Hacker News "Ask HN: Who is hiring?" threads through the Algolia HN Search API (free); Anthropic Economic Index (AI exposure); GPTs-are-GPTs, AIOE and Microsoft Working with AI (exposure cross-check only).
 - **Hosting:** Replit Autoscale deployment (live). Replit App Storage (data snapshots) and a Replit Scheduled Deployment (daily refresh): code merged; Replit setup pending.
-- **Planned:** Claude Haiku (Anthropic) for CV extraction.
+- **Generative AI:** Claude Haiku 4.5 (Anthropic) for CV intake, through Replit AI Integrations (Replit-managed credentials, billed to Replit credits). A direct Anthropic key also works. With no credentials, a keyword pass takes over. Design: not yet verified on the live Replit app.
 
-**Sponsor GenAI API or cloud platform.** We use Replit for hosting. We will use App Storage and Scheduled Deployments once set up (code merged; Replit setup pending). We use no sponsor GenAI API yet. We use no GPU, so we use no RunPod.
+**Sponsor GenAI API or cloud platform.** We use Replit for hosting. We will use App Storage and Scheduled Deployments once set up (code merged; Replit setup pending). We use Replit AI Integrations for the CV intake (Claude Haiku 4.5), with a cap of $1 per day. We use no GPU, so we use no RunPod.
 
 ```mermaid
 flowchart LR
@@ -108,7 +108,7 @@ flowchart LR
   JOB --> STORE
   HN -. "newest thread" .-> JOB
   STORE --> APP
-  CV["CV intake with Claude Haiku<br/>(planned, not built)"] -. planned .-> ROLE
+  CV["CV intake with Claude Haiku 4.5<br/>via Replit AI Integrations<br/>(code merged; live run not yet verified)"] -.-> ROLE
 ```
 
 ### 3.2 Design-Thinking & Deployment Strategy
@@ -186,7 +186,7 @@ None. The repository was created on 21 Oct 2026, after the build clock started o
 | Microsoft Working with AI, AI applicability scores | Dataset | CC BY 4.0 |
 | O*NET-SOC crosswalk tables | Dataset (code mapping only) | O*NET data is mostly CC BY 4.0; the crosswalk pages state no licence of their own |
 | HistGradientBoostingRegressor (scikit-learn) | Model (experiment, not deployed) | BSD-3-Clause |
-| Claude Haiku (Anthropic) | Model (planned, not used yet) | Commercial API terms. [TEAM TO FILL: model ID once chosen] |
+| Claude Haiku 4.5 (`claude-haiku-4-5`), Anthropic, through Replit AI Integrations | Model (CV intake) | Commercial API terms. Replit bills the calls to Replit credits. |
 | Chart colour values in `app.py` (from a "dataviz" skill used with Claude Code) | Design values | [TEAM TO FILL: confirm the licence of the palette file] |
 
 Sources: `data/SOURCES.md`, `requirements.txt`, `requirements-dev.txt`, and the installed package metadata.
