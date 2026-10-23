@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hmac
 import html
+import json
+import json
 import re
 import threading
 import time
@@ -244,6 +246,17 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
     def api_signals():
         """Varity's Signals page: run summary, top 10 stories and skill momentum (weekly: oldest -> this week)."""
         return envelope(signals_payload(ctx))
+
+    @app.get("/api/roles/forecast")
+    def api_role_forecast():
+        """Varity's Job forecast page: data/role_forecast.json as the engine wrote it (read only, never recomputed)."""
+        path = ctx.settings.role_forecast_path
+        if not path or not path.is_file():
+            return envelope(error="no role forecast yet: run engine/role_forecast.py", status=404)
+        try:
+            return envelope(json.loads(path.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            return envelope(error="role forecast file could not be read", status=500)
 
     @app.get("/api/health")
     def api_health():
