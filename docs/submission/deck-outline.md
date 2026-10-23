@@ -15,11 +15,11 @@ Format: the preliminary round asks for "Pitch deck slides" and the final round a
 | 1 | Verity | "Future-ready skills for tech developers". Hokkien Mee Is Purple. Ee Zhan and Sheng Kuan. XMUM SDC Hackathon 2026, Domain 1. | Title and app logo or plain wordmark | 0:00-0:05 | 1 |
 | 2 | The signal is loud | "AI mentions in Hacker News hiring posts: 6.4% (Jan 2019) to 54.6% (Sep 2026)." "Which skills should a junior developer learn?" | Line chart from `data/ai_context_monthly.csv` (monthly and 3-month smoothed). Footnote: "Sep 2026 is the last full month; the Oct 2026 thread is still open." | 0:05-0:30 | 1 |
 | 3 | Meet Aina | "Aina, junior Python developer (synthetic). No real CVs." Chain: dated data, forecast with band, role match, daily plan, SDG links. | Five boxes in one row, Aina's name above the first | 0:30-0:40 | 1 |
-| | *Live demo of the app* | *Full-screen recording of the app, 3:05 long; see `demo-checklist.md`* | App | 0:40-3:45 | 2 to 7 |
-| 4 | How it works | Hacker News hiring posts (94 threads, 48,508 posts) and Anthropic Economic Index. 40 skills. Forecast and band. Learned role profiles. Plan ordered by code. Streamlit on Replit. | One-line block diagram, left to right | 3:45-3:55 | 8 |
+| | *Live demo of the app* | *Full-screen recording of the Varity app, 3:05 long; see `demo-checklist.md`* | App | 0:40-3:45 | 2 to 7 |
+| 4 | How it works | Hacker News hiring posts (94 threads, 48,508 posts) and Anthropic Economic Index. 40 skills. Forecast and band. Learned role profiles. Plan ordered by code. FastAPI on Replit. | One-line block diagram, left to right | 3:45-3:55 | 8 |
 | 5 | We tested before we trusted | 12-month error (points): naive3 1.66, naive 1.81, gradient boosting 2.06, drift 2.13, damped 2.27. "Band covered 93.8% (target 80%)." | Horizontal bar chart from `data/backtest.json` and `data/ml_backtest.json`. Highlight naive3 | 3:55-4:32 | 8 |
 | 6 | We show disagreement | "Role profiles: 2,569 single-role posts." "Exposure stance: 1 category robust, 5 contested; 26 of 40 skills tagged." "Rank correlation with Microsoft's index: -0.79." | Left: small profile diagram. Right: the exposure table's last column (robust or contested) | 4:32-5:00 | 9 |
-| 7 | Limits and next steps | "Hacker News is US and startup heavy." "JobStreet needs a data partnership." "Only CV intake uses a language model (Claude Haiku 4.5): it points at skills, code checks every quote." "HRD Corp status unverified." | Four short bullets | 5:00-5:20 | 10 |
+| 7 | Limits and next steps | "Hacker News is US and startup heavy." "JobStreet needs a data partnership." "Only CV intake and an optional route advisor use a language model (Claude Haiku 4.5): it points, code checks every answer." "HRD Corp status unverified." | Four short bullets | 5:00-5:20 | 10 |
 | 8 | Impact | "SDG 4.4 skills for employment. SDG 8.5 productive work. SDG 8.2 productivity." "Estimates, not facts. You decide." Repo and app URLs. | Three SDG icons, team name, QR or short link | 5:20-5:45 | 11 |
 | 9 | Appendix: team, tools, evidence | Who built what. Tools declared: Claude Code (major), Replit Agent (minor). Hosting platform: Replit, with Replit AI Integrations for Claude Haiku 4.5. Link list: repo, app, docs. Gradient-boosting table. | Table | not in video | Q&A |
 
@@ -37,7 +37,7 @@ Format: the preliminary round asks for "Pitch deck slides" and the final round a
 
 ## Final-round version
 
-The final round (1 Nov) asks for an updated `.pptx` and a 10-minute pitch. Reuse slides 1 to 8, add: (a) a "what changed since the preliminary round" slide, as the updated PRD requires; (b) a slide for Sheng Kuan's AI-trend signal work, only if it is merged into `main` by then. Say precisely where a language model runs: the CV intake only. The forecast, role match, pathway and SDG parts use none. Keep the tech declaration in step.
+The final round (1 Nov) asks for an updated `.pptx` and a 10-minute pitch. Reuse slides 1 to 8, add: (a) a "what changed since the preliminary round" slide, as the updated PRD requires; (b) a slide for Sheng Kuan's AI-trend signal work, which the Signals screen of the Varity app now shows (check that the ranker is live on the republished site first). Say precisely where a language model runs: the CV intake and the optional route advisor. The forecast, role match, pathway and SDG parts use none. Keep the tech declaration in step.
 
 ## Source of every number on the slides
 
