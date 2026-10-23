@@ -72,80 +72,64 @@ function renderSignals() {
 }
 
 /* ── Job forecast ──────────────────────────────────────────────── */
-const AXIS = { min: -40, max: 60 };
-const pos = (v) => ((Math.max(AXIS.min, Math.min(AXIS.max, v)) - AXIS.min) / (AXIS.max - AXIS.min)) * 100;
-const signed = (v) => (v > 0 ? `+${v}%` : `${v}%`);
-
-function placeRow(row, f) {
-  const key = STATE.scenario;
-  const other = key === "moderate" ? "fast" : "moderate";
-  const v = f[key];
-  const z = pos(0), p = pos(v);
-  const bar = row.querySelector(".fc__bar");
-  bar.style.left = `${Math.min(z, p)}%`;
-  bar.style.width = `${Math.abs(p - z)}%`;
-  bar.className = `fc__bar ${v >= 0 ? "up" : "down"}`;
-  const band = row.querySelector(".fc__band");
-  band.style.left = `${pos(v - f.band)}%`;
-  band.style.width = `${pos(v + f.band) - pos(v - f.band)}%`;
-  row.querySelector(".fc__other").style.left = `calc(${pos(f[other])}% - 1px)`;
-  const val = row.querySelector(".fc__val");
-  val.textContent = signed(v);
-  val.className = `fc__val ${v >= 0 ? "up" : "down"}`;
-  row.querySelector(".fc__track").setAttribute("aria-label", `${f.role}: ${signed(v)} under ${key} disruption, range ${signed(v - f.band)} to ${signed(v + f.band)}; ${signed(f[other])} under ${other} disruption`);
-}
+/* Data: FORECAST = data/role_forecast.json (engine/role_forecast.py), live from GET /api/roles/forecast. */
+const TREND_ORDER = { Rising: 0, "No clear change": 1, Falling: 2 };
+const TREND_CLASS = { Rising: "up", Falling: "down" };
+const pct = (v) => `${(v * 100).toFixed(1)}%`;
 
 function renderForecast() {
-  const ticks = [-40, -20, 0, 20, 40, 60];
-  const isRoute = (f) => f.role === "LLM application engineer";
-  const rowHTML = (f) => `<div class="fc__row${isRoute(f) ? " is-route" : ""}">
-      <div class="fc__role">${esc(f.role)}${isRoute(f) ? "<small>Your route</small>" : ""}</div>
-      <div class="fc__track" role="img"><span class="fc__zero" style="left:calc(${pos(0)}% - 1px)"></span><span class="fc__band"></span><span class="fc__bar"></span><span class="fc__other"></span></div>
-      <div class="fc__val"></div>
-      <div class="fc__drv">${f.real ? "<b>Signal</b> " : ""}${esc(f.driver)}</div>
-    </div>`;
+  const roles = Object.values(FORECAST.roles || {});
+  const ok = roles.filter((r) => r.status === "ok" && r.share_now && r.forecast_moderate && r.trend)
+    .sort((a, b) => (TREND_ORDER[a.trend.label] ?? 1) - (TREND_ORDER[b.trend.label] ?? 1) || b.share_now.value - a.share_now.value);
+  const skipped = [...roles.filter((r) => !ok.includes(r)).map((r) => ({ name: r.name, reason: r.note || "No forecast for this month" })),
+    ...(FORECAST.excluded_roles || []).map((r) => ({ name: r.name, reason: r.reason }))];
+  // One shared axis from 0 to just past the widest range, rounded up to a whole percent.
+  const top = Math.ceil(Math.max(0.01, ...ok.map((r) => r.forecast_moderate.high)) * 100) / 100;
+  const pos = (v) => (Math.max(0, Math.min(top, v)) / top) * 100;
+  const step = top > 0.1 ? 0.05 : 0.02;
+  const ticks = Array.from({ length: Math.floor(top / step + 1e-9) + 1 }, (_, i) => i * step);
+  const band = FORECAST.interval ? FORECAST.interval.label : "range";
+  const hnLinks = (r) => (r.sources || []).filter((s) => /^https?:\/\//i.test(s.url))
+    .map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.date)}</a>`).join(" · ");
 
+  const rowHTML = (r) => {
+    const f = r.forecast_moderate, t = r.trend, cls = TREND_CLASS[t.label] || "";
+    return `<div class="fc__row">
+      <div class="fc__role">${esc(r.name)}<small class="trend ${cls}">${esc(t.label)}</small></div>
+      <div class="fc__track" role="img" aria-label="${esc(r.name)}: ${pct(r.share_now.value)} of hiring posts now; in 12 months ${pct(f.value_12m)}, ${esc(band)} ${pct(f.low)} to ${pct(f.high)}; ${esc(t.label)}">
+        <span class="fc__band" style="left:${pos(f.low)}%;width:${pos(f.high) - pos(f.low)}%"></span>
+        <span class="fc__bar ${cls}" style="left:calc(${pos(f.value_12m)}% - 5px);width:10px"></span>
+        <span class="fc__other" style="left:calc(${pos(r.share_now.value)}% - 1px)"></span>
+      </div>
+      <div class="fc__val ${cls}">${pct(r.share_now.value)}</div>
+      <div class="fc__drv"><b>${t.mentions_last12}</b> posts in the last 12 months vs <b>${t.mentions_prev12}</b> the 12 before
+        (${pct(t.share_last12)} vs ${pct(t.share_prev12)} of posts)<br><small>HN threads: ${hnLinks(r) || "none"}</small></div>
+    </div>`;
+  };
+
+  const asOf = esc(FORECAST.as_of || "?") + (FORECAST.partial_month ? " (month in progress)" : "");
   const html = `
-    ${head("Job forecast", "How demand for tech roles may change over the next 12 months, under a moderate and a fast AI-disruption scenario. Both are estimates.",
-      `<div class="seg" role="group" aria-label="Scenario">
-        <button data-scn="moderate" aria-pressed="${STATE.scenario === "moderate"}">Moderate disruption</button>
-        <button data-scn="fast" aria-pressed="${STATE.scenario === "fast"}">Fast disruption</button>
-      </div>`)}
+    ${head("Job forecast", "How demand for tech roles may change over the next 12 months, from the share of Hacker News “Who is hiring?” posts that name each role. Ranges are estimates.")}
     <div class="fc-bar-head">
-      ${synth("Estimates · synthetic demo numbers")}
+      ${real(`Real data · HN hiring posts · as of ${asOf}${STATE.forecastLive ? "" : " · saved copy"}`)}
       <div class="fc-key">
-        <span><i class="k-bar"></i>Selected scenario</span>
-        <span><i class="k-tick"></i>Other scenario</span>
-        <span><i class="k-band"></i>Uncertainty range</span>
+        <span><i class="k-tick"></i>Share now</span>
+        <span><i class="k-bar"></i>In 12 months</span>
+        <span><i class="k-band"></i>${esc(band)}</span>
       </div>
     </div>
-    <section class="fc" aria-label="Projected change in job postings by role">
-      <div class="fc__axis"><div>Role</div><div class="fc__ticks">${ticks.map((t) => `<span style="left:${pos(t)}%">${t === 0 ? "0" : signed(t)}</span>`).join("")}</div><div style="text-align:right">Change</div><div>Main driver</div></div>
-      <div data-rows>${FORECAST.map(rowHTML).join("")}</div>
+    <section class="fc" aria-label="Share of hiring posts by role, now and in 12 months">
+      <div class="fc__axis"><div>Role</div><div class="fc__ticks">${ticks.map((v) => `<span style="left:${pos(v)}%">${Math.round(v * 100)}%</span>`).join("")}</div><div style="text-align:right">Now</div><div>Why</div></div>
+      <div>${ok.map(rowHTML).join("") || `<p class="empty">No role forecast yet. Run engine/role_forecast.py.</p>`}</div>
     </section>
+    ${skipped.length ? `<p class="method">Left out: ${skipped.map((s) => `${esc(s.name)} (${esc(s.reason)})`).join("; ")}.</p>` : ""}
     <div class="fc-note">
-      <div><h3>What the numbers mean</h3><p>Projected change in job postings for each role over 12 months. In the real build they will be computed from dated job-posting data and the skill signals; here they are illustrative.</p></div>
-      <div><h3>Where the drivers come from</h3><p>Rows marked Signal cite this week's real skill momentum. The others rest on stated assumptions, shown as such, so you can disagree with them.</p></div>
+      <div><h3>What the numbers mean</h3><p>Share of monthly HN hiring posts that name the role (last 3 months), and where that share is expected to be in 12 months. HN is a sample of tech hiring, not a count of jobs.</p></div>
+      <div><h3>Rising or falling</h3><p>The trend label compares the last 12 months with the 12 before. It is observed, not forecast. “No clear change” means the difference could be noise.</p></div>
       <div><h3>Use it as one input</h3><p>The forecast shapes which routes Varity suggests. It does not decide for you: you pick the route.</p></div>
     </div>`;
 
-  const bind = (root) => {
-    const wrapEl = root.querySelector("[data-rows]");
-    const rows = [...wrapEl.children];
-    const apply = () => {
-      FORECAST.forEach((f, i) => placeRow(rows[i], f));
-      FORECAST.map((f, i) => ({ v: f[STATE.scenario], el: rows[i] }))
-        .sort((a, b) => b.v - a.v)
-        .forEach((r) => wrapEl.appendChild(r.el));
-    };
-    apply();
-    root.querySelectorAll("[data-scn]").forEach((b) => b.addEventListener("click", () => {
-      STATE.scenario = b.dataset.scn;
-      root.querySelectorAll("[data-scn]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-      apply();
-    }));
-  };
-  return { html, bind };
+  return { html, bind: () => {} };
 }
 
 /* ── Flow map ──────────────────────────────────────────────────── */

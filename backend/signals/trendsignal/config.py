@@ -84,6 +84,7 @@ class Settings:
     haiku_fallback: bool = False  # ask Claude Haiku for the category only when the rules are unsure
     write_briefs: bool = False  # the daily / weekly prose brief is outside the core ranker
     frontend_dir: Path | None = None  # Varity's static frontend, served at / when it exists
+    role_forecast_path: Path | None = None  # engine/role_forecast.py output, served at /api/roles/forecast
 
     @property
     def jev_enabled(self) -> bool:
@@ -163,6 +164,8 @@ def load_settings() -> Settings:
         haiku_fallback=_env("TRENDSIGNAL_HAIKU_FALLBACK", "0") == "1",
         write_briefs=_env("TRENDSIGNAL_BRIEFS", "0") == "1",
         frontend_dir=Path(_env("TRENDSIGNAL_FRONTEND_DIR", str(PROJECT_ROOT.parent.parent / "frontend"))),
+        role_forecast_path=Path(_env("TRENDSIGNAL_ROLE_FORECAST",
+                                     str(PROJECT_ROOT.parent.parent / "data" / "role_forecast.json"))),
     )
 
 
