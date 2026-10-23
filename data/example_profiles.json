@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "note": "Synthetic personas for the demo. They are not real people. Skill names are data/taxonomy.json names. No CV text and no quotes: the evidence level is 'synthetic example'.",
+  "profiles": [
+    {"id": "aina", "name": "Aina (synthetic)", "headline": "Junior Python developer",
+     "skills": ["Python", "SQL", "PostgreSQL", "Docker", "AWS"]},
+    {"id": "ben", "name": "Ben (synthetic)", "headline": "Frontend developer",
+     "skills": ["JavaScript / TypeScript", "TypeScript", "React", "Node.js"]},
+    {"id": "chloe", "name": "Chloe (synthetic)", "headline": "Data analyst",
+     "skills": ["SQL", "Python", "Snowflake", "dbt"]}
+  ]
+}

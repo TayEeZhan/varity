@@ -1,5 +1,5 @@
 modules = ["python-3.12"]
-run = "streamlit run app.py --server.port 8080 --server.address 0.0.0.0 --server.headless true"
+run = "cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler"
 
 [nix]
 channel = "stable-25_05"
@@ -8,7 +8,7 @@ packages = ["glibcLocales"]
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["sh", "-c", "pip install -r requirements.txt"]
-run = ["sh", "-c", "streamlit run app.py --server.port 8080 --server.address 0.0.0.0 --server.headless true"]
+run = ["sh", "-c", "cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler"]
 
 [[ports]]
 localPort = 8080
@@ -32,7 +32,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "streamlit run app.py --server.port 8080 --server.address 0.0.0.0 --server.headless true"
+args = "cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler"
 waitForPort = 8080
 
 [workflows.workflow.metadata]

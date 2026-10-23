@@ -48,6 +48,8 @@ def test_text_rules_drop_numbers_money_and_unknown_skills():
     assert not text_ok("You have 3 of its skills.", "You already have Python", skills)
     assert not text_ok("This role pays more.", "You already have Python", skills)
     assert not text_ok("Learn Kubernetes next.", "You already have Python", skills)
+    for claim in ("Demand has doubled.", "Three of its five skills match.", "One of the fastest-growing roles.", "A top pick."):
+        assert not text_ok(claim, "You already have Python", skills)
 
 
 def test_rank_limit_is_two_places():
@@ -101,9 +103,9 @@ def test_llm_order_reasons_and_cache(settings, token):
 
     def fake(model, system, user, output, max_tokens):
         calls.append(model)
-        roles = [RoleAdvice(role_id=second, fit_label="Close to your work", chip_ids=["skill_fit", "made_up"],
+        roles = [RoleAdvice(role_id=second, chip_ids=["skill_fit", "made_up"],
                             summary="Closest to what you already do."),
-                 RoleAdvice(role_id=first, fit_label="Top 1 pick", chip_ids=[], summary="It pays 2x more.")]
+                 RoleAdvice(role_id=first, chip_ids=[], summary="It pays 2x more.")]
         return Advice(order=[second, first, *[r["roleId"] for r in base[2:]]], roles=roles)
 
     out = service.suggestions(profile, [], None, settings.db_path, call=fake, data=data)
@@ -111,7 +113,7 @@ def test_llm_order_reasons_and_cache(settings, token):
     top, runner_up = out["roles"][0], out["roles"][1]
     assert top["roleId"] == second and top["summary"] == "Closest to what you already do."
     assert [c["id"] for c in top["reasons"]] == ["skill_fit"]  # the made-up chip is dropped
-    assert runner_up["summary"] is None and "1" not in runner_up["fitLabel"]  # bad text replaced by code's
+    assert runner_up["summary"] is None and "1" not in runner_up["fitLabel"]  # bad text dropped; the label is always code's
     again = service.suggestions(profile, [], None, settings.db_path, call=fake, data=data)
     assert again["llmStatus"] == "cached" and len(calls) == 1
 

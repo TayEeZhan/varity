@@ -14,6 +14,7 @@ import os
 import secrets
 import threading
 import time
+import json
 from dataclasses import asdict
 from pathlib import Path
 from typing import Annotated, Literal
@@ -24,11 +25,11 @@ from pydantic import BaseModel, Field
 from intake import ledger
 from intake.keyword_pass import build_patterns
 from intake.llm_extract import MODEL_LABEL, LlmUnavailable, extract_mentions, load_cached_run
-from intake.models import MAX_YEARS, SKILL_ID_PATTERN, Profile
+from intake.models import MAX_YEARS, SKILL_ID_PATTERN, Evidence, Profile
 from intake.pipeline import run_intake
 from intake.readers import MAX_BYTES, MAX_CHARS, ReadError, read_upload
 from intake.reconcile import Review, apply_review
-from intake.skills import load_graph
+from intake.skills import load_graph, slugify
 from trendsignal.config import Settings
 from trendsignal.db import connect
 from trendsignal.web.app import RateLimiter, envelope
@@ -36,6 +37,8 @@ from trendsignal.web.app import RateLimiter, envelope
 SAMPLES_DIR = Path(__file__).resolve().parents[2] / "intake" / "samples"
 SAMPLES = {"aina": "aina.txt", "daniel": "daniel.txt", "priya": "priya.txt"}
 CACHED_RUNS = {"aina": "aina-extraction.json"}
+EXAMPLES_FILE = Path(__file__).resolve().parents[4] / "data" / "example_profiles.json"
+EXAMPLE_NOTE = "Synthetic example: no CV was read"
 REVIEW_TTL_S = 30 * 60
 MAX_REVIEWS = 200
 CV_LIMIT_PER_MINUTE = 6
@@ -58,6 +61,28 @@ class ApplyIn(BaseModel):
     edited_years: dict[str, Annotated[float, Field(ge=0, le=MAX_YEARS)]] = Field(default_factory=dict, max_length=300)
     name: str | None = Field(default=None, max_length=80)
     target_role: str | None = Field(default=None, max_length=80)
+
+
+class ExampleIn(BaseModel):
+    id: str = Field(pattern=SKILL_ID_PATTERN)
+
+
+def load_examples() -> list[dict]:
+    try:
+        return json.loads(EXAMPLES_FILE.read_text(encoding="utf-8"))["profiles"]
+    except (OSError, ValueError, KeyError):
+        return []
+
+
+def example_profile(example: dict) -> Profile:
+    """A profile of taxonomy skills at the evidence level 'synthetic example': no quotes, nothing from a CV."""
+    profile = ledger.new_profile(name=example["name"])
+    stamp = ledger.now_iso()
+    for name in example["skills"]:
+        evidence = Evidence(source="form", method="user_entry", context="user", note=EXAMPLE_NOTE,
+                            added_at=stamp, added_by="user")
+        profile = ledger.add_evidence(profile, slugify(name), name, evidence, caller="user", now=stamp)
+    return profile
 
 
 class RemoveIn(BaseModel):
@@ -152,6 +177,15 @@ def _choose_extractor(payload: CvIn, settings: Settings):
     return None, "llm", "NO_KEY"
 
 
+def _has_pathway(profile: Profile, role_id: str) -> bool:
+    from advisor import service  # here: advisor needs trendsignal.web at import time
+
+    try:
+        return role_id in service.pathway_role_ids(profile, service.load_data())
+    except (OSError, ValueError):
+        return False
+
+
 def _profile_out(profile: Profile, token: str | None = None) -> dict:
     data = {"profile": profile.model_dump(mode="json")}
     if token:
@@ -219,6 +253,28 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
                                              else profile.target_role)
         except ledger.LedgerError as exc:
             return envelope(error=str(exc), status=422)
+        if payload.target_role and not _has_pathway(profile, payload.target_role):
+            return envelope(error="unknown route: pick a role from the suggestions", status=422,
+                            meta={"code": "VALIDATION_ERROR"})
+        save_profile(settings, token, profile)
+        return envelope(_profile_out(profile, token))
+
+    @app.get("/api/profile/examples")
+    def api_profile_examples():
+        """The synthetic example profiles (data/example_profiles.json), for the Try an example buttons."""
+        return envelope({"examples": [{"id": e["id"], "name": e["name"], "headline": e["headline"], "skills": e["skills"]}
+                                      for e in load_examples()]})
+
+    @app.post("/api/profile/example")
+    def api_profile_example(payload: ExampleIn, request: Request, x_profile_token: str | None = Header(default=None)):
+        """Save a synthetic example as the profile (replaces the one for this token). Needs no CV and no LLM key."""
+        if not profile_limiter.allow(client(request)):
+            return envelope(error="too many requests, try again in a minute", status=429)
+        example = next((e for e in load_examples() if e["id"] == payload.id), None)
+        if example is None:
+            return envelope(error="unknown example profile", status=404)
+        token = x_profile_token if load_profile(settings, x_profile_token) else secrets.token_urlsafe(32)
+        profile = example_profile(example)
         save_profile(settings, token, profile)
         return envelope(_profile_out(profile, token))
 

@@ -1,23 +1,34 @@
-/* Varity prototype: hash router, shared state, toast. */
+/* Varity: hash router, shared state, toast, API calls. Everything about the user comes from the API;
+   nothing here is a sample. */
 
 const STATE = {
   done: new Set(),
-  replan: "pending",      // pending | kept | reverted
-  push: "idle",           // idle | pushing | sent
-  sent: [],
-  cv: "parsed",           // empty | parsing | review | parsed | error
-  cvFile: PROFILE.file,
+  cv: "empty",            // empty | parsing | review | parsed | error
+  cvFile: "",
   cvError: "",
   review: null,           // POST /api/cv/extract result waiting for Save
   keep: new Set(),        // skill ids ticked in the review
   saved: null,            // the profile kept on the server (GET /api/profile)
-  routeId: "llm-app",
+  examples: [],           // GET /api/profile/examples
+  loading: "",            // "" | profile | routes | plan: which call is in flight
+  profileError: "",
+  routeId: null,
+  scenario: "moderate",   // moderate | fast: both are engine scenarios, shown as estimates
   suggest: null,          // GET /api/roles/suggestions for the saved profile
-  plan: null,             // GET /api/pathway for the chosen route; null = the bundled sample pathway
-  forecastLive: false,    // true once GET /api/roles/forecast replaced the saved copy
+  suggestError: "",
+  plan: null,             // GET /api/pathway for the chosen route
+  planError: "",
+  sig: "",                // short hash of the plan's tasks; keys the ticks kept in localStorage
+  signalsLive: false,     // true once GET /api/signals replaced the offline snapshot
+  forecastLive: false,    // true once GET /api/roles/forecast replaced the offline snapshot
   filter: "all",
   flowSel: "f7",
 };
+
+/* Filled from GET /api/pathway by applyPlan; empty until a profile and a route exist. */
+const PATHWAY = [];
+const TODAY = { date: "", tasks: [] };
+const TARGET = { role: "" };
 
 const SCREENS = {
   flow: renderFlow,
@@ -26,8 +37,10 @@ const SCREENS = {
   pathway: renderPathway,
   signals: renderSignals,
   forecast: renderForecast,
+  radar: renderRadar,
+  method: renderMethod,
 };
-const TITLES = { flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast" };
+const TITLES = { flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method" };
 const DEFAULT_SCREEN = "today";
 
 function currentScreen() {
@@ -84,8 +97,8 @@ function toast(message, actionLabel, onAction) {
   toastTimer = setTimeout(() => t.classList.remove("is-on"), 4200);
 }
 
-/* Swap the bundled copy of the signal data for the live ranker's output. Keeps the copy if the API is
-   unreachable (e.g. the page opened as a file) or has not ranked anything yet. */
+/* Swap the offline snapshot of the signal data for the live ranker's output. Keeps the snapshot (labelled as
+   such) if the API is unreachable or has not ranked anything yet. */
 async function loadSignals() {
   try {
     const res = await fetch("/api/signals", { headers: { Accept: "application/json" } });
@@ -95,6 +108,7 @@ async function loadSignals() {
     Object.assign(SIGNAL_RUN, run);
     STORIES.splice(0, STORIES.length, ...stories);
     if (skills.length) SKILLS.splice(0, SKILLS.length, ...skills);
+    STATE.signalsLive = true;
   } catch (e) {
     return;
   }
@@ -102,13 +116,13 @@ async function loadSignals() {
   if (time && SIGNAL_RUN.generatedIso) {
     time.dateTime = SIGNAL_RUN.generatedIso;
     time.textContent = SIGNAL_RUN.generatedAt.replace(/ \d{4},/, ",");
+    time.previousSibling.textContent = "Signals updated ";
   }
   const run = document.querySelector("[data-run-id]");
   if (run) run.textContent = SIGNAL_RUN.runId;
 }
 
-/* Swap the saved copy of the role forecast for the backend's file. Keeps the copy if the API is unreachable
-   or has no forecast yet. */
+/* Swap the offline snapshot of the role forecast for the backend's file. */
 async function loadForecast() {
   try {
     const res = await fetch("/api/roles/forecast", { headers: { Accept: "application/json" } });
@@ -145,53 +159,78 @@ async function api(path, options = {}) {
   return body.data;
 }
 
+const errText = (e) => (e instanceof TypeError ? "Could not reach Varity's server. Try again." : e.message);
+
+async function loadExamples() {
+  try { STATE.examples = (await api("/api/profile/examples")).examples; } catch (e) { STATE.examples = []; }
+}
+
 async function loadProfile() {
+  STATE.profileError = "";
   if (!profileToken()) return;
+  STATE.loading = "profile";
   try {
     STATE.saved = (await api("/api/profile")).profile;
+    STATE.cv = "parsed";
   } catch (e) {
-    if (e.status === 404) setProfileToken(null);  // deleted on the server; any other error keeps the key
+    if (e.status === 404) setProfileToken(null);  // deleted on the server
+    else STATE.profileError = errText(e);
   }
 }
 
 /* ── Routes and pathway from the saved profile ─────────────────── */
-/* The bundled sample pathway, restored when the profile is deleted. */
-const SAMPLE = { pathway: PATHWAY.slice(), lines: JSON.parse(JSON.stringify(LINES)), today: { ...TODAY }, target: TARGET.role, match: TARGET.match };
 /* Pathway stages drawn as the three map lines (colours in styles.css). */
 const STAGE_LINE = { no_regret: "apps", near_term: "serve", other: "serve", future_bet: "guard" };
-const LIVE_LINES = {
-  apps: { letter: "N", name: "No-regret line", skill: "skills most of your best-fit roles need" },
-  serve: { letter: "D", name: "Demand line", skill: "skills job posts ask for now" },
-  guard: { letter: "F", name: "Future line", skill: "rising or AI-complement skills" },
-};
-const DAY_MS = 86400000;
 
 async function loadRoutes() {
   STATE.suggest = null;
+  STATE.suggestError = "";
+  STATE.routeId = null;
   if (!STATE.saved) return;
+  STATE.loading = "routes";
   try {
-    STATE.suggest = await api("/api/roles/suggestions");
-    // No saved route yet: show the top suggestion's pathway rather than the sample.
-    STATE.routeId = STATE.suggest.targetRoleId || (STATE.suggest.roles[0] || {}).roleId || null;
+    const s = await api(`/api/roles/suggestions?scenario=${STATE.scenario}`);
+    STATE.suggest = s;
+    // Only a role that has a pathway can be the route.
+    const ids = new Set([...s.roles, ...s.lowMatch].map((r) => r.roleId));
+    STATE.routeId = ids.has(s.targetRoleId) ? s.targetRoleId : (s.roles[0] || {}).roleId || null;
   } catch (e) {
-    return;  // offline or no role data: the screen shows the sample routes
+    STATE.suggestError = errText(e);
   }
 }
 
 async function loadPlan() {
+  STATE.planError = "";
   if (!STATE.saved || !STATE.routeId) return applyPlan(null);
+  STATE.loading = "plan";
   try {
-    applyPlan(await api(`/api/pathway?roleId=${encodeURIComponent(STATE.routeId)}`));
+    applyPlan(await api(`/api/pathway?roleId=${encodeURIComponent(STATE.routeId)}&scenario=${STATE.scenario}`));
   } catch (e) {
     applyPlan(null);
+    STATE.planError = errText(e);
   }
 }
 
-/* Reload routes and pathway after the profile changed, then redraw. */
-async function refreshRoutes() {
-  STATE.done = new Set();  // task ids are positional, so old ticks would land on the rebuilt plan's tasks
+/* Load profile, routes and pathway one after the other, drawing after each so the page is never blank. */
+async function loadMine() {
+  STATE.loading = profileToken() ? "profile" : "";
+  rerender();
+  await loadProfile();
+  rerender();
   await loadRoutes();
+  rerender();
   await loadPlan();
+  STATE.loading = "";
+  rerender();
+}
+
+/* Reload routes and pathway after the profile or scenario changed, then redraw. */
+async function refreshRoutes() {
+  STATE.done = new Set();
+  await loadRoutes();
+  rerender();
+  await loadPlan();
+  STATE.loading = "";
   rerender();
 }
 
@@ -208,27 +247,44 @@ function refreshStatus() {
   PATHWAY.forEach((p, i) => { p.status = stepStatus(steps[i], firstOpen); });
 }
 
-/* Fill PATHWAY, LINES, TODAY and TARGET (the shapes the screens draw) from GET /api/pathway, or restore the sample. */
+/* Short hash (djb2) of a string: keys the saved ticks and the calendar UIDs. */
+function shortHash(text) {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) >>> 0;
+  return h.toString(16).padStart(8, "0");
+}
+const doneKey = () => `varity.done.${STATE.sig}`;
+function saveDone() {
+  try { localStorage.setItem(doneKey(), JSON.stringify([...STATE.done])); } catch (e) { /* ticks last this visit only */ }
+}
+function loadDone() {
+  try { return new Set(JSON.parse(localStorage.getItem(doneKey()) || "[]")); } catch (e) { return new Set(); }
+}
+
+const DAY_MS = 86400000;
+const todayIso = () => new Date().toLocaleDateString("en-CA");
+
+/* Fill PATHWAY, TODAY and TARGET (the shapes the screens draw) from GET /api/pathway, or empty them. */
 function applyPlan(plan) {
   STATE.plan = plan;
-  if (!plan) {
-    PATHWAY.splice(0, PATHWAY.length, ...SAMPLE.pathway);
-    Object.assign(LINES, JSON.parse(JSON.stringify(SAMPLE.lines)));
-    Object.assign(TODAY, SAMPLE.today);
-    Object.assign(TARGET, { role: SAMPLE.target, match: SAMPLE.match, live: false });
-    return;
-  }
-  Object.keys(LIVE_LINES).forEach((id) => Object.assign(LINES[id], LIVE_LINES[id]));
+  PATHWAY.length = 0;
+  TODAY.date = "";
+  TODAY.tasks = [];
+  TARGET.role = "";
+  if (!plan) { STATE.sig = ""; return; }
+  STATE.sig = shortHash(plan.tasks.map((t) => `${t.id}|${t.title}|${t.date}`).join("\n"));
+  STATE.done = loadDone();
   const start = new Date(plan.startDate).getTime();
   const gap = 920 / Math.max(plan.steps.length - 1, 1);
   const byStep = {};
-  PATHWAY.splice(0, PATHWAY.length, ...plan.steps.map((s, i) => {
+  PATHWAY.push(...plan.steps.map((s, i) => {
     const res = s.resource || {};
     const stop = {
       id: `s${s.order}`, line: STAGE_LINE[s.stage] || "serve", x: Math.round(80 + i * gap),
       week: s.startDate ? Math.floor((new Date(s.startDate).getTime() - start) / DAY_MS / 7) + 1 : "–",
-      status: "next", title: s.skill, mins: s.minutes, resource: res.title || s.resourceNote, url: res.url || "#",
-      cost: res.cost === "free" ? "Free" : res.cost || "–", sdg: s.sdg[0] || "–", why: s.whyForYou, reasons: s.reasons,
+      status: "next", title: s.skill, mins: s.minutes, resource: res.title || s.resourceNote, url: res.url || "",
+      cost: res.cost === "free" ? "Free" : res.cost || "–", sdgTags: s.sdgTags, sdgReason: s.sdgReason,
+      why: s.whyForYou, reasons: s.reasons,
     };
     byStep[s.order] = { stop, step: s };
     return stop;
@@ -236,16 +292,138 @@ function applyPlan(plan) {
   refreshStatus();
   const next = plan.tasks.find((t) => !STATE.done.has(t.id));
   const day = next ? next.date : null;
-  const tasks = plan.tasks.filter((t) => t.date === day).map((t) => {
+  TODAY.date = day ? new Date(`${day}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }) : "nothing left";
+  TODAY.day = day;
+  TODAY.tasks = plan.tasks.filter((t) => t.date === day).map((t) => {
     const { stop, step } = byStep[t.step];
     const chip = step.reasons[0];
     return { id: t.id, station: stop.id, line: stop.line, mins: t.minutes, title: t.title, resource: t.resourceTitle,
       url: t.resourceUrl, why: step.whyForYou || (chip ? chip.text : t.reason), source: chip ? `${SOURCE_TEXT[chip.source] || chip.source}, ${chip.asOf || "undated"}` : "Pathway" };
   });
-  const label = day ? new Date(`${day}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }) : "nothing left";
-  Object.assign(TODAY, { date: label, replan: null, tasks, cancelled: [] });
-  Object.assign(TARGET, { role: plan.targetRole, match: `${plan.matchPct}% match`, live: true });
+  TARGET.role = plan.targetRole;
 }
 
+/* ── Plan files, built here from the pathway payload (same fields as engine/pathway.py to_markdown / to_ics) ── */
+function planMarkdown(p) {
+  const t = p.totals;
+  const lines = [
+    `# Reskilling pathway: ${p.targetRole}`, "",
+    `- Scenario: ${p.scenarioLabel}`,
+    `- Pace: ${p.hoursPerWeek} hours a week, Monday to Friday`,
+    `- Plan: ${t.steps} skills, ${t.tasks} daily tasks, about ${t.hours} hours (estimate)`,
+    `- Dates: ${p.startDate} to ${p.finishDate || "n/a"}`,
+    `- Skill data as of: ${p.skillsAsOf || "n/a"}`, "",
+    "## Order of skills", "",
+  ];
+  for (const stage of p.stages) {
+    lines.push(`### ${stage.label}`, "");
+    const steps = p.steps.filter((s) => s.stage === stage.name);
+    if (!steps.length) { lines.push("None.", ""); continue; }
+    for (const s of steps) {
+      const r = s.resource;
+      lines.push(`${s.order}. **${s.skill}** (about ${s.minutes} min, estimate)`, `   - Why: ${s.reason}`);
+      if (r) {
+        const cost = r.cost + (r.hrd_corp ? ", HRD Corp-claimable" : "");
+        lines.push(`   - Resource: [${r.title}](${r.url}) (${r.provider}, ${cost}, ${r.level}; link checked ${r.checked})`);
+      } else lines.push(`   - Resource: ${s.resourceNote}`);
+      if (s.sdg.length) lines.push(`   - SDG: ${s.sdg.join(", ")}. ${s.sdgReason || ""}`.trimEnd());
+      lines.push(`   - Source: ${s.source}`);
+    }
+    lines.push("");
+  }
+  lines.push("## Daily tasks", "", "| Id | Date | Min | Task | Link |", "|---|---|---|---|---|");
+  for (const k of p.tasks) lines.push(`| ${k.id} | ${k.date} | ${k.minutes} | ${k.title} | ${k.resourceUrl} |`);
+  lines.push("", "## SDG links", "");
+  for (const [target, n] of Object.entries(p.sdgSummary.counts)) {
+    lines.push(`- SDG ${target}: ${n} step${n !== 1 ? "s" : ""} (${p.sdgSummary.skills_by_target[target].join(", ")})`);
+  }
+  lines.push("", p.sdgSummary.line, "", "## Notes", "");
+  lines.push(...p.notes.map((n) => `- ${n}`));
+  if (p.unresolved.length) {
+    const note = (p.steps.find((s) => !s.resource) || {}).resourceNote;
+    lines.push(`- ${note}: ${p.unresolved.join(", ")}.`);
+  }
+  return lines.join("\n") + "\n";
+}
+
+const icsEscape = (s) => String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r\n|\r|\n/g, "\\n");
+/* Fold at 75 octets, never inside a UTF-8 character (RFC 5545 section 3.1). */
+function icsFold(line) {
+  const enc = new TextEncoder();
+  const out = [];
+  let cur = "", size = 0;
+  for (const ch of line) {
+    const n = enc.encode(ch).length;
+    if (size + n > 75) { out.push(cur); cur = " " + ch; size = 1 + n; } else { cur += ch; size += n; }
+  }
+  out.push(cur);
+  return out.join("\r\n");
+}
+const icsDay = (iso, add = 0) => {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + add);
+  return d.toISOString().slice(0, 10).replace(/-/g, "");
+};
+
+function planIcs(p) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Verity//Pathway E8//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    `X-WR-CALNAME:${icsEscape("Verity reskilling plan")}`];
+  for (const t of p.tasks) {
+    const desc = `${t.minutes} min (estimate). Resource: ${t.resourceTitle} ${t.resourceUrl} Why: ${t.reason} Finish by ${t.date}.`;
+    lines.push("BEGIN:VEVENT", `UID:${STATE.sig}-${t.id}-${t.date}@verity.pathway`, `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${icsDay(t.date)}`, `DTEND;VALUE=DATE:${icsDay(t.date, 1)}`,
+      `SUMMARY:${icsEscape(t.title)}`, `DESCRIPTION:${icsEscape(desc)}`, `URL:${t.resourceUrl}`, "TRANSP:TRANSPARENT", "END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  return lines.map(icsFold).join("\r\n") + "\r\n";
+}
+
+function download(name, mime, text) {
+  const url = URL.createObjectURL(new Blob([text], { type: `${mime};charset=utf-8` }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: name });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* Buttons that work on any screen. */
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-global]");
+  if (!b) return;
+  const act = b.dataset.global;
+  if (act === "retry") {
+    loadMine();
+  } else if (act === "scenario") {
+    STATE.scenario = b.dataset.value;
+    refreshRoutes();
+  } else if (act === "download-md" && STATE.plan) {
+    download("verity_plan.md", "text/markdown", planMarkdown(STATE.plan));
+  } else if (act === "download-ics" && STATE.plan) {
+    download("verity_plan.ics", "text/calendar", planIcs(STATE.plan));
+  } else if (act === "example") {
+    if (STATE.saved && !confirm("Replace your saved profile with this synthetic example?")) return;
+    try {
+      const data = await api("/api/profile/example", { method: "POST", body: JSON.stringify({ id: b.dataset.id }) });
+      setProfileToken(data.token);
+      STATE.saved = data.profile;
+      STATE.profileError = "";
+      STATE.review = null;
+      STATE.cv = "parsed";
+      rerender();
+      toast("Example profile saved. It is synthetic: no CV was read.");
+      refreshRoutes();
+    } catch (err) {
+      toast(errText(err));
+    }
+  }
+});
+
 window.addEventListener("hashchange", navigate);
-Promise.all([loadSignals(), loadForecast(), loadProfile().then(loadRoutes).then(loadPlan)]).finally(navigate);
+STATE.loading = profileToken() ? "profile" : "";
+navigate();  // draw at once; the data arrives below
+loadMine();
+loadSignals().then(() => rerender());
+loadForecast().then(() => rerender());
+loadExamples().then(() => rerender());

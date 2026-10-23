@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy import stats
-from streamlit.testing.v1 import AppTest
 
 from engine import exposure_indices as ei
 from engine import k_estimate as ke
@@ -19,8 +18,6 @@ from engine.forecast import inv_logit
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-APP_PATH = str(ROOT / "app.py")
-TIMEOUT = 60
 
 needs_outputs = pytest.mark.skipif(
     not (DATA / "exposure_agreement.json").exists() or not (DATA / "exposure_robustness.csv").exists()
@@ -589,61 +586,3 @@ def test_k_estimate_file_is_strict_json_and_states_the_verdict():
     # the same sign rule the verdict uses
     assert out["verdict"]["pins_k_down"] == (
         out["verdict"]["ci_excludes_zero"] and out["verdict"]["same_sign_in_all_specs"])
-
-
-# --- the app ----------------------------------------------------------------------------
-
-def _joined(at: AppTest) -> str:
-    groups = [at.markdown, at.caption, at.info, at.success, at.warning, at.error,
-              at.subheader, at.header, at.title]
-    return "\n".join(e.value for group in groups for e in group)
-
-
-@pytest.fixture(scope="module")
-def app_run():
-    return AppTest.from_file(APP_PATH, default_timeout=TIMEOUT).run()
-
-
-@needs_outputs
-def test_app_shows_contested_flag_only_for_contested_skills(app_run):
-    robustness = pd.read_csv(DATA / "exposure_robustness.csv")
-    contested = robustness.loc[~robustness["stance_robust"], "skill"].iloc[0]
-    robust = robustness.loc[robustness["stance_robust"], "skill"].iloc[0]
-
-    at = app_run.selectbox(key="detail_skill").set_value(contested).run()
-    stance_lines = [m.value for m in at.markdown if m.value.startswith("**AI stance:**")]
-    assert len(stance_lines) == 1 and "(contested across indices)" in stance_lines[0]
-
-    at = at.selectbox(key="detail_skill").set_value(robust).run()
-    stance_lines = [m.value for m in at.markdown if m.value.startswith("**AI stance:**")]
-    assert len(stance_lines) == 1 and "contested" not in stance_lines[0]
-
-
-@needs_outputs
-def test_method_tab_has_the_cross_check_and_the_k_line(app_run):
-    assert not app_run.exception
-    text = _joined(app_run)
-    assert "Exposure cross-check" in text
-    assert "**Contested:**" in text
-    assert "k from data:" in text and "labelled assumption" in text
-    frames = [d.value for d in app_run.dataframe]
-    cross = [f for f in frames if "Contested?" in f.columns]
-    assert len(cross) == 1 and len(cross[0]) == 6
-    assert {"Category", "Our stance", "Anthropic Economic Index"} <= set(cross[0].columns)
-
-
-@needs_outputs
-def test_app_without_the_new_files_still_runs(tmp_path):
-    """Hide the step 9 files: no cross-check section, no contested flag, no error."""
-    import shutil
-
-    shutil.copy(APP_PATH, tmp_path / "app.py")
-    shutil.copytree(ROOT / "engine", tmp_path / "engine")
-    data = tmp_path / "data"
-    shutil.copytree(DATA, data, ignore=shutil.ignore_patterns(
-        "raw", "exposure_agreement.json", "exposure_robustness.csv", "k_estimate.json"))
-    at = AppTest.from_file(str(tmp_path / "app.py"), default_timeout=TIMEOUT).run()
-    assert not at.exception
-    assert "Exposure cross-check" not in _joined(at)
-    at = at.selectbox(key="detail_skill").set_value("AWS").run()
-    assert "contested across indices" not in _joined(at)

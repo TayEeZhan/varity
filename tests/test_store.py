@@ -1,4 +1,4 @@
-"""Tests for engine.store (snapshot store), engine.live and the app's use of them.
+"""Tests for engine.store (snapshot store), engine.live.
 
 No network and no Replit: LocalStore is a folder, and ReplitStore is tested against a
 fake `replit.object_storage` package that keeps objects in a dict.
@@ -12,18 +12,13 @@ from pathlib import Path
 
 import pytest
 from conftest import write_data_folder
-from streamlit.testing.v1 import AppTest
 
 import engine.refresh
 from engine import live, store
 from engine.store import LocalStore, ReplitStore, StoreError, get_store
 
 ROOT = Path(__file__).resolve().parent.parent
-APP_PATH = str(ROOT / "app.py")
-DATA = ROOT / "data"
 T0 = datetime(2026, 10, 22, 1, 0, 0, tzinfo=timezone.utc)
-needs_real_data = pytest.mark.skipif(
-    not (DATA / "skill_scores.json").exists(), reason="data/skill_scores.json not generated yet")
 
 
 @pytest.fixture
@@ -318,142 +313,3 @@ def test_publish_saves_a_good_refresh_and_never_raises(local, data_folder):
     assert live.publish({"ok": False, "error": "x"}, store=local) is None
     assert live.publish({**result, "scores_updated": False}, store=local) is None
     assert live.publish({**result, "data_dir": "/no/such/folder"}, store=local).startswith("Not saved")
-
-
-# --- the app ----------------------------------------------------------------------------
-
-def _run_app() -> AppTest:
-    return AppTest.from_file(APP_PATH, default_timeout=60).run()
-
-
-def _joined(at: AppTest) -> str:
-    groups = [at.markdown, at.caption, at.info, at.success, at.warning, at.error, at.subheader]
-    return "\n".join(e.value for g in groups for e in g)
-
-
-def _newer_snapshot(tmp_path, generated_at="2099-01-01T00:00:00Z", **meta) -> Path:
-    """Store a copy of the real data, dated `generated_at`, in the store the app will use."""
-    folder = tmp_path / "snapshot_src"
-    folder.mkdir()
-    for name in ("skill_scores.json", "demand_monthly.csv", "hn_threads.csv", "ai_context_monthly.csv"):
-        shutil.copy(DATA / name, folder / name)
-    scores = json.loads((folder / "skill_scores.json").read_text(encoding="utf-8"))
-    scores["generated_at"] = generated_at
-    (folder / "skill_scores.json").write_text(json.dumps(scores), encoding="utf-8")
-    get_store().save_snapshot(folder, {"fetched_at": "2026-10-23T01:00:00Z", "source": "scheduled", **meta})
-    return folder
-
-
-@needs_real_data
-def test_app_shows_a_newer_stored_snapshot_with_the_banner(tmp_path):
-    _newer_snapshot(tmp_path)
-    committed = json.loads((DATA / "skill_scores.json").read_text(encoding="utf-8"))["generated_at"]
-    at = _run_app()
-    assert not at.exception
-    text = _joined(at)
-    assert ("Data refreshed automatically on 2026-10-23T01:00:00Z (scheduled job). "
-            f"Committed snapshot: {committed}.") in text
-    assert "generated 2099-01-01T00:00:00Z" in text
-    assert "Held only on this server" not in text
-    assert [b.label for b in at.sidebar.button] == ["Refresh live data", "Back to committed snapshot", "Reload data"]
-
-
-@needs_real_data
-def test_app_back_to_committed_then_reload_data(tmp_path):
-    _newer_snapshot(tmp_path)
-    committed = json.loads((DATA / "skill_scores.json").read_text(encoding="utf-8"))["generated_at"]
-    at = _run_app()
-    assert "Data refreshed automatically" in _joined(at)
-    at.sidebar.button[1].click().run()  # Back to committed snapshot
-    text = _joined(at)
-    assert f"generated {committed}" in text and "Data refreshed automatically" not in text
-    assert [b.label for b in at.sidebar.button] == ["Refresh live data", "Reload data"]
-    at.run()  # a rerun keeps the committed data the visitor asked for
-    assert "Data refreshed automatically" not in _joined(at)
-    at.sidebar.button[1].click().run()  # Reload data brings the stored data back
-    assert not at.exception and "Data refreshed automatically on 2026-10-23T01:00:00Z" in _joined(at)
-    assert [b.label for b in at.sidebar.button] == ["Refresh live data", "Back to committed snapshot", "Reload data"]
-
-
-@needs_real_data
-def test_app_ignores_a_stored_snapshot_that_is_not_newer(tmp_path):
-    _newer_snapshot(tmp_path, generated_at="2000-01-01T00:00:00Z")
-    at = _run_app()
-    assert not at.exception
-    assert "Data refreshed automatically" not in _joined(at)
-    assert [b.label for b in at.sidebar.button] == ["Refresh live data"]
-
-
-@needs_real_data
-def test_app_with_an_empty_store_shows_the_committed_data():
-    at = _run_app()
-    assert not at.exception
-    text = _joined(at)
-    committed = json.loads((DATA / "skill_scores.json").read_text(encoding="utf-8"))["generated_at"]
-    assert f"generated {committed}" in text and "Data refreshed automatically" not in text
-
-
-@needs_real_data
-@pytest.mark.parametrize("failure", ["raises", "broken_pointer", "incomplete_snapshot"])
-def test_app_falls_back_to_committed_data_when_the_store_fails(tmp_path, monkeypatch, failure):
-    if failure == "raises":
-        def boom(*a, **k):
-            raise RuntimeError("bucket exploded")
-        monkeypatch.setattr(live, "get_store", boom)
-    elif failure == "broken_pointer":
-        root = Path(get_store().root)
-        root.mkdir(parents=True)
-        (root / "latest.json").write_text("{broken", encoding="utf-8")
-    else:
-        _newer_snapshot(tmp_path)
-        sid = get_store().latest_meta()["snapshot_id"]
-        (Path(get_store().root) / "snapshots" / sid / "demand_monthly.csv").unlink()
-    at = _run_app()
-    assert not at.exception
-    text = _joined(at)
-    committed = json.loads((DATA / "skill_scores.json").read_text(encoding="utf-8"))["generated_at"]
-    assert f"generated {committed}" in text and "Data refreshed automatically" not in text
-
-
-@needs_real_data
-def test_app_reads_the_store_once_per_ten_minutes(tmp_path, monkeypatch):
-    _newer_snapshot(tmp_path)
-    reads = []
-    real = LocalStore.latest_meta
-    monkeypatch.setattr(LocalStore, "latest_meta", lambda self: reads.append(1) or real(self))
-    at = _run_app()
-    at.run()
-    at.run()
-    assert not at.exception and len(reads) == 1
-
-
-@needs_real_data
-def test_manual_refresh_is_saved_to_the_store(monkeypatch, tmp_path):
-    folder = tmp_path / "refreshed"
-    folder.mkdir()
-    for name in ("skill_scores.json", "demand_monthly.csv", "taxonomy.json", "exposure.csv", "backtest.json",
-                 "hn_threads.csv", "ai_context_monthly.csv", "SOURCES.md"):
-        shutil.copy(DATA / name, folder / name)
-    result = {"ok": True, "data_dir": str(folder), "month": "2026-10", "posts_before": 266, "posts_after": 271,
-              "fetched_at": "2026-10-22T09:00:00Z", "scores_updated": True, "skills_changed": {}}
-    monkeypatch.setattr(engine.refresh, "refresh", lambda *a, **k: result)
-    assert get_store().latest_meta() is None
-    at = _run_app()
-    at.sidebar.button[0].click().run()
-    assert not at.exception
-    meta = get_store().latest_meta()
-    assert meta["source"] == "manual" and meta["posts_after"] == 271
-    assert "Saved on this machine only" in _joined(at)  # LocalStore is not shared between servers
-
-
-@needs_real_data
-def test_manual_refresh_still_works_when_saving_fails(monkeypatch, tmp_path):
-    result = {"ok": True, "data_dir": str(DATA), "month": "2026-10", "posts_before": 1, "posts_after": 2,
-              "fetched_at": "t", "scores_updated": True, "skills_changed": {}}
-    monkeypatch.setattr(engine.refresh, "refresh", lambda *a, **k: result)
-    monkeypatch.setattr(live, "get_store", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no bucket")))
-    at = _run_app()
-    at.sidebar.button[0].click().run()
-    assert not at.exception
-    text = _joined(at)
-    assert "Refreshed 2026-10: posts 1 -> 2." in text and "Not saved for other visitors" in text

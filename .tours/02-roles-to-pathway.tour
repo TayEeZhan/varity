@@ -1,7 +1,7 @@
 {
   "$schema": "https://aka.ms/codetour-schema",
   "title": "02 Roles to pathway",
-  "description": "How Verity learns what each role asks for, scores one user against the roles, and turns the skill gap into an ordered learning plan. The Streamlit app only calls these functions.",
+  "description": "How Verity learns what each role asks for, scores one user against the roles, and turns the skill gap into an ordered learning plan. The web app only calls these functions.",
   "steps": [
     {
       "file": "engine/roles.py",
@@ -56,18 +56,6 @@
       "line": 270,
       "title": "Task chunking",
       "description": "schedule_tasks cuts each skill into tasks of at most 45 minutes. The daily budget is the weekly hours divided by five. If less than 10 minutes is left in a day, the next piece starts on the next work day. Judge asks: Why 45 minutes? Short answer: It is a planning choice, a block a student can finish in one sitting, and all times are estimates."
-    },
-    {
-      "file": "app.py",
-      "line": 580,
-      "title": "The app calls match_roles",
-      "description": "The Roles tab passes the user's skills, the role profile for the chosen as-of month, the trend labels and the exposure file to match_roles. The app then only displays what comes back. Judge asks: Does the app compute its own scores? Short answer: No, every match number on screen comes from match_roles."
-    },
-    {
-      "file": "app.py",
-      "line": 730,
-      "title": "The app calls build_pathway",
-      "description": "The Pathway tab passes the target role's gap, the gaps of the ranked roles for the no-regret rule, and the resources file to build_pathway. The app does not reorder the plan. Judge asks: Can a language model change the order? Short answer: No, no model is in this path, and the order comes from classify and the data."
     }
   ]
 }

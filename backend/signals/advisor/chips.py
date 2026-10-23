@@ -57,7 +57,8 @@ def role_chips(role: Mapping[str, Any], forecast: Mapping[str, Any] | None, mome
     have, gap, n = role["have"], role["gap"], role["n_profile_skills"]
     if have:
         names = ", ".join(s["skill"] for s in have[:HAVE_SHOWN])
-        chips.append(chip("skill_fit", "skill_fit", f"You already have {len(have)} of its {n} core skills: {names}",
+        names = names if len(have) <= HAVE_SHOWN else f"including {names}"
+        chips.append(chip("skill_fit", "skill_fit", f"You already have {len(have)} of its {n} core skills, {names}",
                           role["match_score"], "profile", as_of["profile"]))
     weeks = gap_weeks(gap, minutes_by_skill, hours_per_week)
     if 0 < len(gap) <= SMALL_GAP_MAX:
@@ -66,7 +67,8 @@ def role_chips(role: Mapping[str, Any], forecast: Mapping[str, Any] | None, mome
                           1 - len(gap) / max(n, 1), "resources", as_of["profile"]))
     trend = (forecast or {}).get("trend") or {}
     label, now, before = trend.get("label"), trend.get("share_last12"), trend.get("share_prev12")
-    shares = f" from {before:.1%} to {now:.1%} of HN hiring posts in 12 months" if now is not None and before is not None else ""
+    # Observed shares (last 12 months vs the 12 before), not a forecast.
+    shares = f": {before:.1%} → {now:.1%} of HN hiring posts, last 12 months vs the 12 before" if now is not None and before is not None else ""
     if label == "Rising":
         chips.append(chip("demand_rising", "demand_rising", f"Demand rising{shares}",
                           1 - (trend.get("p") or 0.5), "role_forecast", as_of["forecast"]))

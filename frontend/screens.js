@@ -3,117 +3,105 @@
 const ICON = {
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   out: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
-  push: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M4 12h7M4 18h7"/><path d="M15 15l3 3 4-6"/></svg>',
   file: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></svg>',
   up: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>',
   arrow: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
 };
 
-const bullet = (line, sm) => `<span class="bullet bullet--${line}${sm ? " bullet--sm" : ""}" title="${LINES[line].name}">${LINES[line].letter}</span>`;
-const ext = (url, text) => `<a href="${url}" target="_blank" rel="noopener">${esc(text)} ${ICON.out}</a>`;
+const bullet = (line, sm) => `<span class="bullet bullet--${line}${sm ? " bullet--sm" : ""}" title="${esc(LINES[line].name)}">${esc(LINES[line].letter)}</span>`;
+const ext = (url, text) => `<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener">${esc(text)} ${ICON.out}</a>`;
 const head = (title, lede, aside = "") => `<div class="screen-head"><div><h1>${title}</h1><p>${lede}</p></div>${aside}</div>`;
-const synth = (text) => `<span class="synthetic">${text}</span>`;
-const real = (text) => `<span class="synthetic real">${text}</span>`;
+const real = (text) => `<span class="synthetic real">${esc(text)}</span>`;
+const snapshot = (text) => `<span class="synthetic">${esc(text)}</span>`;
+
+/* What a screen shows instead of the plan: loading, an error with a retry, or the empty state. "" = show the plan. */
+function gate(kind) {
+  const retry = `<button class="btn" type="button" data-global="retry">Try again</button>`;
+  const problem = (msg) => `<p class="err" role="alert">${esc(msg)}</p><p>${retry}</p>`;
+  if (STATE.loading) return `<p class="empty" role="status" aria-busy="true">Loading your profile and plan…</p>`;
+  if (STATE.profileError) return problem(STATE.profileError);
+  if (!STATE.saved) {
+    return `<div class="empty"><h2>No profile yet</h2><p>Upload a CV or try an example profile.</p>
+      <p><a class="btn btn--primary" href="#/profile">Go to CV &amp; routes</a></p></div>`;
+  }
+  if (STATE.suggestError) return problem(STATE.suggestError);
+  if (STATE.planError) return problem(STATE.planError);
+  if (!STATE.plan) {
+    return `<div class="empty"><h2>No route yet</h2><p>${STATE.suggest && STATE.suggest.roles.length ? "Pick a route on" : "No role fits your saved skills well yet. Add skills on"} <a href="#/profile">CV &amp; routes</a>.</p></div>`;
+  }
+  return "";
+}
+
+const scenarioToggle = () => `<div class="filters" role="group" aria-label="AI scenario">
+    ${[["moderate", "Moderate (estimate)"], ["fast", "Fast AI disruption (estimate)"]].map(([v, label]) =>
+      `<button class="filter" type="button" data-global="scenario" data-value="${v}" aria-pressed="${STATE.scenario === v}">${label}</button>`).join("")}
+  </div>
+  <p class="route-note">Both scenarios are estimates. The scenario does not change how roles rank. Fast shows how much role demand may fall if AI exposure cuts skill demand, and puts future skills earlier in the pathway.</p>`;
+
+const sdgTag = (t) => `<span class="tag" title="Source: ${esc(t.source)}">SDG ${esc(t.target)}: ${esc(t.label)}</span>`;
+
+/* "TalentCorp MyCOL 2024/2025": the occupation(s) on Malaysia's shortage list that match the role. */
+function mycolBadges(items) {
+  return items.map((m) => {
+    const text = `${m.label} ${m.year}: ${m.occupation} (MASCO ${m.mascoCode}) · ${m.strength} match (team judgement)`;
+    return m.url
+      ? `<a class="tag tag--mycol" href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener" title="Source: ${esc(m.label)} ${esc(m.year)}">${esc(text)}</a>`
+      : `<span class="tag tag--mycol">${esc(text)}</span>`;
+  }).join("");
+}
 
 /* ── Today ─────────────────────────────────────────────────────── */
-function activeTasks() {
-  const tasks = TODAY.tasks.slice();
-  if (STATE.replan === "reverted") {
-    tasks.push(...TODAY.cancelled.map((c) => ({ ...c, resource: "GitHub Copilot docs", url: "https://docs.github.com/copilot", why: "Yesterday's plan, restored by you", source: "Manual" })));
-  }
-  return tasks;
-}
-
-function serviceBand() {
-  if (!TODAY.replan) return "";
-  if (STATE.replan === "kept") {
-    return `<div class="service is-kept" role="status"><span class="service__sign">Service change kept</span><p>${esc(TODAY.replan.text)}</p></div>`;
-  }
-  if (STATE.replan === "reverted") {
-    return `<div class="service" role="status"><span class="service__sign">Change reverted</span><p>Yesterday's plan is back, including the Copilot stop. The models it compares are retired, so it may be out of date.</p><div class="service__acts"><button class="btn" data-act="replan-keep">Apply the change again</button></div></div>`;
-  }
-  return `<div class="service" role="status"><span class="service__sign">Service change</span><p><b>${TODAY.replan.when}.</b> ${esc(TODAY.replan.text)}</p><div class="service__acts"><button class="btn" data-act="replan-keep">Keep change</button><button class="btn" data-act="replan-revert">Revert</button></div></div>`;
-}
-
 function stopRow(t) {
   const done = STATE.done.has(t.id);
   return `<div class="stop${done ? " is-done" : ""}">
     ${bullet(t.line)}
-    <div class="stop__mins">${t.mins}<small>min</small></div>
+    <div class="stop__mins">${Number(t.mins)}<small>min</small></div>
     <div class="stop__body">
       <div class="stop__title">${esc(t.title)}</div>
       <div class="stop__res">${ext(t.url, t.resource)}</div>
       <div class="stop__why"><b>Why today</b>${esc(t.why)} · ${esc(t.source)}</div>
     </div>
-    <button class="tick" data-act="tick" data-id="${t.id}" aria-pressed="${done}" aria-label="${done ? "Mark not done" : "Mark done"}: ${esc(t.title)}">${ICON.check}</button>
+    <button class="tick" data-act="tick" data-id="${esc(t.id)}" aria-pressed="${done}" aria-label="${done ? "Mark not done" : "Mark done"}: ${esc(t.title)}">${ICON.check}</button>
   </div>`;
-}
-
-function cancelledRow(c) {
-  return `<div class="stop stop--cancelled">
-    ${bullet(c.line)}
-    <div class="stop__mins">${c.mins}<small>min</small></div>
-    <div class="stop__body">
-      <div class="stop__title">${esc(c.title)}</div>
-      <div class="stop__why"><span class="stamp">Cancelled</span>${esc(c.reason)}</div>
-    </div>
-  </div>`;
-}
-
-function googlePanel(open) {
-  if (STATE.push === "sent") {
-    return `<section class="panel"><h2>Google Tasks</h2>
-      <div class="gt-status is-sent"><i></i>Sent to “Varity · Thu 23 Oct”</div>
-      <ul class="sent-list">${STATE.sent.map((t) => `<li>${bullet(t.line, true)}<span>${esc(t.title)}</span></li>`).join("")}</ul>
-      <p>Due today. Ticking a task in Google Tasks ticks it here too.</p>
-      <button class="btn btn--quiet" data-act="unpush" style="margin:8px 0 0 -10px">Undo send</button>
-      <p style="margin-top:8px">Simulated in this prototype: no Google account is contacted.</p></section>`;
-  }
-  return `<section class="panel"><h2>Google Tasks</h2>
-    <div class="gt-status"><i></i>Not sent yet today</div>
-    <p>One click creates a dated list with today's ${open.length} open stop${open.length === 1 ? "" : "s"}, each linking back to its resource.</p></section>`;
-}
-
-function pushButton(open) {
-  if (STATE.push === "pushing") return `<button class="btn btn--primary pushing" disabled aria-busy="true">${ICON.push}Sending to Google Tasks…</button>`;
-  if (STATE.push === "sent") return `<button class="btn" disabled>${ICON.check}Sent to Google Tasks</button>`;
-  const n = open.length;
-  return `<button class="btn btn--primary" data-act="push" ${n ? "" : "disabled"}>${ICON.push}Push ${n} stop${n === 1 ? "" : "s"} to Google Tasks</button>`;
 }
 
 function renderToday() {
-  const tasks = activeTasks();
-  const open = tasks.filter((t) => !STATE.done.has(t.id));
+  const blocked = gate("plan");
+  if (blocked) return { html: head("Today", "Your next stops, taken from your pathway.") + blocked, bind: () => {} };
+
+  const tasks = TODAY.tasks;
   const mins = tasks.reduce((n, t) => n + t.mins, 0);
   const doneStops = PATHWAY.filter((p) => p.status === "done").length;
   const pct = PATHWAY.length ? Math.round((doneStops / PATHWAY.length) * 100) : 100;
   const coming = PATHWAY.filter((p) => p.status === "next" && !tasks.some((t) => t.station === p.id)).slice(0, 4);
   const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
-  const lede = TARGET.live
-    ? `${tasks.length} stops, ${mins} minutes, from your pathway. Each one says why it is on your list.`
-    : `${tasks.length} stops, ${mins} minutes. Each one is on your list because of a dated signal.`;
+  const title = !TODAY.day ? "Today" : TODAY.day === todayIso() ? `Today, ${TODAY.date}` : `Next stop, ${TODAY.date}`;
+  const lede = TODAY.day
+    ? `${tasks.length} stop${tasks.length === 1 ? "" : "s"}, ${mins} minutes, from your pathway. Each one says why it is on your list.`
+    : "You have ticked every task in this plan.";
 
   const html = `
-    ${head(`Today, ${TODAY.date}`, lede, TARGET.live ? real("Your plan · real data") : synth("Synthetic plan · real signals"))}
+    ${head(esc(title), esc(lede), real("Your plan · computed from your profile"))}
     <section class="route-strip" aria-label="Your route">
       <div class="route-strip__head">
         <h2><span class="bullets">${used.map((l) => bullet(l)).join("")}</span>To ${esc(TARGET.role)}</h2>
-        <div class="progress">${doneStops} of ${PATHWAY.length} stops done <span class="progress__bar"><i style="width:${pct}%"></i></span>${esc(TARGET.match)}</div>
+        <div class="progress">${doneStops} of ${PATHWAY.length} stops done <span class="progress__bar"><i style="width:${pct}%"></i></span>${Number(STATE.plan.matchPct)}% match now</div>
       </div>
-      <p class="route-key">${used.map((l) => `<b>${LINES[l].letter}</b> ${LINES[l].name}: ${LINES[l].skill}`).join(" · ")}</p>
+      <p class="route-key">${used.map((l) => `<b>${esc(LINES[l].letter)}</b> ${esc(LINES[l].name)}: ${esc(LINES[l].skill)}`).join(" · ")}</p>
       <div class="diagram" data-strip>${stripSVG()}</div>
     </section>
-    ${serviceBand()}
     <div class="today-grid">
       <section class="timetable" aria-labelledby="tt-h">
-        <div class="timetable__head"><h2 id="tt-h">Next stops <span>· ${mins} min</span></h2>${pushButton(open)}</div>
-        ${tasks.map(stopRow).join("")}
-        ${STATE.replan === "reverted" ? "" : TODAY.cancelled.map(cancelledRow).join("")}
+        <div class="timetable__head"><h2 id="tt-h">Next stops <span>· ${mins} min</span></h2></div>
+        ${tasks.map(stopRow).join("") || `<p class="empty">Nothing left to do in this plan.</p>`}
       </section>
       <aside class="side">
-        ${googlePanel(open)}
+        <section class="panel"><h2>Take it with you</h2>
+          <p>Download the plan or add its tasks to your calendar. Nothing is sent anywhere.</p>
+          <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
+          <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p></section>
         <section class="panel"><h2>Coming up</h2>
-          <ul class="next-list">${coming.map((p) => `<li>${bullet(p.line, true)}<span>${esc(p.title)}</span><span>Wk ${p.week}</span></li>`).join("")}</ul>
+          <ul class="next-list">${coming.map((p) => `<li>${bullet(p.line, true)}<span>${esc(p.title)}</span><span>Wk ${esc(p.week)}</span></li>`).join("")}</ul>
           <p style="margin-top:10px"><a href="#/pathway">See the whole route</a></p>
         </section>
       </aside>
@@ -126,35 +114,13 @@ function renderToday() {
       strip.scrollLeft = Math.max(0, (idx / PATHWAY.length) * strip.scrollWidth - 60);
     }
     root.addEventListener("click", (e) => {
-      const b = e.target.closest("[data-act]");
+      const b = e.target.closest('[data-act="tick"]');
       if (!b) return;
-      const act = b.dataset.act;
-      if (act === "tick") {
-        const id = b.dataset.id;
-        if (STATE.done.has(id)) STATE.done.delete(id); else STATE.done.add(id);
-        refreshStatus();
-        rerender(`[data-id="${id}"]`);
-      } else if (act === "push") {
-        STATE.push = "pushing";
-        rerender();
-        setTimeout(() => {
-          STATE.push = "sent";
-          STATE.sent = activeTasks().filter((t) => !STATE.done.has(t.id));
-          rerender();
-          toast(`${STATE.sent.length} stops sent to Google Tasks.`, "Undo", () => { STATE.push = "idle"; rerender(); });
-        }, 1100);
-      } else if (act === "unpush") {
-        STATE.push = "idle";
-        rerender();
-        toast("Removed today's list from Google Tasks.");
-      } else if (act === "replan-keep") {
-        STATE.replan = "kept";
-        rerender();
-      } else if (act === "replan-revert") {
-        STATE.replan = "reverted";
-        if (STATE.push === "sent") STATE.push = "idle";
-        rerender();
-      }
+      const id = b.dataset.id;
+      if (STATE.done.has(id)) STATE.done.delete(id); else STATE.done.add(id);
+      saveDone();
+      refreshStatus();
+      rerender(`[data-id="${id}"]`);
     });
   };
   return { html, bind };
@@ -162,17 +128,23 @@ function renderToday() {
 
 /* ── CV & routes ───────────────────────────────────────────────── */
 /* The backend reads the CV (POST /api/cv/extract), the user ticks what is right, and Save keeps the
-   profile on the server (POST /api/profile/apply). STATE.saved is that profile; without it the screen
-   shows the bundled sample, so the page still works opened as a file. */
+   profile on the server (POST /api/profile/apply). STATE.saved is that profile. An example profile
+   (POST /api/profile/example) is saved the same way. */
 const BASIS = { stated: "In your CV", implied: "Implied", suggested: "Suggested", self_reported: "Added by you" };
 const QUOTE_DROPS = new Set(["QUOTE_NOT_FOUND", "PHRASE_NOT_IN_QUOTE"]);
 const yearsText = (y) => (y == null ? "–" : `${y} yr`);
+const isExample = (s) => s.evidence.some((e) => /^Synthetic example/.test(e.note || ""));
 
 function llmLine(status) {
   if (status === "llm") return `Read by ${STATE.review.model}. Every quote was checked against your CV.`;
   if (status === "cached") return "A saved AI reading of this sample CV (no API key needed). Every quote was checked again.";
   return `The AI reading was not used (${status.replace("off:", "")}). These are keyword matches: tick the ones that are right.`;
 }
+
+const exampleButtons = () => STATE.examples.length
+  ? `<p class="examples"><b>Try an example</b> (synthetic, no CV needed): ${STATE.examples.map((e) =>
+      `<button class="btn btn--quiet" type="button" data-global="example" data-id="${esc(e.id)}" title="${esc(e.headline)}: ${esc(e.skills.join(", "))}">${esc(e.name)}</button>`).join("")}</p>`
+  : "";
 
 function cvPanel() {
   if (STATE.cv === "review") {
@@ -191,14 +163,7 @@ function cvPanel() {
       <p>${STATE.saved.skills.length} skills · updated ${esc(STATE.saved.updated_at.slice(0, 10))}. Kept on Varity's server; only this browser holds the key to it.</p>
       <button class="btn" data-act="cv-replace">Read another CV</button>
       <button class="btn btn--quiet" data-act="profile-delete">Delete my profile</button>
-    </div>`;
-  }
-  if (STATE.cv === "parsed") {
-    return `<div class="cvfile">
-      <div class="cvfile__name">${ICON.file}${esc(STATE.cvFile)}</div>
-      <p>Read on 23 Oct · ${PROFILE.skills.length} skills found · ${PROFILE.years} of experience.</p>
-      <p>${esc(PROFILE.model)}.</p>
-      <button class="btn" data-act="cv-replace">Replace CV</button>
+      ${exampleButtons()}
     </div>`;
   }
   if (STATE.cv === "parsing") {
@@ -213,16 +178,17 @@ function cvPanel() {
       <input type="file" accept=".pdf,.txt,.md" hidden data-file>
       <button class="btn" type="button" data-act="cv-choose">Choose a file</button>
       <button class="btn btn--quiet" type="button" data-act="cv-sample">Use the synthetic sample CV</button>
-    </div>`;
+    </div>
+    ${exampleButtons()}`;
 }
 
 function reviewTable() {
   const r = STATE.review;
   const rows = r.rows.map((row) => `<tr>
       <td><input type="checkbox" class="keep" data-keep="${esc(row.skill_id)}" aria-label="Keep ${esc(row.name)}"${STATE.keep.has(row.skill_id) ? " checked" : ""}></td>
-      <td>${esc(row.name)}</td><td><span class="lvl">${BASIS[row.basis]}</span></td>
+      <td>${esc(row.name)}</td><td><span class="lvl">${esc(BASIS[row.basis])}</span></td>
       <td class="q">${row.quote ? `“${esc(row.why)}”` : esc(row.why)}${row.note ? `<br><span class="err">${esc(row.note)}</span>` : ""}</td>
-      <td>${yearsText(row.years)}</td></tr>`).join("");
+      <td>${esc(yearsText(row.years))}</td></tr>`).join("");
   const dropped = r.dropped.filter((d) => QUOTE_DROPS.has(d.reason));
   return `<table class="skills"><thead><tr><th scope="col">Keep</th><th scope="col">Skill</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th></tr></thead><tbody>${rows}</tbody></table>
     ${r.interests.length ? `<p class="empty"><b>Learning, not counted as skills:</b> ${r.interests.map((i) => esc(i.name)).join(", ")}</p>` : ""}
@@ -230,9 +196,11 @@ function reviewTable() {
 }
 
 function savedTable() {
-  const why = (s) => (s.evidence_quote ? `“${esc(s.evidence_quote)}”` : esc((s.evidence.find((e) => e.rule) || {}).rule || "Added by you"));
+  const why = (s) => (s.evidence_quote ? `“${esc(s.evidence_quote)}”`
+    : esc((s.evidence.find((e) => e.rule) || s.evidence.find((e) => e.note) || {}).rule || (s.evidence.find((e) => e.note) || {}).note || "Added by you"));
+  const basis = (s) => (isExample(s) ? "Synthetic example" : BASIS[s.basis]);
   return `<table class="skills"><thead><tr><th scope="col">Skill</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th><th scope="col">Edit</th></tr></thead>
-    <tbody>${STATE.saved.skills.map((s) => `<tr><td>${esc(s.name)}</td><td><span class="lvl">${BASIS[s.basis]}</span></td><td class="q">${why(s)}</td><td>${yearsText(s.years)}</td>
+    <tbody>${STATE.saved.skills.map((s) => `<tr><td>${esc(s.name)}</td><td><span class="lvl">${esc(basis(s))}</span></td><td class="q">${why(s)}</td><td>${esc(yearsText(s.years))}</td>
       <td><button class="btn btn--quiet" data-act="skill-remove" data-id="${esc(s.skill_id)}" aria-label="Remove ${esc(s.name)}">Remove</button></td></tr>`).join("")}</tbody></table>`;
 }
 
@@ -243,34 +211,7 @@ function skillsTable() {
     const row = `<tr><td><div class="skel" style="width:120px"></div></td><td><div class="skel" style="width:60px"></div></td><td><div class="skel"></div></td></tr>`;
     return `<table class="skills"><tbody>${row.repeat(4)}</tbody></table>`;
   }
-  if (STATE.cv !== "parsed") {
-    return `<p class="empty">Your origin station appears here once a CV is read: the role you hold now, your years of experience, and each skill with the sentence from your CV that proves it.</p>`;
-  }
-  return `<table class="skills">
-    <thead><tr><th scope="col">Skill</th><th scope="col">Level</th><th scope="col">Evidence from your CV</th></tr></thead>
-    <tbody>${PROFILE.skills.map((s) => `<tr><td>${esc(s.name)}</td><td><span class="lvl">${s.level}</span></td><td class="q">“${esc(s.evidence)}”</td></tr>`).join("")}</tbody>
-  </table>`;
-}
-
-function routeRow(r) {
-  const cur = STATE.routeId === r.id;
-  const action = cur
-    ? `<span class="current-tag"><i></i>Your current route</span>`
-    : `<button class="btn" data-act="route" data-id="${r.id}">Switch to this route</button>`;
-  return `<div class="route${cur ? " is-current" : ""}">
-    <div class="route__row">
-      <div class="route__match">${r.match}%<small>match now</small></div>
-      <div><div class="route__role">${esc(r.role)}</div>
-        <div class="route__role-sub"><span class="bullets">${r.lines.map((l) => bullet(l, true)).join("")}</span>Outlook: ${r.outlook} (estimate)</div></div>
-      <div class="route__fact"><b>${r.stops} stops</b><span>to go</span></div>
-      <div class="route__fact"><b>${r.weeks}</b><span>${r.hours}</span></div>
-      ${action}
-    </div>
-    <div class="route__gap">
-      <div><h3>You already have</h3><div class="chips">${r.have.map((h) => `<span class="chip">${esc(h)}</span>`).join("")}</div></div>
-      <div><h3>Skills gap</h3><div class="chips">${r.gap.map((g) => `<span class="chip chip--gap">${esc(g)}</span>`).join("")}</div></div>
-    </div>
-  </div>`;
+  return `<p class="empty">Upload a CV or try an example profile. Your skills appear here, each with the sentence from your CV that proves it.</p>`;
 }
 
 /* Live route from GET /api/roles/suggestions. Every reason chip was written by code from a dated source;
@@ -281,23 +222,32 @@ const SOURCE_TEXT = { profile: "your saved profile", role_forecast: "job forecas
   role_profiles: "role profiles", skill_scores: "skill scores" };
 const reasonChip = (c, cls = "") => `<span class="chip reason${cls}" title="Source: ${esc(SOURCE_TEXT[c.source] || c.source)}${c.asOf ? `, ${esc(c.asOf)}` : ""}"><span aria-hidden="true">${CHIP_ICON[c.type] || "•"}</span> ${esc(c.text)}</span>`;
 
+function roleSdgHTML(sdg) {
+  const sectors = sdg.sectors.map((x) => `<p class="route__sdg">${x.tags.map(sdgTag).join(" ")} ${esc(x.name)}: ${esc(x.sharePct)}% of this role's posts, against ${esc(x.baselinePct)}% of all posts (${esc(x.count)} of ${esc(x.posts)}, last ${esc(x.months)} months, as of ${esc(x.asOf)}). Source: data/role_sdg.json</p>`).join("");
+  return (sdg.tags.length ? `<p class="route__sdg">${sdg.tags.map(sdgTag).join(" ")}</p>` : "") + sectors;
+}
+
 function liveRouteRow(r) {
   const cur = STATE.routeId === r.roleId;
   const action = cur
     ? `<span class="current-tag"><i></i>Your current route</span>`
     : `<button class="btn" data-act="route" data-id="${esc(r.roleId)}">Switch to this route</button>`;
   const outlook = r.outlook && r.outlook.label ? `Demand: ${esc(r.outlook.label)} (job forecast, ${esc(r.outlook.asOf || "")})` : "Demand: too few posts to tell";
+  const fast = STATE.scenario === "fast" && r.fastShift != null
+    ? `<p class="route-note">Fast AI scenario (estimate): about ${r.fastShift >= 0 ? "+" : ""}${(r.fastShift * 100).toFixed(1)}% role demand vs moderate. Does not change the ranking.</p>` : "";
   return `<div class="route${cur ? " is-current" : ""}">
     <div class="route__row">
-      <div class="route__match">${r.matchPct}%<small>match now</small></div>
-      <div><div class="route__role">#${r.rank} ${esc(r.name)}</div>
+      <div class="route__match">${Number(r.matchPct)}%<small>match now</small></div>
+      <div><div class="route__role">#${Number(r.rank)} ${esc(r.name)}</div>
         <div class="route__role-sub"><b>${esc(r.fitLabel)}</b> · ${outlook}</div>
         ${r.summary ? `<p class="route__summary">${esc(r.summary)}</p>` : ""}</div>
       <div class="route__fact"><b>${r.gap.length} skills</b><span>to learn</span></div>
       <div class="route__fact"><b>${r.have.length} of ${r.have.length + r.gap.length}</b><span>core skills held</span></div>
       ${action}
     </div>
-    <div class="route__why"><div class="chips">${r.reasons.map((c) => reasonChip(c)).join("")}${r.watchOut ? reasonChip(r.watchOut, " reason--watch") : ""}</div></div>
+    <div class="route__why"><div class="chips">${r.reasons.map((c) => reasonChip(c)).join("")}${r.watchOut ? reasonChip(r.watchOut, " reason--watch") : ""}</div>
+      ${fast}${roleSdgHTML(r.sdg)}
+      ${r.mycol.length ? `<div class="route__tags">${mycolBadges(r.mycol)}</div>` : ""}</div>
     <div class="route__gap">
       <div><h3>You already have</h3><div class="chips">${r.have.map((h) => `<span class="chip">${esc(h)}</span>`).join("") || "<span>None yet</span>"}</div></div>
       <div><h3>Skills gap</h3><div class="chips">${r.gap.map((g) => `<span class="chip chip--gap">${esc(g)}</span>`).join("") || "<span>No gap</span>"}</div></div>
@@ -307,25 +257,36 @@ function liveRouteRow(r) {
 
 function liveRoutes() {
   const s = STATE.suggest;
-  const by = s.rankedBy === "llm" ? "Ranked by AI within limits, checked against the data" : "Ranked by the formula (match 70% + demand 30%)";
-  const low = s.lowMatch.length ? `<p class="empty"><b>Low match, not ranked:</b> ${s.lowMatch.map((r) => `${esc(r.name)} (${r.matchPct}%)`).join(", ")}</p>` : "";
+  const w = s.formulaWeights;
+  const formula = `match ${Math.round(w.match * 100)}% + demand ${Math.round(w.future * 100)}%`;
+  const by = s.rankedBy === "llm" ? "Ranked by AI within limits, checked against the data" : `Ranked by the formula (${formula})`;
+  const low = s.lowMatch.length ? `<p class="empty"><b>Low match, not ranked:</b> ${s.lowMatch.map((r) => `${esc(r.name)} (${Number(r.matchPct)}%)`).join(", ")}</p>` : "";
   const unmapped = s.unmappedSkills.length ? `<p class="empty"><b>Not in the job data yet, so not counted:</b> ${s.unmappedSkills.map(esc).join(", ")}</p>` : "";
-  return `<p class="route-note">${by}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>
+  return `<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>
     ${s.roles.length ? s.roles.map(liveRouteRow).join("") : `<p class="empty">No role matches your saved skills well yet. Add skills from another CV.</p>`}${low}${unmapped}`;
+}
+
+function plannerHTML() {
+  const problem = (msg) => `<p class="err" role="alert">${esc(msg)}</p><p><button class="btn" type="button" data-global="retry">Try again</button></p>`;
+  if (STATE.loading) return `<p class="empty" role="status" aria-busy="true">Loading your routes…</p>`;
+  if (STATE.profileError) return problem(STATE.profileError);
+  if (!STATE.saved) return `<p class="empty">Upload a CV or try an example profile. Routes appear after that.</p>`;
+  if (STATE.suggestError) return problem(STATE.suggestError);
+  if (!STATE.suggest) return "";
+  return `<div class="planner__from"><b>From</b> ${esc(STATE.saved.name || "your saved profile")} ${ICON.arrow} <b>To</b> the roles your skills fit best</div>${scenarioToggle()}${liveRoutes()}`;
 }
 
 function stationText() {
   if (STATE.cv === "parsed" && STATE.saved) return [STATE.saved.name || "Your profile", `${STATE.saved.skills.length} skills, each with its evidence`];
-  if (STATE.cv === "parsed") return [PROFILE.name, `${PROFILE.years} · read from ${STATE.cvFile}`];
   if (STATE.cv === "review") return ["Check your skills", `${STATE.review.rows.length} found in ${STATE.cvFile}`];
-  return ["Origin station", "Waiting for a CV"];
+  return ["Origin station", "Waiting for a CV or an example profile"];
 }
 
 function renderProfile() {
   const parsed = STATE.cv === "parsed";
   const [station, stationSub] = stationText();
   const html = `
-    ${head("Your CV and routes", "Varity reads your CV, shows the sentence behind every skill it finds, then plans routes to roles that are rising.", STATE.suggest ? real("Real match scores") : synth(STATE.saved ? "Synthetic match scores" : "Synthetic CV and match scores"))}
+    ${head("Your CV and routes", "Varity reads your CV, shows the sentence behind every skill it finds, then plans routes to roles that are rising.", STATE.suggest ? real("Match scores computed from your skills") : "")}
     <div class="origin">
       <div>${cvPanel()}</div>
       <section aria-labelledby="org-h">
@@ -334,11 +295,8 @@ function renderProfile() {
       </section>
     </div>
     <section aria-labelledby="jp-h">
-      <h2 class="sec" id="jp-h">Journey planner <small>Match = share of the role's core skills your CV already shows</small></h2>
-      ${STATE.suggest && parsed
-        ? `<div class="planner__from"><b>From</b> ${esc(STATE.saved.name || "your saved profile")} ${ICON.arrow} <b>To</b> the roles your skills fit best</div>${liveRoutes()}`
-        : `<div class="planner__from"><b>From</b> ${parsed ? esc(PROFILE.name) : "your CV"} ${ICON.arrow} <b>To</b> three roles rising in the job forecast</div>
-      ${parsed ? ROUTES.map(routeRow).join("") : `<p class="empty">Routes appear after your CV is read.</p>`}`}
+      <h2 class="sec" id="jp-h">Journey planner <small>Match = share of the role's core skills your profile already shows</small></h2>
+      ${parsed || STATE.loading ? plannerHTML() : `<p class="empty">Upload a CV or try an example profile. Routes appear after that.</p>`}
     </section>`;
 
   const bind = (root) => {
@@ -352,15 +310,7 @@ function renderProfile() {
       try {
         STATE.review = await api("/api/cv/extract", { method: "POST", body: JSON.stringify(body) });
       } catch (err) {
-        if (err instanceof TypeError && body.sample) {
-          // No backend (page opened as a file): fall back to the bundled sample.
-          STATE.cv = "parsed";
-          STATE.cvFile = PROFILE.file;
-          rerender();
-          toast("Varity's server is not reachable, so this is the bundled sample CV.");
-          return;
-        }
-        fail(err instanceof TypeError ? "Could not reach Varity's server. Try again." : err.message);
+        fail(errText(err));
         return;
       }
       STATE.keep = new Set(STATE.review.rows.filter((r) => r.default_keep).map((r) => r.skill_id));
@@ -385,7 +335,7 @@ function renderProfile() {
           STATE.review = null;
           rerender();
         }
-        toast(err instanceof TypeError ? "Could not reach Varity's server. Try again." : err.message);
+        toast(errText(err));
       }
     };
     root.addEventListener("change", (e) => {
@@ -438,27 +388,24 @@ function renderProfile() {
           setProfileToken(null);
           STATE.saved = null;
           STATE.suggest = null;
-          STATE.routeId = "llm-app";
+          STATE.routeId = null;
           applyPlan(null);
           STATE.cv = "empty";
           rerender();
           toast("Your profile was deleted.");
         });
       }
-      else if (act === "route" && STATE.suggest) {
+      else if (act === "route") {
         call("/api/profile/target-role", { method: "POST", body: JSON.stringify({ roleId: b.dataset.id }) }, async (data) => {
           STATE.saved = data.profile;
           STATE.routeId = data.profile.target_role;
-          STATE.done = new Set();  // ticks belong to the old route's tasks
+          STATE.done = new Set();
           await loadPlan();
+          STATE.loading = "";
           location.hash = "#/pathway";
+          rerender();
           toast(STATE.plan ? `Route switched. Your pathway now leads to ${STATE.plan.targetRole}.` : "Route saved, but the pathway could not be built.");
         });
-      }
-      else if (act === "route") {
-        STATE.routeId = b.dataset.id;
-        rerender();
-        toast("Route switched. This sample shows only the LLM application engineer pathway; save your CV for real routes.");
       }
     });
   };
@@ -466,44 +413,67 @@ function renderProfile() {
 }
 
 /* ── Pathway ───────────────────────────────────────────────────── */
+/* "all with free resources" only when every chosen resource is free. */
+function costText(steps) {
+  const costs = steps.filter((s) => s.resource).map((s) => s.resource.cost);
+  const paid = costs.filter((c) => c !== "free");
+  if (!paid.length) return "all with free resources";
+  return `${costs.length - paid.length} of ${costs.length} resources are free; the others are ${[...new Set(paid)].join(" or ")}`;
+}
+
 function renderPathway() {
+  const blocked = gate("plan");
+  if (blocked) return { html: head("Pathway", "The ordered stops from your skills to your route.") + blocked, bind: () => {} };
+
   const totalMin = PATHWAY.reduce((n, p) => n + p.mins, 0);
   const weeks = [...new Set(PATHWAY.map((p) => p.week))];
   const statusText = { done: "Done", current: "You are here", next: "Upcoming" };
-  const stopHTML = (p) => `<div class="pstop is-${p.status}" data-stop="${p.id}">
+  const stopHTML = (p) => `<div class="pstop is-${p.status}" data-stop="${esc(p.id)}">
       ${bullet(p.line, true)}
-      <div><div class="pstop__t">${esc(p.title)}<span>${p.mins} min</span></div>
-        <div class="pstop__r">${ext(p.url, p.resource)}</div>
-        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${p.cost}</span><span class="tag">SDG ${p.sdg}</span></div>
+      <div><div class="pstop__t">${esc(p.title)}<span>${Number(p.mins)} min</span></div>
+        <div class="pstop__r">${p.url ? ext(p.url, p.resource) : esc(p.resource)}</div>
+        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.map(sdgTag).join("")}</div>
+        ${p.sdgReason ? `<p class="pstop__why">${esc(p.sdgReason)}</p>` : ""}
         ${p.why ? `<p class="pstop__why">${esc(p.why)}</p>` : ""}
         ${p.reasons ? `<div class="chips">${p.reasons.map((c) => reasonChip(c)).join("")}</div>` : ""}</div>
     </div>`;
   const weekHTML = (w) => {
     const stops = PATHWAY.filter((p) => p.week === w);
     const hrs = Math.round((stops.reduce((n, p) => n + p.mins, 0) / 60) * 10) / 10;
-    return `<section class="week"><h3>Week ${w} <span>${hrs} h</span></h3>${stops.map(stopHTML).join("")}</section>`;
+    return `<section class="week"><h3>Week ${esc(w)} <span>${hrs} h</span></h3>${stops.map(stopHTML).join("")}</section>`;
   };
 
   const plan = STATE.plan;
-  const badge = !plan ? synth("Synthetic pathway · real resources")
-    : real(plan.personalisedBy === "llm" ? "Personalised by AI, checked against the data" : "Built by the formula from your profile");
-  const lede = plan && !PATHWAY.length
+  const badge = real(plan.personalisedBy === "llm" ? "Personalised by AI, checked against the data" : "Built by the formula from your profile");
+  const lede = !PATHWAY.length
     ? `You already have every core skill of ${esc(TARGET.role)}, so there is no gap to plan.`
-    : `${PATHWAY.length} stops over ${weeks.length} weeks, about ${Math.round(totalMin / 60)} hours, all with free resources. Hover a station to light its line.`;
+    : `${PATHWAY.length} stops over ${weeks.length} weeks, about ${Math.round(totalMin / 60)} hours (estimate), ${esc(costText(plan.steps))}. Hover a station to light its line.`;
   const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
+  const sdg = plan.sdgSummary;
 
   const html = `
     ${head(`Pathway to ${esc(TARGET.role)}`, lede, badge)}
-    ${plan ? `<p class="route-note">${plan.hoursPerWeek} h a week from ${esc(plan.startDate)}${plan.finishDate ? ` to ${esc(plan.finishDate)}` : ""}. Skills as of ${esc(plan.skillsAsOf || "–")}. ${esc(plan.notes[0] || "")} <a href="#/profile">Change route</a></p>` : ""}
+    <p class="route-note">${esc(plan.scenarioLabel)}: ${Number(plan.hoursPerWeek)} h a week from ${esc(plan.startDate)}${plan.finishDate ? ` to ${esc(plan.finishDate)}` : ""}. Skills as of ${esc(plan.skillsAsOf || "–")}. ${esc(plan.notes[0] || "")} <a href="#/profile">Change route</a></p>
+    ${scenarioToggle()}
     <section class="pathmap" aria-label="Route map">
       <div class="diagram">${pathwaySVG()}</div>
       <p class="swipe-hint" style="padding:0 12px">Swipe the map sideways to see every station.</p>
       <div class="legend">
-        ${used.map((l) => `<span><i class="sw-line" style="background:var(--${l})"></i>${LINES[l].name} · ${LINES[l].skill}</span>`).join("")}
+        ${used.map((l) => `<span><i class="sw-line" style="background:var(--${l})"></i>${esc(LINES[l].name)} · ${esc(LINES[l].skill)}</span>`).join("")}
         <span><i class="sw-dot sw-done"></i>Done</span>
         <span><i class="sw-dot sw-here"></i>You are here</span>
         <span><i class="sw-x"></i>Interchange: one stop on two lines</span>
       </div>
+    </section>
+    <section class="panel" aria-labelledby="ex-h"><h2 id="ex-h">Take the plan with you</h2>
+      <p>The files are built in your browser from this pathway. Nothing is sent anywhere.</p>
+      <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
+      <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p></section>
+    <section class="panel" aria-labelledby="sdg-h"><h2 id="sdg-h">SDG and MyCOL links</h2>
+      ${sdg.lines.map((l) => `<p>${esc(l)}</p>`).join("")}
+      <p>${esc(sdg.line)}</p>
+      ${roleSdgHTML(plan.roleSdg)}
+      ${plan.mycol.length ? `<div class="route__tags">${mycolBadges(plan.mycol)}</div>` : ""}
     </section>
     <div class="weeks">${weeks.map(weekHTML).join("")}</div>`;
 
