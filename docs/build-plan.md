@@ -21,7 +21,7 @@ Sections 2 and 3 below are the plan as written earlier. This table is the curren
 | Step 7 new-skill discovery radar | ✅ merged; weak backtest, human review only | PR #7, docs/skill-discovery.md |
 | Step 8 JobStreet Malaysia | ❌ stopped: Cloudflare challenge; needs a data partnership | docs/jobstreet.md (branch feat/jobstreet-my) |
 | E9 "what changed and why" | 🟡 partial: Refresh lists changed skills; no full diff view | app.py |
-| S1 CV extraction (Claude Haiku) | ⏳ Sheng Kuan | not started in this repo |
+| S1 CV extraction (Claude Haiku 4.5) | ✅ merged (PR #16); live run on Replit not yet verified | docs/skill-profile-intake-architecture.md |
 | S2 AI news ranker feed | ⏳ Sheng Kuan; plugs into `ext_momentum` | docs/ml-forecaster.md |
 | Submission documents, pitch script, Q&A | ⏳ drafts on branch docs/submission | docs/submission/ |
 | Open decisions | ❓ AIOE licence; cloud_devops stance; JobStreet route; Gmail in old commits | — |
@@ -45,7 +45,7 @@ Sections 2 and 3 below are the plan as written earlier. This table is the curren
 | Link to the 17 SDGs | SDG tag per skill (P1), per role and per plan (E7, E8) | 🟡 / ⏳ |
 | Profile intake (CV, form) | CV extractor (S1) | ⏳ (Sheng Kuan) |
 | More than one scenario, labelled as estimates | Moderate and fast scenarios (P9) | 🟡 |
-| Name the LLM, cite every source, never invent | Sources on every record, tests, SOURCES.md | ✅ (LLM not chosen yet ❓) |
+| Name the LLM, cite every source, never invent | Sources on every record, tests, SOURCES.md | ✅ (Claude Haiku 4.5 for CV intake; live run on Replit not yet verified) |
 
 **Data flow:**
 
@@ -221,10 +221,10 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
 - **What it does:** compares two runs and lists changes: label flips, level moves, band changes and the role ranking. Each change shows the data that caused it (new month, new posts).
 - **Why:** the brief's success test says the output visibly changes when the trend data changes. This makes the change explicit and traceable.
 
-### S1. CV intake ⏳ (Sheng Kuan)
+### S1. CV intake ✅ merged (Sheng Kuan); live run on Replit not yet verified
 - **What it does:** reads a CV and returns skills with an **exact quote** from the CV and years of experience.
 - **How:**
-  - An LLM extracts the skills.
+  - An LLM (Claude Haiku 4.5) points at the skill mentions.
   - Code then drops any skill whose quote is not in the CV. That stops the LLM from inventing skills.
   - Skill names must match `data/taxonomy.json`.
 - **Human control:** the user can remove or add skills and choose a target role.
@@ -241,9 +241,9 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
 - CV upload page, roles page and plan page in Streamlit.
 - Fill and check `data/resources.json`.
 
-### LLM ❓
-- We must choose **one** hosted model and name it in the app and the documents. It is used only for CV extraction and for wording explanations.
-- **Option to check:** Replit's built-in AI integration. It needs no separate API key, and it adds more proof of Replit use. Otherwise, one Anthropic or OpenAI model with a spending cap.
+### LLM ✅ (design; live run on Replit not yet verified)
+- The CV intake uses Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works. The intake has a daily cap of $1 (`VERITY_INTAKE_DAILY_BUDGET_USD`).
+- The forecast, role match, pathway and SDG parts use no LLM.
 - No local models and no fine-tuning, so no GPU and no RunPod.
 
 ### Documents ⏳
@@ -282,6 +282,6 @@ Every major part gets a stronger-model review before it is called done, and a sh
 | Commit history looks like one person | Sheng Kuan commits his own work from now on. |
 
 ## 6. Decisions needed
-1. ❓ Which LLM (check Replit's AI integration first).
+1. ✅ LLM: Claude Haiku 4.5 through Replit AI Integrations. Verify it on the deployed app.
 2. ❓ Git email: commits show a personal email that becomes public when the repo opens. Option: switch to the GitHub noreply address for future commits.
 3. ❓ Final list of 8 roles (draft above).

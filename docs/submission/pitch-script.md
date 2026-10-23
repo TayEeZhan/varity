@@ -7,14 +7,14 @@ Branch: `docs/submission`. Status: draft for the team to rehearse and edit. Noth
 
 - **Target length: 5:45.** Hard maximum: 7:00. The organisers want 5 to 7 minutes and take 1 point per 30 s over (`C:\Users\eezha\sdc-hackathon\BRIEF.md`). The headroom is 1:15.
 - **Speaking split:** Sheng Kuan 176 s, Ee Zhan 169 s.
-- **Words:** 592 written words. 716 spoken words once numbers are read aloud ("6.4%" is four words, "54.6%" is five). Average 125 words per minute. Fastest rows 129 (rows 1 and 8). Slowest row 101 (row 11). The aim is 140 or less on every row. All rows pass (see the check below).
+- **Words:** 594 written words. 718 spoken words once numbers are read aloud ("6.4%" is four words, "54.6%" is five). Average 125 words per minute. Fastest rows 129 (rows 1 and 8). Slowest row 101 (row 11). The aim is 140 or less on every row. All rows pass (see the check below).
 - **Layout:** slides only at the start (0:00-0:40) and the end (3:45-5:45). The live app fills 0:40-3:45, as the organisers advise: keep the slides generic and focus on the system demo.
 
 ## Rules this script follows
 
 1. Every number comes from a file in the repo. The last section maps each number to its file.
 2. Aina is synthetic and the script says so (row 1). The app labels her "(synthetic)".
-3. The app uses no language model today, and the script says so (row 10). Claude Haiku appears only as the next step.
+3. Only the CV intake uses a language model, and the script says so (row 10). The forecast, role match, pathway and SDG parts use none. The model only points at skills. Code checks every quote.
 4. The script claims no HRD Corp listing and no Malaysian data.
 5. No sentence says the forecast predicts a precise future. The script says the simple method won.
 
@@ -44,7 +44,7 @@ Branch: `docs/submission`. Status: draft for the team to rehearse and edit. Noth
 | 3:34-3:45<br>(11 s)<br>**Demo 6: Refresh**<br>row 7 | Ee Zhan | Scroll the sidebar to "Refresh live data" and click it. Wait for the green "Refreshed ..." message. Point at the header line "Data as of ..." and the generated time beside it. | Last, Refresh live data. It fetches the open Hacker News thread and rebuilds the scores. The header shows when the data was rebuilt. |
 | 3:45-4:32<br>(47 s)<br>**Trust: tests and band**<br>row 8 | Sheng Kuan | Slide 4 (how it works: one-line block diagram) for 10 s, then slide 5 (bar chart of 12-month error: naive3 1.66, naive 1.81, gradient boosting 2.06, drift 2.13, damped 2.27; callout 93.8% vs 80%). | Verity tags 40 skills across 48,508 hiring posts. Over 616 held-out forecasts, 12 months ahead, the three-month average had 1.66 percentage points of error. Last month alone had 1.81. Trend lines had 2.13 and 2.27. Gradient boosting had 2.06. The simple method won, so Verity shows a band and makes no promise. The band uses the errors of the last 24 past forecasts, a conformal method. It covered 93.8%, against an 80% target. |
 | 4:32-5:00<br>(28 s)<br>**Trust: profiles and disagreement**<br>row 9 | Ee Zhan | Slide 6 (left: 2,569 single-role posts feed the role profiles; right: exposure table summary, 1 robust category, 5 contested, rank correlation -0.79). | Role profiles are learned from 2,569 Hacker News posts that name a single role. Code sets the plan order. Only the language category holds up across the indices, so 26 of our 40 skills carry a contested tag. Microsoft's index even ranks occupations almost opposite to ours: minus 0.79. |
-| 5:00-5:20<br>(20 s)<br>**Limits and next steps**<br>row 10 | Sheng Kuan | Slide 7 (four short bullets: US and startup-heavy data; JobStreet needs a data partnership; CV upload with Claude Haiku next; HRD Corp status unverified). | Limits. Hacker News is US and startup heavy, so this is not Malaysian data. JobStreet needs a data partnership. The app uses no language model today; CV upload with Claude Haiku comes next. We could not verify HRD Corp status. |
+| 5:00-5:20<br>(20 s)<br>**Limits and next steps**<br>row 10 | Sheng Kuan | Slide 7 (four short bullets: US and startup-heavy data; JobStreet needs a data partnership; CV intake: the model points, code checks every quote; HRD Corp status unverified). | Limits. Hacker News is US and startup heavy, so this is not Malaysian data. JobStreet needs a data partnership. Only CV intake uses a language model: it points at skills, and code checks every quote. We could not verify HRD Corp status. |
 | 5:20-5:45<br>(25 s)<br>**SDG close**<br>row 11 | Ee Zhan | Slide 8 (SDG 4.4, 8.2, 8.5 icons, team name, repo and app URL). | Verity serves SDG 4.4, skills for employment, and SDG 8.5, productive work, with free resources and a dated source for every skill. The app says: Estimates, not facts. You decide. We are Hokkien Mee Is Purple. Thank you. |
 
 Row 11 includes a 5 s end card (team name, repo link, app link) after the last word.
@@ -65,9 +65,9 @@ Spoken words count every number as spoken ("1.66" is four words: one point six s
 | 7 | 3:34-3:45 | Ee Zhan | 11 | 23 | 23 | 125 | ok |
 | 8 | 3:45-4:32 | Sheng Kuan | 47 | 73 | 101 | 129 | ok |
 | 9 | 4:32-5:00 | Ee Zhan | 28 | 49 | 58 | 124 | ok |
-| 10 | 5:00-5:20 | Sheng Kuan | 20 | 40 | 40 | 120 | ok |
+| 10 | 5:00-5:20 | Sheng Kuan | 20 | 42 | 42 | 126 | ok |
 | 11 | 5:20-5:45 | Ee Zhan | 25 | 38 | 42 | 101 | ok |
-| **All** | 0:00-5:45 | both | 345 | 592 | 716 | 125 | ok |
+| **All** | 0:00-5:45 | both | 345 | 594 | 718 | 125 | ok |
 
 The demo rows (2 to 7) need pauses for clicks and page loads, so their rates are the real limit. If a row feels rushed in rehearsal, use the cut list and keep the voice at the same pace.
 
@@ -118,14 +118,14 @@ All files are in the worktree `C:\Users\eezha\verity-docs`. "Computed" means the
 | MCP 1.5% up from 0.3% | 0.01454 and 0.002555 | `data/skill_candidates.json` |
 | 40 skills, 48,508 posts (94 threads) | counts | `data/taxonomy.json`; `data/hn_threads.csv` (94 rows); `data/demand_monthly.csv` |
 | 2,569 single-role posts | sum over ranked roles, 2024-11 to 2026-10 | `data/role_profiles.json` (the app prints the same total) |
-| No language model today | app text "No LLM is used in this view" | `app.py` |
-| Claude Haiku next | team plan | `docs/build-plan.md` item S1 (the plan left the model open; the team chose Haiku) |
+| Forecast, role match and pathway use no language model | app text "No LLM is used in this view" (this text must be re-checked, see open item 2) | `app.py` |
+| Only CV intake uses a language model; it points, code checks every quote | design: one Claude call, every quote checked word for word | `docs/skill-profile-intake-architecture.md`, `backend/signals/intake/llm_extract.py` |
 | HN is US and startup heavy; JobStreet needs a partnership | stated limits | `docs/build-plan.md` (risks table, Step 8 status) |
 
 ## Open items for the team
 
 1. **AI-share numbers.** The script uses 6.4% (January 2019) and 54.6% (September 2026, the last full month) from `data/ai_context_monthly.csv`. `docs/build-plan.md` now states its 12-month pooled figures and says so. The deck (slide 2) and the proposal use the same two values.
-2. **Claude Haiku.** The script names it as the next step. The tech declaration must say the same, and must say that no LLM runs in the current app.
+2. **Claude Haiku.** The script says that only the CV intake uses a language model (Claude Haiku 4.5 through Replit AI Integrations, a design not yet verified on the live app). The tech declaration says the same. Check that the `app.py` text "No LLM is used in this view" is still true for the view you show. Do not demo the CV page live unless you have tested it on the deployed app first.
 3. **Refresh changes the data.** The "Refresh live data" button also publishes to the shared store (`live.publish`) once App Storage is set up (Replit setup pending), so judges may then see the refreshed numbers. After any refresh, check every number in the table above before you record.
 4. **Live site version.** Confirm the Replit deployment runs the merged `main` (PRs #1 to #7). The older build showed sample data.
 5. **Who explains what.** Sheng Kuan speaks rows 5 and 8, which cover the forecast tests that Ee Zhan built. Both members should read `docs/ml-forecaster.md` and the backtest section of `docs/build-plan.md` before recording. Judges may ask either of you about any row.
