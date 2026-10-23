@@ -2,6 +2,8 @@
 
 Written 24 Oct 2026. Plan only. No code has changed.
 
+Retired 24 Oct: the Streamlit UI (`app.py`) was replaced by Varity. Role matching and the pathway are now served by the Varity API (`trendsignal/web/roles_api.py`); mentions of Streamlit below are historical.
+
 Related: `docs/varity-status.md` (what is hardcoded today), `docs/job-first-flow-plan.md` (Jobs screen UX), `docs/pathway.md` (the deterministic pathway engine), `docs/architecture.md` (system map).
 
 ## 1. The idea, and what this plan changes
@@ -31,8 +33,8 @@ Today there is also **no `ANTHROPIC_API_KEY`** (`docs/varity-status.md` §4). So
 | Skill profile | Live, saved per browser token. Has an unused `target_role` field. | `backend/signals/intake/models.py::Profile` |
 | AI signals and skill momentum | Live | `backend/signals/trendsignal/web/app.py::signals_payload` |
 | Role forecast (9 roles, trend, 12-month band) | Built; file only | `engine/role_forecast.py`, `data/role_forecast.json` |
-| Role matching (match + future score, have/gap) | Built; Streamlit only | `engine/roles.py::match_roles` |
-| Pathway (stages, verified resources, scheduled tasks) | Built; Streamlit only | `engine/pathway.py::build_pathway`, `data/resources.json` |
+| Role matching (match + future score, have/gap) | Built; now served by the Varity API (`roles_api.py`) | `engine/roles.py::match_roles` |
+| Pathway (stages, verified resources, scheduled tasks) | Built; now served by the Varity API (`roles_api.py`) | `engine/pathway.py::build_pathway`, `data/resources.json` |
 | LLM client, cost tracking, daily budget gate | Built | `backend/signals/trendsignal/llm.py::LlmGate` |
 | Varity Routes / Pathway / Today screens | **Hardcoded** | `frontend/data.js` (`ROUTES`, `PATHWAY`, `TODAY`) |
 
