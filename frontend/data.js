@@ -80,6 +80,9 @@ const SKILLS = [
   { skill: "Data engineering", weekly: [0, 1, 0, 2, 5], avgBefore: 0.75, momentum: 4.25 },
 ];
 
+/* The route the pathway leads to. app.js replaces it (and ROUTES, PATHWAY, TODAY, LINES) from
+   GET /api/roles/suggestions and GET /api/pathway once a profile is saved. */
+const TARGET = { role: "LLM application engineer", match: "62% match", live: false };
 /* Pathway lines. Colours follow the transit-line roles in styles.css. */
 const LINES = {
   apps: { id: "apps", letter: "A", name: "Apps line", skill: "LLM application development", y: 180 },

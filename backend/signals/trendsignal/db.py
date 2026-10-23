@@ -164,6 +164,13 @@ CREATE TABLE IF NOT EXISTS jev_cache (
     created_at TEXT NOT NULL,
     PRIMARY KEY (state_hash, model)
 );
+
+CREATE TABLE IF NOT EXISTS advisor_cache (
+    key TEXT PRIMARY KEY,
+    kind TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
 """
 
 # Columns added after the first release; init_schema adds them to existing databases.

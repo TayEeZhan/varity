@@ -25,6 +25,7 @@ function activeTasks() {
 }
 
 function serviceBand() {
+  if (!TODAY.replan) return "";
   if (STATE.replan === "kept") {
     return `<div class="service is-kept" role="status"><span class="service__sign">Service change kept</span><p>${esc(TODAY.replan.text)}</p></div>`;
   }
@@ -85,17 +86,21 @@ function renderToday() {
   const open = tasks.filter((t) => !STATE.done.has(t.id));
   const mins = tasks.reduce((n, t) => n + t.mins, 0);
   const doneStops = PATHWAY.filter((p) => p.status === "done").length;
-  const pct = Math.round((doneStops / PATHWAY.length) * 100);
+  const pct = PATHWAY.length ? Math.round((doneStops / PATHWAY.length) * 100) : 100;
   const coming = PATHWAY.filter((p) => p.status === "next" && !tasks.some((t) => t.station === p.id)).slice(0, 4);
+  const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
+  const lede = TARGET.live
+    ? `${tasks.length} stops, ${mins} minutes, from your pathway. Each one says why it is on your list.`
+    : `${tasks.length} stops, ${mins} minutes. Each one is on your list because of a dated signal.`;
 
   const html = `
-    ${head(`Today, ${TODAY.date}`, `${tasks.length} stops, ${mins} minutes. Each one is on your list because of a dated signal.`, synth("Synthetic plan · real signals"))}
+    ${head(`Today, ${TODAY.date}`, lede, TARGET.live ? real("Your plan · real data") : synth("Synthetic plan · real signals"))}
     <section class="route-strip" aria-label="Your route">
       <div class="route-strip__head">
-        <h2><span class="bullets">${bullet("apps")}${bullet("guard")}${bullet("serve")}</span>To LLM application engineer</h2>
-        <div class="progress">${doneStops} of ${PATHWAY.length} stops done <span class="progress__bar"><i style="width:${pct}%"></i></span>62% match</div>
+        <h2><span class="bullets">${used.map((l) => bullet(l)).join("")}</span>To ${esc(TARGET.role)}</h2>
+        <div class="progress">${doneStops} of ${PATHWAY.length} stops done <span class="progress__bar"><i style="width:${pct}%"></i></span>${esc(TARGET.match)}</div>
       </div>
-      <p class="route-key">${["apps", "guard", "serve"].map((l) => `<b>${LINES[l].letter}</b> ${LINES[l].name}: ${LINES[l].skill}`).join(" · ")}</p>
+      <p class="route-key">${used.map((l) => `<b>${LINES[l].letter}</b> ${LINES[l].name}: ${LINES[l].skill}`).join(" · ")}</p>
       <div class="diagram" data-strip>${stripSVG()}</div>
     </section>
     ${serviceBand()}
@@ -127,6 +132,7 @@ function renderToday() {
       if (act === "tick") {
         const id = b.dataset.id;
         if (STATE.done.has(id)) STATE.done.delete(id); else STATE.done.add(id);
+        refreshStatus();
         rerender(`[data-id="${id}"]`);
       } else if (act === "push") {
         STATE.push = "pushing";
@@ -267,6 +273,47 @@ function routeRow(r) {
   </div>`;
 }
 
+/* Live route from GET /api/roles/suggestions. Every reason chip was written by code from a dated source;
+   the AI (when used) only chose which chips to show and wrote the one-line summary. */
+const CHIP_ICON = { skill_fit: "🧩", small_gap: "🎯", demand_rising: "📈", ai_boost: "⚡", watch_out: "⚠️", pays_more: "💰",
+  closes_gap: "🧩", skill_rising: "📈", no_regret: "🎯" };
+const SOURCE_TEXT = { profile: "your saved profile", role_forecast: "job forecast", signals: "AI signals run", resources: "verified resources",
+  role_profiles: "role profiles", skill_scores: "skill scores" };
+const reasonChip = (c, cls = "") => `<span class="chip reason${cls}" title="Source: ${esc(SOURCE_TEXT[c.source] || c.source)}${c.asOf ? `, ${esc(c.asOf)}` : ""}"><span aria-hidden="true">${CHIP_ICON[c.type] || "•"}</span> ${esc(c.text)}</span>`;
+
+function liveRouteRow(r) {
+  const cur = STATE.routeId === r.roleId;
+  const action = cur
+    ? `<span class="current-tag"><i></i>Your current route</span>`
+    : `<button class="btn" data-act="route" data-id="${esc(r.roleId)}">Switch to this route</button>`;
+  const outlook = r.outlook && r.outlook.label ? `Demand: ${esc(r.outlook.label)} (job forecast, ${esc(r.outlook.asOf || "")})` : "Demand: too few posts to tell";
+  return `<div class="route${cur ? " is-current" : ""}">
+    <div class="route__row">
+      <div class="route__match">${r.matchPct}%<small>match now</small></div>
+      <div><div class="route__role">#${r.rank} ${esc(r.name)}</div>
+        <div class="route__role-sub"><b>${esc(r.fitLabel)}</b> · ${outlook}</div>
+        ${r.summary ? `<p class="route__summary">${esc(r.summary)}</p>` : ""}</div>
+      <div class="route__fact"><b>${r.gap.length} skills</b><span>to learn</span></div>
+      <div class="route__fact"><b>${r.have.length} of ${r.have.length + r.gap.length}</b><span>core skills held</span></div>
+      ${action}
+    </div>
+    <div class="route__why"><div class="chips">${r.reasons.map((c) => reasonChip(c)).join("")}${r.watchOut ? reasonChip(r.watchOut, " reason--watch") : ""}</div></div>
+    <div class="route__gap">
+      <div><h3>You already have</h3><div class="chips">${r.have.map((h) => `<span class="chip">${esc(h)}</span>`).join("") || "<span>None yet</span>"}</div></div>
+      <div><h3>Skills gap</h3><div class="chips">${r.gap.map((g) => `<span class="chip chip--gap">${esc(g)}</span>`).join("") || "<span>No gap</span>"}</div></div>
+    </div>
+  </div>`;
+}
+
+function liveRoutes() {
+  const s = STATE.suggest;
+  const by = s.rankedBy === "llm" ? "Ranked by AI within limits, checked against the data" : "Ranked by the formula (match 70% + demand 30%)";
+  const low = s.lowMatch.length ? `<p class="empty"><b>Low match, not ranked:</b> ${s.lowMatch.map((r) => `${esc(r.name)} (${r.matchPct}%)`).join(", ")}</p>` : "";
+  const unmapped = s.unmappedSkills.length ? `<p class="empty"><b>Not in the job data yet, so not counted:</b> ${s.unmappedSkills.map(esc).join(", ")}</p>` : "";
+  return `<p class="route-note">${by}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>
+    ${s.roles.length ? s.roles.map(liveRouteRow).join("") : `<p class="empty">No role matches your saved skills well yet. Add skills from another CV.</p>`}${low}${unmapped}`;
+}
+
 function stationText() {
   if (STATE.cv === "parsed" && STATE.saved) return [STATE.saved.name || "Your profile", `${STATE.saved.skills.length} skills, each with its evidence`];
   if (STATE.cv === "parsed") return [PROFILE.name, `${PROFILE.years} · read from ${STATE.cvFile}`];
@@ -278,7 +325,7 @@ function renderProfile() {
   const parsed = STATE.cv === "parsed";
   const [station, stationSub] = stationText();
   const html = `
-    ${head("Your CV and routes", "Varity reads your CV, shows the sentence behind every skill it finds, then plans routes to roles that are rising.", synth(STATE.saved ? "Synthetic match scores" : "Synthetic CV and match scores"))}
+    ${head("Your CV and routes", "Varity reads your CV, shows the sentence behind every skill it finds, then plans routes to roles that are rising.", STATE.suggest ? real("Real match scores") : synth(STATE.saved ? "Synthetic match scores" : "Synthetic CV and match scores"))}
     <div class="origin">
       <div>${cvPanel()}</div>
       <section aria-labelledby="org-h">
@@ -288,8 +335,10 @@ function renderProfile() {
     </div>
     <section aria-labelledby="jp-h">
       <h2 class="sec" id="jp-h">Journey planner <small>Match = share of the role's core skills your CV already shows</small></h2>
-      <div class="planner__from"><b>From</b> ${parsed ? esc(PROFILE.name) : "your CV"} ${ICON.arrow} <b>To</b> three roles rising in the job forecast</div>
-      ${parsed ? ROUTES.map(routeRow).join("") : `<p class="empty">Routes appear after your CV is read.</p>`}
+      ${STATE.suggest && parsed
+        ? `<div class="planner__from"><b>From</b> ${esc(STATE.saved.name || "your saved profile")} ${ICON.arrow} <b>To</b> the roles your skills fit best</div>${liveRoutes()}`
+        : `<div class="planner__from"><b>From</b> ${parsed ? esc(PROFILE.name) : "your CV"} ${ICON.arrow} <b>To</b> three roles rising in the job forecast</div>
+      ${parsed ? ROUTES.map(routeRow).join("") : `<p class="empty">Routes appear after your CV is read.</p>`}`}
     </section>`;
 
   const bind = (root) => {
@@ -372,6 +421,7 @@ function renderProfile() {
           STATE.cv = "parsed";
           rerender();
           toast(`Saved ${data.profile.skills.length} skills to your profile.`);
+          refreshRoutes();
         });
       }
       else if (act === "skill-remove") {
@@ -379,6 +429,7 @@ function renderProfile() {
           STATE.saved = data.profile;
           rerender();
           toast("Removed. It stays removed when you read another CV.");
+          refreshRoutes();
         });
       }
       else if (act === "profile-delete") {
@@ -386,15 +437,28 @@ function renderProfile() {
         call("/api/profile", { method: "DELETE" }, () => {
           setProfileToken(null);
           STATE.saved = null;
+          STATE.suggest = null;
+          STATE.routeId = "llm-app";
+          applyPlan(null);
           STATE.cv = "empty";
           rerender();
           toast("Your profile was deleted.");
         });
       }
+      else if (act === "route" && STATE.suggest) {
+        call("/api/profile/target-role", { method: "POST", body: JSON.stringify({ roleId: b.dataset.id }) }, async (data) => {
+          STATE.saved = data.profile;
+          STATE.routeId = data.profile.target_role;
+          STATE.done = new Set();  // ticks belong to the old route's tasks
+          await loadPlan();
+          location.hash = "#/pathway";
+          toast(STATE.plan ? `Route switched. Your pathway now leads to ${STATE.plan.targetRole}.` : "Route saved, but the pathway could not be built.");
+        });
+      }
       else if (act === "route") {
         STATE.routeId = b.dataset.id;
         rerender();
-        toast("Route switched. In this prototype only the LLM application engineer pathway is drawn.");
+        toast("Route switched. This sample shows only the LLM application engineer pathway; save your CV for real routes.");
       }
     });
   };
@@ -410,7 +474,9 @@ function renderPathway() {
       ${bullet(p.line, true)}
       <div><div class="pstop__t">${esc(p.title)}<span>${p.mins} min</span></div>
         <div class="pstop__r">${ext(p.url, p.resource)}</div>
-        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${p.cost}</span><span class="tag">SDG ${p.sdg}</span></div></div>
+        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${p.cost}</span><span class="tag">SDG ${p.sdg}</span></div>
+        ${p.why ? `<p class="pstop__why">${esc(p.why)}</p>` : ""}
+        ${p.reasons ? `<div class="chips">${p.reasons.map((c) => reasonChip(c)).join("")}</div>` : ""}</div>
     </div>`;
   const weekHTML = (w) => {
     const stops = PATHWAY.filter((p) => p.week === w);
@@ -418,15 +484,22 @@ function renderPathway() {
     return `<section class="week"><h3>Week ${w} <span>${hrs} h</span></h3>${stops.map(stopHTML).join("")}</section>`;
   };
 
+  const plan = STATE.plan;
+  const badge = !plan ? synth("Synthetic pathway · real resources")
+    : real(plan.personalisedBy === "llm" ? "Personalised by AI, checked against the data" : "Built by the formula from your profile");
+  const lede = plan && !PATHWAY.length
+    ? `You already have every core skill of ${esc(TARGET.role)}, so there is no gap to plan.`
+    : `${PATHWAY.length} stops over ${weeks.length} weeks, about ${Math.round(totalMin / 60)} hours, all with free resources. Hover a station to light its line.`;
+  const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
+
   const html = `
-    ${head("Pathway to LLM application engineer", `${PATHWAY.length} stops over ${weeks.length} weeks, about ${Math.round(totalMin / 60)} hours, all with free resources. Hover a station to light its line.`, synth("Synthetic pathway · real resources"))}
+    ${head(`Pathway to ${esc(TARGET.role)}`, lede, badge)}
+    ${plan ? `<p class="route-note">${plan.hoursPerWeek} h a week from ${esc(plan.startDate)}${plan.finishDate ? ` to ${esc(plan.finishDate)}` : ""}. Skills as of ${esc(plan.skillsAsOf || "–")}. ${esc(plan.notes[0] || "")} <a href="#/profile">Change route</a></p>` : ""}
     <section class="pathmap" aria-label="Route map">
       <div class="diagram">${pathwaySVG()}</div>
       <p class="swipe-hint" style="padding:0 12px">Swipe the map sideways to see every station.</p>
       <div class="legend">
-        <span><i class="sw-line" style="background:var(--apps)"></i>Apps line · ${LINES.apps.skill}</span>
-        <span><i class="sw-line" style="background:var(--guard)"></i>Guard line · ${LINES.guard.skill}</span>
-        <span><i class="sw-line" style="background:var(--serve)"></i>Serving line · ${LINES.serve.skill}</span>
+        ${used.map((l) => `<span><i class="sw-line" style="background:var(--${l})"></i>${LINES[l].name} · ${LINES[l].skill}</span>`).join("")}
         <span><i class="sw-dot sw-done"></i>Done</span>
         <span><i class="sw-dot sw-here"></i>You are here</span>
         <span><i class="sw-x"></i>Interchange: one stop on two lines</span>
