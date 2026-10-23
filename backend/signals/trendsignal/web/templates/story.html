@@ -2,7 +2,7 @@
 {% from "_card.html" import card %}
 {% block title %}{{ story.title }} · AI Trend Signal{% endblock %}
 {% block content %}
-<p class="back"><a href="/">← Back to the feed</a></p>
+<p class="back"><a href="/feed">← Back to the feed</a></p>
 <p class="muted">{{ tier_labels.get(story.tier, story.tier) }} · first seen {{ story.first_seen_at.strftime("%d %b %Y %H:%M") }} UTC
   · summary by {{ "rules" if story.enriched_by == "heuristic" else story.enriched_by }}</p>
 {{ card(story) }}

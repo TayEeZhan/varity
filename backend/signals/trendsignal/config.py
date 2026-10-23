@@ -83,6 +83,7 @@ class Settings:
     ranker: str = "formula"  # who ranks: "formula" until Jev wins on the gold set, then "jev"
     haiku_fallback: bool = False  # ask Claude Haiku for the category only when the rules are unsure
     write_briefs: bool = False  # the daily / weekly prose brief is outside the core ranker
+    frontend_dir: Path | None = None  # Varity's static frontend, served at / when it exists
 
     @property
     def jev_enabled(self) -> bool:
@@ -161,6 +162,7 @@ def load_settings() -> Settings:
         ranker=ranker,
         haiku_fallback=_env("TRENDSIGNAL_HAIKU_FALLBACK", "0") == "1",
         write_briefs=_env("TRENDSIGNAL_BRIEFS", "0") == "1",
+        frontend_dir=Path(_env("TRENDSIGNAL_FRONTEND_DIR", str(PROJECT_ROOT.parent.parent / "frontend"))),
     )
 
 
