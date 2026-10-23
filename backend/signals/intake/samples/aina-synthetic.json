@@ -1,0 +1,692 @@
+{
+  "schema_version": 2,
+  "profile_id": "aina-synthetic",
+  "name": "Aina (synthetic)",
+  "target_role": "Data Engineer",
+  "updated_at": "2026-10-23T09:30:00Z",
+  "skills": [
+    {
+      "skill_id": "python",
+      "name": "Python",
+      "category": "language",
+      "basis": "stated",
+      "evidence_quote": "Built REST APIs in Python with Flask for the billing team.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:6e521fc98c113cc1",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Built REST APIs in Python with Flask for the billing team.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "rest-apis",
+      "name": "REST APIs",
+      "category": "practice",
+      "basis": "stated",
+      "evidence_quote": "Built REST APIs in Python with Flask for the billing team.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:cf93bba194cbbd7c",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Built REST APIs in Python with Flask for the billing team.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "flask",
+      "name": "Flask",
+      "category": "framework",
+      "basis": "stated",
+      "evidence_quote": "Built REST APIs in Python with Flask for the billing team.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:2ce57e76fb2e7d83",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Built REST APIs in Python with Flask for the billing team.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "sql",
+      "name": "SQL",
+      "category": "language",
+      "basis": "stated",
+      "evidence_quote": "Wrote SQL queries on PostgreSQL to produce monthly revenue reports.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:46a493baad0fbe2a",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Wrote SQL queries on PostgreSQL to produce monthly revenue reports.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "postgresql",
+      "name": "PostgreSQL",
+      "category": "database",
+      "basis": "stated",
+      "evidence_quote": "Wrote SQL queries on PostgreSQL to produce monthly revenue reports.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:df9d39fdc7c8cf05",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Wrote SQL queries on PostgreSQL to produce monthly revenue reports.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "unit-testing",
+      "name": "Unit testing",
+      "category": "practice",
+      "basis": "stated",
+      "evidence_quote": "Added unit tests with pytest and set up GitHub Actions for CI.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:5704892d813899b4",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Added unit tests with pytest and set up GitHub Actions for CI.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "pytest",
+      "name": "pytest",
+      "category": "tool",
+      "basis": "stated",
+      "evidence_quote": "Added unit tests with pytest and set up GitHub Actions for CI.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:23e0028b265f2254",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Added unit tests with pytest and set up GitHub Actions for CI.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "github-actions",
+      "name": "GitHub Actions",
+      "category": "tool",
+      "basis": "stated",
+      "evidence_quote": "Added unit tests with pytest and set up GitHub Actions for CI.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:6b5c704c56ebeb31",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Added unit tests with pytest and set up GitHub Actions for CI.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "ci-cd",
+      "name": "CI/CD",
+      "category": "practice",
+      "basis": "stated",
+      "evidence_quote": "Added unit tests with pytest and set up GitHub Actions for CI.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:f81dbf346bbcf121",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Added unit tests with pytest and set up GitHub Actions for CI.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "docker",
+      "name": "Docker",
+      "category": "tool",
+      "basis": "stated",
+      "evidence_quote": "Packaged the services with Docker for the staging server.",
+      "years": 2.8,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:5cff12db2e78b601",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Packaged the services with Docker for the staging server.",
+          "rule": null,
+          "from_skill": null,
+          "years": 2.8,
+          "years_line": "Jan 2024 - Present",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "backtesting",
+      "name": "Backtesting",
+      "category": "method",
+      "basis": "stated",
+      "evidence_quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.",
+      "years": 0.6,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:f77491e370cddf82",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.",
+          "rule": null,
+          "from_skill": null,
+          "years": 0.6,
+          "years_line": "Jun 2023 - Dec 2023",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "pandas",
+      "name": "pandas",
+      "category": "library",
+      "basis": "stated",
+      "evidence_quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.",
+      "years": 0.6,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:9f71f2f790c6356b",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.",
+          "rule": null,
+          "from_skill": null,
+          "years": 0.6,
+          "years_line": "Jun 2023 - Dec 2023",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "numpy",
+      "name": "NumPy",
+      "category": "library",
+      "basis": "stated",
+      "evidence_quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.",
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:239d009079d318bb",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices.",
+          "rule": null,
+          "from_skill": null,
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "matplotlib",
+      "name": "Matplotlib",
+      "category": "library",
+      "basis": "stated",
+      "evidence_quote": "Plotted strategy returns with Matplotlib in Jupyter notebooks.",
+      "years": 0.6,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:b6381fabc363bd5e",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Plotted strategy returns with Matplotlib in Jupyter notebooks.",
+          "rule": null,
+          "from_skill": null,
+          "years": 0.6,
+          "years_line": "Jun 2023 - Dec 2023",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "jupyter",
+      "name": "Jupyter",
+      "category": "tool",
+      "basis": "stated",
+      "evidence_quote": "Plotted strategy returns with Matplotlib in Jupyter notebooks.",
+      "years": 0.6,
+      "years_as_of": "2026-10-23",
+      "evidence": [
+        {
+          "id": "sha1:11bfc0268b73b708",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "work",
+          "quote": "Plotted strategy returns with Matplotlib in Jupyter notebooks.",
+          "rule": null,
+          "from_skill": null,
+          "years": 0.6,
+          "years_line": "Jun 2023 - Dec 2023",
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "html",
+      "name": "HTML",
+      "category": "language",
+      "basis": "stated",
+      "evidence_quote": "Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.",
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:82c77aad95a7ab15",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "project",
+          "quote": "Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.",
+          "rule": null,
+          "from_skill": null,
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "css",
+      "name": "CSS",
+      "category": "language",
+      "basis": "stated",
+      "evidence_quote": "Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.",
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:75d0d700c020eee5",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "project",
+          "quote": "Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.",
+          "rule": null,
+          "from_skill": null,
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "javascript",
+      "name": "JavaScript",
+      "category": "language",
+      "basis": "stated",
+      "evidence_quote": "Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.",
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:fbe85ec9cb3a3a58",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "project",
+          "quote": "Built a small dashboard with HTML, CSS and JavaScript that reads a CSV export from my bank.",
+          "rule": null,
+          "from_skill": null,
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "statistics",
+      "name": "Statistics",
+      "category": "field",
+      "basis": "stated",
+      "evidence_quote": "Coursework in statistics and time series analysis.",
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:f145067249f78520",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "education",
+          "quote": "Coursework in statistics and time series analysis.",
+          "rule": null,
+          "from_skill": null,
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "time-series-analysis",
+      "name": "Time series analysis",
+      "category": "method",
+      "basis": "stated",
+      "evidence_quote": "Coursework in statistics and time series analysis.",
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:006f9d575a1d8d21",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "education",
+          "quote": "Coursework in statistics and time series analysis.",
+          "rule": null,
+          "from_skill": null,
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "git",
+      "name": "Git",
+      "category": "tool",
+      "basis": "stated",
+      "evidence_quote": "Python, SQL, Git, Excel, Linux",
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:973b60713a5289e9",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "skills_list",
+          "quote": "Python, SQL, Git, Excel, Linux",
+          "rule": null,
+          "from_skill": null,
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "excel",
+      "name": "Excel",
+      "category": "tool",
+      "basis": "stated",
+      "evidence_quote": "Python, SQL, Git, Excel, Linux",
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:41e26adb2eaaf552",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "skills_list",
+          "quote": "Python, SQL, Git, Excel, Linux",
+          "rule": null,
+          "from_skill": null,
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "linux",
+      "name": "Linux",
+      "category": "platform",
+      "basis": "stated",
+      "evidence_quote": "Python, SQL, Git, Excel, Linux",
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:78a4e583756dc979",
+          "source": "cv",
+          "method": "llm+keyword",
+          "context": "skills_list",
+          "quote": "Python, SQL, Git, Excel, Linux",
+          "rule": null,
+          "from_skill": null,
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "backend-development",
+      "name": "Backend development",
+      "category": "field",
+      "basis": "implied",
+      "evidence_quote": null,
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:2c676954ab10cc54",
+          "source": "inferred",
+          "method": "graph:part_of",
+          "context": "inferred",
+          "quote": null,
+          "rule": "Flask is part of Backend development",
+          "from_skill": "flask",
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "quantitative-finance",
+      "name": "Quantitative finance",
+      "category": "field",
+      "basis": "implied",
+      "evidence_quote": null,
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:d277f09dfea451d6",
+          "source": "inferred",
+          "method": "graph:part_of",
+          "context": "inferred",
+          "quote": null,
+          "rule": "Backtesting is part of Quantitative finance",
+          "from_skill": "backtesting",
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "data-analysis",
+      "name": "Data analysis",
+      "category": "field",
+      "basis": "implied",
+      "evidence_quote": null,
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:f801b6dd18afd0c6",
+          "source": "inferred",
+          "method": "graph:part_of",
+          "context": "inferred",
+          "quote": null,
+          "rule": "pandas is part of Data analysis",
+          "from_skill": "pandas",
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    },
+    {
+      "skill_id": "data-visualization",
+      "name": "Data visualisation",
+      "category": "field",
+      "basis": "implied",
+      "evidence_quote": null,
+      "years": null,
+      "years_as_of": null,
+      "evidence": [
+        {
+          "id": "sha1:6421cfd6feac46ce",
+          "source": "inferred",
+          "method": "graph:part_of",
+          "context": "inferred",
+          "quote": null,
+          "rule": "Matplotlib is part of Data visualisation",
+          "from_skill": "matplotlib",
+          "years": null,
+          "years_line": null,
+          "note": null,
+          "added_at": "2026-10-23T09:30:00Z",
+          "added_by": "intake"
+        }
+      ]
+    }
+  ],
+  "interests": [
+    {
+      "phrase": "Rust",
+      "skill_id": "rust",
+      "quote": "Currently learning Rust in my free time."
+    }
+  ],
+  "removed": []
+}

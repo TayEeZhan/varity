@@ -5,9 +5,12 @@ const STATE = {
   replan: "pending",      // pending | kept | reverted
   push: "idle",           // idle | pushing | sent
   sent: [],
-  cv: "parsed",           // empty | parsing | parsed | error
+  cv: "parsed",           // empty | parsing | review | parsed | error
   cvFile: PROFILE.file,
   cvError: "",
+  review: null,           // POST /api/cv/extract result waiting for Save
+  keep: new Set(),        // skill ids ticked in the review
+  saved: null,            // the profile kept on the server (GET /api/profile)
   routeId: "llm-app",
   scenario: "moderate",   // moderate | fast
   filter: "all",
@@ -102,5 +105,37 @@ async function loadSignals() {
   if (run) run.textContent = SIGNAL_RUN.runId;
 }
 
+/* The saved profile is reached with a random token only this browser holds. */
+const TOKEN_KEY = "varity.profileToken";
+function profileToken() {
+  try { return localStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
+}
+function setProfileToken(token) {
+  try { token ? localStorage.setItem(TOKEN_KEY, token) : localStorage.removeItem(TOKEN_KEY); } catch (e) { /* private mode: profile lasts this visit only */ }
+}
+
+/* JSON call to the backend. Throws Error(server message) on an API error and TypeError when unreachable. */
+async function api(path, options = {}) {
+  const token = profileToken();
+  const headers = { Accept: "application/json", "Content-Type": "application/json", ...(token ? { "X-Profile-Token": token } : {}) };
+  const res = await fetch(path, { ...options, headers });
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body || !body.success) {
+    const err = new Error((body && body.error) || `Server error (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
+  return body.data;
+}
+
+async function loadProfile() {
+  if (!profileToken()) return;
+  try {
+    STATE.saved = (await api("/api/profile")).profile;
+  } catch (e) {
+    if (e.status === 404) setProfileToken(null);  // deleted on the server; any other error keeps the key
+  }
+}
+
 window.addEventListener("hashchange", navigate);
-loadSignals().finally(navigate);
+Promise.all([loadSignals(), loadProfile()]).finally(navigate);

@@ -290,6 +290,9 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
                 f"</channel></rss>")
         return Response(body, media_type="application/rss+xml")
 
+    from trendsignal.web.cv_api import add_cv_routes  # imported here: cv_api uses envelope and RateLimiter from this module
+    add_cv_routes(app, ctx.settings)
+
     # Mounted last so every route above wins over the static files.
     frontend = ctx.settings.frontend_dir
     if frontend and (frontend / "index.html").exists():
