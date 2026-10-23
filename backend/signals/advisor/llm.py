@@ -19,15 +19,16 @@ import anthropic
 import pydantic
 from pydantic import BaseModel, Field
 
-from intake.llm_extract import LlmUnavailable, SpendGate
+from intake.llm_extract import MODEL as INTAKE_MODEL, PRICES_PER_M, LlmUnavailable, SpendGate
 from trendsignal.db import connect
 
-ADVISOR_MODEL = os.environ.get("VARITY_ADVISOR_MODEL", "claude-haiku-5-5")
-COACH_MODEL = os.environ.get("VARITY_COACH_MODEL", "claude-haiku-5-5")
+# Same default as the CV intake: claude-haiku-4-5 on the Replit AI Integrations route, else claude-haiku-5-5.
+ADVISOR_MODEL = os.environ.get("VARITY_ADVISOR_MODEL", INTAKE_MODEL)
+COACH_MODEL = os.environ.get("VARITY_COACH_MODEL", INTAKE_MODEL)
 PROMPT_VERSION = "advisor-v1"
 ADVISOR_MAX_TOKENS, COACH_MAX_TOKENS = 1200, 1500
 TIMEOUT_S = 45.0
-PRICE_IN_PER_M, PRICE_OUT_PER_M = 0.10, 0.50  # claude-haiku-5-5
+PRICE_IN_PER_M, PRICE_OUT_PER_M = PRICES_PER_M.get(ADVISOR_MODEL, PRICES_PER_M["claude-haiku-4-5"])
 CHARS_PER_TOKEN = 3
 MAX_MOVE = 2
 GATE = SpendGate(float(os.environ.get("VARITY_ADVISOR_DAILY_BUDGET_USD", "1.0")))
