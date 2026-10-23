@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "basis": "data/mycol.json (MyCOL 2024/2025). Team judgement, not an official crosswalk: MyCOL uses MASCO occupations, Verity uses 9 roles from data/roles.json. Each mapping gives the reason. strength is 'direct' (the MyCOL job titles are the role) or 'partial' (overlap only).",
+  "judgement": true,
+  "roles": ["data_engineer", "analytics_engineer", "data_scientist", "ml_engineer", "ai_app_engineer", "backend_engineer", "fullstack_developer", "platform_devops_engineer", "mobile_developer"],
+  "mappings": [
+    {
+      "masco_code": "2512",
+      "occupation": "Software Developers",
+      "role_id": "backend_engineer",
+      "strength": "direct",
+      "reason": "Titles are Software Developer, Software Engineer, System Developer, Linux Software Engineer and Software Engineer (Python): general server-side software work. The backend_engineer role is the closest of our 9."
+    },
+    {
+      "masco_code": "2512",
+      "occupation": "Software Developers",
+      "role_id": "fullstack_developer",
+      "strength": "partial",
+      "reason": "The generic titles Software Developer and Software Engineer do not say front end or back end, so part of this shortage can sit in full-stack roles."
+    },
+    {
+      "masco_code": "2514",
+      "occupation": "Application Programmers",
+      "role_id": "backend_engineer",
+      "strength": "partial",
+      "reason": "Titles are Computer Programmer and Systems Programmer: coding work without a stack named. Backend is the nearest role, but the match is loose."
+    },
+    {
+      "masco_code": "2511",
+      "occupation": "Computer Systems Analysts",
+      "role_id": "backend_engineer",
+      "strength": "partial",
+      "reason": "Titles include Technical Specialist (.Net) and Enterprise Systems Specialist. They overlap with enterprise backend work. Systems analysis itself (requirements, process design) is not one of our 9 roles."
+    },
+    {
+      "masco_code": "2521",
+      "occupation": "Database Designers and Administrators",
+      "role_id": "data_engineer",
+      "strength": "partial",
+      "reason": "Database Analyst and Database Administrator work on data storage and access, which data engineers also do. A DBA does not usually build pipelines, so the match is partial."
+    },
+    {
+      "masco_code": "2524",
+      "occupation": "Data Professionals",
+      "role_id": "data_scientist",
+      "strength": "direct",
+      "reason": "Data Scientist is one of the four listed titles."
+    },
+    {
+      "masco_code": "2524",
+      "occupation": "Data Professionals",
+      "role_id": "analytics_engineer",
+      "strength": "partial",
+      "reason": "Data Analyst and Business Data Analyst are analytics roles close to analytics engineering, but they are usually not dbt-style modelling roles."
+    },
+    {
+      "masco_code": "2524",
+      "occupation": "Data Professionals",
+      "role_id": "data_engineer",
+      "strength": "partial",
+      "reason": "Data Governance Migration Specialist involves moving and governing data, which overlaps with data engineering."
+    },
+    {
+      "masco_code": "2522",
+      "occupation": "Information Technology System Administrators",
+      "role_id": "platform_devops_engineer",
+      "strength": "partial",
+      "reason": "Systems Administrator and Technical System Administrator run servers and infrastructure, the traditional base of DevOps, SRE and platform roles. Several other titles (IT Support Officer, BIM Coordinator) are not engineering roles."
+    },
+    {
+      "masco_code": "2523",
+      "occupation": "Computer Network Professionals",
+      "role_id": "platform_devops_engineer",
+      "strength": "partial",
+      "reason": "Network and connectivity work is part of infrastructure engineering. MyCOL gives no job titles for this occupation, so the overlap is by occupation name only."
+    }
+  ],
+  "unmapped": [
+    {
+      "masco_code": "1511",
+      "occupation": "Information and Communications Technology Managers",
+      "reason": "Management roles (IT Manager, Director of Cybersecurity, Data Analytics Manager). None of our 9 roles is a manager role."
+    },
+    {
+      "masco_code": "2519",
+      "occupation": "Software and Application Developers and Analysts Not Elsewhere Classified",
+      "reason": "Only two titles are in scope: Solution Architect (IT) and Internal Auditor (IT). Neither is one of our 9 roles."
+    },
+    {
+      "masco_code": "2531",
+      "occupation": "Cybersecurity Professionals",
+      "reason": "Verity has no security role. This is a gap in our 9 roles, not a mapping problem."
+    }
+  ],
+  "roles_without_mycol_signal": {
+    "roles": ["ml_engineer", "ai_app_engineer", "mobile_developer"],
+    "reason": "No MyCOL 2024/2025 tech occupation lists job titles for these roles. The ICT Managers chapter does mention AI/ML development as a scarce skill in banking, but that is a skill remark, not an occupation."
+  }
+}
