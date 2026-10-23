@@ -1185,12 +1185,12 @@ def _radar_points(at: AppTest) -> pd.DataFrame:
 
 
 def _parse_your_skills(sentence: str) -> dict:
-    """'Your skills: 4 strong and steady, [1 small and steady,] 1 rising (A, B), 0 falling.'"""
+    """'Your skills: 4 strong, no clear change, [1 small, no clear change,] 1 rising (A, B), 0 falling.'"""
     def names(word):
         hit = re.search(rf"\d+ {word}(?: \(([^)]*)\))?", sentence)
         return sorted(hit.group(1).split(", ")) if hit and hit.group(1) else []
-    small = re.search(r"(\d+) small and steady", sentence)
-    return {"strong": int(re.search(r"(\d+) strong and steady", sentence).group(1)),
+    small = re.search(r"(\d+) small, no clear change", sentence)
+    return {"strong": int(re.search(r"(\d+) strong, no clear change", sentence).group(1)),
             "small": int(small.group(1)) if small else 0,
             "rising": names("rising"), "falling": names("falling")}
 
@@ -1366,8 +1366,9 @@ def test_step_4_leads_with_a_summary_card_and_the_no_regret_skills():
     assert f"**Your plan in short:** become a {name}." in markdown
     assert _no_regret(plan) == ["Node.js"]
     assert "No-regret skills (useful for several of your roles): Node.js." in markdown
-    assert ("This plan still works if the forecast is wrong: it starts with skills useful for several of "
-            "your roles.") in markdown
+    assert ("It starts with skills that several of your roles need, so less of the plan depends on one "
+            "forecast.") in markdown
+    assert not any("still works if the forecast is wrong" in m for m in markdown)
     # the card comes before the plan's stages
     first_stage = next(i for i, v in enumerate(markdown) if v.startswith("### Stage 1"))
     assert markdown.index(f"**Your plan in short:** become a {name}.") < first_stage
@@ -1385,7 +1386,7 @@ def test_step_4_does_not_claim_a_no_regret_start_when_there_is_none():
     assert _no_regret(_expected_plan(target, skills=PERSONA_LABEL_SKILLS[PERSONA_LABELS[1]])) == []
     text = _joined(at)
     assert "No-regret skills (useful for several of your roles)" not in text
-    assert "it starts with skills useful for several of your roles" not in text
+    assert "less of the plan depends on one forecast" not in text
     assert "so this plan follows what employers ask for now, not the forecast" in text
 
 
@@ -1412,8 +1413,8 @@ def test_the_header_is_short_and_the_long_notes_sit_in_about_the_data():
     assert "File: data/skill_scores.json" in inside
     assert "honest ranges, not with forecast numbers" in inside               # the finding that frames the product
     top_level = [m.value for m in at.markdown]
-    assert ("Decision support under uncertainty: tested trend labels, honest ranges, and a plan that still "
-            "works if the forecast is wrong.") in top_level
+    assert ("Decision support under uncertainty: tested trend labels, honest ranges, and a plan that does not "
+            "lean on one forecast.") in top_level
     assert "Estimates, not facts. You decide." in top_level
     assert not about.proto.expanded                                            # collapsed by default
 
@@ -1427,9 +1428,10 @@ from engine import sdg as sdg_mod
 NO_GOAL = "No preference"
 GOAL_KEY, ORDER_KEY = "sdg_goal", "roles_order_by"
 ORDER_BEST, ORDER_GOAL = "Best fit", "Fit for my goal"
-MYCOL_MARK = "Critical Occupations List"
+MYCOL_MARK = "MyCOL shortage occupation"
 MYCOL_CAPTION = ("MyCOL is TalentCorp's list of occupations in short supply in Malaysia; the mapping to our "
-                 "roles is team judgement.")
+                 "roles is team judgement. Occupation names and MASCO codes were read by eye from the PDF's "
+                 "page images.")
 NO_SNAPSHOT = "No Malaysian job-site snapshot yet: collectors need written permission from each site."
 PRECISION_COLUMN = "Precision (hand check, docs/sdg-links.md)"
 needs_integration_files = pytest.mark.skipif(
@@ -1552,14 +1554,36 @@ def test_the_goal_reorders_only_in_fit_for_my_goal_mode_and_never_hides_a_role(s
     assert not at.exception
     assert _card_names(at) == fit                                             # the engine's goal order
     assert set(_low(at)) == low                                               # "Not a fit yet" roles stay listed
-    if sector == "climate_energy":
-        assert fit != best                                                    # for Aina this goal moves a role
-        assert all("by rank score" in c for c in _cards(at))                  # a re-ordered list shows old ranks
+    assert fit == best                    # on the committed data no reliable cell is strong enough to move Aina's roles
+    assert all("by rank score" in c for c in _cards(at))                      # a goal order always shows old ranks
 
     at.radio(key=ORDER_KEY).set_value(ORDER_BEST).run()
     assert _card_names(at) == best                                            # and back
     at.selectbox(key=GOAL_KEY).set_value(NO_GOAL).run()
     assert _card_names(at) == best and not at.exception
+
+
+@needs_real_data
+@needs_integration_files
+def test_a_strong_reliable_cell_moves_a_role_up_but_a_thin_one_does_not(tmp_path):
+    doc = _data_json("role_sdg.json")
+    cells = {rid: doc["roles"][rid]["sectors"]["climate_energy"] for rid in ("data_scientist", "ml_engineer")}
+    cells["data_scientist"].update(count_recent=sdg_mod.MIN_SECTOR_POSTS, employers_recent=6, lift=6.0, reliable=True)
+    cells["ml_engineer"].update(count_recent=sdg_mod.MIN_SECTOR_POSTS - 1, employers_recent=6, lift=9.0, reliable=True)
+    out = _expected_match()
+    best = [r["name"] for r in out["roles"]]
+    fit = [r["name"] for r in sdg_mod.rerank_for_goal(out, doc, "climate_energy")["by_goal_fit"]]
+    assert fit != best and fit.index("Data Scientist") < best.index("Data Scientist")
+    at = _app_copy(tmp_path, write={"role_sdg.json": json.dumps(doc)})
+    _pick_goal(at, "climate_energy")
+    assert _card_names(at) == best                                              # Best fit: untouched
+    at.radio(key=ORDER_KEY).set_value(ORDER_GOAL).run()
+    assert _card_names(at) == fit and not at.exception
+    assert sorted(_card_names(at)) == sorted(best)                              # nobody hidden
+    texts = _card_texts(at)
+    assert any(t.startswith("For your goal (rough") and "only 9 posts in the sector" in t
+               for t in texts["ML Engineer"])                                   # 9 posts: a thin cell, no boost
+    assert not any("rough" in t for t in texts["Data Scientist"] if t.startswith("For your goal"))
 
 
 @needs_real_data
@@ -1597,7 +1621,7 @@ def test_every_role_card_shows_its_goal_sentence_from_the_rerank_output(sector):
             expected = f"For your goal: {goal['sentence']}"
             reliable_seen += 1
         assert expected in texts[role["name"]], role["name"]
-    assert reliable_seen
+    assert reliable_seen or sector == "climate_energy"      # for Aina no Climate cell is strong enough to count
     captions = [c.value for c in at.caption]
     for role in goal_out["low_match"]:                                        # "Not a fit yet" roles carry it too
         assert any(role["sdg_goal"]["sentence"] in c for c in captions)
@@ -1616,6 +1640,12 @@ def test_an_unreliable_cell_is_called_rough_and_a_reliable_one_is_not():
     for role in goal_out["roles"]:
         if role["sdg_goal"]["reliable"]:
             assert not any("rough" in t for t in texts[role["name"]] if t.startswith("For your goal"))
+    # Data Scientist and Climate: the file says reliable, but only 4 posts are in the sector, so it is rough
+    cell = _data_json("role_sdg.json")["roles"]["data_scientist"]["sectors"]["climate_energy"]
+    assert cell["reliable"] is True and cell["count_recent"] < sdg_mod.MIN_SECTOR_POSTS
+    climate = _card_texts(_pick_goal(_run_app(), "climate_energy"))["Data Scientist"]
+    assert any(t.startswith("For your goal (rough") and f"only {cell['count_recent']} posts in the sector" in t
+               for t in climate)
 
 
 @needs_real_data
@@ -1661,8 +1691,9 @@ def test_mycol_badges_appear_only_on_roles_the_map_links_to_an_occupation():
         for link in links:
             occ = occupations[link["masco_code"]]
             badge = next(b for b in badges if f"{link['occupation']} (MASCO {link['masco_code']})" in b)
-            assert f"On Malaysia's Critical Occupations List {occ['year']}: " in badge
-            assert f"{link['strength']} match" in badge
+            assert badge.startswith(f":{'blue' if link['strength'] == 'direct' else 'gray'}-badge[{MYCOL_MARK}: ")
+            assert f"our {link['strength']} match (team judgement)" in badge
+            assert "Critical Occupations List" not in badge                    # the role itself is not "on the list"
             assert f"({occ['source_url']})" in badge                           # the source link
     assert mapped_seen and unmapped_seen                                        # Aina sees both kinds of role
 
@@ -1678,8 +1709,8 @@ def test_one_mycol_caption_gives_the_plain_meaning_and_the_team_judgement_note()
 @needs_integration_files
 def test_a_direct_mycol_match_is_marked_direct_and_comes_before_the_partial_ones():
     backend = [t for t in _card_texts(_run_app())["Backend Engineer"] if MYCOL_MARK in t]
-    assert "Software Developers (MASCO 2512)" in backend[0] and "direct match" in backend[0]
-    assert len(backend) > 1 and all("partial match" in t for t in backend[1:])
+    assert "Software Developers (MASCO 2512)" in backend[0] and "our direct match" in backend[0]
+    assert len(backend) > 1 and all("our partial match" in t for t in backend[1:])
 
 
 # -- step 3 summary line and step 4 SDG lines --------------------------------------------------
@@ -1749,7 +1780,8 @@ def test_method_tab_renders_the_sdg_sector_links_subsection_from_the_files():
     assert role_sdg["method"] in text
     window = role_sdg["window"]["recent"]
     assert f"{window['from']} to {window['to']} ({window['n_posts']} posts)" in text
-    assert f"at least {sdg_mod.MIN_N} role posts and {sdg_mod.MIN_EMPLOYERS} different employers" in text
+    assert (f"at least {sdg_mod.MIN_N} role posts, {sdg_mod.MIN_SECTOR_POSTS} of them in the sector, and "
+            f"{sdg_mod.MIN_EMPLOYERS} different employers in the sector") in text
     assert f"1 + {sdg_mod.GOAL_WEIGHT} x min(max(lift - 1, 0), {sdg_mod.MAX_EXCESS:g})" in text
     for limit in ("US start-ups", "association, not impact", "do not move with the As-of slider"):
         assert limit in text
@@ -1885,3 +1917,103 @@ def test_a_role_sdg_file_the_engine_cannot_use_gives_a_note_and_no_crash(tmp_pat
     at.session_state["target_role"] = "Backend Engineer"
     at.run()
     assert not at.exception                                                        # step 4 falls back to the plan lines
+
+
+# -- review fixes: thresholds, past-view labels, resets, notes ------------------------------
+
+def _past_app() -> AppTest:
+    at = _run_app()
+    at.sidebar.select_slider[0].set_value("2024-06").run()
+    assert not at.exception
+    return at
+
+
+@needs_real_data
+@needs_integration_files
+def test_the_goal_caption_and_method_name_all_three_reliability_thresholds():
+    expected = (f"{sdg_mod.MIN_N} role posts, {sdg_mod.MIN_SECTOR_POSTS} posts in the sector and "
+                f"{sdg_mod.MIN_EMPLOYERS} employers")
+    at = _pick_goal(_run_app(), "health")
+    at.radio(key=ORDER_KEY).set_value(ORDER_GOAL).run()
+    assert expected in _captions(at)
+    method = _joined(at)
+    assert (f"at least {sdg_mod.MIN_N} role posts, {sdg_mod.MIN_SECTOR_POSTS} of them in the sector, and "
+            f"{sdg_mod.MIN_EMPLOYERS} different employers in the sector") in method
+
+
+@needs_real_data
+@needs_integration_files
+def test_a_past_view_labels_every_snapshot_that_does_not_follow_the_slider():
+    note = "does not move with the As-of slider"
+    latest = _run_app()
+    assert not any(note in c.value for c in latest.caption)
+    at = _past_app()
+    captions = [c.value for c in at.caption]
+    mycol_year = _data_json("mycol.json")["occupations"][0]["year"]
+    assert f"MyCOL {mycol_year} is one list and {note}." in captions                       # step 3
+    assert f"The hit rate uses all data and {note}." in captions                            # step 2
+    assert sum(c.endswith(f"The backtest uses all data and {note}.") for c in captions) == len(_cards(at))
+    _pick_goal(at, "health")
+    at.session_state["target_role"] = _card_names(at)[0]
+    at.run()
+    assert not at.exception
+    months = _data_json("role_sdg.json")["months"]
+    as_of = _data_json("role_sdg.json")["as_of"]
+    assert (f"The sector share is for the {months} months to {as_of} and {note}.") in [c.value for c in at.caption]
+
+
+@needs_real_data
+@needs_integration_files
+def test_going_back_to_no_preference_resets_the_order_radio_to_best_fit():
+    at = _run_app()
+    _pick_goal(at, "health")
+    at.radio(key=ORDER_KEY).set_value(ORDER_GOAL).run()
+    assert at.radio(key=ORDER_KEY).value == ORDER_GOAL
+    at.selectbox(key=GOAL_KEY).set_value(NO_GOAL).run()
+    assert at.radio(key=ORDER_KEY).value == ORDER_BEST and at.radio(key=ORDER_KEY).proto.disabled
+    _pick_goal(at, "health")
+    assert at.radio(key=ORDER_KEY).value == ORDER_BEST                      # and it does not come back on its own
+
+
+@needs_real_data
+@needs_integration_files
+def test_the_radar_corner_names_and_p_values_never_say_nan():
+    at = _run_app()
+    frames = _chart_frames(at)
+    names = {n for f in frames if "name" in f.columns for n in f["name"]}
+    assert names == {"Common, share up", "Common, share down", "Small, share up", "Small, share down"}
+    points = _radar_points(at)
+    assert set(points["quadrant"]) <= names
+    tips = list(points["trend_text"])
+    assert not any("nan" in t for t in tips)
+    assert any(re.search(r"\(p = \d\.\d{3}\)$", t) for t in tips)
+
+
+@needs_real_data
+@needs_integration_files
+def test_a_missing_or_nan_trend_p_shows_as_n_a_in_the_radar_tooltip(tmp_path):
+    scores = _scores()
+    by_name = {s_["skill"]: s_ for s_ in scores["skills"]}
+    by_name["Python"]["trend_p"] = float("nan")                              # json.dumps writes NaN
+    by_name["Rust"]["trend_p"] = None
+    at = _app_copy(tmp_path, write={"skill_scores.json": json.dumps(scores)})
+    assert not at.exception
+    points = _radar_points(at).set_index("skill")
+    for skill in ("Python", "Rust"):
+        assert points.loc[skill, "trend_text"].endswith("(p = n/a)"), skill
+    assert not any("nan" in t for t in points["trend_text"])
+
+
+@needs_real_data
+@needs_integration_files
+def test_a_month_the_role_files_do_not_cover_shows_a_note_instead_of_the_estimate(tmp_path):
+    forecast = _data_json("role_forecast.json")
+    forecast["as_of"] = "2026-09"                                           # not the month the app shows
+    rows = (DATA / "role_demand_monthly.csv").read_text(encoding="utf-8").splitlines()
+    kept = [r for r in rows if not r.startswith(_scores()["as_of"])]        # no role data for the newest month
+    at = _app_copy(tmp_path, write={"role_forecast.json": json.dumps(forecast),
+                                    "role_demand_monthly.csv": "\n".join(kept) + "\n"})
+    assert not at.exception
+    captions = [c.value for c in at.caption]
+    assert captions.count("Role estimate not available for this month yet") == len(_cards(at))
+    assert not [c for c in captions if c.startswith("Share of HN hiring posts now")]

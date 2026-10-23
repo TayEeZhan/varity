@@ -41,7 +41,7 @@ from datetime import date
 from html import unescape
 from pathlib import Path
 from typing import Callable, Iterable
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -56,6 +56,8 @@ ROBOTS_TOKEN = "verity"  # product token that robots.txt groups may name
 MIN_INTERVAL_S = 3.0
 TIMEOUT_S = 30
 MAX_RETRIES = 3
+MAX_REDIRECTS = 3  # redirects are followed by hand, each target checked against robots.txt
+REDIRECT_STATUSES = (301, 302, 303, 307, 308)
 BACKOFF_BASE_S = 5.0
 
 QUERIES = (
@@ -283,20 +285,40 @@ class PoliteFetcher:
                 self._sleep(wait)
         self._last_request[host] = self._clock()
 
-    def _request(self, url: str) -> Page:
-        host = urlsplit(url).netloc
+    def _follow(self, url: str, check_robots: bool):
+        """GET `url` and follow at most MAX_REDIRECTS redirects by hand.
+
+        Automatic redirects are off, so a redirect cannot lead us to a URL that robots.txt forbids: the Location
+        target is checked before it is fetched (`check_robots`; not for robots.txt itself). Returns (response, url).
+        """
+        current = url
+        for hop in range(MAX_REDIRECTS + 1):
+            self._pace(urlsplit(current).netloc)
+            self.request_count += 1
+            resp = self.session.get(current, timeout=TIMEOUT_S, allow_redirects=False)
+            location = {k.lower(): v for k, v in dict(resp.headers).items()}.get("location")
+            if resp.status_code not in REDIRECT_STATUSES or not location:
+                return resp, current
+            if hop == MAX_REDIRECTS:
+                raise FetchFailed(f"{url}: more than {MAX_REDIRECTS} redirects")
+            current = urljoin(current, location)
+            if urlsplit(current).scheme not in ("http", "https"):
+                raise FetchFailed(f"{url}: redirect to a non-web address")
+            if check_robots:
+                self.check_allowed(current)
+        raise FetchFailed(f"{url}: redirect loop")  # not reached
+
+    def _request(self, url: str, check_robots: bool = True) -> Page:
         last_error = "unknown"
         for attempt in range(MAX_RETRIES + 1):
-            self._pace(host)
-            self.request_count += 1
             try:
-                resp = self.session.get(url, timeout=TIMEOUT_S, allow_redirects=True)
+                resp, final_url = self._follow(url, check_robots)
             except OSError as exc:  # requests.RequestException subclasses OSError
                 last_error = f"{type(exc).__name__}: {exc}"
             else:
                 if "charset" not in str(resp.headers.get("content-type", "")).lower():
                     resp.encoding = "utf-8"  # requests would guess ISO-8859-1 for text/* without a charset
-                page = Page(resp.url, resp.status_code, resp.text, dict(resp.headers))
+                page = Page(final_url, resp.status_code, resp.text, dict(resp.headers))
                 if page.status < 500 and page.status != 408:
                     return page
                 last_error = f"HTTP {page.status}"
@@ -310,7 +332,10 @@ class PoliteFetcher:
         host = parts.netloc
         if host not in self._robots:
             robots_url = f"{parts.scheme}://{host}/robots.txt"
-            page = self._request(robots_url)
+            page = self._request(robots_url, check_robots=False)
+            if is_challenge(page.status, page.headers, page.text):
+                raise ChallengeDetected(f"{robots_url} answered with a challenge or block (HTTP {page.status}); "
+                                        f"skipping {host}")
             if page.status == 200:
                 rules = RobotsRules.parse(page.text)
             elif 400 <= page.status < 500 and page.status not in (401, 403, 429):
@@ -666,7 +691,18 @@ def run(
     write: bool = True,
     fetcher: PoliteFetcher | None = None,
     snapshot_date: str | None = None,
+    permission_confirmed: bool = False,
 ) -> list[SiteResult]:
+    """Collect the given sites. A site whose terms are not "no_clause_found" needs permission_confirmed=True
+    (the written permission is on file); without it nothing is fetched and PermissionError is raised."""
+    unknown = [n for n in sites if n not in COLLECTORS]
+    if unknown:
+        raise ValueError(f"unknown sites {unknown}; known: {sorted(COLLECTORS)}")
+    needs_permission = [n for n in sites if COLLECTORS[n].terms_status != "no_clause_found"]
+    if needs_permission and not permission_confirmed:
+        raise PermissionError(
+            f"terms of {needs_permission} need written permission from the site; "
+            "pass permission_confirmed=True (--permission-confirmed) only if it is on file")
     snapshot_date = snapshot_date or date.today().isoformat()
     fetcher = fetcher or PoliteFetcher(today=snapshot_date)
     taxonomy, roles = load_taxonomy(), load_roles()
@@ -710,7 +746,8 @@ def main(argv: list[str] | None = None) -> int:
     needs_permission = [s for s in sites if COLLECTORS[s].terms_status != "no_clause_found"]
     if needs_permission and not args.permission_confirmed:
         parser.error(f"terms of {needs_permission} need written permission; pass --permission-confirmed only if it is on file")
-    results = run(sites, max_pages=min(args.pages, MAX_PAGES), write=not args.dry_run)
+    results = run(sites, max_pages=min(args.pages, MAX_PAGES), write=not args.dry_run,
+                  permission_confirmed=args.permission_confirmed)
     for r in results:
         print(f"{r.site}: {len(r.listings)} listings, {r.pages_fetched} pages, {r.requests} requests, stopped={r.stopped}")
     return 0
