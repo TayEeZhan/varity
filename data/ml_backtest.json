@@ -1,0 +1,499 @@
+{
+  "generated_at": "2026-10-22T07:06:10Z",
+  "verdict": "keep naive3",
+  "verdict_rule": "promote only if the lower end of the 95% skill-bootstrap interval of the TEST h=12 gain over naive3 is above 0, otherwise keep naive3",
+  "setup": {
+    "model": "sklearn HistGradientBoostingRegressor, one pooled model for all skills",
+    "sklearn_version": "1.9.1",
+    "design": "residual on naive3: target = y[t+12] - naive3_t, prediction = naive3_t + model(features at t); y = logit((mentions + 0.5) / (n_posts + 1))",
+    "training_pairs": "all eligible (skill, origin s) pairs with target month s+12 <= the forecast origin t; retrained from scratch at every origin",
+    "retrain_every_n_origins": 1,
+    "retrain_note": "Full retrain at every origin takes seconds, so no 3-origin shortcut was used.",
+    "eligibility": "mean mentions >= 5 over the last 12 months (production rule)",
+    "min_train_rows": 100,
+    "origins_without_a_model_early": [
+      "2021-12",
+      "2022-01",
+      "2022-02"
+    ],
+    "origins": {
+      "early": [
+        "2021-12",
+        "2023-10"
+      ],
+      "test": [
+        "2023-11",
+        "2025-10"
+      ],
+      "n_early": 23,
+      "n_test": 24,
+      "early_mature": [
+        "2022-11",
+        "2023-10"
+      ],
+      "n_early_mature": 12
+    },
+    "horizon_months": 12,
+    "metric": "mean absolute error on the share scale, percentage points, h=12",
+    "ci_method": "skill bootstrap (clusters), 2000 draws, seed 0, as in engine/backtest.py",
+    "chosen_config": {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 1.0,
+      "min_samples_leaf": 50,
+      "loss": "absolute_error",
+      "feature_set": "gaps",
+      "random_state": 0
+    },
+    "tuning": "grid over feature set, loss, L2 and min leaf size, scored on EARLY mature origins only; max_depth 3, learning_rate 0.05, max_iter 200 are fixed by spec"
+  },
+  "features": {
+    "used": [
+      "y_last",
+      "y_mean3",
+      "y_mean6",
+      "y_mean12",
+      "slope6",
+      "slope12",
+      "slope24",
+      "vol24",
+      "yoy_change",
+      "share_level",
+      "log_mean_mentions12",
+      "ai_level",
+      "ai_change12",
+      "month_of_year",
+      "cat_ai_ml",
+      "cat_cloud_devops",
+      "cat_data",
+      "cat_framework",
+      "cat_language",
+      "cat_practice",
+      "ai_exposure",
+      "e_s",
+      "ext_momentum",
+      "gap_last_mean3",
+      "gap_mean3_mean12"
+    ],
+    "ext_momentum": "placeholder for the ranker momentum, NaN for now. Pass ext_momentum= (months x skills, point-in-time) to build_panel / forecast_h12. A fully empty column is left out of the fit; it joins when it has values.",
+    "exposure_not_time_cut": "ai_exposure and e_s come from exposure.csv (Anthropic Economic Index 2026-06), one value per skill used at every origin."
+  },
+  "mae_table_h12_pp": {
+    "early_all": {
+      "n_skill_origin_pairs": 689,
+      "n_origins": 23,
+      "mae_pp": {
+        "ml": 1.8334,
+        "naive3": 1.5476,
+        "naive": 1.6121
+      },
+      "gain_vs_naive3": {
+        "gain_pp": -0.2858,
+        "ci95_skill_bootstrap": [
+          -0.4404,
+          -0.1499
+        ]
+      },
+      "gain_vs_naive": {
+        "gain_pp": -0.2214,
+        "ci95_skill_bootstrap": [
+          -0.3828,
+          -0.0783
+        ]
+      }
+    },
+    "early_mature": {
+      "n_skill_origin_pairs": 346,
+      "n_origins": 12,
+      "mae_pp": {
+        "ml": 1.6915,
+        "naive3": 1.4405,
+        "naive": 1.563
+      },
+      "gain_vs_naive3": {
+        "gain_pp": -0.251,
+        "ci95_skill_bootstrap": [
+          -0.4198,
+          -0.1025
+        ]
+      },
+      "gain_vs_naive": {
+        "gain_pp": -0.1285,
+        "ci95_skill_bootstrap": [
+          -0.3053,
+          0.0321
+        ]
+      }
+    },
+    "test": {
+      "n_skill_origin_pairs": 616,
+      "n_origins": 24,
+      "mae_pp": {
+        "ml": 2.064,
+        "naive3": 1.6613,
+        "naive": 1.8059
+      },
+      "gain_vs_naive3": {
+        "gain_pp": -0.4026,
+        "ci95_skill_bootstrap": [
+          -0.6216,
+          -0.2088
+        ]
+      },
+      "gain_vs_naive": {
+        "gain_pp": -0.2581,
+        "ci95_skill_bootstrap": [
+          -0.481,
+          -0.0539
+        ]
+      }
+    }
+  },
+  "test_by_category": {
+    "ai_ml": {
+      "n_skill_origin_pairs": 57,
+      "n_skills": 3,
+      "mae_pp": {
+        "ml": 2.4643,
+        "naive3": 2.1557,
+        "naive": 2.3415
+      },
+      "gain_vs_naive3_pp": -0.3086
+    },
+    "cloud_devops": {
+      "n_skill_origin_pairs": 144,
+      "n_skills": 6,
+      "mae_pp": {
+        "ml": 1.9321,
+        "naive3": 1.4615,
+        "naive": 1.6242
+      },
+      "gain_vs_naive3_pp": -0.4706
+    },
+    "data": {
+      "n_skill_origin_pairs": 93,
+      "n_skills": 5,
+      "mae_pp": {
+        "ml": 1.6375,
+        "naive3": 1.413,
+        "naive": 1.5395
+      },
+      "gain_vs_naive3_pp": -0.2245
+    },
+    "framework": {
+      "n_skill_origin_pairs": 72,
+      "n_skills": 3,
+      "mae_pp": {
+        "ml": 2.385,
+        "naive3": 1.9141,
+        "naive": 2.1326
+      },
+      "gain_vs_naive3_pp": -0.4709
+    },
+    "language": {
+      "n_skill_origin_pairs": 249,
+      "n_skills": 12,
+      "mae_pp": {
+        "ml": 2.1223,
+        "naive3": 1.6896,
+        "naive": 1.7991
+      },
+      "gain_vs_naive3_pp": -0.4326
+    },
+    "practice": {
+      "n_skill_origin_pairs": 1,
+      "n_skills": 1,
+      "mae_pp": {
+        "ml": 0.2636,
+        "naive3": 0.1068,
+        "naive": 0.3755
+      },
+      "gain_vs_naive3_pp": -0.1568
+    }
+  },
+  "tuning_grid_early": [
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 1.0,
+      "min_samples_leaf": 20,
+      "loss": "squared_error",
+      "feature_set": "base",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7695,
+      "early_all_mae_h12_pp": 1.9705
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 1.0,
+      "min_samples_leaf": 50,
+      "loss": "squared_error",
+      "feature_set": "base",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7821,
+      "early_all_mae_h12_pp": 1.9235
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 10.0,
+      "min_samples_leaf": 20,
+      "loss": "squared_error",
+      "feature_set": "base",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7532,
+      "early_all_mae_h12_pp": 1.9452
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 10.0,
+      "min_samples_leaf": 50,
+      "loss": "squared_error",
+      "feature_set": "base",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7847,
+      "early_all_mae_h12_pp": 1.9203
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 1.0,
+      "min_samples_leaf": 20,
+      "loss": "absolute_error",
+      "feature_set": "base",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.75,
+      "early_all_mae_h12_pp": 1.8857
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 1.0,
+      "min_samples_leaf": 50,
+      "loss": "absolute_error",
+      "feature_set": "base",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7322,
+      "early_all_mae_h12_pp": 1.86
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 10.0,
+      "min_samples_leaf": 20,
+      "loss": "absolute_error",
+      "feature_set": "base",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7576,
+      "early_all_mae_h12_pp": 1.8692
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 10.0,
+      "min_samples_leaf": 50,
+      "loss": "absolute_error",
+      "feature_set": "base",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7386,
+      "early_all_mae_h12_pp": 1.8704
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 1.0,
+      "min_samples_leaf": 20,
+      "loss": "squared_error",
+      "feature_set": "gaps",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7542,
+      "early_all_mae_h12_pp": 1.9462
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 1.0,
+      "min_samples_leaf": 50,
+      "loss": "squared_error",
+      "feature_set": "gaps",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7924,
+      "early_all_mae_h12_pp": 1.9148
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 10.0,
+      "min_samples_leaf": 20,
+      "loss": "squared_error",
+      "feature_set": "gaps",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7376,
+      "early_all_mae_h12_pp": 1.9212
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 10.0,
+      "min_samples_leaf": 50,
+      "loss": "squared_error",
+      "feature_set": "gaps",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7935,
+      "early_all_mae_h12_pp": 1.91
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 1.0,
+      "min_samples_leaf": 20,
+      "loss": "absolute_error",
+      "feature_set": "gaps",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7275,
+      "early_all_mae_h12_pp": 1.8574
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 1.0,
+      "min_samples_leaf": 50,
+      "loss": "absolute_error",
+      "feature_set": "gaps",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.6915,
+      "early_all_mae_h12_pp": 1.8334
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 10.0,
+      "min_samples_leaf": 20,
+      "loss": "absolute_error",
+      "feature_set": "gaps",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7403,
+      "early_all_mae_h12_pp": 1.8764
+    },
+    {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "max_iter": 200,
+      "l2_regularization": 10.0,
+      "min_samples_leaf": 50,
+      "loss": "absolute_error",
+      "feature_set": "gaps",
+      "random_state": 0,
+      "early_mature_mae_h12_pp": 1.7098,
+      "early_all_mae_h12_pp": 1.8442
+    }
+  ],
+  "pre_specified_default_on_test": {
+    "note": "pre-specified default config, shown for transparency only; the verdict uses the config chosen on EARLY",
+    "n_skill_origin_pairs": 616,
+    "n_origins": 24,
+    "mae_pp": {
+      "ml": 2.1272,
+      "naive3": 1.6613,
+      "naive": 1.8059
+    },
+    "gain_vs_naive3": {
+      "gain_pp": -0.4659,
+      "ci95_skill_bootstrap": [
+        -0.7148,
+        -0.2492
+      ]
+    },
+    "gain_vs_naive": {
+      "gain_pp": -0.3213,
+      "ci95_skill_bootstrap": [
+        -0.5714,
+        -0.0985
+      ]
+    }
+  },
+  "feature_importance": {
+    "as_of": "2025-10",
+    "n_train_rows": 1373,
+    "train_mae_pp": 0.9825,
+    "metric": "increase in in-sample share-scale MAE (pp) when the feature is shuffled",
+    "n_repeats": 20,
+    "importance_pp": {
+      "ai_level": 0.232,
+      "category (one-hot group)": 0.1501,
+      "ai_change12": 0.1321,
+      "slope24": 0.1046,
+      "y_last": 0.078,
+      "vol24": 0.0619,
+      "y_mean6": 0.0528,
+      "y_mean12": 0.0424,
+      "slope6": 0.0358,
+      "slope12": 0.0315,
+      "log_mean_mentions12": 0.0251,
+      "gap_last_mean3": 0.0233,
+      "share_level": 0.0161,
+      "gap_mean3_mean12": 0.0155,
+      "yoy_change": 0.0142,
+      "ai_exposure": 0.0082,
+      "month_of_year": 0.0079,
+      "y_mean3": 0.005,
+      "e_s": 0.0
+    },
+    "not_in_fit": [
+      "ext_momentum"
+    ]
+  },
+  "leak_test": {
+    "description": "prediction at the origin: full-data panel vs data cut at the origin vs later months scrambled; the three must be identical",
+    "origins": [
+      {
+        "origin": "2023-11",
+        "n_skills": 28,
+        "max_abs_diff": 0.0,
+        "passed": true
+      },
+      {
+        "origin": "2024-11",
+        "n_skills": 26,
+        "max_abs_diff": 0.0,
+        "passed": true
+      },
+      {
+        "origin": "2025-09",
+        "n_skills": 26,
+        "max_abs_diff": 0.0,
+        "passed": true
+      }
+    ],
+    "passed": true
+  },
+  "runtime_s": 76.3,
+  "caveats": [
+    "Test errors of one skill are correlated across origins, so the effective sample is much smaller than the raw count. The skill bootstrap respects this; the raw pair count does not.",
+    "The pooled model has ~25 eligible skills and at most ~47 training origins. Training rows from consecutive origins overlap heavily, so the data is small and highly correlated.",
+    "ai_level is nearly a time index (it rises through the whole period). The model can memorise time with it; trees cannot extrapolate beyond the range seen in training.",
+    "ai_exposure and e_s (exposure.csv) are not time-cut: the same 2026-06 value is used at every origin. They are constant per skill, so they act as skill identifiers.",
+    "The first EARLY origins have too few training rows for a model; they use naive3. early_mature (2022-11..2023-10) is the fair EARLY comparison.",
+    "Permutation importance is computed on the training set (in-sample), as specified.",
+    "The last target month (2026-10) comes from an HN thread that was still open when fetched.",
+    "Production forecasting is unchanged by this experiment; a promote verdict needs review."
+  ]
+}

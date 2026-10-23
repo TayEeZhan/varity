@@ -1,0 +1,996 @@
+{
+  "generated_by": "engine/k_estimate.py",
+  "generated_at": "2026-10-22T07:57:01Z",
+  "assumed_k_in_production": 2.0,
+  "method": {
+    "design": "Natural experiment: change in mean logit share from the 12 months before 2021-11..2022-10 to each post window, regressed on e_s across skills with status ok: d = a + b * e_s.",
+    "transform": "y = logit((mentions + 0.5) / (posts + 1)), the same series the forecast uses",
+    "weights": "mentions in the pre and post windows together (and an unweighted fit)",
+    "pre_window": [
+      "2021-11",
+      "2022-10"
+    ],
+    "post_windows": {
+      "2023-11..2024-10": [
+        "2023-11",
+        "2024-10"
+      ],
+      "2024-11..2025-10": [
+        "2024-11",
+        "2025-10"
+      ],
+      "2025-11..2026-10": [
+        "2025-11",
+        "2026-10"
+      ]
+    },
+    "primary_window": "2025-11..2026-10",
+    "last_data_month": "2026-10",
+    "primary_window_note": "The last month (2026-10) was still open when fetched, so it is partial.",
+    "skills_used": [
+      "AWS",
+      "Azure",
+      "C",
+      "C#",
+      "C++",
+      "Docker",
+      "GCP",
+      "Go",
+      "Java",
+      "JavaScript / TypeScript",
+      "Kubernetes",
+      "LLM / GenAI",
+      "Machine Learning",
+      "MongoDB",
+      "Node.js",
+      "PostgreSQL",
+      "PyTorch",
+      "Python",
+      "RAG",
+      "React",
+      "React Native",
+      "Ruby",
+      "Rust",
+      "SQL",
+      "Snowflake",
+      "Terraform",
+      "TypeScript"
+    ],
+    "n_skills_ok": 27,
+    "linearisation": {
+      "scenario": "fast/moderate - 1 = -k * e",
+      "data": "d share / share = (1 - s_bar) * d logit = (1 - s_bar) * b * e",
+      "result": "k = -(1 - s_bar) * b; a CI of b maps to a CI of k by the same linear map (ends swap)",
+      "per_12m": "k_per_12m = k_total / years from 2022-11 to the middle of the post window; assumes the effect built up evenly. The scenario horizon is 12 months."
+    },
+    "ci": "95% percentile bootstrap, 5000 resamples, seed 20261022. Headline = cluster bootstrap (categories resampled); skill-level bootstrap is reported but ignores that skills in one category share e_s.",
+    "category_level": "5 points only: category 'practice' has no ok skill. Weighted mean change per category against its e_s; exact permutation p-value; t interval with n - 2 = 3 degrees of freedom."
+  },
+  "results": {
+    "2023-11..2024-10": {
+      "all_ok_skills": {
+        "weighted": {
+          "n_skills": 27,
+          "n_categories": 5,
+          "weighted": true,
+          "intercept_a": -0.120403,
+          "slope_b": -6.291629,
+          "s_bar": 0.160041,
+          "b_ci_skill_bootstrap": [
+            -19.425136,
+            0.843857
+          ],
+          "b_ci_cluster_bootstrap": [
+            -10.959185,
+            5.923322
+          ],
+          "cluster_bootstrap_valid_resamples": 4993,
+          "k_total": 5.284709,
+          "years_since_release": 1.5,
+          "k_per_12m": 3.523139,
+          "k_total_ci_skill_bootstrap": [
+            -0.708805,
+            16.316313
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -0.472537,
+            10.877542
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -4.975346,
+            9.205263
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -3.316897,
+            6.136842
+          ]
+        },
+        "unweighted": {
+          "n_skills": 27,
+          "n_categories": 5,
+          "weighted": false,
+          "intercept_a": 0.05921,
+          "slope_b": -11.620093,
+          "s_bar": 0.090949,
+          "b_ci_skill_bootstrap": [
+            -21.706385,
+            -1.047185
+          ],
+          "b_ci_cluster_bootstrap": [
+            -16.596058,
+            6.172173
+          ],
+          "cluster_bootstrap_valid_resamples": 4993,
+          "k_total": 10.563259,
+          "years_since_release": 1.5,
+          "k_per_12m": 7.042173,
+          "k_total_ci_skill_bootstrap": [
+            0.951944,
+            19.732216
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            0.63463,
+            13.154811
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -5.610822,
+            15.086666
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -3.740548,
+            10.057778
+          ]
+        }
+      },
+      "excluding_ai_ml": {
+        "weighted": {
+          "n_skills": 23,
+          "n_categories": 4,
+          "weighted": true,
+          "intercept_a": -0.298775,
+          "slope_b": 1.284895,
+          "s_bar": 0.164461,
+          "b_ci_skill_bootstrap": [
+            -3.795422,
+            4.883628
+          ],
+          "b_ci_cluster_bootstrap": [
+            -4.74639,
+            8.221306
+          ],
+          "cluster_bootstrap_valid_resamples": 4920,
+          "k_total": -1.07358,
+          "years_since_release": 1.5,
+          "k_per_12m": -0.71572,
+          "k_total_ci_skill_bootstrap": [
+            -4.080461,
+            3.171223
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -2.720308,
+            2.114149
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -6.869221,
+            3.965794
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -4.579481,
+            2.643863
+          ]
+        },
+        "unweighted": {
+          "n_skills": 23,
+          "n_categories": 4,
+          "weighted": false,
+          "intercept_a": -0.261706,
+          "slope_b": 0.932129,
+          "s_bar": 0.099334,
+          "b_ci_skill_bootstrap": [
+            -5.527222,
+            4.203156
+          ],
+          "b_ci_cluster_bootstrap": [
+            -17.099498,
+            17.313091
+          ],
+          "cluster_bootstrap_valid_resamples": 4920,
+          "k_total": -0.839537,
+          "years_since_release": 1.5,
+          "k_per_12m": -0.559691,
+          "k_total_ci_skill_bootstrap": [
+            -3.78564,
+            4.978181
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -2.52376,
+            3.318787
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -15.593313,
+            15.400937
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -10.395542,
+            10.267291
+          ]
+        }
+      },
+      "excluding_llm_genai_only": {
+        "weighted": {
+          "n_skills": 26,
+          "n_categories": 5,
+          "weighted": true,
+          "intercept_a": -0.202262,
+          "slope_b": -2.814586,
+          "s_bar": 0.162495,
+          "b_ci_skill_bootstrap": [
+            -4.201027,
+            2.066955
+          ],
+          "b_ci_cluster_bootstrap": [
+            -5.601876,
+            5.923322
+          ],
+          "cluster_bootstrap_valid_resamples": 4993,
+          "k_total": 2.35723,
+          "years_since_release": 1.5,
+          "k_per_12m": 1.571486,
+          "k_total_ci_skill_bootstrap": [
+            -1.731084,
+            3.51838
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -1.154056,
+            2.345587
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -4.96081,
+            4.691598
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -3.307207,
+            3.127732
+          ]
+        }
+      },
+      "category_level_all": {
+        "n_categories": 5,
+        "points": {
+          "ai_ml": {
+            "e_s": -0.122427,
+            "d": 0.909432,
+            "w": 2649.0
+          },
+          "cloud_devops": {
+            "e_s": 0.052298,
+            "d": -0.343464,
+            "w": 5547.0
+          },
+          "data": {
+            "e_s": 0.008648,
+            "d": -0.213909,
+            "w": 2607.0
+          },
+          "framework": {
+            "e_s": -0.018977,
+            "d": -0.441023,
+            "w": 4450.0
+          },
+          "language": {
+            "e_s": 0.021873,
+            "d": -0.199055,
+            "w": 13305.0
+          }
+        },
+        "b_unweighted": -7.270653,
+        "b_weighted": -6.291629,
+        "p_permutation_unweighted": 0.141667,
+        "b_unweighted_t_ci": [
+          -14.255724,
+          -0.285583
+        ],
+        "t_df": 3,
+        "leave_one_category_out_b_unweighted": {
+          "ai_ml": 1.260674,
+          "cloud_devops": -8.390786,
+          "data": -7.258622,
+          "framework": -7.491993,
+          "language": -7.531539
+        }
+      },
+      "category_level_excluding_ai_ml": {
+        "n_categories": 4,
+        "points": {
+          "cloud_devops": {
+            "e_s": 0.052298,
+            "d": -0.343464,
+            "w": 5547.0
+          },
+          "data": {
+            "e_s": 0.008648,
+            "d": -0.213909,
+            "w": 2607.0
+          },
+          "framework": {
+            "e_s": -0.018977,
+            "d": -0.441023,
+            "w": 4450.0
+          },
+          "language": {
+            "e_s": 0.021873,
+            "d": -0.199055,
+            "w": 13305.0
+          }
+        },
+        "b_unweighted": 1.260674,
+        "b_weighted": 1.284895,
+        "p_permutation_unweighted": 0.708333,
+        "b_unweighted_t_ci": [
+          -9.870533,
+          12.391881
+        ],
+        "t_df": 2,
+        "leave_one_category_out_b_unweighted": {
+          "cloud_devops": 6.274001,
+          "data": 1.621499,
+          "framework": -3.277638,
+          "language": 0.977268
+        }
+      },
+      "control_for_pre_level_weighted": {
+        "b_exposure": -5.481536,
+        "c_pre_level": -0.271943
+      }
+    },
+    "2024-11..2025-10": {
+      "all_ok_skills": {
+        "weighted": {
+          "n_skills": 27,
+          "n_categories": 5,
+          "weighted": true,
+          "intercept_a": -0.012519,
+          "slope_b": -7.013873,
+          "s_bar": 0.159744,
+          "b_ci_skill_bootstrap": [
+            -21.827261,
+            0.959775
+          ],
+          "b_ci_cluster_bootstrap": [
+            -12.263721,
+            5.864795
+          ],
+          "cluster_bootstrap_valid_resamples": 4993,
+          "k_total": 5.89345,
+          "years_since_release": 2.5,
+          "k_per_12m": 2.35738,
+          "k_total_ci_skill_bootstrap": [
+            -0.806456,
+            18.34049
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -0.322583,
+            7.336196
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -4.92793,
+            10.304667
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -1.971172,
+            4.121867
+          ]
+        },
+        "unweighted": {
+          "n_skills": 27,
+          "n_categories": 5,
+          "weighted": false,
+          "intercept_a": 0.117883,
+          "slope_b": -12.535624,
+          "s_bar": 0.090949,
+          "b_ci_skill_bootstrap": [
+            -23.071173,
+            -1.499186
+          ],
+          "b_ci_cluster_bootstrap": [
+            -17.906069,
+            3.509176
+          ],
+          "cluster_bootstrap_valid_resamples": 4993,
+          "k_total": 11.395524,
+          "years_since_release": 2.5,
+          "k_per_12m": 4.55821,
+          "k_total_ci_skill_bootstrap": [
+            1.362837,
+            20.972878
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            0.545135,
+            8.389151
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -3.190021,
+            16.277534
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -1.276008,
+            6.511014
+          ]
+        }
+      },
+      "excluding_ai_ml": {
+        "weighted": {
+          "n_skills": 23,
+          "n_categories": 4,
+          "weighted": true,
+          "intercept_a": -0.229965,
+          "slope_b": 2.170835,
+          "s_bar": 0.165065,
+          "b_ci_skill_bootstrap": [
+            -2.715719,
+            5.439278
+          ],
+          "b_ci_cluster_bootstrap": [
+            -4.423588,
+            10.790184
+          ],
+          "cluster_bootstrap_valid_resamples": 4920,
+          "k_total": -1.812506,
+          "years_since_release": 2.5,
+          "k_per_12m": -0.725002,
+          "k_total_ci_skill_bootstrap": [
+            -4.541443,
+            2.267449
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -1.816577,
+            0.90698
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -9.009101,
+            3.693408
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -3.603641,
+            1.477363
+          ]
+        },
+        "unweighted": {
+          "n_skills": 23,
+          "n_categories": 4,
+          "weighted": false,
+          "intercept_a": -0.250733,
+          "slope_b": 1.882337,
+          "s_bar": 0.099334,
+          "b_ci_skill_bootstrap": [
+            -2.127991,
+            4.401637
+          ],
+          "b_ci_cluster_bootstrap": [
+            -20.209238,
+            13.336645
+          ],
+          "cluster_bootstrap_valid_resamples": 4920,
+          "k_total": -1.695357,
+          "years_since_release": 2.5,
+          "k_per_12m": -0.678143,
+          "k_total_ci_skill_bootstrap": [
+            -3.964405,
+            1.916609
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -1.585762,
+            0.766644
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -12.011863,
+            18.201773
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -4.804745,
+            7.280709
+          ]
+        }
+      },
+      "excluding_llm_genai_only": {
+        "weighted": {
+          "n_skills": 26,
+          "n_categories": 5,
+          "weighted": true,
+          "intercept_a": -0.124423,
+          "slope_b": -2.287146,
+          "s_bar": 0.16291,
+          "b_ci_skill_bootstrap": [
+            -4.610239,
+            2.410795
+          ],
+          "b_ci_cluster_bootstrap": [
+            -5.008342,
+            5.864795
+          ],
+          "cluster_bootstrap_valid_resamples": 4993,
+          "k_total": 1.914547,
+          "years_since_release": 2.5,
+          "k_per_12m": 0.765819,
+          "k_total_ci_skill_bootstrap": [
+            -2.018052,
+            3.859185
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -0.807221,
+            1.543674
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -4.909361,
+            4.192433
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -1.963745,
+            1.676973
+          ]
+        }
+      },
+      "category_level_all": {
+        "n_categories": 5,
+        "points": {
+          "ai_ml": {
+            "e_s": -0.122427,
+            "d": 1.150018,
+            "w": 2807.0
+          },
+          "cloud_devops": {
+            "e_s": 0.052298,
+            "d": -0.201124,
+            "w": 5742.0
+          },
+          "data": {
+            "e_s": 0.008648,
+            "d": -0.078851,
+            "w": 2690.0
+          },
+          "framework": {
+            "e_s": -0.018977,
+            "d": -0.376929,
+            "w": 4514.0
+          },
+          "language": {
+            "e_s": 0.021873,
+            "d": -0.137353,
+            "w": 13466.0
+          }
+        },
+        "b_unweighted": -8.004101,
+        "b_weighted": -7.013873,
+        "p_permutation_unweighted": 0.15,
+        "b_unweighted_t_ci": [
+          -16.173289,
+          0.165087
+        ],
+        "t_df": 3,
+        "leave_one_category_out_b_unweighted": {
+          "ai_ml": 2.139257,
+          "cloud_devops": -9.501844,
+          "data": -8.023086,
+          "framework": -8.260954,
+          "language": -8.15731
+        }
+      },
+      "category_level_excluding_ai_ml": {
+        "n_categories": 4,
+        "points": {
+          "cloud_devops": {
+            "e_s": 0.052298,
+            "d": -0.201124,
+            "w": 5742.0
+          },
+          "data": {
+            "e_s": 0.008648,
+            "d": -0.078851,
+            "w": 2690.0
+          },
+          "framework": {
+            "e_s": -0.018977,
+            "d": -0.376929,
+            "w": 4514.0
+          },
+          "language": {
+            "e_s": 0.021873,
+            "d": -0.137353,
+            "w": 13466.0
+          }
+        },
+        "b_unweighted": 2.139257,
+        "b_weighted": 2.170835,
+        "p_permutation_unweighted": 0.583333,
+        "b_unweighted_t_ci": [
+          -9.406115,
+          13.684629
+        ],
+        "t_df": 2,
+        "leave_one_category_out_b_unweighted": {
+          "cloud_devops": 6.616424,
+          "data": 2.655144,
+          "framework": -2.678458,
+          "language": 1.991033
+        }
+      },
+      "control_for_pre_level_weighted": {
+        "b_exposure": -5.705861,
+        "c_pre_level": -0.30641
+      }
+    },
+    "2025-11..2026-10": {
+      "all_ok_skills": {
+        "weighted": {
+          "n_skills": 27,
+          "n_categories": 5,
+          "weighted": true,
+          "intercept_a": 0.073286,
+          "slope_b": -7.518231,
+          "s_bar": 0.159309,
+          "b_ci_skill_bootstrap": [
+            -22.452358,
+            -0.321842
+          ],
+          "b_ci_cluster_bootstrap": [
+            -12.094911,
+            4.32968
+          ],
+          "cluster_bootstrap_valid_resamples": 4993,
+          "k_total": 6.320513,
+          "years_since_release": 3.5,
+          "k_per_12m": 1.805861,
+          "k_total_ci_skill_bootstrap": [
+            0.270569,
+            18.875506
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            0.077306,
+            5.393002
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -3.639925,
+            10.168089
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -1.039979,
+            2.905168
+          ]
+        },
+        "unweighted": {
+          "n_skills": 27,
+          "n_categories": 5,
+          "weighted": false,
+          "intercept_a": 0.231586,
+          "slope_b": -13.620274,
+          "s_bar": 0.090949,
+          "b_ci_skill_bootstrap": [
+            -24.429938,
+            -1.673902
+          ],
+          "b_ci_cluster_bootstrap": [
+            -18.426292,
+            4.415895
+          ],
+          "cluster_bootstrap_valid_resamples": 4993,
+          "k_total": 12.381526,
+          "years_since_release": 3.5,
+          "k_per_12m": 3.537579,
+          "k_total_ci_skill_bootstrap": [
+            1.521662,
+            22.208065
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            0.434761,
+            6.345161
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -4.014275,
+            16.750443
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -1.146936,
+            4.785841
+          ]
+        }
+      },
+      "excluding_ai_ml": {
+        "weighted": {
+          "n_skills": 23,
+          "n_categories": 4,
+          "weighted": true,
+          "intercept_a": -0.131543,
+          "slope_b": 1.166167,
+          "s_bar": 0.164828,
+          "b_ci_skill_bootstrap": [
+            -4.952569,
+            4.941176
+          ],
+          "b_ci_cluster_bootstrap": [
+            -22.244821,
+            17.051772
+          ],
+          "cluster_bootstrap_valid_resamples": 4920,
+          "k_total": -0.97395,
+          "years_since_release": 3.5,
+          "k_per_12m": -0.278271,
+          "k_total_ci_skill_bootstrap": [
+            -4.126729,
+            4.136245
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -1.179066,
+            1.181784
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -14.241155,
+            18.578242
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -4.068901,
+            5.308069
+          ]
+        },
+        "unweighted": {
+          "n_skills": 23,
+          "n_categories": 4,
+          "weighted": false,
+          "intercept_a": -0.144406,
+          "slope_b": 1.086169,
+          "s_bar": 0.099334,
+          "b_ci_skill_bootstrap": [
+            -5.155948,
+            4.946652
+          ],
+          "b_ci_cluster_bootstrap": [
+            -41.106452,
+            20.604125
+          ],
+          "cluster_bootstrap_valid_resamples": 4920,
+          "k_total": -0.978275,
+          "years_since_release": 3.5,
+          "k_per_12m": -0.279507,
+          "k_total_ci_skill_bootstrap": [
+            -4.455281,
+            4.643787
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -1.272937,
+            1.326796
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -18.557435,
+            37.023184
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -5.302124,
+            10.578053
+          ]
+        }
+      },
+      "excluding_llm_genai_only": {
+        "weighted": {
+          "n_skills": 26,
+          "n_categories": 5,
+          "weighted": true,
+          "intercept_a": -0.035274,
+          "slope_b": -2.915489,
+          "s_bar": 0.162472,
+          "b_ci_skill_bootstrap": [
+            -8.42449,
+            1.488482
+          ],
+          "b_ci_cluster_bootstrap": [
+            -7.430586,
+            4.32968
+          ],
+          "cluster_bootstrap_valid_resamples": 4993,
+          "k_total": 2.441803,
+          "years_since_release": 3.5,
+          "k_per_12m": 0.697658,
+          "k_total_ci_skill_bootstrap": [
+            -1.246645,
+            7.055745
+          ],
+          "k_per_12m_ci_skill_bootstrap": [
+            -0.356184,
+            2.015927
+          ],
+          "k_total_ci_cluster_bootstrap": [
+            -3.626228,
+            6.223323
+          ],
+          "k_per_12m_ci_cluster_bootstrap": [
+            -1.036065,
+            1.778092
+          ]
+        }
+      },
+      "category_level_all": {
+        "n_categories": 5,
+        "points": {
+          "ai_ml": {
+            "e_s": -0.122427,
+            "d": 1.278136,
+            "w": 2855.0
+          },
+          "cloud_devops": {
+            "e_s": 0.052298,
+            "d": -0.135839,
+            "w": 5760.0
+          },
+          "data": {
+            "e_s": 0.008648,
+            "d": 0.191998,
+            "w": 2852.0
+          },
+          "framework": {
+            "e_s": -0.018977,
+            "d": -0.279057,
+            "w": 4542.0
+          },
+          "language": {
+            "e_s": 0.021873,
+            "d": -0.10219,
+            "w": 13405.0
+          }
+        },
+        "b_unweighted": -8.227957,
+        "b_weighted": -7.518231,
+        "p_permutation_unweighted": 0.116667,
+        "b_unweighted_t_ci": [
+          -16.68602,
+          0.230106
+        ],
+        "t_df": 3,
+        "leave_one_category_out_b_unweighted": {
+          "ai_ml": 1.066876,
+          "cloud_devops": -9.477172,
+          "data": -8.47468,
+          "framework": -8.496588,
+          "language": -8.186268
+        }
+      },
+      "category_level_excluding_ai_ml": {
+        "n_categories": 4,
+        "points": {
+          "cloud_devops": {
+            "e_s": 0.052298,
+            "d": -0.135839,
+            "w": 5760.0
+          },
+          "data": {
+            "e_s": 0.008648,
+            "d": 0.191998,
+            "w": 2852.0
+          },
+          "framework": {
+            "e_s": -0.018977,
+            "d": -0.279057,
+            "w": 4542.0
+          },
+          "language": {
+            "e_s": 0.021873,
+            "d": -0.10219,
+            "w": 13405.0
+          }
+        },
+        "b_unweighted": 1.066876,
+        "b_weighted": 1.166167,
+        "p_permutation_unweighted": 0.916667,
+        "b_unweighted_t_ci": [
+          -18.984935,
+          21.118687
+        ],
+        "t_df": 2,
+        "leave_one_category_out_b_unweighted": {
+          "cloud_devops": 6.27111,
+          "data": 2.138127,
+          "framework": -6.395584,
+          "language": 1.149973
+        }
+      },
+      "control_for_pre_level_weighted": {
+        "b_exposure": -6.014924,
+        "c_pre_level": -0.324716
+      }
+    }
+  },
+  "placebo_pre_trend": {
+    "pre": [
+      "2019-11",
+      "2020-10"
+    ],
+    "post": [
+      "2021-11",
+      "2022-10"
+    ],
+    "all_ok_skills_weighted": {
+      "n_skills": 27,
+      "slope_b": 0.606652,
+      "b_ci_cluster_bootstrap": [
+        -2.17123,
+        4.61485
+      ]
+    },
+    "excluding_ai_ml_weighted": {
+      "n_skills": 23,
+      "slope_b": 1.472616,
+      "b_ci_cluster_bootstrap": [
+        -2.923633,
+        4.74989
+      ]
+    },
+    "note": "Both windows are before ChatGPT (2019 to 2022, includes the COVID hiring swing). A slope here of similar size means the pattern is an older trend, not an AI effect."
+  },
+  "headline": {
+    "window": "2025-11..2026-10",
+    "sample": "all ok skills",
+    "weighting": "mentions",
+    "b": -7.518231,
+    "b_ci_cluster_bootstrap": [
+      -12.094911,
+      4.32968
+    ],
+    "b_ci_skill_bootstrap": [
+      -22.452358,
+      -0.321842
+    ],
+    "k_total": 6.320513,
+    "k_total_ci_cluster_bootstrap": [
+      -3.639925,
+      10.168089
+    ],
+    "k_total_ci_skill_bootstrap": [
+      0.270569,
+      18.875506
+    ],
+    "k_per_12m": 1.805861,
+    "k_per_12m_ci_cluster_bootstrap": [
+      -1.039979,
+      2.905168
+    ],
+    "k_per_12m_ci_skill_bootstrap": [
+      0.077306,
+      5.393002
+    ],
+    "s_bar": 0.159309,
+    "k_assumed": 2.0,
+    "assumed_k_inside_total_cluster_ci": true,
+    "assumed_k_inside_per_12m_cluster_ci": true
+  },
+  "slopes_by_specification": {
+    "2023-11..2024-10 all weighted": -6.291629,
+    "2023-11..2024-10 all unweighted": -11.620093,
+    "2023-11..2024-10 excl ai_ml weighted": 1.284895,
+    "2023-11..2024-10 excl ai_ml unweighted": 0.932129,
+    "2024-11..2025-10 all weighted": -7.013873,
+    "2024-11..2025-10 all unweighted": -12.535624,
+    "2024-11..2025-10 excl ai_ml weighted": 2.170835,
+    "2024-11..2025-10 excl ai_ml unweighted": 1.882337,
+    "2025-11..2026-10 all weighted": -7.518231,
+    "2025-11..2026-10 all unweighted": -13.620274,
+    "2025-11..2026-10 excl ai_ml weighted": 1.166167,
+    "2025-11..2026-10 excl ai_ml unweighted": 1.086169
+  },
+  "verdict": {
+    "pins_k_down": false,
+    "ci_excludes_zero": false,
+    "same_sign_in_all_specs": false,
+    "reasons": [
+      "the headline 95% CI includes 0",
+      "the sign of the slope changes between specifications"
+    ],
+    "verdict": "The data cannot pin k down: the headline 95% CI includes 0 and the sign of the slope changes between specifications. k = 2 stays a labelled assumption."
+  },
+  "caveats": [
+    "Confounders: the 2023 tech layoffs, interest-rate rises, and shifts in who posts on Hacker News (posts per month fell from about 700 in 2019 to about 310) all hit tech skills at the same time.",
+    "e_s has only 6 distinct values (one per category) and only 5 categories have an ok skill, so 40 skills carry 5 independent points. The cluster bootstrap and the category-level fit show this.",
+    "The ai_ml skills (LLM / GenAI, RAG, Machine Learning, PyTorch) rose because they are AI skills. ai_ml also has the lowest e_s, so it can create a negative slope by itself. See excluding_ai_ml.",
+    "e_s is built from AEI 2026-06 usage and is not time-cut: it is the same for every window.",
+    "Categories are coarse: all languages share one e_s.",
+    "k is cumulative over the window; the per-12-month version assumes an even build-up.",
+    "The most recent window includes the partial month 2026-10.",
+    "This is an association across skills, not proof that AI exposure caused the change."
+  ]
+}

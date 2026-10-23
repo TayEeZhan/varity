@@ -1,0 +1,4721 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-10-22T06:50:40Z",
+  "params": {
+    "months": 24,
+    "min_p_role": 0.08,
+    "min_lift": 1.1,
+    "min_skill_posts": 10,
+    "top_k": 10,
+    "tiers": {
+      "solid": ">= 150 single-role posts and >= 5 skills",
+      "rough": ">= 50 single-role posts (and not solid)",
+      "not_ranked": "< 50 single-role posts"
+    },
+    "weight": "p_role / sum of kept p_role",
+    "posts_used": "single-role posts only, title span masked before tagging skills"
+  },
+  "as_of_points": [
+    "2023-12",
+    "2024-06",
+    "2024-12",
+    "2025-06",
+    "2025-12",
+    "2026-10"
+  ],
+  "profiles": {
+    "2023-12": {
+      "as_of": "2023-12",
+      "window": {
+        "from": "2022-01",
+        "to": "2023-12",
+        "months": 24
+      },
+      "n_posts_all": 11755,
+      "thread_ids": [
+        "29782099",
+        "30164271",
+        "30515750",
+        "30878761",
+        "31235968",
+        "31582796",
+        "31947297",
+        "32306920",
+        "32677265",
+        "33068421",
+        "33422129",
+        "33818037",
+        "34219335",
+        "34612353",
+        "34983767",
+        "35424807",
+        "35773707",
+        "36152014",
+        "36573871",
+        "36956867",
+        "37351667",
+        "37739028",
+        "38099086",
+        "38490811"
+      ],
+      "roles": [
+        {
+          "role_id": "data_engineer",
+          "name": "Data Engineer",
+          "description": "Builds and runs the pipelines and warehouses that move data from source systems to the people and models that use it.",
+          "sdg": [
+            "8.2",
+            "16.6"
+          ],
+          "n_role_posts": 762,
+          "n_single_role_posts": 293,
+          "window": {
+            "from": "2022-01",
+            "to": "2023-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.367164,
+              "p_role": 0.419795,
+              "p_all": 0.222714,
+              "lift": 1.8849,
+              "single_role_posts": 123
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.21791,
+              "p_role": 0.249147,
+              "p_all": 0.168184,
+              "lift": 1.4814,
+              "single_role_posts": 73
+            },
+            {
+              "skill": "Machine Learning",
+              "weight": 0.170149,
+              "p_role": 0.194539,
+              "p_all": 0.168184,
+              "lift": 1.1567,
+              "single_role_posts": 57
+            },
+            {
+              "skill": "SQL",
+              "weight": 0.137313,
+              "p_role": 0.156997,
+              "p_all": 0.038792,
+              "lift": 4.0471,
+              "single_role_posts": 46
+            },
+            {
+              "skill": "Kubernetes",
+              "weight": 0.107463,
+              "p_role": 0.122867,
+              "p_all": 0.108124,
+              "lift": 1.1363,
+              "single_role_posts": 36
+            }
+          ],
+          "thread_ids": [
+            "29782099",
+            "30164271",
+            "30515750",
+            "30878761",
+            "31235968",
+            "31582796",
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811"
+          ]
+        },
+        {
+          "role_id": "analytics_engineer",
+          "name": "Analytics Engineer",
+          "description": "Turns raw warehouse data into clean, tested models and metrics that analysts and managers can trust.",
+          "sdg": [
+            "16.6",
+            "8.2"
+          ],
+          "n_role_posts": 77,
+          "n_single_role_posts": 18,
+          "window": {
+            "from": "2022-01",
+            "to": "2023-12",
+            "months": 24
+          },
+          "tier": "not_ranked",
+          "ranked": false,
+          "note": "Not ranked: too few posts to learn a profile",
+          "skills": [],
+          "thread_ids": [
+            "29782099",
+            "30515750",
+            "31235968",
+            "31582796",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36956867"
+          ]
+        },
+        {
+          "role_id": "data_scientist",
+          "name": "Data Scientist",
+          "description": "Explores data and builds statistical and machine-learning models to answer business and research questions.",
+          "sdg": [
+            "9.5",
+            "16.6"
+          ],
+          "n_role_posts": 525,
+          "n_single_role_posts": 180,
+          "window": {
+            "from": "2022-01",
+            "to": "2023-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.23511,
+              "p_role": 0.416667,
+              "p_all": 0.168184,
+              "lift": 2.4774,
+              "single_role_posts": 75
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.178683,
+              "p_role": 0.316667,
+              "p_all": 0.264398,
+              "lift": 1.1977,
+              "single_role_posts": 57
+            },
+            {
+              "skill": "Python",
+              "weight": 0.163009,
+              "p_role": 0.288889,
+              "p_all": 0.222714,
+              "lift": 1.2971,
+              "single_role_posts": 52
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.141066,
+              "p_role": 0.25,
+              "p_all": 0.192854,
+              "lift": 1.2963,
+              "single_role_posts": 45
+            },
+            {
+              "skill": "Go",
+              "weight": 0.106583,
+              "p_role": 0.188889,
+              "p_all": 0.113739,
+              "lift": 1.6607,
+              "single_role_posts": 34
+            },
+            {
+              "skill": "C++",
+              "weight": 0.065831,
+              "p_role": 0.116667,
+              "p_all": 0.057593,
+              "lift": 2.0257,
+              "single_role_posts": 21
+            },
+            {
+              "skill": "Java",
+              "weight": 0.059561,
+              "p_role": 0.105556,
+              "p_all": 0.066865,
+              "lift": 1.5786,
+              "single_role_posts": 19
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.050157,
+              "p_role": 0.088889,
+              "p_all": 0.054445,
+              "lift": 1.6326,
+              "single_role_posts": 16
+            }
+          ],
+          "thread_ids": [
+            "29782099",
+            "30164271",
+            "30515750",
+            "30878761",
+            "31235968",
+            "31582796",
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811"
+          ]
+        },
+        {
+          "role_id": "ml_engineer",
+          "name": "ML Engineer",
+          "description": "Trains, evaluates and deploys machine-learning models and keeps them working in production.",
+          "sdg": [
+            "9.5",
+            "3.d"
+          ],
+          "n_role_posts": 468,
+          "n_single_role_posts": 203,
+          "window": {
+            "from": "2022-01",
+            "to": "2023-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 3 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.781726,
+              "p_role": 0.758621,
+              "p_all": 0.168184,
+              "lift": 4.5107,
+              "single_role_posts": 154
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.126904,
+              "p_role": 0.123153,
+              "p_all": 0.021182,
+              "lift": 5.8139,
+              "single_role_posts": 25
+            },
+            {
+              "skill": "PyTorch",
+              "weight": 0.091371,
+              "p_role": 0.08867,
+              "p_all": 0.013186,
+              "lift": 6.7246,
+              "single_role_posts": 18
+            }
+          ],
+          "thread_ids": [
+            "29782099",
+            "30164271",
+            "30515750",
+            "30878761",
+            "31235968",
+            "31582796",
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811"
+          ]
+        },
+        {
+          "role_id": "ai_app_engineer",
+          "name": "AI/LLM Application Engineer",
+          "description": "Builds products on top of large language models: prompts, retrieval, tools, evaluation and safe deployment.",
+          "sdg": [
+            "4.4",
+            "8.2"
+          ],
+          "n_role_posts": 69,
+          "n_single_role_posts": 39,
+          "window": {
+            "from": "2022-01",
+            "to": "2023-12",
+            "months": 24
+          },
+          "tier": "not_ranked",
+          "ranked": false,
+          "note": "Not ranked: only 39 single-role posts (fewer than 50) to learn a profile.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 1.0,
+              "p_role": 0.358974,
+              "p_all": 0.168184,
+              "lift": 2.1344,
+              "single_role_posts": 14
+            }
+          ],
+          "thread_ids": [
+            "31235968",
+            "31582796",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811"
+          ]
+        },
+        {
+          "role_id": "backend_engineer",
+          "name": "Backend Engineer",
+          "description": "Designs and builds the servers, APIs and databases behind a product.",
+          "sdg": [
+            "9.c"
+          ],
+          "n_role_posts": 1266,
+          "n_single_role_posts": 686,
+          "window": {
+            "from": "2022-01",
+            "to": "2023-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Go",
+              "weight": 0.165915,
+              "p_role": 0.268222,
+              "p_all": 0.113739,
+              "lift": 2.3582,
+              "single_role_posts": 184
+            },
+            {
+              "skill": "Python",
+              "weight": 0.156898,
+              "p_role": 0.253644,
+              "p_all": 0.222714,
+              "lift": 1.1389,
+              "single_role_posts": 174
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.133454,
+              "p_role": 0.215743,
+              "p_all": 0.168184,
+              "lift": 1.2828,
+              "single_role_posts": 148
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.127142,
+              "p_role": 0.205539,
+              "p_all": 0.148447,
+              "lift": 1.3846,
+              "single_role_posts": 141
+            },
+            {
+              "skill": "Kubernetes",
+              "weight": 0.112714,
+              "p_role": 0.182216,
+              "p_all": 0.108124,
+              "lift": 1.6852,
+              "single_role_posts": 125
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.069432,
+              "p_role": 0.112245,
+              "p_all": 0.066695,
+              "lift": 1.683,
+              "single_role_posts": 77
+            },
+            {
+              "skill": "Node.js",
+              "weight": 0.06312,
+              "p_role": 0.102041,
+              "p_all": 0.063973,
+              "lift": 1.5951,
+              "single_role_posts": 70
+            },
+            {
+              "skill": "Rust",
+              "weight": 0.061317,
+              "p_role": 0.099125,
+              "p_all": 0.056487,
+              "lift": 1.7548,
+              "single_role_posts": 68
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.056808,
+              "p_role": 0.091837,
+              "p_all": 0.054445,
+              "lift": 1.6868,
+              "single_role_posts": 63
+            },
+            {
+              "skill": "Java",
+              "weight": 0.053201,
+              "p_role": 0.086006,
+              "p_all": 0.066865,
+              "lift": 1.2863,
+              "single_role_posts": 59
+            }
+          ],
+          "thread_ids": [
+            "29782099",
+            "30164271",
+            "30515750",
+            "30878761",
+            "31235968",
+            "31582796",
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811"
+          ]
+        },
+        {
+          "role_id": "fullstack_developer",
+          "name": "Full-stack Web Developer",
+          "description": "Builds both the browser interface and the server side of web products.",
+          "sdg": [
+            "8.5",
+            "9.c"
+          ],
+          "n_role_posts": 1869,
+          "n_single_role_posts": 1253,
+          "window": {
+            "from": "2022-01",
+            "to": "2023-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "React",
+              "weight": 0.240953,
+              "p_role": 0.435754,
+              "p_all": 0.252488,
+              "lift": 1.7258,
+              "single_role_posts": 546
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.218005,
+              "p_role": 0.394254,
+              "p_all": 0.264398,
+              "lift": 1.4911,
+              "single_role_posts": 494
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.165049,
+              "p_role": 0.298484,
+              "p_all": 0.192854,
+              "lift": 1.5477,
+              "single_role_posts": 374
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.131509,
+              "p_role": 0.237829,
+              "p_all": 0.148447,
+              "lift": 1.6021,
+              "single_role_posts": 298
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.116064,
+              "p_role": 0.209896,
+              "p_all": 0.168184,
+              "lift": 1.248,
+              "single_role_posts": 263
+            },
+            {
+              "skill": "Node.js",
+              "weight": 0.070609,
+              "p_role": 0.127694,
+              "p_all": 0.063973,
+              "lift": 1.9961,
+              "single_role_posts": 160
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.057811,
+              "p_role": 0.104549,
+              "p_all": 0.066695,
+              "lift": 1.5676,
+              "single_role_posts": 131
+            }
+          ],
+          "thread_ids": [
+            "29782099",
+            "30164271",
+            "30515750",
+            "30878761",
+            "31235968",
+            "31582796",
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811"
+          ]
+        },
+        {
+          "role_id": "platform_devops_engineer",
+          "name": "Platform/DevOps Engineer",
+          "description": "Runs the cloud, build and deployment systems that let other engineers ship software safely.",
+          "sdg": [
+            "7.3",
+            "9.c"
+          ],
+          "n_role_posts": 1517,
+          "n_single_role_posts": 857,
+          "window": {
+            "from": "2022-01",
+            "to": "2023-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.192813,
+              "p_role": 0.256709,
+              "p_all": 0.222714,
+              "lift": 1.1526,
+              "single_role_posts": 220
+            },
+            {
+              "skill": "Kubernetes",
+              "weight": 0.167397,
+              "p_role": 0.22287,
+              "p_all": 0.108124,
+              "lift": 2.0612,
+              "single_role_posts": 191
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.166521,
+              "p_role": 0.221704,
+              "p_all": 0.168184,
+              "lift": 1.3182,
+              "single_role_posts": 190
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.112182,
+              "p_role": 0.149358,
+              "p_all": 0.054445,
+              "lift": 2.7433,
+              "single_role_posts": 128
+            },
+            {
+              "skill": "Go",
+              "weight": 0.106047,
+              "p_role": 0.14119,
+              "p_all": 0.113739,
+              "lift": 1.2414,
+              "single_role_posts": 121
+            },
+            {
+              "skill": "Docker",
+              "weight": 0.066608,
+              "p_role": 0.088681,
+              "p_all": 0.055211,
+              "lift": 1.6062,
+              "single_role_posts": 76
+            },
+            {
+              "skill": "C++",
+              "weight": 0.063103,
+              "p_role": 0.084014,
+              "p_all": 0.057593,
+              "lift": 1.4588,
+              "single_role_posts": 72
+            },
+            {
+              "skill": "GCP",
+              "weight": 0.063103,
+              "p_role": 0.084014,
+              "p_all": 0.050106,
+              "lift": 1.6767,
+              "single_role_posts": 72
+            },
+            {
+              "skill": "C",
+              "weight": 0.062226,
+              "p_role": 0.082847,
+              "p_all": 0.033092,
+              "lift": 2.5035,
+              "single_role_posts": 71
+            }
+          ],
+          "thread_ids": [
+            "29782099",
+            "30164271",
+            "30515750",
+            "30878761",
+            "31235968",
+            "31582796",
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811"
+          ]
+        },
+        {
+          "role_id": "mobile_developer",
+          "name": "Mobile Developer",
+          "description": "Builds apps for phones and tablets on iOS and Android.",
+          "sdg": [
+            "9.c",
+            "8.5"
+          ],
+          "n_role_posts": 497,
+          "n_single_role_posts": 243,
+          "window": {
+            "from": "2022-01",
+            "to": "2023-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 4 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Swift",
+              "weight": 0.317881,
+              "p_role": 0.197531,
+              "p_all": 0.022629,
+              "lift": 8.7292,
+              "single_role_posts": 48
+            },
+            {
+              "skill": "React Native",
+              "weight": 0.311258,
+              "p_role": 0.193416,
+              "p_all": 0.041344,
+              "lift": 4.6782,
+              "single_role_posts": 47
+            },
+            {
+              "skill": "Java",
+              "weight": 0.218543,
+              "p_role": 0.135802,
+              "p_all": 0.066865,
+              "lift": 2.031,
+              "single_role_posts": 33
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.152318,
+              "p_role": 0.09465,
+              "p_all": 0.066695,
+              "lift": 1.4191,
+              "single_role_posts": 23
+            }
+          ],
+          "thread_ids": [
+            "29782099",
+            "30164271",
+            "30515750",
+            "30878761",
+            "31235968",
+            "31582796",
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811"
+          ]
+        }
+      ]
+    },
+    "2024-06": {
+      "as_of": "2024-06",
+      "window": {
+        "from": "2022-07",
+        "to": "2024-06",
+        "months": 24
+      },
+      "n_posts_all": 9231,
+      "thread_ids": [
+        "31947297",
+        "32306920",
+        "32677265",
+        "33068421",
+        "33422129",
+        "33818037",
+        "34219335",
+        "34612353",
+        "34983767",
+        "35424807",
+        "35773707",
+        "36152014",
+        "36573871",
+        "36956867",
+        "37351667",
+        "37739028",
+        "38099086",
+        "38490811",
+        "38842977",
+        "39217310",
+        "39562986",
+        "39894820",
+        "40224213",
+        "40563283"
+      ],
+      "roles": [
+        {
+          "role_id": "data_engineer",
+          "name": "Data Engineer",
+          "description": "Builds and runs the pipelines and warehouses that move data from source systems to the people and models that use it.",
+          "sdg": [
+            "8.2",
+            "16.6"
+          ],
+          "n_role_posts": 484,
+          "n_single_role_posts": 197,
+          "window": {
+            "from": "2022-07",
+            "to": "2024-06",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 4 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.473988,
+              "p_role": 0.416244,
+              "p_all": 0.219153,
+              "lift": 1.8993,
+              "single_role_posts": 82
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.289017,
+              "p_role": 0.253807,
+              "p_all": 0.148196,
+              "lift": 1.7126,
+              "single_role_posts": 50
+            },
+            {
+              "skill": "SQL",
+              "weight": 0.138728,
+              "p_role": 0.121827,
+              "p_all": 0.038782,
+              "lift": 3.1413,
+              "single_role_posts": 24
+            },
+            {
+              "skill": "Spark",
+              "weight": 0.098266,
+              "p_role": 0.086294,
+              "p_all": 0.009208,
+              "lift": 9.3716,
+              "single_role_posts": 17
+            }
+          ],
+          "thread_ids": [
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283"
+          ]
+        },
+        {
+          "role_id": "analytics_engineer",
+          "name": "Analytics Engineer",
+          "description": "Turns raw warehouse data into clean, tested models and metrics that analysts and managers can trust.",
+          "sdg": [
+            "16.6",
+            "8.2"
+          ],
+          "n_role_posts": 37,
+          "n_single_role_posts": 15,
+          "window": {
+            "from": "2022-07",
+            "to": "2024-06",
+            "months": 24
+          },
+          "tier": "not_ranked",
+          "ranked": false,
+          "note": "Not ranked: too few posts to learn a profile",
+          "skills": [],
+          "thread_ids": [
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36956867",
+            "39894820",
+            "40224213"
+          ]
+        },
+        {
+          "role_id": "data_scientist",
+          "name": "Data Scientist",
+          "description": "Explores data and builds statistical and machine-learning models to answer business and research questions.",
+          "sdg": [
+            "9.5",
+            "16.6"
+          ],
+          "n_role_posts": 343,
+          "n_single_role_posts": 148,
+          "window": {
+            "from": "2022-07",
+            "to": "2024-06",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 148 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.203774,
+              "p_role": 0.364865,
+              "p_all": 0.181562,
+              "lift": 2.0096,
+              "single_role_posts": 54
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.150943,
+              "p_role": 0.27027,
+              "p_all": 0.245694,
+              "lift": 1.1,
+              "single_role_posts": 40
+            },
+            {
+              "skill": "Python",
+              "weight": 0.14717,
+              "p_role": 0.263514,
+              "p_all": 0.219153,
+              "lift": 1.2024,
+              "single_role_posts": 39
+            },
+            {
+              "skill": "Go",
+              "weight": 0.124528,
+              "p_role": 0.222973,
+              "p_all": 0.101506,
+              "lift": 2.1967,
+              "single_role_posts": 33
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.124528,
+              "p_role": 0.222973,
+              "p_all": 0.18232,
+              "lift": 1.223,
+              "single_role_posts": 33
+            },
+            {
+              "skill": "C++",
+              "weight": 0.071698,
+              "p_role": 0.128378,
+              "p_all": 0.058065,
+              "lift": 2.2109,
+              "single_role_posts": 19
+            },
+            {
+              "skill": "Java",
+              "weight": 0.067925,
+              "p_role": 0.121622,
+              "p_all": 0.05969,
+              "lift": 2.0375,
+              "single_role_posts": 18
+            },
+            {
+              "skill": "C",
+              "weight": 0.060377,
+              "p_role": 0.108108,
+              "p_all": 0.032933,
+              "lift": 3.2827,
+              "single_role_posts": 16
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.049057,
+              "p_role": 0.087838,
+              "p_all": 0.049615,
+              "lift": 1.7704,
+              "single_role_posts": 13
+            }
+          ],
+          "thread_ids": [
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283"
+          ]
+        },
+        {
+          "role_id": "ml_engineer",
+          "name": "ML Engineer",
+          "description": "Trains, evaluates and deploys machine-learning models and keeps them working in production.",
+          "sdg": [
+            "9.5",
+            "3.d"
+          ],
+          "n_role_posts": 416,
+          "n_single_role_posts": 222,
+          "window": {
+            "from": "2022-07",
+            "to": "2024-06",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 2 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.776256,
+              "p_role": 0.765766,
+              "p_all": 0.181562,
+              "lift": 4.2177,
+              "single_role_posts": 170
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.223744,
+              "p_role": 0.220721,
+              "p_all": 0.046907,
+              "lift": 4.7055,
+              "single_role_posts": 49
+            }
+          ],
+          "thread_ids": [
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283"
+          ]
+        },
+        {
+          "role_id": "ai_app_engineer",
+          "name": "AI/LLM Application Engineer",
+          "description": "Builds products on top of large language models: prompts, retrieval, tools, evaluation and safe deployment.",
+          "sdg": [
+            "4.4",
+            "8.2"
+          ],
+          "n_role_posts": 109,
+          "n_single_role_posts": 67,
+          "window": {
+            "from": "2022-07",
+            "to": "2024-06",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 67 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.567568,
+              "p_role": 0.313433,
+              "p_all": 0.181562,
+              "lift": 1.7263,
+              "single_role_posts": 21
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.432432,
+              "p_role": 0.238806,
+              "p_all": 0.046907,
+              "lift": 5.091,
+              "single_role_posts": 16
+            }
+          ],
+          "thread_ids": [
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283"
+          ]
+        },
+        {
+          "role_id": "backend_engineer",
+          "name": "Backend Engineer",
+          "description": "Designs and builds the servers, APIs and databases behind a product.",
+          "sdg": [
+            "9.c"
+          ],
+          "n_role_posts": 894,
+          "n_single_role_posts": 546,
+          "window": {
+            "from": "2022-07",
+            "to": "2024-06",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Go",
+              "weight": 0.189873,
+              "p_role": 0.274725,
+              "p_all": 0.101506,
+              "lift": 2.7065,
+              "single_role_posts": 150
+            },
+            {
+              "skill": "Python",
+              "weight": 0.182278,
+              "p_role": 0.263736,
+              "p_all": 0.219153,
+              "lift": 1.2034,
+              "single_role_posts": 144
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.140506,
+              "p_role": 0.203297,
+              "p_all": 0.148196,
+              "lift": 1.3718,
+              "single_role_posts": 111
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.126582,
+              "p_role": 0.18315,
+              "p_all": 0.133247,
+              "lift": 1.3745,
+              "single_role_posts": 100
+            },
+            {
+              "skill": "Kubernetes",
+              "weight": 0.121519,
+              "p_role": 0.175824,
+              "p_all": 0.097714,
+              "lift": 1.7994,
+              "single_role_posts": 96
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.064557,
+              "p_role": 0.093407,
+              "p_all": 0.056115,
+              "lift": 1.6645,
+              "single_role_posts": 51
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.062025,
+              "p_role": 0.089744,
+              "p_all": 0.049615,
+              "lift": 1.8088,
+              "single_role_posts": 49
+            },
+            {
+              "skill": "Rust",
+              "weight": 0.056962,
+              "p_role": 0.082418,
+              "p_all": 0.055899,
+              "lift": 1.4744,
+              "single_role_posts": 45
+            },
+            {
+              "skill": "Java",
+              "weight": 0.055696,
+              "p_role": 0.080586,
+              "p_all": 0.05969,
+              "lift": 1.3501,
+              "single_role_posts": 44
+            }
+          ],
+          "thread_ids": [
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283"
+          ]
+        },
+        {
+          "role_id": "fullstack_developer",
+          "name": "Full-stack Web Developer",
+          "description": "Builds both the browser interface and the server side of web products.",
+          "sdg": [
+            "8.5",
+            "9.c"
+          ],
+          "n_role_posts": 1433,
+          "n_single_role_posts": 1019,
+          "window": {
+            "from": "2022-07",
+            "to": "2024-06",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "React",
+              "weight": 0.228451,
+              "p_role": 0.423945,
+              "p_all": 0.222294,
+              "lift": 1.9071,
+              "single_role_posts": 432
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.217874,
+              "p_role": 0.404318,
+              "p_all": 0.245694,
+              "lift": 1.6456,
+              "single_role_posts": 412
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.167107,
+              "p_role": 0.310108,
+              "p_all": 0.18232,
+              "lift": 1.7009,
+              "single_role_posts": 316
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.123744,
+              "p_role": 0.229637,
+              "p_all": 0.133247,
+              "lift": 1.7234,
+              "single_role_posts": 234
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.099947,
+              "p_role": 0.185476,
+              "p_all": 0.148196,
+              "lift": 1.2516,
+              "single_role_posts": 189
+            },
+            {
+              "skill": "Node.js",
+              "weight": 0.061343,
+              "p_role": 0.113837,
+              "p_all": 0.052757,
+              "lift": 2.1578,
+              "single_role_posts": 116
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.057113,
+              "p_role": 0.105986,
+              "p_all": 0.056115,
+              "lift": 1.8887,
+              "single_role_posts": 108
+            },
+            {
+              "skill": "Docker",
+              "weight": 0.044421,
+              "p_role": 0.082434,
+              "p_all": 0.053624,
+              "lift": 1.5373,
+              "single_role_posts": 84
+            }
+          ],
+          "thread_ids": [
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283"
+          ]
+        },
+        {
+          "role_id": "platform_devops_engineer",
+          "name": "Platform/DevOps Engineer",
+          "description": "Runs the cloud, build and deployment systems that let other engineers ship software safely.",
+          "sdg": [
+            "7.3",
+            "9.c"
+          ],
+          "n_role_posts": 1069,
+          "n_single_role_posts": 645,
+          "window": {
+            "from": "2022-07",
+            "to": "2024-06",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Kubernetes",
+              "weight": 0.250407,
+              "p_role": 0.23876,
+              "p_all": 0.097714,
+              "lift": 2.4434,
+              "single_role_posts": 154
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.204878,
+              "p_role": 0.195349,
+              "p_all": 0.148196,
+              "lift": 1.3182,
+              "single_role_posts": 126
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.169106,
+              "p_role": 0.16124,
+              "p_all": 0.049615,
+              "lift": 3.2498,
+              "single_role_posts": 104
+            },
+            {
+              "skill": "Go",
+              "weight": 0.160976,
+              "p_role": 0.153488,
+              "p_all": 0.101506,
+              "lift": 1.5121,
+              "single_role_posts": 99
+            },
+            {
+              "skill": "Docker",
+              "weight": 0.123577,
+              "p_role": 0.117829,
+              "p_all": 0.053624,
+              "lift": 2.1973,
+              "single_role_posts": 76
+            },
+            {
+              "skill": "GCP",
+              "weight": 0.091057,
+              "p_role": 0.086822,
+              "p_all": 0.048315,
+              "lift": 1.797,
+              "single_role_posts": 56
+            }
+          ],
+          "thread_ids": [
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283"
+          ]
+        },
+        {
+          "role_id": "mobile_developer",
+          "name": "Mobile Developer",
+          "description": "Builds apps for phones and tablets on iOS and Android.",
+          "sdg": [
+            "9.c",
+            "8.5"
+          ],
+          "n_role_posts": 315,
+          "n_single_role_posts": 161,
+          "window": {
+            "from": "2022-07",
+            "to": "2024-06",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 4 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Swift",
+              "weight": 0.364486,
+              "p_role": 0.242236,
+              "p_all": 0.019066,
+              "lift": 12.705,
+              "single_role_posts": 39
+            },
+            {
+              "skill": "React Native",
+              "weight": 0.308411,
+              "p_role": 0.204969,
+              "p_all": 0.035749,
+              "lift": 5.7335,
+              "single_role_posts": 33
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.17757,
+              "p_role": 0.118012,
+              "p_all": 0.056115,
+              "lift": 2.103,
+              "single_role_posts": 19
+            },
+            {
+              "skill": "Java",
+              "weight": 0.149533,
+              "p_role": 0.099379,
+              "p_all": 0.05969,
+              "lift": 1.6649,
+              "single_role_posts": 16
+            }
+          ],
+          "thread_ids": [
+            "31947297",
+            "32306920",
+            "32677265",
+            "33068421",
+            "33422129",
+            "33818037",
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283"
+          ]
+        }
+      ]
+    },
+    "2024-12": {
+      "as_of": "2024-12",
+      "window": {
+        "from": "2023-01",
+        "to": "2024-12",
+        "months": 24
+      },
+      "n_posts_all": 8094,
+      "thread_ids": [
+        "34219335",
+        "34612353",
+        "34983767",
+        "35424807",
+        "35773707",
+        "36152014",
+        "36573871",
+        "36956867",
+        "37351667",
+        "37739028",
+        "38099086",
+        "38490811",
+        "38842977",
+        "39217310",
+        "39562986",
+        "39894820",
+        "40224213",
+        "40563283",
+        "40846428",
+        "41129813",
+        "41425910",
+        "41709301",
+        "42017580",
+        "42297424"
+      ],
+      "roles": [
+        {
+          "role_id": "data_engineer",
+          "name": "Data Engineer",
+          "description": "Builds and runs the pipelines and warehouses that move data from source systems to the people and models that use it.",
+          "sdg": [
+            "8.2",
+            "16.6"
+          ],
+          "n_role_posts": 397,
+          "n_single_role_posts": 185,
+          "window": {
+            "from": "2023-01",
+            "to": "2024-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 4 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.467105,
+              "p_role": 0.383784,
+              "p_all": 0.215962,
+              "lift": 1.7771,
+              "single_role_posts": 71
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.282895,
+              "p_role": 0.232432,
+              "p_all": 0.134791,
+              "lift": 1.7244,
+              "single_role_posts": 43
+            },
+            {
+              "skill": "SQL",
+              "weight": 0.144737,
+              "p_role": 0.118919,
+              "p_all": 0.037435,
+              "lift": 3.1767,
+              "single_role_posts": 22
+            },
+            {
+              "skill": "Spark",
+              "weight": 0.105263,
+              "p_role": 0.086486,
+              "p_all": 0.007784,
+              "lift": 11.1115,
+              "single_role_posts": 16
+            }
+          ],
+          "thread_ids": [
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424"
+          ]
+        },
+        {
+          "role_id": "analytics_engineer",
+          "name": "Analytics Engineer",
+          "description": "Turns raw warehouse data into clean, tested models and metrics that analysts and managers can trust.",
+          "sdg": [
+            "16.6",
+            "8.2"
+          ],
+          "n_role_posts": 25,
+          "n_single_role_posts": 14,
+          "window": {
+            "from": "2023-01",
+            "to": "2024-12",
+            "months": 24
+          },
+          "tier": "not_ranked",
+          "ranked": false,
+          "note": "Not ranked: too few posts to learn a profile",
+          "skills": [],
+          "thread_ids": [
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36956867",
+            "39894820",
+            "40224213",
+            "42017580",
+            "42297424"
+          ]
+        },
+        {
+          "role_id": "data_scientist",
+          "name": "Data Scientist",
+          "description": "Explores data and builds statistical and machine-learning models to answer business and research questions.",
+          "sdg": [
+            "9.5",
+            "16.6"
+          ],
+          "n_role_posts": 261,
+          "n_single_role_posts": 124,
+          "window": {
+            "from": "2023-01",
+            "to": "2024-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 124 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.215596,
+              "p_role": 0.379032,
+              "p_all": 0.18977,
+              "lift": 1.9973,
+              "single_role_posts": 47
+            },
+            {
+              "skill": "Python",
+              "weight": 0.165138,
+              "p_role": 0.290323,
+              "p_all": 0.215962,
+              "lift": 1.3443,
+              "single_role_posts": 36
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.155963,
+              "p_role": 0.274194,
+              "p_all": 0.234371,
+              "lift": 1.1699,
+              "single_role_posts": 34
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.123853,
+              "p_role": 0.217742,
+              "p_all": 0.18384,
+              "lift": 1.1844,
+              "single_role_posts": 27
+            },
+            {
+              "skill": "Go",
+              "weight": 0.119266,
+              "p_role": 0.209677,
+              "p_all": 0.09192,
+              "lift": 2.2811,
+              "single_role_posts": 26
+            },
+            {
+              "skill": "C++",
+              "weight": 0.059633,
+              "p_role": 0.104839,
+              "p_all": 0.055967,
+              "lift": 1.8732,
+              "single_role_posts": 13
+            },
+            {
+              "skill": "Java",
+              "weight": 0.059633,
+              "p_role": 0.104839,
+              "p_all": 0.049666,
+              "lift": 2.1109,
+              "single_role_posts": 13
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.055046,
+              "p_role": 0.096774,
+              "p_all": 0.082901,
+              "lift": 1.1673,
+              "single_role_posts": 12
+            },
+            {
+              "skill": "C",
+              "weight": 0.045872,
+              "p_role": 0.080645,
+              "p_all": 0.029775,
+              "lift": 2.7085,
+              "single_role_posts": 10
+            }
+          ],
+          "thread_ids": [
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424"
+          ]
+        },
+        {
+          "role_id": "ml_engineer",
+          "name": "ML Engineer",
+          "description": "Trains, evaluates and deploys machine-learning models and keeps them working in production.",
+          "sdg": [
+            "9.5",
+            "3.d"
+          ],
+          "n_role_posts": 386,
+          "n_single_role_posts": 209,
+          "window": {
+            "from": "2023-01",
+            "to": "2024-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 3 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.659574,
+              "p_role": 0.741627,
+              "p_all": 0.18977,
+              "lift": 3.908,
+              "single_role_posts": 155
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.255319,
+              "p_role": 0.287081,
+              "p_all": 0.082901,
+              "lift": 3.4629,
+              "single_role_posts": 60
+            },
+            {
+              "skill": "PyTorch",
+              "weight": 0.085106,
+              "p_role": 0.095694,
+              "p_all": 0.012849,
+              "lift": 7.4476,
+              "single_role_posts": 20
+            }
+          ],
+          "thread_ids": [
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424"
+          ]
+        },
+        {
+          "role_id": "ai_app_engineer",
+          "name": "AI/LLM Application Engineer",
+          "description": "Builds products on top of large language models: prompts, retrieval, tools, evaluation and safe deployment.",
+          "sdg": [
+            "4.4",
+            "8.2"
+          ],
+          "n_role_posts": 164,
+          "n_single_role_posts": 105,
+          "window": {
+            "from": "2023-01",
+            "to": "2024-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 105 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.612903,
+              "p_role": 0.361905,
+              "p_all": 0.082901,
+              "lift": 4.3655,
+              "single_role_posts": 38
+            },
+            {
+              "skill": "Machine Learning",
+              "weight": 0.387097,
+              "p_role": 0.228571,
+              "p_all": 0.18977,
+              "lift": 1.2045,
+              "single_role_posts": 24
+            }
+          ],
+          "thread_ids": [
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424"
+          ]
+        },
+        {
+          "role_id": "backend_engineer",
+          "name": "Backend Engineer",
+          "description": "Designs and builds the servers, APIs and databases behind a product.",
+          "sdg": [
+            "9.c"
+          ],
+          "n_role_posts": 733,
+          "n_single_role_posts": 459,
+          "window": {
+            "from": "2023-01",
+            "to": "2024-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.25448,
+              "p_role": 0.309368,
+              "p_all": 0.215962,
+              "lift": 1.4325,
+              "single_role_posts": 142
+            },
+            {
+              "skill": "Go",
+              "weight": 0.229391,
+              "p_role": 0.278867,
+              "p_all": 0.09192,
+              "lift": 3.0338,
+              "single_role_posts": 128
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.164875,
+              "p_role": 0.200436,
+              "p_all": 0.134791,
+              "lift": 1.487,
+              "single_role_posts": 92
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.141577,
+              "p_role": 0.172113,
+              "p_all": 0.127502,
+              "lift": 1.3499,
+              "single_role_posts": 79
+            },
+            {
+              "skill": "Kubernetes",
+              "weight": 0.12724,
+              "p_role": 0.154684,
+              "p_all": 0.086731,
+              "lift": 1.7835,
+              "single_role_posts": 71
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.082437,
+              "p_role": 0.100218,
+              "p_all": 0.047566,
+              "lift": 2.1069,
+              "single_role_posts": 46
+            }
+          ],
+          "thread_ids": [
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424"
+          ]
+        },
+        {
+          "role_id": "fullstack_developer",
+          "name": "Full-stack Web Developer",
+          "description": "Builds both the browser interface and the server side of web products.",
+          "sdg": [
+            "8.5",
+            "9.c"
+          ],
+          "n_role_posts": 1277,
+          "n_single_role_posts": 946,
+          "window": {
+            "from": "2023-01",
+            "to": "2024-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "React",
+              "weight": 0.242296,
+              "p_role": 0.42389,
+              "p_all": 0.208179,
+              "lift": 2.0362,
+              "single_role_posts": 401
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.225378,
+              "p_role": 0.394292,
+              "p_all": 0.234371,
+              "lift": 1.6823,
+              "single_role_posts": 373
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.178852,
+              "p_role": 0.312896,
+              "p_all": 0.18384,
+              "lift": 1.702,
+              "single_role_posts": 296
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.13716,
+              "p_role": 0.239958,
+              "p_all": 0.127502,
+              "lift": 1.882,
+              "single_role_posts": 227
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.098489,
+              "p_role": 0.172304,
+              "p_all": 0.134791,
+              "lift": 1.2783,
+              "single_role_posts": 163
+            },
+            {
+              "skill": "Node.js",
+              "weight": 0.059215,
+              "p_role": 0.103594,
+              "p_all": 0.048678,
+              "lift": 2.1281,
+              "single_role_posts": 98
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.05861,
+              "p_role": 0.102537,
+              "p_all": 0.047195,
+              "lift": 2.1726,
+              "single_role_posts": 97
+            }
+          ],
+          "thread_ids": [
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424"
+          ]
+        },
+        {
+          "role_id": "platform_devops_engineer",
+          "name": "Platform/DevOps Engineer",
+          "description": "Runs the cloud, build and deployment systems that let other engineers ship software safely.",
+          "sdg": [
+            "7.3",
+            "9.c"
+          ],
+          "n_role_posts": 850,
+          "n_single_role_posts": 533,
+          "window": {
+            "from": "2023-01",
+            "to": "2024-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Kubernetes",
+              "weight": 0.265525,
+              "p_role": 0.232645,
+              "p_all": 0.086731,
+              "lift": 2.6824,
+              "single_role_posts": 124
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.220557,
+              "p_role": 0.193246,
+              "p_all": 0.134791,
+              "lift": 1.4337,
+              "single_role_posts": 103
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.203426,
+              "p_role": 0.178236,
+              "p_all": 0.047566,
+              "lift": 3.7471,
+              "single_role_posts": 95
+            },
+            {
+              "skill": "Go",
+              "weight": 0.179872,
+              "p_role": 0.157598,
+              "p_all": 0.09192,
+              "lift": 1.7145,
+              "single_role_posts": 84
+            },
+            {
+              "skill": "Docker",
+              "weight": 0.130621,
+              "p_role": 0.114447,
+              "p_all": 0.045589,
+              "lift": 2.5104,
+              "single_role_posts": 61
+            }
+          ],
+          "thread_ids": [
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424"
+          ]
+        },
+        {
+          "role_id": "mobile_developer",
+          "name": "Mobile Developer",
+          "description": "Builds apps for phones and tablets on iOS and Android.",
+          "sdg": [
+            "9.c",
+            "8.5"
+          ],
+          "n_role_posts": 217,
+          "n_single_role_posts": 124,
+          "window": {
+            "from": "2023-01",
+            "to": "2024-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 124 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Swift",
+              "weight": 0.581818,
+              "p_role": 0.258065,
+              "p_all": 0.016432,
+              "lift": 15.7051,
+              "single_role_posts": 32
+            },
+            {
+              "skill": "React Native",
+              "weight": 0.418182,
+              "p_role": 0.185484,
+              "p_all": 0.031258,
+              "lift": 5.934,
+              "single_role_posts": 23
+            }
+          ],
+          "thread_ids": [
+            "34219335",
+            "34612353",
+            "34983767",
+            "35424807",
+            "35773707",
+            "36152014",
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424"
+          ]
+        }
+      ]
+    },
+    "2025-06": {
+      "as_of": "2025-06",
+      "window": {
+        "from": "2023-07",
+        "to": "2025-06",
+        "months": 24
+      },
+      "n_posts_all": 7855,
+      "thread_ids": [
+        "36573871",
+        "36956867",
+        "37351667",
+        "37739028",
+        "38099086",
+        "38490811",
+        "38842977",
+        "39217310",
+        "39562986",
+        "39894820",
+        "40224213",
+        "40563283",
+        "40846428",
+        "41129813",
+        "41425910",
+        "41709301",
+        "42017580",
+        "42297424",
+        "42575537",
+        "42919502",
+        "43243024",
+        "43547611",
+        "43858554",
+        "44159528"
+      ],
+      "roles": [
+        {
+          "role_id": "data_engineer",
+          "name": "Data Engineer",
+          "description": "Builds and runs the pipelines and warehouses that move data from source systems to the people and models that use it.",
+          "sdg": [
+            "8.2",
+            "16.6"
+          ],
+          "n_role_posts": 365,
+          "n_single_role_posts": 170,
+          "window": {
+            "from": "2023-07",
+            "to": "2025-06",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.272,
+              "p_role": 0.4,
+              "p_all": 0.217696,
+              "lift": 1.8374,
+              "single_role_posts": 68
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.184,
+              "p_role": 0.270588,
+              "p_all": 0.239338,
+              "lift": 1.1306,
+              "single_role_posts": 46
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.172,
+              "p_role": 0.252941,
+              "p_all": 0.194908,
+              "lift": 1.2977,
+              "single_role_posts": 43
+            },
+            {
+              "skill": "Machine Learning",
+              "weight": 0.16,
+              "p_role": 0.235294,
+              "p_all": 0.19198,
+              "lift": 1.2256,
+              "single_role_posts": 40
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.152,
+              "p_role": 0.223529,
+              "p_all": 0.134437,
+              "lift": 1.6627,
+              "single_role_posts": 38
+            },
+            {
+              "skill": "SQL",
+              "weight": 0.06,
+              "p_role": 0.088235,
+              "p_all": 0.0345,
+              "lift": 2.5575,
+              "single_role_posts": 15
+            }
+          ],
+          "thread_ids": [
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528"
+          ]
+        },
+        {
+          "role_id": "analytics_engineer",
+          "name": "Analytics Engineer",
+          "description": "Turns raw warehouse data into clean, tested models and metrics that analysts and managers can trust.",
+          "sdg": [
+            "16.6",
+            "8.2"
+          ],
+          "n_role_posts": 21,
+          "n_single_role_posts": 8,
+          "window": {
+            "from": "2023-07",
+            "to": "2025-06",
+            "months": 24
+          },
+          "tier": "not_ranked",
+          "ranked": false,
+          "note": "Not ranked: too few posts to learn a profile",
+          "skills": [],
+          "thread_ids": [
+            "36956867",
+            "39894820",
+            "40224213",
+            "42017580",
+            "42297424",
+            "43243024",
+            "43858554"
+          ]
+        },
+        {
+          "role_id": "data_scientist",
+          "name": "Data Scientist",
+          "description": "Explores data and builds statistical and machine-learning models to answer business and research questions.",
+          "sdg": [
+            "9.5",
+            "16.6"
+          ],
+          "n_role_posts": 231,
+          "n_single_role_posts": 111,
+          "window": {
+            "from": "2023-07",
+            "to": "2025-06",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 111 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.36036,
+              "p_role": 0.36036,
+              "p_all": 0.19198,
+              "lift": 1.8771,
+              "single_role_posts": 40
+            },
+            {
+              "skill": "Python",
+              "weight": 0.324324,
+              "p_role": 0.324324,
+              "p_all": 0.217696,
+              "lift": 1.4898,
+              "single_role_posts": 36
+            },
+            {
+              "skill": "Go",
+              "weight": 0.18018,
+              "p_role": 0.18018,
+              "p_all": 0.088224,
+              "lift": 2.0423,
+              "single_role_posts": 20
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.135135,
+              "p_role": 0.135135,
+              "p_all": 0.109612,
+              "lift": 1.2329,
+              "single_role_posts": 15
+            }
+          ],
+          "thread_ids": [
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528"
+          ]
+        },
+        {
+          "role_id": "ml_engineer",
+          "name": "ML Engineer",
+          "description": "Trains, evaluates and deploys machine-learning models and keeps them working in production.",
+          "sdg": [
+            "9.5",
+            "3.d"
+          ],
+          "n_role_posts": 407,
+          "n_single_role_posts": 211,
+          "window": {
+            "from": "2023-07",
+            "to": "2025-06",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 4 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.515789,
+              "p_role": 0.696682,
+              "p_all": 0.19198,
+              "lift": 3.6289,
+              "single_role_posts": 147
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.221053,
+              "p_role": 0.298578,
+              "p_all": 0.109612,
+              "lift": 2.724,
+              "single_role_posts": 63
+            },
+            {
+              "skill": "Python",
+              "weight": 0.182456,
+              "p_role": 0.246445,
+              "p_all": 0.217696,
+              "lift": 1.1321,
+              "single_role_posts": 52
+            },
+            {
+              "skill": "PyTorch",
+              "weight": 0.080702,
+              "p_role": 0.109005,
+              "p_all": 0.015277,
+              "lift": 7.1353,
+              "single_role_posts": 23
+            }
+          ],
+          "thread_ids": [
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528"
+          ]
+        },
+        {
+          "role_id": "ai_app_engineer",
+          "name": "AI/LLM Application Engineer",
+          "description": "Builds products on top of large language models: prompts, retrieval, tools, evaluation and safe deployment.",
+          "sdg": [
+            "4.4",
+            "8.2"
+          ],
+          "n_role_posts": 237,
+          "n_single_role_posts": 147,
+          "window": {
+            "from": "2023-07",
+            "to": "2025-06",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 147 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "LLM / GenAI",
+              "weight": 1.0,
+              "p_role": 0.380952,
+              "p_all": 0.109612,
+              "lift": 3.4755,
+              "single_role_posts": 56
+            }
+          ],
+          "thread_ids": [
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528"
+          ]
+        },
+        {
+          "role_id": "backend_engineer",
+          "name": "Backend Engineer",
+          "description": "Designs and builds the servers, APIs and databases behind a product.",
+          "sdg": [
+            "9.c"
+          ],
+          "n_role_posts": 692,
+          "n_single_role_posts": 424,
+          "window": {
+            "from": "2023-07",
+            "to": "2025-06",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.265306,
+              "p_role": 0.337264,
+              "p_all": 0.217696,
+              "lift": 1.5492,
+              "single_role_posts": 143
+            },
+            {
+              "skill": "Go",
+              "weight": 0.202226,
+              "p_role": 0.257075,
+              "p_all": 0.088224,
+              "lift": 2.9139,
+              "single_role_posts": 109
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.176252,
+              "p_role": 0.224057,
+              "p_all": 0.134437,
+              "lift": 1.6666,
+              "single_role_posts": 95
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.137291,
+              "p_role": 0.174528,
+              "p_all": 0.129981,
+              "lift": 1.3427,
+              "single_role_posts": 74
+            },
+            {
+              "skill": "Kubernetes",
+              "weight": 0.118738,
+              "p_role": 0.150943,
+              "p_all": 0.085805,
+              "lift": 1.7591,
+              "single_role_posts": 64
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.100186,
+              "p_role": 0.127358,
+              "p_all": 0.050796,
+              "lift": 2.5073,
+              "single_role_posts": 54
+            }
+          ],
+          "thread_ids": [
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528"
+          ]
+        },
+        {
+          "role_id": "fullstack_developer",
+          "name": "Full-stack Web Developer",
+          "description": "Builds both the browser interface and the server side of web products.",
+          "sdg": [
+            "8.5",
+            "9.c"
+          ],
+          "n_role_posts": 1309,
+          "n_single_role_posts": 976,
+          "window": {
+            "from": "2023-07",
+            "to": "2025-06",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "React",
+              "weight": 0.23622,
+              "p_role": 0.39959,
+              "p_all": 0.204838,
+              "lift": 1.9508,
+              "single_role_posts": 390
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.227741,
+              "p_role": 0.385246,
+              "p_all": 0.239338,
+              "lift": 1.6096,
+              "single_role_posts": 376
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.188371,
+              "p_role": 0.318648,
+              "p_all": 0.194908,
+              "lift": 1.6349,
+              "single_role_posts": 311
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.135675,
+              "p_role": 0.229508,
+              "p_all": 0.129981,
+              "lift": 1.7657,
+              "single_role_posts": 224
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.096911,
+              "p_role": 0.163934,
+              "p_all": 0.134437,
+              "lift": 1.2194,
+              "single_role_posts": 160
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.059358,
+              "p_role": 0.10041,
+              "p_all": 0.043157,
+              "lift": 2.3266,
+              "single_role_posts": 98
+            },
+            {
+              "skill": "Node.js",
+              "weight": 0.055724,
+              "p_role": 0.094262,
+              "p_all": 0.048504,
+              "lift": 1.9434,
+              "single_role_posts": 92
+            }
+          ],
+          "thread_ids": [
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528"
+          ]
+        },
+        {
+          "role_id": "platform_devops_engineer",
+          "name": "Platform/DevOps Engineer",
+          "description": "Runs the cloud, build and deployment systems that let other engineers ship software safely.",
+          "sdg": [
+            "7.3",
+            "9.c"
+          ],
+          "n_role_posts": 753,
+          "n_single_role_posts": 493,
+          "window": {
+            "from": "2023-07",
+            "to": "2025-06",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Kubernetes",
+              "weight": 0.232358,
+              "p_role": 0.273834,
+              "p_all": 0.085805,
+              "lift": 3.1913,
+              "single_role_posts": 135
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.197935,
+              "p_role": 0.233266,
+              "p_all": 0.134437,
+              "lift": 1.7351,
+              "single_role_posts": 115
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.184165,
+              "p_role": 0.217039,
+              "p_all": 0.050796,
+              "lift": 4.2728,
+              "single_role_posts": 107
+            },
+            {
+              "skill": "Go",
+              "weight": 0.142857,
+              "p_role": 0.168357,
+              "p_all": 0.088224,
+              "lift": 1.9083,
+              "single_role_posts": 83
+            },
+            {
+              "skill": "Docker",
+              "weight": 0.092943,
+              "p_role": 0.109533,
+              "p_all": 0.045958,
+              "lift": 2.3833,
+              "single_role_posts": 54
+            },
+            {
+              "skill": "Rust",
+              "weight": 0.079174,
+              "p_role": 0.093306,
+              "p_all": 0.06098,
+              "lift": 1.5301,
+              "single_role_posts": 46
+            },
+            {
+              "skill": "GCP",
+              "weight": 0.070568,
+              "p_role": 0.083164,
+              "p_all": 0.046976,
+              "lift": 1.7703,
+              "single_role_posts": 41
+            }
+          ],
+          "thread_ids": [
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528"
+          ]
+        },
+        {
+          "role_id": "mobile_developer",
+          "name": "Mobile Developer",
+          "description": "Builds apps for phones and tablets on iOS and Android.",
+          "sdg": [
+            "9.c",
+            "8.5"
+          ],
+          "n_role_posts": 194,
+          "n_single_role_posts": 111,
+          "window": {
+            "from": "2023-07",
+            "to": "2025-06",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 111 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Swift",
+              "weight": 0.519231,
+              "p_role": 0.243243,
+              "p_all": 0.013622,
+              "lift": 17.8568,
+              "single_role_posts": 27
+            },
+            {
+              "skill": "React Native",
+              "weight": 0.480769,
+              "p_role": 0.225225,
+              "p_all": 0.030936,
+              "lift": 7.2804,
+              "single_role_posts": 25
+            }
+          ],
+          "thread_ids": [
+            "36573871",
+            "36956867",
+            "37351667",
+            "37739028",
+            "38099086",
+            "38490811",
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528"
+          ]
+        }
+      ]
+    },
+    "2025-12": {
+      "as_of": "2025-12",
+      "window": {
+        "from": "2024-01",
+        "to": "2025-12",
+        "months": 24
+      },
+      "n_posts_all": 7959,
+      "thread_ids": [
+        "38842977",
+        "39217310",
+        "39562986",
+        "39894820",
+        "40224213",
+        "40563283",
+        "40846428",
+        "41129813",
+        "41425910",
+        "41709301",
+        "42017580",
+        "42297424",
+        "42575537",
+        "42919502",
+        "43243024",
+        "43547611",
+        "43858554",
+        "44159528",
+        "44434576",
+        "44757794",
+        "45093192",
+        "45438503",
+        "45800465",
+        "46108941"
+      ],
+      "roles": [
+        {
+          "role_id": "data_engineer",
+          "name": "Data Engineer",
+          "description": "Builds and runs the pipelines and warehouses that move data from source systems to the people and models that use it.",
+          "sdg": [
+            "8.2",
+            "16.6"
+          ],
+          "n_role_posts": 375,
+          "n_single_role_posts": 169,
+          "window": {
+            "from": "2024-01",
+            "to": "2025-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.239726,
+              "p_role": 0.414201,
+              "p_all": 0.227416,
+              "lift": 1.8213,
+              "single_role_posts": 70
+            },
+            {
+              "skill": "Machine Learning",
+              "weight": 0.15411,
+              "p_role": 0.266272,
+              "p_all": 0.193743,
+              "lift": 1.3744,
+              "single_role_posts": 45
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.136986,
+              "p_role": 0.236686,
+              "p_all": 0.2097,
+              "lift": 1.1287,
+              "single_role_posts": 40
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.123288,
+              "p_role": 0.213018,
+              "p_all": 0.139967,
+              "lift": 1.5219,
+              "single_role_posts": 36
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.106164,
+              "p_role": 0.183432,
+              "p_all": 0.138083,
+              "lift": 1.3284,
+              "single_role_posts": 31
+            },
+            {
+              "skill": "SQL",
+              "weight": 0.071918,
+              "p_role": 0.12426,
+              "p_all": 0.034803,
+              "lift": 3.5704,
+              "single_role_posts": 21
+            },
+            {
+              "skill": "Kubernetes",
+              "weight": 0.065068,
+              "p_role": 0.112426,
+              "p_all": 0.087197,
+              "lift": 1.2893,
+              "single_role_posts": 19
+            },
+            {
+              "skill": "GCP",
+              "weight": 0.05137,
+              "p_role": 0.088757,
+              "p_all": 0.051137,
+              "lift": 1.7357,
+              "single_role_posts": 15
+            },
+            {
+              "skill": "Spark",
+              "weight": 0.05137,
+              "p_role": 0.088757,
+              "p_all": 0.008041,
+              "lift": 11.0378,
+              "single_role_posts": 15
+            }
+          ],
+          "thread_ids": [
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941"
+          ]
+        },
+        {
+          "role_id": "analytics_engineer",
+          "name": "Analytics Engineer",
+          "description": "Turns raw warehouse data into clean, tested models and metrics that analysts and managers can trust.",
+          "sdg": [
+            "16.6",
+            "8.2"
+          ],
+          "n_role_posts": 30,
+          "n_single_role_posts": 8,
+          "window": {
+            "from": "2024-01",
+            "to": "2025-12",
+            "months": 24
+          },
+          "tier": "not_ranked",
+          "ranked": false,
+          "note": "Not ranked: too few posts to learn a profile",
+          "skills": [],
+          "thread_ids": [
+            "39894820",
+            "40224213",
+            "42017580",
+            "42297424",
+            "43243024",
+            "43858554",
+            "45093192",
+            "45800465"
+          ]
+        },
+        {
+          "role_id": "data_scientist",
+          "name": "Data Scientist",
+          "description": "Explores data and builds statistical and machine-learning models to answer business and research questions.",
+          "sdg": [
+            "9.5",
+            "16.6"
+          ],
+          "n_role_posts": 203,
+          "n_single_role_posts": 90,
+          "window": {
+            "from": "2024-01",
+            "to": "2025-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 90 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.423077,
+              "p_role": 0.366667,
+              "p_all": 0.227416,
+              "lift": 1.6123,
+              "single_role_posts": 33
+            },
+            {
+              "skill": "Machine Learning",
+              "weight": 0.410256,
+              "p_role": 0.355556,
+              "p_all": 0.193743,
+              "lift": 1.8352,
+              "single_role_posts": 32
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.166667,
+              "p_role": 0.144444,
+              "p_all": 0.129916,
+              "lift": 1.1118,
+              "single_role_posts": 13
+            }
+          ],
+          "thread_ids": [
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941"
+          ]
+        },
+        {
+          "role_id": "ml_engineer",
+          "name": "ML Engineer",
+          "description": "Trains, evaluates and deploys machine-learning models and keeps them working in production.",
+          "sdg": [
+            "9.5",
+            "3.d"
+          ],
+          "n_role_posts": 430,
+          "n_single_role_posts": 199,
+          "window": {
+            "from": "2024-01",
+            "to": "2025-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 4 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.472028,
+              "p_role": 0.678392,
+              "p_all": 0.193743,
+              "lift": 3.5015,
+              "single_role_posts": 135
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.230769,
+              "p_role": 0.331658,
+              "p_all": 0.129916,
+              "lift": 2.5529,
+              "single_role_posts": 66
+            },
+            {
+              "skill": "Python",
+              "weight": 0.20979,
+              "p_role": 0.301508,
+              "p_all": 0.227416,
+              "lift": 1.3258,
+              "single_role_posts": 60
+            },
+            {
+              "skill": "PyTorch",
+              "weight": 0.087413,
+              "p_role": 0.125628,
+              "p_all": 0.018218,
+              "lift": 6.8957,
+              "single_role_posts": 25
+            }
+          ],
+          "thread_ids": [
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941"
+          ]
+        },
+        {
+          "role_id": "ai_app_engineer",
+          "name": "AI/LLM Application Engineer",
+          "description": "Builds products on top of large language models: prompts, retrieval, tools, evaluation and safe deployment.",
+          "sdg": [
+            "4.4",
+            "8.2"
+          ],
+          "n_role_posts": 331,
+          "n_single_role_posts": 201,
+          "window": {
+            "from": "2024-01",
+            "to": "2025-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 3 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.434066,
+              "p_role": 0.393035,
+              "p_all": 0.129916,
+              "lift": 3.0253,
+              "single_role_posts": 79
+            },
+            {
+              "skill": "Python",
+              "weight": 0.296703,
+              "p_role": 0.268657,
+              "p_all": 0.227416,
+              "lift": 1.1813,
+              "single_role_posts": 54
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.269231,
+              "p_role": 0.243781,
+              "p_all": 0.2097,
+              "lift": 1.1625,
+              "single_role_posts": 49
+            }
+          ],
+          "thread_ids": [
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941"
+          ]
+        },
+        {
+          "role_id": "backend_engineer",
+          "name": "Backend Engineer",
+          "description": "Designs and builds the servers, APIs and databases behind a product.",
+          "sdg": [
+            "9.c"
+          ],
+          "n_role_posts": 752,
+          "n_single_role_posts": 458,
+          "window": {
+            "from": "2024-01",
+            "to": "2025-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.259582,
+              "p_role": 0.325328,
+              "p_all": 0.227416,
+              "lift": 1.4305,
+              "single_role_posts": 149
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.200348,
+              "p_role": 0.251092,
+              "p_all": 0.139967,
+              "lift": 1.7939,
+              "single_role_posts": 115
+            },
+            {
+              "skill": "Go",
+              "weight": 0.174216,
+              "p_role": 0.218341,
+              "p_all": 0.086569,
+              "lift": 2.5222,
+              "single_role_posts": 100
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.163763,
+              "p_role": 0.20524,
+              "p_all": 0.138083,
+              "lift": 1.4864,
+              "single_role_posts": 94
+            },
+            {
+              "skill": "Kubernetes",
+              "weight": 0.101045,
+              "p_role": 0.126638,
+              "p_all": 0.087197,
+              "lift": 1.4523,
+              "single_role_posts": 58
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.101045,
+              "p_role": 0.126638,
+              "p_all": 0.051514,
+              "lift": 2.4583,
+              "single_role_posts": 58
+            }
+          ],
+          "thread_ids": [
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941"
+          ]
+        },
+        {
+          "role_id": "fullstack_developer",
+          "name": "Full-stack Web Developer",
+          "description": "Builds both the browser interface and the server side of web products.",
+          "sdg": [
+            "8.5",
+            "9.c"
+          ],
+          "n_role_posts": 1343,
+          "n_single_role_posts": 989,
+          "window": {
+            "from": "2024-01",
+            "to": "2025-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "React",
+              "weight": 0.234844,
+              "p_role": 0.403438,
+              "p_all": 0.208443,
+              "lift": 1.9355,
+              "single_role_posts": 399
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.230135,
+              "p_role": 0.395349,
+              "p_all": 0.249529,
+              "lift": 1.5844,
+              "single_role_posts": 391
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.19482,
+              "p_role": 0.334681,
+              "p_all": 0.2097,
+              "lift": 1.596,
+              "single_role_posts": 331
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.130077,
+              "p_role": 0.223458,
+              "p_all": 0.138083,
+              "lift": 1.6183,
+              "single_role_posts": 221
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.100059,
+              "p_role": 0.171891,
+              "p_all": 0.139967,
+              "lift": 1.2281,
+              "single_role_posts": 170
+            },
+            {
+              "skill": "Node.js",
+              "weight": 0.055915,
+              "p_role": 0.096057,
+              "p_all": 0.054781,
+              "lift": 1.7535,
+              "single_role_posts": 95
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.054149,
+              "p_role": 0.093023,
+              "p_all": 0.039201,
+              "lift": 2.373,
+              "single_role_posts": 92
+            }
+          ],
+          "thread_ids": [
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941"
+          ]
+        },
+        {
+          "role_id": "platform_devops_engineer",
+          "name": "Platform/DevOps Engineer",
+          "description": "Runs the cloud, build and deployment systems that let other engineers ship software safely.",
+          "sdg": [
+            "7.3",
+            "9.c"
+          ],
+          "n_role_posts": 744,
+          "n_single_role_posts": 487,
+          "window": {
+            "from": "2024-01",
+            "to": "2025-12",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Kubernetes",
+              "weight": 0.233279,
+              "p_role": 0.293634,
+              "p_all": 0.087197,
+              "lift": 3.3675,
+              "single_role_posts": 143
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.199021,
+              "p_role": 0.250513,
+              "p_all": 0.139967,
+              "lift": 1.7898,
+              "single_role_posts": 122
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.189233,
+              "p_role": 0.238193,
+              "p_all": 0.051514,
+              "lift": 4.6238,
+              "single_role_posts": 116
+            },
+            {
+              "skill": "Go",
+              "weight": 0.1354,
+              "p_role": 0.170431,
+              "p_all": 0.086569,
+              "lift": 1.9687,
+              "single_role_posts": 83
+            },
+            {
+              "skill": "Docker",
+              "weight": 0.08646,
+              "p_role": 0.10883,
+              "p_all": 0.04674,
+              "lift": 2.3284,
+              "single_role_posts": 53
+            },
+            {
+              "skill": "Rust",
+              "weight": 0.079935,
+              "p_role": 0.100616,
+              "p_all": 0.066591,
+              "lift": 1.5109,
+              "single_role_posts": 49
+            },
+            {
+              "skill": "GCP",
+              "weight": 0.076672,
+              "p_role": 0.096509,
+              "p_all": 0.051137,
+              "lift": 1.8873,
+              "single_role_posts": 47
+            }
+          ],
+          "thread_ids": [
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941"
+          ]
+        },
+        {
+          "role_id": "mobile_developer",
+          "name": "Mobile Developer",
+          "description": "Builds apps for phones and tablets on iOS and Android.",
+          "sdg": [
+            "9.c",
+            "8.5"
+          ],
+          "n_role_posts": 191,
+          "n_single_role_posts": 100,
+          "window": {
+            "from": "2024-01",
+            "to": "2025-12",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 100 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "React Native",
+              "weight": 0.510204,
+              "p_role": 0.25,
+              "p_all": 0.029526,
+              "lift": 8.467,
+              "single_role_posts": 25
+            },
+            {
+              "skill": "Swift",
+              "weight": 0.489796,
+              "p_role": 0.24,
+              "p_all": 0.013695,
+              "lift": 17.5244,
+              "single_role_posts": 24
+            }
+          ],
+          "thread_ids": [
+            "38842977",
+            "39217310",
+            "39562986",
+            "39894820",
+            "40224213",
+            "40563283",
+            "40846428",
+            "41129813",
+            "41425910",
+            "41709301",
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45438503",
+            "45800465",
+            "46108941"
+          ]
+        }
+      ]
+    },
+    "2026-10": {
+      "as_of": "2026-10",
+      "window": {
+        "from": "2024-11",
+        "to": "2026-10",
+        "months": 24
+      },
+      "n_posts_all": 7628,
+      "thread_ids": [
+        "42017580",
+        "42297424",
+        "42575537",
+        "42919502",
+        "43243024",
+        "43547611",
+        "43858554",
+        "44159528",
+        "44434576",
+        "44757794",
+        "45093192",
+        "45438503",
+        "45800465",
+        "46108941",
+        "46466074",
+        "46857488",
+        "47219668",
+        "47601859",
+        "47975571",
+        "48357725",
+        "48747976",
+        "49156683",
+        "49522897",
+        "49922569"
+      ],
+      "roles": [
+        {
+          "role_id": "data_engineer",
+          "name": "Data Engineer",
+          "description": "Builds and runs the pipelines and warehouses that move data from source systems to the people and models that use it.",
+          "sdg": [
+            "8.2",
+            "16.6"
+          ],
+          "n_role_posts": 343,
+          "n_single_role_posts": 155,
+          "window": {
+            "from": "2024-11",
+            "to": "2026-10",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.212903,
+              "p_role": 0.425806,
+              "p_all": 0.242003,
+              "lift": 1.7595,
+              "single_role_posts": 66
+            },
+            {
+              "skill": "Machine Learning",
+              "weight": 0.129032,
+              "p_role": 0.258065,
+              "p_all": 0.195595,
+              "lift": 1.3194,
+              "single_role_posts": 40
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.129032,
+              "p_role": 0.258065,
+              "p_all": 0.228762,
+              "lift": 1.1281,
+              "single_role_posts": 40
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.119355,
+              "p_role": 0.23871,
+              "p_all": 0.164001,
+              "lift": 1.4555,
+              "single_role_posts": 37
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.096774,
+              "p_role": 0.193548,
+              "p_all": 0.150367,
+              "lift": 1.2872,
+              "single_role_posts": 30
+            },
+            {
+              "skill": "SQL",
+              "weight": 0.083871,
+              "p_role": 0.167742,
+              "p_all": 0.038149,
+              "lift": 4.397,
+              "single_role_posts": 26
+            },
+            {
+              "skill": "dbt",
+              "weight": 0.064516,
+              "p_role": 0.129032,
+              "p_all": 0.006817,
+              "lift": 18.928,
+              "single_role_posts": 20
+            },
+            {
+              "skill": "Airflow",
+              "weight": 0.058065,
+              "p_role": 0.116129,
+              "p_all": 0.00721,
+              "lift": 16.106,
+              "single_role_posts": 18
+            },
+            {
+              "skill": "Snowflake",
+              "weight": 0.058065,
+              "p_role": 0.116129,
+              "p_all": 0.014289,
+              "lift": 8.1269,
+              "single_role_posts": 18
+            },
+            {
+              "skill": "GCP",
+              "weight": 0.048387,
+              "p_role": 0.096774,
+              "p_all": 0.054929,
+              "lift": 1.7618,
+              "single_role_posts": 15
+            }
+          ],
+          "thread_ids": [
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941",
+            "46466074",
+            "46857488",
+            "47219668",
+            "47601859",
+            "47975571",
+            "48357725",
+            "48747976",
+            "49156683",
+            "49522897",
+            "49922569"
+          ]
+        },
+        {
+          "role_id": "analytics_engineer",
+          "name": "Analytics Engineer",
+          "description": "Turns raw warehouse data into clean, tested models and metrics that analysts and managers can trust.",
+          "sdg": [
+            "16.6",
+            "8.2"
+          ],
+          "n_role_posts": 33,
+          "n_single_role_posts": 11,
+          "window": {
+            "from": "2024-11",
+            "to": "2026-10",
+            "months": 24
+          },
+          "tier": "not_ranked",
+          "ranked": false,
+          "note": "Not ranked: too few posts to learn a profile",
+          "skills": [],
+          "thread_ids": [
+            "42017580",
+            "42297424",
+            "43243024",
+            "43858554",
+            "45093192",
+            "45800465",
+            "46857488",
+            "47601859",
+            "47975571",
+            "48357725"
+          ]
+        },
+        {
+          "role_id": "data_scientist",
+          "name": "Data Scientist",
+          "description": "Explores data and builds statistical and machine-learning models to answer business and research questions.",
+          "sdg": [
+            "9.5",
+            "16.6"
+          ],
+          "n_role_posts": 160,
+          "n_single_role_posts": 65,
+          "window": {
+            "from": "2024-11",
+            "to": "2026-10",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 65 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.35443,
+              "p_role": 0.430769,
+              "p_all": 0.195595,
+              "lift": 2.2024,
+              "single_role_posts": 28
+            },
+            {
+              "skill": "Python",
+              "weight": 0.303797,
+              "p_role": 0.369231,
+              "p_all": 0.242003,
+              "lift": 1.5257,
+              "single_role_posts": 24
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.21519,
+              "p_role": 0.261538,
+              "p_all": 0.147745,
+              "lift": 1.7702,
+              "single_role_posts": 17
+            },
+            {
+              "skill": "SQL",
+              "weight": 0.126582,
+              "p_role": 0.153846,
+              "p_all": 0.038149,
+              "lift": 4.0328,
+              "single_role_posts": 10
+            }
+          ],
+          "thread_ids": [
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941",
+            "46466074",
+            "46857488",
+            "47219668",
+            "47601859",
+            "47975571",
+            "48357725",
+            "48747976",
+            "49156683",
+            "49522897",
+            "49922569"
+          ]
+        },
+        {
+          "role_id": "ml_engineer",
+          "name": "ML Engineer",
+          "description": "Trains, evaluates and deploys machine-learning models and keeps them working in production.",
+          "sdg": [
+            "9.5",
+            "3.d"
+          ],
+          "n_role_posts": 368,
+          "n_single_role_posts": 152,
+          "window": {
+            "from": "2024-11",
+            "to": "2026-10",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 4 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "Machine Learning",
+              "weight": 0.457014,
+              "p_role": 0.664474,
+              "p_all": 0.195595,
+              "lift": 3.3972,
+              "single_role_posts": 101
+            },
+            {
+              "skill": "Python",
+              "weight": 0.239819,
+              "p_role": 0.348684,
+              "p_all": 0.242003,
+              "lift": 1.4408,
+              "single_role_posts": 53
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.19457,
+              "p_role": 0.282895,
+              "p_all": 0.147745,
+              "lift": 1.9147,
+              "single_role_posts": 43
+            },
+            {
+              "skill": "PyTorch",
+              "weight": 0.108597,
+              "p_role": 0.157895,
+              "p_all": 0.020582,
+              "lift": 7.6715,
+              "single_role_posts": 24
+            }
+          ],
+          "thread_ids": [
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941",
+            "46466074",
+            "46857488",
+            "47219668",
+            "47601859",
+            "47975571",
+            "48357725",
+            "48747976",
+            "49156683",
+            "49522897",
+            "49922569"
+          ]
+        },
+        {
+          "role_id": "ai_app_engineer",
+          "name": "AI/LLM Application Engineer",
+          "description": "Builds products on top of large language models: prompts, retrieval, tools, evaluation and safe deployment.",
+          "sdg": [
+            "4.4",
+            "8.2"
+          ],
+          "n_role_posts": 429,
+          "n_single_role_posts": 253,
+          "window": {
+            "from": "2024-11",
+            "to": "2026-10",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: only 3 skills passed the filters (at least 5 are needed). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.473684,
+              "p_role": 0.391304,
+              "p_all": 0.147745,
+              "lift": 2.6485,
+              "single_role_posts": 99
+            },
+            {
+              "skill": "Python",
+              "weight": 0.38756,
+              "p_role": 0.320158,
+              "p_all": 0.242003,
+              "lift": 1.323,
+              "single_role_posts": 81
+            },
+            {
+              "skill": "RAG",
+              "weight": 0.138756,
+              "p_role": 0.114625,
+              "p_all": 0.018878,
+              "lift": 6.0719,
+              "single_role_posts": 29
+            }
+          ],
+          "thread_ids": [
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941",
+            "46466074",
+            "46857488",
+            "47219668",
+            "47601859",
+            "47975571",
+            "48357725",
+            "48747976",
+            "49156683",
+            "49522897",
+            "49922569"
+          ]
+        },
+        {
+          "role_id": "backend_engineer",
+          "name": "Backend Engineer",
+          "description": "Designs and builds the servers, APIs and databases behind a product.",
+          "sdg": [
+            "9.c"
+          ],
+          "n_role_posts": 759,
+          "n_single_role_posts": 445,
+          "window": {
+            "from": "2024-11",
+            "to": "2026-10",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Python",
+              "weight": 0.213967,
+              "p_role": 0.323596,
+              "p_all": 0.242003,
+              "lift": 1.3372,
+              "single_role_posts": 144
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.18425,
+              "p_role": 0.278652,
+              "p_all": 0.150367,
+              "lift": 1.8531,
+              "single_role_posts": 124
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.181278,
+              "p_role": 0.274157,
+              "p_all": 0.164001,
+              "lift": 1.6717,
+              "single_role_posts": 122
+            },
+            {
+              "skill": "Go",
+              "weight": 0.120357,
+              "p_role": 0.182022,
+              "p_all": 0.081148,
+              "lift": 2.2431,
+              "single_role_posts": 81
+            },
+            {
+              "skill": "Kubernetes",
+              "weight": 0.086181,
+              "p_role": 0.130337,
+              "p_all": 0.092685,
+              "lift": 1.4062,
+              "single_role_posts": 58
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.08321,
+              "p_role": 0.125843,
+              "p_all": 0.05506,
+              "lift": 2.2855,
+              "single_role_posts": 56
+            },
+            {
+              "skill": "Docker",
+              "weight": 0.07578,
+              "p_role": 0.114607,
+              "p_all": 0.054012,
+              "lift": 2.1219,
+              "single_role_posts": 51
+            },
+            {
+              "skill": "Node.js",
+              "weight": 0.054978,
+              "p_role": 0.083146,
+              "p_all": 0.061877,
+              "lift": 1.3437,
+              "single_role_posts": 37
+            }
+          ],
+          "thread_ids": [
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941",
+            "46466074",
+            "46857488",
+            "47219668",
+            "47601859",
+            "47975571",
+            "48357725",
+            "48747976",
+            "49156683",
+            "49522897",
+            "49922569"
+          ]
+        },
+        {
+          "role_id": "fullstack_developer",
+          "name": "Full-stack Web Developer",
+          "description": "Builds both the browser interface and the server side of web products.",
+          "sdg": [
+            "8.5",
+            "9.c"
+          ],
+          "n_role_posts": 1240,
+          "n_single_role_posts": 888,
+          "window": {
+            "from": "2024-11",
+            "to": "2026-10",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "React",
+              "weight": 0.212893,
+              "p_role": 0.442568,
+              "p_all": 0.215915,
+              "lift": 2.0497,
+              "single_role_posts": 393
+            },
+            {
+              "skill": "JavaScript / TypeScript",
+              "weight": 0.204225,
+              "p_role": 0.42455,
+              "p_all": 0.258915,
+              "lift": 1.6397,
+              "single_role_posts": 377
+            },
+            {
+              "skill": "TypeScript",
+              "weight": 0.177681,
+              "p_role": 0.369369,
+              "p_all": 0.228762,
+              "lift": 1.6146,
+              "single_role_posts": 328
+            },
+            {
+              "skill": "PostgreSQL",
+              "weight": 0.125677,
+              "p_role": 0.261261,
+              "p_all": 0.164001,
+              "lift": 1.593,
+              "single_role_posts": 232
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.093174,
+              "p_role": 0.193694,
+              "p_all": 0.150367,
+              "lift": 1.2881,
+              "single_role_posts": 172
+            },
+            {
+              "skill": "LLM / GenAI",
+              "weight": 0.093174,
+              "p_role": 0.193694,
+              "p_all": 0.147745,
+              "lift": 1.311,
+              "single_role_posts": 172
+            },
+            {
+              "skill": "Node.js",
+              "weight": 0.047671,
+              "p_role": 0.099099,
+              "p_all": 0.061877,
+              "lift": 1.6015,
+              "single_role_posts": 88
+            },
+            {
+              "skill": "Ruby",
+              "weight": 0.045504,
+              "p_role": 0.094595,
+              "p_all": 0.035789,
+              "lift": 2.6431,
+              "single_role_posts": 84
+            }
+          ],
+          "thread_ids": [
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941",
+            "46466074",
+            "46857488",
+            "47219668",
+            "47601859",
+            "47975571",
+            "48357725",
+            "48747976",
+            "49156683",
+            "49522897",
+            "49922569"
+          ]
+        },
+        {
+          "role_id": "platform_devops_engineer",
+          "name": "Platform/DevOps Engineer",
+          "description": "Runs the cloud, build and deployment systems that let other engineers ship software safely.",
+          "sdg": [
+            "7.3",
+            "9.c"
+          ],
+          "n_role_posts": 754,
+          "n_single_role_posts": 510,
+          "window": {
+            "from": "2024-11",
+            "to": "2026-10",
+            "months": 24
+          },
+          "tier": "solid",
+          "ranked": true,
+          "note": null,
+          "skills": [
+            {
+              "skill": "Kubernetes",
+              "weight": 0.186275,
+              "p_role": 0.335294,
+              "p_all": 0.092685,
+              "lift": 3.6176,
+              "single_role_posts": 171
+            },
+            {
+              "skill": "AWS",
+              "weight": 0.172113,
+              "p_role": 0.309804,
+              "p_all": 0.150367,
+              "lift": 2.0603,
+              "single_role_posts": 158
+            },
+            {
+              "skill": "Python",
+              "weight": 0.157952,
+              "p_role": 0.284314,
+              "p_all": 0.242003,
+              "lift": 1.1748,
+              "single_role_posts": 145
+            },
+            {
+              "skill": "Terraform",
+              "weight": 0.140523,
+              "p_role": 0.252941,
+              "p_all": 0.05506,
+              "lift": 4.5939,
+              "single_role_posts": 129
+            },
+            {
+              "skill": "Rust",
+              "weight": 0.087146,
+              "p_role": 0.156863,
+              "p_all": 0.076298,
+              "lift": 2.0559,
+              "single_role_posts": 80
+            },
+            {
+              "skill": "Go",
+              "weight": 0.086057,
+              "p_role": 0.154902,
+              "p_all": 0.081148,
+              "lift": 1.9089,
+              "single_role_posts": 79
+            },
+            {
+              "skill": "GCP",
+              "weight": 0.065359,
+              "p_role": 0.117647,
+              "p_all": 0.054929,
+              "lift": 2.1418,
+              "single_role_posts": 60
+            },
+            {
+              "skill": "Docker",
+              "weight": 0.053377,
+              "p_role": 0.096078,
+              "p_all": 0.054012,
+              "lift": 1.7789,
+              "single_role_posts": 49
+            },
+            {
+              "skill": "Azure",
+              "weight": 0.051198,
+              "p_role": 0.092157,
+              "p_all": 0.024515,
+              "lift": 3.7592,
+              "single_role_posts": 47
+            }
+          ],
+          "thread_ids": [
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45093192",
+            "45438503",
+            "45800465",
+            "46108941",
+            "46466074",
+            "46857488",
+            "47219668",
+            "47601859",
+            "47975571",
+            "48357725",
+            "48747976",
+            "49156683",
+            "49522897",
+            "49922569"
+          ]
+        },
+        {
+          "role_id": "mobile_developer",
+          "name": "Mobile Developer",
+          "description": "Builds apps for phones and tablets on iOS and Android.",
+          "sdg": [
+            "9.c",
+            "8.5"
+          ],
+          "n_role_posts": 197,
+          "n_single_role_posts": 101,
+          "window": {
+            "from": "2024-11",
+            "to": "2026-10",
+            "months": 24
+          },
+          "tier": "rough",
+          "ranked": true,
+          "note": "Rough profile: learned from 101 single-role posts (fewer than 150). Treat the weights as approximate.",
+          "skills": [
+            {
+              "skill": "React Native",
+              "weight": 0.55102,
+              "p_role": 0.267327,
+              "p_all": 0.030545,
+              "lift": 8.7518,
+              "single_role_posts": 27
+            },
+            {
+              "skill": "Swift",
+              "weight": 0.44898,
+              "p_role": 0.217822,
+              "p_all": 0.01311,
+              "lift": 16.6154,
+              "single_role_posts": 22
+            }
+          ],
+          "thread_ids": [
+            "42017580",
+            "42297424",
+            "42575537",
+            "42919502",
+            "43243024",
+            "43547611",
+            "43858554",
+            "44159528",
+            "44434576",
+            "44757794",
+            "45438503",
+            "45800465",
+            "46108941",
+            "46466074",
+            "46857488",
+            "47219668",
+            "47601859",
+            "47975571",
+            "48357725",
+            "48747976",
+            "49156683",
+            "49522897",
+            "49922569"
+          ]
+        }
+      ]
+    }
+  }
+}

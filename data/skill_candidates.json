@@ -1,0 +1,2771 @@
+{
+  "generated_at": "2026-10-22T07:57:32Z",
+  "status": "Candidates for human review. Nothing here is in data/taxonomy.json.",
+  "as_of": "2026-10",
+  "window": 12,
+  "window_months": {
+    "last": [
+      "2025-11",
+      "2026-10"
+    ],
+    "prior": [
+      "2024-11",
+      "2025-10"
+    ]
+  },
+  "n_posts": {
+    "last": 3714,
+    "prior": 3914
+  },
+  "rules": [
+    "camel_case: mixed case inside the word, e.g. FastAPI, LangChain.",
+    "tech_style: dot or digits in tech style (Next.js, k8s, gpt-4o), or ends with ++ or #.",
+    "all_caps: 2 to 6 capital letters, unless in data/discover_stoplist.txt.",
+    "list: a single word in a comma/slash list with >= 2 different taxonomy skills (strongest signal).",
+    "Rules camel_case, tech_style and all_caps ignore the header cell (text before the first '|').",
+    "Terms in the taxonomy (pattern, name or synonym) and in the stoplist are dropped.",
+    "A term needs >= 30 posts in the last 12 months, and >= 50% of them must show it in rule style.",
+    "growth = share_last / max(share_prior, 1 / n_prior_posts). share = posts with the term / all posts in the 12 months.",
+    "score = growth x (0.5 + 0.5 x list_fraction). list_fraction = posts where the term is in a skill list / posts with the term. Terms with no posts in the prior 12 months are 'new'.",
+    "label = existing Welch test (engine.forecast.trend_label): last 12 months vs the 12 before.",
+    "co-occurring skills = top 3 taxonomy skills by lift in the last 12 months (>= 5 shared posts)."
+  ],
+  "n_candidates_total": 39,
+  "candidates": [
+    {
+      "term": "MCP",
+      "key": "mcp",
+      "mentions_last": 54,
+      "mentions_prior": 10,
+      "share_last": 0.01454,
+      "share_prior": 0.002555,
+      "growth": 5.69,
+      "kind": "growth",
+      "new_since": null,
+      "score": 3.32,
+      "label": "Rising",
+      "p_value": 0.0141,
+      "first_seen": "2025-04",
+      "evidence": {
+        "list_fraction": 0.17,
+        "rule_posts_last": {
+          "list": 9,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 54
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Vector Databases",
+          "lift": 14.07,
+          "posts": 9
+        },
+        {
+          "skill": "RAG",
+          "lift": 9.72,
+          "posts": 13
+        },
+        {
+          "skill": "LLM / GenAI",
+          "lift": 2.55,
+          "posts": 21
+        }
+      ],
+      "suggested_category": "ai_ml",
+      "examples": [
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        },
+        {
+          "month": "2026-09",
+          "thread_url": "https://news.ycombinator.com/item?id=49522897"
+        }
+      ],
+      "draft_pattern": {
+        "term": "MCP",
+        "pattern": "(?<![\\w.@-])MCP(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 1
+    },
+    {
+      "term": "ECS",
+      "key": "ecs",
+      "mentions_last": 34,
+      "mentions_prior": 10,
+      "share_last": 0.009155,
+      "share_prior": 0.002555,
+      "growth": 3.58,
+      "kind": "growth",
+      "new_since": null,
+      "score": 3.0,
+      "label": "Rising",
+      "p_value": 0.0015,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.68,
+        "rule_posts_last": {
+          "list": 23,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 34
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 7.91,
+          "posts": 16
+        },
+        {
+          "skill": "AWS",
+          "lift": 5.72,
+          "posts": 30
+        },
+        {
+          "skill": "Docker",
+          "lift": 4.43,
+          "posts": 9
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-04",
+          "thread_url": "https://news.ycombinator.com/item?id=47601859"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "ECS",
+        "pattern": "(?<![\\w.@-])ECS(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 2
+    },
+    {
+      "term": "LangChain",
+      "key": "langchain",
+      "mentions_last": 41,
+      "mentions_prior": 11,
+      "share_last": 0.011039,
+      "share_prior": 0.00281,
+      "growth": 3.93,
+      "kind": "growth",
+      "new_since": null,
+      "score": 2.73,
+      "label": "Rising",
+      "p_value": 0.0002,
+      "first_seen": "2023-04",
+      "evidence": {
+        "list_fraction": 0.39,
+        "rule_posts_last": {
+          "list": 16,
+          "camel_case": 36,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.9
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "RAG",
+          "lift": 17.72,
+          "posts": 18
+        },
+        {
+          "skill": "Vector Databases",
+          "lift": 14.41,
+          "posts": 7
+        },
+        {
+          "skill": "Java",
+          "lift": 5.66,
+          "posts": 8
+        }
+      ],
+      "suggested_category": "ai_ml",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "LangChain",
+        "pattern": "(?<![\\w.@-])langchain(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 3
+    },
+    {
+      "term": "HIPAA",
+      "key": "hipaa",
+      "mentions_last": 34,
+      "mentions_prior": 8,
+      "share_last": 0.009155,
+      "share_prior": 0.002044,
+      "growth": 4.48,
+      "kind": "growth",
+      "new_since": null,
+      "score": 2.31,
+      "label": "Rising",
+      "p_value": 0.0051,
+      "first_seen": "2019-02",
+      "evidence": {
+        "list_fraction": 0.03,
+        "rule_posts_last": {
+          "list": 1,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 34
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Node.js",
+          "lift": 3.98,
+          "posts": 9
+        },
+        {
+          "skill": "AWS",
+          "lift": 3.81,
+          "posts": 20
+        },
+        {
+          "skill": "Docker",
+          "lift": 2.95,
+          "posts": 6
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-06",
+          "thread_url": "https://news.ycombinator.com/item?id=48357725"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "HIPAA",
+        "pattern": "(?<![\\w.@-])HIPAA(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 4
+    },
+    {
+      "term": "ERP",
+      "key": "erp",
+      "mentions_last": 38,
+      "mentions_prior": 10,
+      "share_last": 0.010232,
+      "share_prior": 0.002555,
+      "growth": 4.0,
+      "kind": "growth",
+      "new_since": null,
+      "score": 2.06,
+      "label": "Rising",
+      "p_value": 0.001,
+      "first_seen": "2019-04",
+      "evidence": {
+        "list_fraction": 0.03,
+        "rule_posts_last": {
+          "list": 1,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 38
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "C#",
+          "lift": 6.79,
+          "posts": 5
+        },
+        {
+          "skill": "React",
+          "lift": 2.23,
+          "posts": 19
+        },
+        {
+          "skill": "TypeScript",
+          "lift": 2.22,
+          "posts": 20
+        }
+      ],
+      "suggested_category": "language",
+      "examples": [
+        {
+          "month": "2026-08",
+          "thread_url": "https://news.ycombinator.com/item?id=49156683"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "ERP",
+        "pattern": "(?<![\\w.@-])ERP(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 5
+    },
+    {
+      "term": "S3",
+      "key": "s3",
+      "mentions_last": 42,
+      "mentions_prior": 26,
+      "share_last": 0.011309,
+      "share_prior": 0.006643,
+      "growth": 1.7,
+      "kind": "growth",
+      "new_since": null,
+      "score": 1.48,
+      "label": "Rising",
+      "p_value": 0.0229,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.74,
+        "rule_posts_last": {
+          "list": 31,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.74
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 4.8,
+          "posts": 12
+        },
+        {
+          "skill": "AWS",
+          "lift": 4.48,
+          "posts": 29
+        },
+        {
+          "skill": "Docker",
+          "lift": 3.58,
+          "posts": 9
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-04",
+          "thread_url": "https://news.ycombinator.com/item?id=47601859"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "S3",
+        "pattern": "(?<![\\w.@-])s-?3(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 6
+    },
+    {
+      "term": "IaC",
+      "key": "iac",
+      "mentions_last": 56,
+      "mentions_prior": 29,
+      "share_last": 0.015078,
+      "share_prior": 0.007409,
+      "growth": 2.04,
+      "kind": "growth",
+      "new_since": null,
+      "score": 1.29,
+      "label": "Rising",
+      "p_value": 0.0039,
+      "first_seen": "2019-02",
+      "evidence": {
+        "list_fraction": 0.27,
+        "rule_posts_last": {
+          "list": 15,
+          "camel_case": 56,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 9.0,
+          "posts": 30
+        },
+        {
+          "skill": "Azure",
+          "lift": 5.91,
+          "posts": 9
+        },
+        {
+          "skill": "Kubernetes",
+          "lift": 5.64,
+          "posts": 29
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-09",
+          "thread_url": "https://news.ycombinator.com/item?id=49522897"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "IaC",
+        "pattern": "(?<![\\w.@-])iac(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 7
+    },
+    {
+      "term": "Redis",
+      "key": "redis",
+      "mentions_last": 134,
+      "mentions_prior": 102,
+      "share_last": 0.03608,
+      "share_prior": 0.02606,
+      "growth": 1.38,
+      "kind": "growth",
+      "new_since": null,
+      "score": 1.22,
+      "label": "Rising",
+      "p_value": 0.0206,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.76,
+        "rule_posts_last": {
+          "list": 102,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.76
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Kafka",
+          "lift": 7.21,
+          "posts": 13
+        },
+        {
+          "skill": "Microservices",
+          "lift": 6.06,
+          "posts": 7
+        },
+        {
+          "skill": "PyTorch",
+          "lift": 5.96,
+          "posts": 17
+        }
+      ],
+      "suggested_category": "data",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Redis",
+        "pattern": "(?<![\\w.@-])redis(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 8
+    },
+    {
+      "term": "NestJS",
+      "key": "nest.js",
+      "mentions_last": 41,
+      "mentions_prior": 28,
+      "share_last": 0.011039,
+      "share_prior": 0.007154,
+      "growth": 1.54,
+      "kind": "growth",
+      "new_since": null,
+      "score": 1.22,
+      "label": "No clear change",
+      "p_value": 0.0667,
+      "first_seen": "2019-08",
+      "evidence": {
+        "list_fraction": 0.59,
+        "rule_posts_last": {
+          "list": 24,
+          "camel_case": 38,
+          "tech_style": 3,
+          "all_caps": 0
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "React Native",
+          "lift": 5.82,
+          "posts": 7
+        },
+        {
+          "skill": "Node.js",
+          "lift": 4.4,
+          "posts": 12
+        },
+        {
+          "skill": "SQL",
+          "lift": 4.23,
+          "posts": 7
+        }
+      ],
+      "suggested_category": "framework",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "NestJS",
+        "pattern": "(?<![\\w.@-])nest[ .]?js(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 9
+    },
+    {
+      "term": "Expo",
+      "key": "expo",
+      "mentions_last": 35,
+      "mentions_prior": 23,
+      "share_last": 0.009424,
+      "share_prior": 0.005876,
+      "growth": 1.6,
+      "kind": "growth",
+      "new_since": null,
+      "score": 1.21,
+      "label": "No clear change",
+      "p_value": 0.12,
+      "first_seen": "2019-03",
+      "evidence": {
+        "list_fraction": 0.51,
+        "rule_posts_last": {
+          "list": 18,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 1
+        },
+        "signal_ratio": 0.54
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "React Native",
+          "lift": 27.26,
+          "posts": 28
+        },
+        {
+          "skill": "TypeScript",
+          "lift": 2.77,
+          "posts": 23
+        },
+        {
+          "skill": "JavaScript / TypeScript",
+          "lift": 2.49,
+          "posts": 23
+        }
+      ],
+      "suggested_category": "framework",
+      "examples": [
+        {
+          "month": "2026-05",
+          "thread_url": "https://news.ycombinator.com/item?id=47975571"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Expo",
+        "pattern": "(?<![\\w.@-])expo(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 10
+    },
+    {
+      "term": "Pulumi",
+      "key": "pulumi",
+      "mentions_last": 34,
+      "mentions_prior": 28,
+      "share_last": 0.009155,
+      "share_prior": 0.007154,
+      "growth": 1.28,
+      "kind": "growth",
+      "new_since": null,
+      "score": 1.11,
+      "label": "No clear change",
+      "p_value": 0.3421,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.74,
+        "rule_posts_last": {
+          "list": 25,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.74
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 9.39,
+          "posts": 19
+        },
+        {
+          "skill": "AWS",
+          "lift": 5.72,
+          "posts": 30
+        },
+        {
+          "skill": "Go",
+          "lift": 5.59,
+          "posts": 15
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-03",
+          "thread_url": "https://news.ycombinator.com/item?id=47219668"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Pulumi",
+        "pattern": "(?<![\\w.@-])pulumi(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 11
+    },
+    {
+      "term": "Next.js",
+      "key": "next.js",
+      "mentions_last": 246,
+      "mentions_prior": 206,
+      "share_last": 0.066236,
+      "share_prior": 0.052632,
+      "growth": 1.26,
+      "kind": "growth",
+      "new_since": null,
+      "score": 1.05,
+      "label": "Rising",
+      "p_value": 0.0072,
+      "first_seen": "2019-02",
+      "evidence": {
+        "list_fraction": 0.67,
+        "rule_posts_last": {
+          "list": 165,
+          "camel_case": 31,
+          "tech_style": 216,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.99
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Node.js",
+          "lift": 3.79,
+          "posts": 62
+        },
+        {
+          "skill": "React",
+          "lift": 3.35,
+          "posts": 185
+        },
+        {
+          "skill": "React Native",
+          "lift": 3.05,
+          "posts": 22
+        }
+      ],
+      "suggested_category": "framework",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Next.js",
+        "pattern": "(?<![\\w.@-])next[ .]?js(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 12
+    },
+    {
+      "term": "Elasticsearch",
+      "key": "elasticsearch",
+      "mentions_last": 39,
+      "mentions_prior": 37,
+      "share_last": 0.010501,
+      "share_prior": 0.009453,
+      "growth": 1.11,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.98,
+      "label": "No clear change",
+      "p_value": 0.4107,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.77,
+        "rule_posts_last": {
+          "list": 30,
+          "camel_case": 15,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.82
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Kafka",
+          "lift": 9.52,
+          "posts": 5
+        },
+        {
+          "skill": "MongoDB",
+          "lift": 7.05,
+          "posts": 6
+        },
+        {
+          "skill": "Kubernetes",
+          "lift": 5.59,
+          "posts": 20
+        }
+      ],
+      "suggested_category": "data",
+      "examples": [
+        {
+          "month": "2026-04",
+          "thread_url": "https://news.ycombinator.com/item?id=47601859"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Elasticsearch",
+        "pattern": "(?<![\\w.@-])elasticsearch(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 13
+    },
+    {
+      "term": "GraphQL",
+      "key": "graphql",
+      "mentions_last": 121,
+      "mentions_prior": 108,
+      "share_last": 0.032579,
+      "share_prior": 0.027593,
+      "growth": 1.18,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.97,
+      "label": "No clear change",
+      "p_value": 0.1924,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.64,
+        "rule_posts_last": {
+          "list": 77,
+          "camel_case": 121,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Node.js",
+          "lift": 4.1,
+          "posts": 33
+        },
+        {
+          "skill": "React",
+          "lift": 3.5,
+          "posts": 95
+        },
+        {
+          "skill": "React Native",
+          "lift": 3.38,
+          "posts": 12
+        }
+      ],
+      "suggested_category": "framework",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "GraphQL",
+        "pattern": "(?<![\\w.@-])graphql(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 14
+    },
+    {
+      "term": "FastAPI",
+      "key": "fastapi",
+      "mentions_last": 102,
+      "mentions_prior": 101,
+      "share_last": 0.027464,
+      "share_prior": 0.025805,
+      "growth": 1.06,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.97,
+      "label": "No clear change",
+      "p_value": 0.6655,
+      "first_seen": "2020-09",
+      "evidence": {
+        "list_fraction": 0.81,
+        "rule_posts_last": {
+          "list": 83,
+          "camel_case": 97,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Vector Databases",
+          "lift": 4.97,
+          "posts": 6
+        },
+        {
+          "skill": "Docker",
+          "lift": 3.94,
+          "posts": 24
+        },
+        {
+          "skill": "PostgreSQL",
+          "lift": 3.76,
+          "posts": 71
+        }
+      ],
+      "suggested_category": "ai_ml",
+      "examples": [
+        {
+          "month": "2025-12",
+          "thread_url": "https://news.ycombinator.com/item?id=46108941"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "FastAPI",
+        "pattern": "(?<![\\w.@-])fastapi(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 15
+    },
+    {
+      "term": "Lambda",
+      "key": "lambda",
+      "mentions_last": 39,
+      "mentions_prior": 37,
+      "share_last": 0.010501,
+      "share_prior": 0.009453,
+      "growth": 1.11,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.93,
+      "label": "No clear change",
+      "p_value": 0.3706,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.67,
+        "rule_posts_last": {
+          "list": 26,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.67
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 6.46,
+          "posts": 15
+        },
+        {
+          "skill": "MongoDB",
+          "lift": 5.88,
+          "posts": 5
+        },
+        {
+          "skill": "AWS",
+          "lift": 5.82,
+          "posts": 35
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-05",
+          "thread_url": "https://news.ycombinator.com/item?id=47975571"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Lambda",
+        "pattern": "(?<![\\w.@-])lambda(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 16
+    },
+    {
+      "term": "Grafana",
+      "key": "grafana",
+      "mentions_last": 43,
+      "mentions_prior": 43,
+      "share_last": 0.011578,
+      "share_prior": 0.010986,
+      "growth": 1.05,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.91,
+      "label": "No clear change",
+      "p_value": 0.6641,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.72,
+        "rule_posts_last": {
+          "list": 31,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.72
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 11.72,
+          "posts": 30
+        },
+        {
+          "skill": "PyTorch",
+          "lift": 8.75,
+          "posts": 8
+        },
+        {
+          "skill": "Azure",
+          "lift": 7.7,
+          "posts": 9
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Grafana",
+        "pattern": "(?<![\\w.@-])grafana(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 17
+    },
+    {
+      "term": "ClickHouse",
+      "key": "clickhouse",
+      "mentions_last": 48,
+      "mentions_prior": 38,
+      "share_last": 0.012924,
+      "share_prior": 0.009709,
+      "growth": 1.33,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.9,
+      "label": "No clear change",
+      "p_value": 0.126,
+      "first_seen": "2019-03",
+      "evidence": {
+        "list_fraction": 0.35,
+        "rule_posts_last": {
+          "list": 17,
+          "camel_case": 32,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.75
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Kubernetes",
+          "lift": 3.4,
+          "posts": 15
+        },
+        {
+          "skill": "PostgreSQL",
+          "lift": 2.59,
+          "posts": 23
+        },
+        {
+          "skill": "C++",
+          "lift": 2.5,
+          "posts": 5
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-06",
+          "thread_url": "https://news.ycombinator.com/item?id=48357725"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "ClickHouse",
+        "pattern": "(?<![\\w.@-])clickhouse(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 18
+    },
+    {
+      "term": "DataDog",
+      "key": "datadog",
+      "mentions_last": 44,
+      "mentions_prior": 44,
+      "share_last": 0.011847,
+      "share_prior": 0.011242,
+      "growth": 1.05,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.89,
+      "label": "No clear change",
+      "p_value": 0.9994,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.68,
+        "rule_posts_last": {
+          "list": 30,
+          "camel_case": 8,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.68
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 7.26,
+          "posts": 19
+        },
+        {
+          "skill": "MongoDB",
+          "lift": 6.25,
+          "posts": 6
+        },
+        {
+          "skill": "Kubernetes",
+          "lift": 5.94,
+          "posts": 24
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-08",
+          "thread_url": "https://news.ycombinator.com/item?id=49156683"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "DataDog",
+        "pattern": "(?<![\\w.@-])datadog(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 19
+    },
+    {
+      "term": "Supabase",
+      "key": "supabase",
+      "mentions_last": 36,
+      "mentions_prior": 36,
+      "share_last": 0.009693,
+      "share_prior": 0.009198,
+      "growth": 1.05,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.85,
+      "label": "No clear change",
+      "p_value": 0.594,
+      "first_seen": "2020-04",
+      "evidence": {
+        "list_fraction": 0.61,
+        "rule_posts_last": {
+          "list": 22,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.61
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "PostgreSQL",
+          "lift": 3.15,
+          "posts": 21
+        },
+        {
+          "skill": "GCP",
+          "lift": 2.62,
+          "posts": 5
+        },
+        {
+          "skill": "TypeScript",
+          "lift": 2.11,
+          "posts": 18
+        }
+      ],
+      "suggested_category": "data",
+      "examples": [
+        {
+          "month": "2026-03",
+          "thread_url": "https://news.ycombinator.com/item?id=47219668"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Supabase",
+        "pattern": "(?<![\\w.@-])supabase(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 20
+    },
+    {
+      "term": "MySQL",
+      "key": "mysql",
+      "mentions_last": 57,
+      "mentions_prior": 65,
+      "share_last": 0.015347,
+      "share_prior": 0.016607,
+      "growth": 0.92,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.84,
+      "label": "No clear change",
+      "p_value": 0.569,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.82,
+        "rule_posts_last": {
+          "list": 47,
+          "camel_case": 55,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.98
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "PHP",
+          "lift": 15.51,
+          "posts": 10
+        },
+        {
+          "skill": "Java",
+          "lift": 7.13,
+          "posts": 14
+        },
+        {
+          "skill": "GCP",
+          "lift": 6.28,
+          "posts": 19
+        }
+      ],
+      "suggested_category": "language",
+      "examples": [
+        {
+          "month": "2026-04",
+          "thread_url": "https://news.ycombinator.com/item?id=47601859"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "MySQL",
+        "pattern": "(?<![\\w.@-])mysql(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 21
+    },
+    {
+      "term": "CSS",
+      "key": "css",
+      "mentions_last": 35,
+      "mentions_prior": 30,
+      "share_last": 0.009424,
+      "share_prior": 0.007665,
+      "growth": 1.23,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.83,
+      "label": "No clear change",
+      "p_value": 0.2986,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.34,
+        "rule_posts_last": {
+          "list": 12,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 35
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "React Native",
+          "lift": 8.76,
+          "posts": 9
+        },
+        {
+          "skill": "SQL",
+          "lift": 6.37,
+          "posts": 9
+        },
+        {
+          "skill": "Node.js",
+          "lift": 3.87,
+          "posts": 9
+        }
+      ],
+      "suggested_category": "framework",
+      "examples": [
+        {
+          "month": "2025-11",
+          "thread_url": "https://news.ycombinator.com/item?id=45800465"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "CSS",
+        "pattern": "(?<![\\w.@-])CSS(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 22
+    },
+    {
+      "term": "GPU",
+      "key": "gpu",
+      "mentions_last": 80,
+      "mentions_prior": 52,
+      "share_last": 0.02154,
+      "share_prior": 0.013286,
+      "growth": 1.62,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.82,
+      "label": "Rising",
+      "p_value": 0.0027,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.01,
+        "rule_posts_last": {
+          "list": 1,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 79
+        },
+        "signal_ratio": 0.99
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "PyTorch",
+          "lift": 5.29,
+          "posts": 9
+        },
+        {
+          "skill": "Docker",
+          "lift": 3.35,
+          "posts": 16
+        },
+        {
+          "skill": "C++",
+          "lift": 3.29,
+          "posts": 11
+        }
+      ],
+      "suggested_category": "ai_ml",
+      "examples": [
+        {
+          "month": "2026-08",
+          "thread_url": "https://news.ycombinator.com/item?id=49156683"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "GPU",
+        "pattern": "(?<![\\w.@-])GPU(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 23
+    },
+    {
+      "term": "Prometheus",
+      "key": "prometheus",
+      "mentions_last": 31,
+      "mentions_prior": 34,
+      "share_last": 0.008347,
+      "share_prior": 0.008687,
+      "growth": 0.96,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.81,
+      "label": "No clear change",
+      "p_value": 0.805,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.68,
+        "rule_posts_last": {
+          "list": 21,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.68
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "PyTorch",
+          "lift": 12.13,
+          "posts": 8
+        },
+        {
+          "skill": "Terraform",
+          "lift": 11.93,
+          "posts": 22
+        },
+        {
+          "skill": "Azure",
+          "lift": 10.68,
+          "posts": 9
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Prometheus",
+        "pattern": "(?<![\\w.@-])prometheus(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 24
+    },
+    {
+      "term": "Django",
+      "key": "django",
+      "mentions_last": 93,
+      "mentions_prior": 107,
+      "share_last": 0.02504,
+      "share_prior": 0.027338,
+      "growth": 0.92,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.79,
+      "label": "No clear change",
+      "p_value": 0.2386,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.73,
+        "rule_posts_last": {
+          "list": 68,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.73
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "React Native",
+          "lift": 4.76,
+          "posts": 13
+        },
+        {
+          "skill": "Vector Databases",
+          "lift": 4.54,
+          "posts": 5
+        },
+        {
+          "skill": "Python",
+          "lift": 3.72,
+          "posts": 86
+        }
+      ],
+      "suggested_category": "framework",
+      "examples": [
+        {
+          "month": "2026-03",
+          "thread_url": "https://news.ycombinator.com/item?id=47219668"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Django",
+        "pattern": "(?<![\\w.@-])django(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 25
+    },
+    {
+      "term": "WebRTC",
+      "key": "webrtc",
+      "mentions_last": 34,
+      "mentions_prior": 26,
+      "share_last": 0.009155,
+      "share_prior": 0.006643,
+      "growth": 1.38,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.79,
+      "label": "No clear change",
+      "p_value": 0.1208,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.15,
+        "rule_posts_last": {
+          "list": 5,
+          "camel_case": 34,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Go",
+          "lift": 4.85,
+          "posts": 13
+        },
+        {
+          "skill": "Docker",
+          "lift": 2.95,
+          "posts": 6
+        },
+        {
+          "skill": "Node.js",
+          "lift": 2.65,
+          "posts": 6
+        }
+      ],
+      "suggested_category": "language",
+      "examples": [
+        {
+          "month": "2026-08",
+          "thread_url": "https://news.ycombinator.com/item?id=49156683"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "WebRTC",
+        "pattern": "(?<![\\w.@-])webrtc(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 26
+    },
+    {
+      "term": "IoT",
+      "key": "iot",
+      "mentions_last": 41,
+      "mentions_prior": 36,
+      "share_last": 0.011039,
+      "share_prior": 0.009198,
+      "growth": 1.2,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.78,
+      "label": "No clear change",
+      "p_value": 0.4376,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.29,
+        "rule_posts_last": {
+          "list": 12,
+          "camel_case": 36,
+          "tech_style": 0,
+          "all_caps": 4
+        },
+        "signal_ratio": 0.98
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Swift",
+          "lift": 18.45,
+          "posts": 11
+        },
+        {
+          "skill": "C++",
+          "lift": 9.35,
+          "posts": 16
+        },
+        {
+          "skill": "AWS",
+          "lift": 3.48,
+          "posts": 22
+        }
+      ],
+      "suggested_category": "language",
+      "examples": [
+        {
+          "month": "2025-12",
+          "thread_url": "https://news.ycombinator.com/item?id=46108941"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "IoT",
+        "pattern": "(?<![\\w.@-])iot(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 27
+    },
+    {
+      "term": "NVIDIA",
+      "key": "nvidia",
+      "mentions_last": 42,
+      "mentions_prior": 30,
+      "share_last": 0.011309,
+      "share_prior": 0.007665,
+      "growth": 1.48,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.74,
+      "label": "Rising",
+      "p_value": 0.0327,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.0,
+        "rule_posts_last": {
+          "list": 0,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 31
+        },
+        "signal_ratio": 0.74
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "C++",
+          "lift": 3.42,
+          "posts": 6
+        },
+        {
+          "skill": "Machine Learning",
+          "lift": 1.54,
+          "posts": 13
+        },
+        {
+          "skill": "LLM / GenAI",
+          "lift": 1.41,
+          "posts": 9
+        }
+      ],
+      "suggested_category": "language",
+      "examples": [
+        {
+          "month": "2026-05",
+          "thread_url": "https://news.ycombinator.com/item?id=47975571"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "NVIDIA",
+        "pattern": "(?<![\\w.@-])NVIDIA(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 28
+    },
+    {
+      "term": "OpenAI",
+      "key": "openai",
+      "mentions_last": 78,
+      "mentions_prior": 72,
+      "share_last": 0.021002,
+      "share_prior": 0.018396,
+      "growth": 1.14,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.68,
+      "label": "No clear change",
+      "p_value": 0.2367,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.19,
+        "rule_posts_last": {
+          "list": 15,
+          "camel_case": 78,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Vector Databases",
+          "lift": 14.07,
+          "posts": 13
+        },
+        {
+          "skill": "RAG",
+          "lift": 10.35,
+          "posts": 20
+        },
+        {
+          "skill": "Azure",
+          "lift": 3.77,
+          "posts": 8
+        }
+      ],
+      "suggested_category": "ai_ml",
+      "examples": [
+        {
+          "month": "2025-11",
+          "thread_url": "https://news.ycombinator.com/item?id=45800465"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "OpenAI",
+        "pattern": "(?<![\\w.@-])openai(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 29
+    },
+    {
+      "term": "iOS",
+      "key": "ios",
+      "mentions_last": 124,
+      "mentions_prior": 104,
+      "share_last": 0.033387,
+      "share_prior": 0.026571,
+      "growth": 1.26,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.67,
+      "label": "No clear change",
+      "p_value": 0.1905,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.06,
+        "rule_posts_last": {
+          "list": 8,
+          "camel_case": 123,
+          "tech_style": 0,
+          "all_caps": 1
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Swift",
+          "lift": 18.86,
+          "posts": 34
+        },
+        {
+          "skill": "Snowflake",
+          "lift": 2.81,
+          "posts": 6
+        },
+        {
+          "skill": "React Native",
+          "lift": 2.75,
+          "posts": 10
+        }
+      ],
+      "suggested_category": "language",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "iOS",
+        "pattern": "(?<![\\w.@-])ios(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 30
+    },
+    {
+      "term": "GitHub",
+      "key": "github",
+      "mentions_last": 262,
+      "mentions_prior": 218,
+      "share_last": 0.070544,
+      "share_prior": 0.055697,
+      "growth": 1.27,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.64,
+      "label": "Rising",
+      "p_value": 0.0246,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.01,
+        "rule_posts_last": {
+          "list": 3,
+          "camel_case": 223,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.85
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Docker",
+          "lift": 3.64,
+          "posts": 57
+        },
+        {
+          "skill": "C#",
+          "lift": 3.35,
+          "posts": 17
+        },
+        {
+          "skill": "Terraform",
+          "lift": 3.08,
+          "posts": 48
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "GitHub",
+        "pattern": "(?<![\\w.@-])github(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 31
+    },
+    {
+      "term": "HPC",
+      "key": "hpc",
+      "mentions_last": 39,
+      "mentions_prior": 34,
+      "share_last": 0.010501,
+      "share_prior": 0.008687,
+      "growth": 1.21,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.64,
+      "label": "No clear change",
+      "p_value": 0.1514,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.05,
+        "rule_posts_last": {
+          "list": 2,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 38
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Java",
+          "lift": 8.18,
+          "posts": 11
+        },
+        {
+          "skill": "C++",
+          "lift": 7.37,
+          "posts": 12
+        },
+        {
+          "skill": "Machine Learning",
+          "lift": 3.31,
+          "posts": 26
+        }
+      ],
+      "suggested_category": "language",
+      "examples": [
+        {
+          "month": "2026-09",
+          "thread_url": "https://news.ycombinator.com/item?id=49522897"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "HPC",
+        "pattern": "(?<![\\w.@-])HPC(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 32
+    },
+    {
+      "term": "QA",
+      "key": "qa",
+      "mentions_last": 59,
+      "mentions_prior": 50,
+      "share_last": 0.015886,
+      "share_prior": 0.012775,
+      "growth": 1.24,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.62,
+      "label": "No clear change",
+      "p_value": 0.2629,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.0,
+        "rule_posts_last": {
+          "list": 0,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 59
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "React Native",
+          "lift": 3.47,
+          "posts": 6
+        },
+        {
+          "skill": "Docker",
+          "lift": 2.55,
+          "posts": 9
+        },
+        {
+          "skill": "SQL",
+          "lift": 2.1,
+          "posts": 5
+        }
+      ],
+      "suggested_category": "framework",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "QA",
+        "pattern": "(?<![\\w.@-])QA(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 33
+    },
+    {
+      "term": ".NET",
+      "key": ".net",
+      "mentions_last": 37,
+      "mentions_prior": 35,
+      "share_last": 0.009962,
+      "share_prior": 0.008942,
+      "growth": 1.11,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.56,
+      "label": "No clear change",
+      "p_value": 0.5858,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.0,
+        "rule_posts_last": {
+          "list": 0,
+          "camel_case": 0,
+          "tech_style": 37,
+          "all_caps": 0
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "C#",
+          "lift": 41.82,
+          "posts": 30
+        },
+        {
+          "skill": "Azure",
+          "lift": 10.93,
+          "posts": 11
+        },
+        {
+          "skill": "SQL",
+          "lift": 6.69,
+          "posts": 10
+        }
+      ],
+      "suggested_category": "language",
+      "examples": [
+        {
+          "month": "2026-07",
+          "thread_url": "https://news.ycombinator.com/item?id=48747976"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": ".NET",
+        "pattern": "(?<![\\w@])\\.net(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 34
+    },
+    {
+      "term": "SRE",
+      "key": "sre",
+      "mentions_last": 92,
+      "mentions_prior": 98,
+      "share_last": 0.024771,
+      "share_prior": 0.025038,
+      "growth": 0.99,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.51,
+      "label": "No clear change",
+      "p_value": 0.7554,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.03,
+        "rule_posts_last": {
+          "list": 3,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 92
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 6.58,
+          "posts": 36
+        },
+        {
+          "skill": "Kubernetes",
+          "lift": 6.27,
+          "posts": 53
+        },
+        {
+          "skill": "Azure",
+          "lift": 4.0,
+          "posts": 10
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "SRE",
+        "pattern": "(?<![\\w.@-])SRE(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 35
+    },
+    {
+      "term": "DevOps",
+      "key": "devops",
+      "mentions_last": 213,
+      "mentions_prior": 241,
+      "share_last": 0.057351,
+      "share_prior": 0.061574,
+      "growth": 0.93,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.5,
+      "label": "No clear change",
+      "p_value": 0.3005,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.08,
+        "rule_posts_last": {
+          "list": 16,
+          "camel_case": 172,
+          "tech_style": 0,
+          "all_caps": 1
+        },
+        "signal_ratio": 0.83
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 5.21,
+          "posts": 66
+        },
+        {
+          "skill": "Azure",
+          "lift": 4.32,
+          "posts": 25
+        },
+        {
+          "skill": "Kubernetes",
+          "lift": 3.53,
+          "posts": 69
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2026-03",
+          "thread_url": "https://news.ycombinator.com/item?id=47219668"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "DevOps",
+        "pattern": "(?<![\\w.@-])devops(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 36
+    },
+    {
+      "term": "Vue",
+      "key": "vue",
+      "mentions_last": 36,
+      "mentions_prior": 65,
+      "share_last": 0.009693,
+      "share_prior": 0.016607,
+      "growth": 0.58,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.48,
+      "label": "Falling",
+      "p_value": 0.0172,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.64,
+        "rule_posts_last": {
+          "list": 23,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 0
+        },
+        "signal_ratio": 0.64
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Docker",
+          "lift": 6.51,
+          "posts": 14
+        },
+        {
+          "skill": "SQL",
+          "lift": 4.81,
+          "posts": 7
+        },
+        {
+          "skill": "Ruby",
+          "lift": 4.49,
+          "posts": 5
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2025-11",
+          "thread_url": "https://news.ycombinator.com/item?id=45800465"
+        },
+        {
+          "month": "2026-09",
+          "thread_url": "https://news.ycombinator.com/item?id=49522897"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Vue",
+        "pattern": "(?<![\\w.@-])vue(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 37
+    },
+    {
+      "term": "Vue.js",
+      "key": "vue.js",
+      "mentions_last": 30,
+      "mentions_prior": 62,
+      "share_last": 0.008078,
+      "share_prior": 0.015841,
+      "growth": 0.51,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.44,
+      "label": "Falling",
+      "p_value": 0.0049,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.73,
+        "rule_posts_last": {
+          "list": 22,
+          "camel_case": 3,
+          "tech_style": 23,
+          "all_caps": 0
+        },
+        "signal_ratio": 1.0
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "Terraform",
+          "lift": 10.64,
+          "posts": 19
+        },
+        {
+          "skill": "PyTorch",
+          "lift": 7.84,
+          "posts": 5
+        },
+        {
+          "skill": "Docker",
+          "lift": 7.81,
+          "posts": 14
+        }
+      ],
+      "suggested_category": "cloud_devops",
+      "examples": [
+        {
+          "month": "2025-12",
+          "thread_url": "https://news.ycombinator.com/item?id=46108941"
+        },
+        {
+          "month": "2026-09",
+          "thread_url": "https://news.ycombinator.com/item?id=49522897"
+        }
+      ],
+      "draft_pattern": {
+        "term": "Vue.js",
+        "pattern": "(?<![\\w.@-])vue[ .]?js(?!\\w)",
+        "case_sensitive": false,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 38
+    },
+    {
+      "term": "ETL",
+      "key": "etl",
+      "mentions_last": 37,
+      "mentions_prior": 52,
+      "share_last": 0.009962,
+      "share_prior": 0.013286,
+      "growth": 0.75,
+      "kind": "growth",
+      "new_since": null,
+      "score": 0.37,
+      "label": "No clear change",
+      "p_value": 0.2893,
+      "first_seen": "2019-01",
+      "evidence": {
+        "list_fraction": 0.0,
+        "rule_posts_last": {
+          "list": 0,
+          "camel_case": 0,
+          "tech_style": 0,
+          "all_caps": 35
+        },
+        "signal_ratio": 0.95
+      },
+      "co_occurring_skills": [
+        {
+          "skill": "SQL",
+          "lift": 9.37,
+          "posts": 14
+        },
+        {
+          "skill": "Rust",
+          "lift": 3.25,
+          "posts": 10
+        },
+        {
+          "skill": "PostgreSQL",
+          "lift": 3.21,
+          "posts": 22
+        }
+      ],
+      "suggested_category": "data",
+      "examples": [
+        {
+          "month": "2026-02",
+          "thread_url": "https://news.ycombinator.com/item?id=46857488"
+        },
+        {
+          "month": "2026-10",
+          "thread_url": "https://news.ycombinator.com/item?id=49922569"
+        }
+      ],
+      "draft_pattern": {
+        "term": "ETL",
+        "pattern": "(?<![\\w.@-])ETL(?!\\w)",
+        "case_sensitive": true,
+        "status": "draft, needs review and tests"
+      },
+      "rank": 39
+    }
+  ],
+  "backfill_demo": {
+    "term": "MCP",
+    "pattern": "(?<![\\w.@-])MCP(?!\\w)",
+    "note": "Monthly share from the raw posts with the draft pattern: the history an approved skill gets at once.",
+    "months": [
+      "2019-01",
+      "2019-02",
+      "2019-03",
+      "2019-04",
+      "2019-05",
+      "2019-06",
+      "2019-07",
+      "2019-08",
+      "2019-09",
+      "2019-10",
+      "2019-11",
+      "2019-12",
+      "2020-01",
+      "2020-02",
+      "2020-03",
+      "2020-04",
+      "2020-05",
+      "2020-06",
+      "2020-07",
+      "2020-08",
+      "2020-09",
+      "2020-10",
+      "2020-11",
+      "2020-12",
+      "2021-01",
+      "2021-02",
+      "2021-03",
+      "2021-04",
+      "2021-05",
+      "2021-06",
+      "2021-07",
+      "2021-08",
+      "2021-09",
+      "2021-10",
+      "2021-11",
+      "2021-12",
+      "2022-01",
+      "2022-02",
+      "2022-03",
+      "2022-04",
+      "2022-05",
+      "2022-06",
+      "2022-07",
+      "2022-08",
+      "2022-09",
+      "2022-10",
+      "2022-11",
+      "2022-12",
+      "2023-01",
+      "2023-02",
+      "2023-03",
+      "2023-04",
+      "2023-05",
+      "2023-06",
+      "2023-07",
+      "2023-08",
+      "2023-09",
+      "2023-10",
+      "2023-11",
+      "2023-12",
+      "2024-01",
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08",
+      "2024-09",
+      "2024-10",
+      "2024-11",
+      "2024-12",
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10"
+    ],
+    "share": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.003268,
+      0.003322,
+      0.00838,
+      0.003021,
+      0.006557,
+      0.0,
+      0.005865,
+      0.002551,
+      0.0,
+      0.0,
+      0.012195,
+      0.0,
+      0.012158,
+      0.025157,
+      0.01278,
+      0.019305,
+      0.02193,
+      0.040161,
+      0.045113
+    ]
+  },
+  "backtest": {
+    "definition": "Run discover with data up to 2023-06. Take the top 15. A hit is a term whose share of posts in the next 12 months is above its share in the 12 months up to 2023-06. No month after as_of is used to choose the terms. The taxonomy and stoplist are today's files.",
+    "main": {
+      "as_of": "2023-06",
+      "after_months": [
+        "2023-07",
+        "2024-06"
+      ],
+      "top_n": 15,
+      "hits": 3,
+      "precision_top": 0.2,
+      "precision_ci95_wilson": [
+        0.07,
+        0.45
+      ],
+      "n_all_candidates": 47,
+      "base_rate_all_candidates": 0.3,
+      "n_labelled_rising": 10,
+      "precision_labelled_rising": 0.3,
+      "top": [
+        {
+          "term": "Redshift",
+          "rank": 1,
+          "label": "No clear change",
+          "growth": 2.1,
+          "share_before": 0.007481,
+          "share_after": 0.001287,
+          "rose": false
+        },
+        {
+          "term": "CDK",
+          "rank": 2,
+          "label": "Rising",
+          "growth": 2.23,
+          "share_before": 0.005611,
+          "share_after": 0.005407,
+          "rose": false
+        },
+        {
+          "term": "WASM",
+          "rank": 3,
+          "label": "Rising",
+          "growth": 2.67,
+          "share_before": 0.006733,
+          "share_after": 0.005149,
+          "rose": false
+        },
+        {
+          "term": "ClickHouse",
+          "rank": 4,
+          "label": "Rising",
+          "growth": 1.96,
+          "share_before": 0.008042,
+          "share_after": 0.011071,
+          "rose": true
+        },
+        {
+          "term": "FPGA",
+          "rank": 5,
+          "label": "Rising",
+          "growth": 2.85,
+          "share_before": 0.005985,
+          "share_after": 0.002317,
+          "rose": false
+        },
+        {
+          "term": "Nix",
+          "rank": 6,
+          "label": "Rising",
+          "growth": 1.43,
+          "share_before": 0.006172,
+          "share_after": 0.005922,
+          "rose": false
+        },
+        {
+          "term": "Nginx",
+          "rank": 7,
+          "label": "No clear change",
+          "growth": 1.33,
+          "share_before": 0.005985,
+          "share_after": 0.001802,
+          "rose": false
+        },
+        {
+          "term": "FastAPI",
+          "rank": 8,
+          "label": "No clear change",
+          "growth": 1.27,
+          "share_before": 0.006546,
+          "share_after": 0.010814,
+          "rose": true
+        },
+        {
+          "term": "Flask",
+          "rank": 9,
+          "label": "No clear change",
+          "growth": 1.19,
+          "share_before": 0.016084,
+          "share_after": 0.008496,
+          "rose": false
+        },
+        {
+          "term": "BigQuery",
+          "rank": 10,
+          "label": "No clear change",
+          "growth": 1.21,
+          "share_before": 0.008416,
+          "share_after": 0.00309,
+          "rose": false
+        },
+        {
+          "term": "HPC",
+          "rank": 11,
+          "label": "Rising",
+          "growth": 1.48,
+          "share_before": 0.005611,
+          "share_after": 0.007209,
+          "rose": true
+        },
+        {
+          "term": "gRPC",
+          "rank": 12,
+          "label": "No clear change",
+          "growth": 1.19,
+          "share_before": 0.009725,
+          "share_after": 0.009011,
+          "rose": false
+        },
+        {
+          "term": "NoSQL",
+          "rank": 13,
+          "label": "No clear change",
+          "growth": 1.28,
+          "share_before": 0.006733,
+          "share_after": 0.001802,
+          "rose": false
+        },
+        {
+          "term": "JVM",
+          "rank": 14,
+          "label": "Rising",
+          "growth": 1.78,
+          "share_before": 0.006546,
+          "share_after": 0.002317,
+          "rose": false
+        },
+        {
+          "term": "Redis",
+          "rank": 15,
+          "label": "No clear change",
+          "growth": 0.98,
+          "share_before": 0.041706,
+          "share_after": 0.024974,
+          "rose": false
+        }
+      ]
+    },
+    "other_origins": [
+      {
+        "as_of": "2021-06",
+        "top_n": 15,
+        "hits": 5,
+        "precision_top": 0.33,
+        "n_all_candidates": 86,
+        "base_rate_all_candidates": 0.26
+      },
+      {
+        "as_of": "2022-06",
+        "top_n": 15,
+        "hits": 6,
+        "precision_top": 0.4,
+        "n_all_candidates": 92,
+        "base_rate_all_candidates": 0.34
+      },
+      {
+        "as_of": "2024-06",
+        "top_n": 15,
+        "hits": 4,
+        "precision_top": 0.27,
+        "n_all_candidates": 31,
+        "base_rate_all_candidates": 0.26
+      },
+      {
+        "as_of": "2025-06",
+        "top_n": 15,
+        "hits": 7,
+        "precision_top": 0.47,
+        "n_all_candidates": 33,
+        "base_rate_all_candidates": 0.45
+      }
+    ],
+    "verdict": "Weak: at most half of the top candidates grew.",
+    "caveats": [
+      "Small sample: 15 terms. The interval is wide.",
+      "Compare with base_rate_all_candidates: a high precision is only informative if it beats the base rate.",
+      "The stoplist was written by reading today's candidates, not the 2023 ones, but it is human judgement."
+    ]
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "02 Roles to pathway",
+  "description": "How Verity learns what each role asks for, scores one user against the roles, and turns the skill gap into an ordered learning plan. The Streamlit app only calls these functions.",
+  "steps": [
+    {
+      "file": "engine/roles.py",
+      "line": 1,
+      "title": "Role match in brief",
+      "description": "This module ranks job roles for one user in three steps. It learns a skill profile for each role from real posts, counts role demand by month, then scores a user's skills against the profiles. Every number traces to posts or to a stated rule. Judge asks: Where do the role skills come from? Short answer: From Hacker News posts that name exactly one role."
+    },
+    {
+      "file": "engine/roles.py",
+      "line": 131,
+      "title": "Title masking",
+      "description": "mask_spans replaces each matched role title with spaces of the same length. Without this, the title AI engineer would tag Machine Learning from its own words, which inflates the role's skills. Only the title words are blanked, so the rest of the post is still tagged. Judge asks: Does masking remove real skills? Short answer: No, only the title span is blanked."
+    },
+    {
+      "file": "engine/roles.py",
+      "line": 146,
+      "title": "Masking before tagging",
+      "description": "tag_role_post finds the role titles, blanks them, then tags skills on what is left. Line 155 is the masking call. The function returns the role ids and the skills for one post. Judge asks: What if a post names two roles? Short answer: It counts in the demand of both roles, but it is not used to learn a skill profile."
+    },
+    {
+      "file": "engine/roles.py",
+      "line": 211,
+      "title": "Single-role posts only",
+      "description": "Only a post that names exactly one role teaches that role's profile. A post that names two or more roles tells us little about either one. This stops a post about Data Engineer and ML Engineer from teaching both roles the same skills. Judge asks: Why drop the mixed posts? Short answer: They still count toward role demand, just not toward skill profiles."
+    },
+    {
+      "file": "engine/roles.py",
+      "line": 654,
+      "title": "match_score",
+      "description": "match_score is the weight of the role's skills that the user has, divided by the total weight. It runs from 0 to 1. Synonyms are merged first, so having TypeScript counts for JavaScript / TypeScript. Judge asks: Is the weight a judgement call? Short answer: No, it is p_role divided by the sum of the kept p_role values, from the posts."
+    },
+    {
+      "file": "engine/roles.py",
+      "line": 661,
+      "title": "fast_shift",
+      "description": "fast_shift is minus k times the weighted AI exposure of the role's skills. It is shown only in the Fast scenario and never changes the rank. It says how far the role's demand could move if its skills lose ground to AI. Judge asks: Does the Fast scenario reorder the roles? Short answer: No, it only shows the size of the possible shift."
+    },
+    {
+      "file": "engine/roles.py",
+      "line": 677,
+      "title": "rank_score",
+      "description": "rank_score is 0.7 times match_score plus 0.3 times future_score. future_score is 1 for Rising, 0.5 for No clear change or unknown, and 0 for Falling. A role with a match below 0.20 goes to low_match at line 703 and is not ranked, so outlook alone cannot lift it. Judge asks: Why 0.7 and 0.3? Short answer: They are team judgement, not fitted, and the app shows the formula."
+    },
+    {
+      "file": "engine/pathway.py",
+      "line": 178,
+      "title": "The no-regret rule",
+      "description": "classify puts a skill in Stage 1 when at least two of the target and ranked roles need it, its trend is not Falling, and its stance is not AI-substitutable. Stage 2 is near-term demand, the top half of the gap by share now. Stage 3 holds Rising or AI-complement skills. Judge asks: Why put no-regret skills first? Short answer: A skill that several roles need pays off whichever future happens."
+    },
+    {
+      "file": "engine/pathway.py",
+      "line": 270,
+      "title": "Task chunking",
+      "description": "schedule_tasks cuts each skill into tasks of at most 45 minutes. The daily budget is the weekly hours divided by five. If less than 10 minutes is left in a day, the next piece starts on the next work day. Judge asks: Why 45 minutes? Short answer: It is a planning choice, a block a student can finish in one sitting, and all times are estimates."
+    },
+    {
+      "file": "app.py",
+      "line": 580,
+      "title": "The app calls match_roles",
+      "description": "The Roles tab passes the user's skills, the role profile for the chosen as-of month, the trend labels and the exposure file to match_roles. The app then only displays what comes back. Judge asks: Does the app compute its own scores? Short answer: No, every match number on screen comes from match_roles."
+    },
+    {
+      "file": "app.py",
+      "line": 730,
+      "title": "The app calls build_pathway",
+      "description": "The Pathway tab passes the target role's gap, the gaps of the ranked roles for the no-regret rule, and the resources file to build_pathway. The app does not reorder the plan. Judge asks: Can a language model change the order? Short answer: No, no model is in this path, and the order comes from classify and the data."
+    }
+  ]
+}

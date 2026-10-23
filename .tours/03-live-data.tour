@@ -1,0 +1,43 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "03 Live data",
+  "description": "How new Hacker News data reaches the app: a refresh, a daily scheduled job, a shared snapshot store, and the live loader. The committed data folder is never overwritten.",
+  "steps": [
+    {
+      "file": "engine/refresh.py",
+      "line": 1,
+      "title": "Refresh in brief",
+      "description": "Refresh fetches the newest Hacker News hiring thread and updates only that month's demand rows. It then rebuilds the skill scores in a runtime folder. The committed data folder is never the work folder. Judge asks: Can a refresh overwrite the committed data? Short answer: No, the code refuses to use the committed folder as its work folder."
+    },
+    {
+      "file": "engine/refresh.py",
+      "line": 155,
+      "title": "refresh(): lock and restore",
+      "description": "refresh is the main call. A lock stops two refreshes from running at once. Before any change it keeps backups of the data files, and if anything fails it writes them back, so the last good data stays in use. Judge asks: What happens if the network fails? Short answer: The function returns ok false, and the old files are restored."
+    },
+    {
+      "file": "engine/scheduled.py",
+      "line": 33,
+      "title": "The daily job",
+      "description": "run calls refresh, then saves a snapshot only when the scores were rebuilt. A stale pair of files is never published, because the check on line 55 stops the job first. The job never raises, so its summary is always printed. Judge asks: What if the save fails? Short answer: The latest pointer is not switched, so visitors keep the previous snapshot."
+    },
+    {
+      "file": "engine/store.py",
+      "line": 151,
+      "title": "The latest pointer is written last",
+      "description": "A snapshot uploads all its files first. The file latest.json is written last, so a reader never loads a half-uploaded snapshot. Old snapshots beyond the kept number are removed. Judge asks: Why not write the data straight to the live file? Short answer: A reader could load a partial upload, and the last-write pointer prevents that."
+    },
+    {
+      "file": "engine/live.py",
+      "line": 70,
+      "title": "Using a newer snapshot",
+      "description": "load_newer_snapshot compares the stored snapshot's generated time with the committed scores file. If the stored one is newer, the app uses a folder copy of it, and start_dir on line 120 caches that choice for 10 minutes. Any store problem returns nothing, so the app shows the committed data. Judge asks: What if the store is down? Short answer: The app still works, using the committed data."
+    },
+    {
+      "file": "app.py",
+      "line": 379,
+      "title": "Manual refresh is shared",
+      "description": "The Refresh button runs refresh, then calls live.publish on line 379. A good manual refresh is saved so every visitor sees it. The app shows the note that publish returns, which says whether the save reached shared storage or only this machine. Judge asks: Does one click change the data for everyone? Short answer: Yes, after a good refresh, and only when shared storage is set up."
+    }
+  ]
+}

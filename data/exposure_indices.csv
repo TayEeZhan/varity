@@ -1,0 +1,49 @@
+onet_soc,occupation_title,source,family,raw_value,rank,z,n_occupations,mapping_note
+15-1252.00,Software Developers,aei_automation,aei,60.565,5.0,0.1689,8,"O*NET-SOC 2019 code, direct (AEI uses it)"
+15-1251.00,Computer Programmers,aei_automation,aei,63.105,2.0,0.6131,8,"O*NET-SOC 2019 code, direct (AEI uses it)"
+15-1254.00,Web Developers,aei_automation,aei,54.935,7.0,-0.8154,8,"O*NET-SOC 2019 code, direct (AEI uses it)"
+15-1243.00,Database Architects,aei_automation,aei,58.265,6.0,-0.2332,8,"O*NET-SOC 2019 code, direct (AEI uses it)"
+15-1242.00,Database Administrators,aei_automation,aei,62.76,3.0,0.5527,8,"O*NET-SOC 2019 code, direct (AEI uses it)"
+15-1244.00,Network and Computer Systems Administrators,aei_automation,aei,67.17,1.0,1.3238,8,"O*NET-SOC 2019 code, direct (AEI uses it)"
+15-1299.08,Computer Systems Engineers/Architects,aei_automation,aei,62.585,4.0,0.5221,8,"O*NET-SOC 2019 code, direct (AEI uses it)"
+15-2051.00,Data Scientists,aei_automation,aei,47.405,8.0,-2.1321,8,"O*NET-SOC 2019 code, direct (AEI uses it)"
+15-1252.00,Software Developers,gpts_gpt4_beta,gpts,0.868421,5.0,0.2011,8,"O*NET-SOC 2019 code, direct"
+15-1251.00,Computer Programmers,gpts_gpt4_beta,gpts,0.95,1.0,1.1721,8,"O*NET-SOC 2019 code, direct"
+15-1254.00,Web Developers,gpts_gpt4_beta,gpts,0.932692,3.0,0.9661,8,"O*NET-SOC 2019 code, direct"
+15-1243.00,Database Architects,gpts_gpt4_beta,gpts,0.878049,4.0,0.3157,8,"O*NET-SOC 2019 code, direct"
+15-1242.00,Database Administrators,gpts_gpt4_beta,gpts,0.935484,2.0,0.9993,8,"O*NET-SOC 2019 code, direct"
+15-1244.00,Network and Computer Systems Administrators,gpts_gpt4_beta,gpts,0.72973,8.0,-1.4498,8,"O*NET-SOC 2019 code, direct"
+15-1299.08,Computer Systems Engineers/Architects,gpts_gpt4_beta,gpts,0.767857,6.0,-0.9959,8,"O*NET-SOC 2019 code, direct"
+15-2051.00,Data Scientists,gpts_gpt4_beta,gpts,0.75,7.0,-1.2085,8,"O*NET-SOC 2019 code, direct"
+15-1252.00,Software Developers,gpts_human_beta,gpts,0.447368,8.0,-1.9599,8,"O*NET-SOC 2019 code, direct"
+15-1251.00,Computer Programmers,gpts_human_beta,gpts,0.683333,1.0,1.5324,8,"O*NET-SOC 2019 code, direct"
+15-1254.00,Web Developers,gpts_human_beta,gpts,0.634615,2.0,0.8114,8,"O*NET-SOC 2019 code, direct"
+15-1243.00,Database Architects,gpts_human_beta,gpts,0.597561,3.0,0.263,8,"O*NET-SOC 2019 code, direct"
+15-1242.00,Database Administrators,gpts_human_beta,gpts,0.596774,4.0,0.2513,8,"O*NET-SOC 2019 code, direct"
+15-1244.00,Network and Computer Systems Administrators,gpts_human_beta,gpts,0.513514,7.0,-0.9809,8,"O*NET-SOC 2019 code, direct"
+15-1299.08,Computer Systems Engineers/Architects,gpts_human_beta,gpts,0.571429,6.0,-0.1238,8,"O*NET-SOC 2019 code, direct"
+15-2051.00,Data Scientists,gpts_human_beta,gpts,0.59375,5.0,0.2066,8,"O*NET-SOC 2019 code, direct"
+15-1252.00,Software Developers,aioe,aioe,1.242115,4.0,0.4539,7,"mean of AIOE at SOC 2010 parents ['15-1132', '15-1133']"
+15-1251.00,Computer Programmers,aioe,aioe,1.271506,2.0,0.6316,7,mean of AIOE at SOC 2010 parents ['15-1131']
+15-1254.00,Web Developers,aioe,aioe,1.089463,6.0,-0.4685,7,mean of AIOE at SOC 2010 parents ['15-1134']
+15-1243.00,Database Architects,aioe,aioe,1.258784,3.0,0.5547,7,"mean of AIOE at SOC 2010 parents ['15-1141', '15-1199']"
+15-1242.00,Database Administrators,aioe,aioe,1.284863,1.0,0.7123,7,mean of AIOE at SOC 2010 parents ['15-1141']
+15-1244.00,Network and Computer Systems Administrators,aioe,aioe,0.789532,7.0,-2.281,7,mean of AIOE at SOC 2010 parents ['15-1142']
+15-1299.08,Computer Systems Engineers/Architects,aioe,aioe,1.232705,5.0,0.3971,7,mean of AIOE at SOC 2010 parents ['15-1199']
+15-2051.00,Data Scientists,aioe,aioe,,,,7,SOC 2010 parents ['15-2099']: none has an AIOE value
+15-1252.00,Software Developers,aioe_lm,aioe,1.023686,3.0,0.5806,7,"mean of AIOE at SOC 2010 parents ['15-1132', '15-1133']"
+15-1251.00,Computer Programmers,aioe_lm,aioe,1.024722,2.0,0.5859,7,mean of AIOE at SOC 2010 parents ['15-1131']
+15-1254.00,Web Developers,aioe_lm,aioe,0.788787,6.0,-0.6214,7,mean of AIOE at SOC 2010 parents ['15-1134']
+15-1243.00,Database Architects,aioe_lm,aioe,1.019784,4.0,0.5607,7,"mean of AIOE at SOC 2010 parents ['15-1141', '15-1199']"
+15-1242.00,Database Administrators,aioe_lm,aioe,0.995983,5.0,0.4389,7,mean of AIOE at SOC 2010 parents ['15-1141']
+15-1244.00,Network and Computer Systems Administrators,aioe_lm,aioe,0.474954,7.0,-2.2273,7,mean of AIOE at SOC 2010 parents ['15-1142']
+15-1299.08,Computer Systems Engineers/Architects,aioe_lm,aioe,1.043586,1.0,0.6825,7,mean of AIOE at SOC 2010 parents ['15-1199']
+15-2051.00,Data Scientists,aioe_lm,aioe,,,,7,SOC 2010 parents ['15-2099']: none has an AIOE value
+15-1252.00,Software Developers,msft_applicability,msft,0.278157,7.0,-0.8851,8,SOC 2018 code 15-1252
+15-1251.00,Computer Programmers,msft_applicability,msft,0.310032,4.0,0.084,8,SOC 2018 code 15-1251
+15-1254.00,Web Developers,msft_applicability,msft,0.353128,2.0,1.3943,8,SOC 2018 code 15-1254
+15-1243.00,Database Architects,msft_applicability,msft,0.311966,3.0,0.1428,8,SOC 2018 code 15-1243
+15-1242.00,Database Administrators,msft_applicability,msft,0.297396,6.0,-0.3002,8,SOC 2018 code 15-1242
+15-1244.00,Network and Computer Systems Administrators,msft_applicability,msft,0.252526,8.0,-1.6645,8,SOC 2018 code 15-1244
+15-1299.08,Computer Systems Engineers/Architects,msft_applicability,msft,0.297786,5.0,-0.2883,8,"SOC 2018 code 15-1299 (the O*NET detail 15-1299.08 shares the broad SOC code, so it gets that code's score)"
+15-2051.00,Data Scientists,msft_applicability,msft,0.357163,1.0,1.517,8,SOC 2018 code 15-2051
