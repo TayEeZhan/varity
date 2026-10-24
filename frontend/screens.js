@@ -97,7 +97,8 @@ function renderToday() {
   const tasks = TODAY.tasks;
   const mins = tasks.reduce((n, t) => n + t.mins, 0);
   const doneStops = PATHWAY.filter((p) => p.status === "done").length;
-  const pct = PATHWAY.length ? Math.round((doneStops / PATHWAY.length) * 100) : 100;
+  const allTasks = STATE.plan.tasks, tasksDone = allTasks.filter((t) => STATE.done.has(t.id)).length;
+  const pct = allTasks.length ? Math.round((tasksDone / allTasks.length) * 100) : 100;  // a stop spans several days, so the bar counts tasks
   const coming = PATHWAY.filter((p) => p.status === "next" && !tasks.some((t) => t.station === p.id)).slice(0, 4);
   const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
   const gtasksOn = !!ACCOUNT.googleClientId && tasks.length > 0;
@@ -111,7 +112,7 @@ function renderToday() {
     <section class="route-strip" aria-label="Your route">
       <div class="route-strip__head">
         <h2><span class="bullets">${used.map((l) => bullet(l)).join("")}</span>To ${esc(TARGET.role)}</h2>
-        <div class="progress">${doneStops} of ${PATHWAY.length} stops done <span class="progress__bar"><i style="width:${pct}%"></i></span>${Number(STATE.plan.matchPct)}% match now</div>
+        <div class="progress">${doneStops} of ${PATHWAY.length} stops done · ${tasksDone} of ${allTasks.length} tasks ticked <span class="progress__bar"><i style="width:${pct}%"></i></span>${Number(STATE.plan.matchPct)}% match now</div>
       </div>
       <p class="route-key">${used.map((l) => `<b>${esc(LINES[l].letter)}</b> ${esc(LINES[l].name)}: ${esc(LINES[l].skill)}`).join(" · ")}</p>
       <div class="diagram" data-strip>${stripSVG()}</div>
@@ -182,14 +183,17 @@ function cvPanel() {
       ${STATE.review.injection_hint ? `<p class="err" role="alert">Some lines look like instructions to an AI. They were read as CV text only, and skills on them are not ticked.</p>` : ""}
       <p>Untick anything that is wrong, then save. Nothing is stored until you do.</p>
       ${destinationField()}
-      <button class="btn btn--primary" data-act="cv-save">Save ${STATE.keep.size} skills</button>
+      ${STATE.confirmSave && STATE.saved ? `<p role="alert"><b>You already have a saved profile.</b> Add these skills to it, or replace it?</p>
+      <button class="btn btn--primary" data-act="cv-save" data-mode="add">Add ${STATE.keep.size} skills</button>
+      <button class="btn" data-act="cv-save" data-mode="replace">Replace my profile</button>`
+        : `<button class="btn btn--primary" data-act="cv-save">Save ${STATE.keep.size} skills</button>`}
       <button class="btn btn--quiet" data-act="cv-replace">Cancel</button>
     </div>`;
   }
   if (STATE.cv === "parsed" && STATE.saved) {
     return `<div class="cvfile">
       <div class="cvfile__name">${ICON.file}Your saved profile</div>
-      <p>${STATE.saved.skills.length} skills · updated ${esc(STATE.saved.updated_at.slice(0, 10))}. ${STATE.saved.account ? "Kept on Varity's server under your account." : "Kept on Varity's server; only this browser holds the key to it."}</p>
+      <p>${STATE.saved.skills.length} skills · updated ${esc(STATE.saved.updated_at.slice(0, 10))}. ${STATE.saved.account ? "Kept on Varity's server under your account." : "Kept on Varity's server. Only this browser holds the key, so clearing your browser data loses it."}</p>
       ${typeof accountChip === "function" ? accountChip() : ""}
       <button class="btn" data-act="cv-replace">Read another CV</button>
       <button class="btn btn--quiet" data-act="profile-delete">Delete my profile</button>
@@ -320,7 +324,7 @@ function plannerHTML() {
   if (!STATE.saved) return `<p class="empty">Upload a CV or try an example profile. Routes appear after that.</p>`;
   if (STATE.suggestError) return problem(STATE.suggestError);
   if (!STATE.suggest) return "";
-  return `<div class="planner__from"><b>From</b> ${esc(STATE.saved.name || "your saved profile")} ${ICON.arrow} <b>To</b> the roles your skills fit best</div>${scenarioToggle()}${liveRoutes()}`;
+  return `<div class="planner__from"><b>From</b> ${esc(STATE.saved.name || "your saved profile")} ${ICON.arrow} <b>To</b> ${esc((FORECAST.roles[STATE.saved.target_role || STATE.destination] || {}).name || "the roles your skills fit best")}</div>${scenarioToggle()}${liveRoutes()}`;
 }
 
 function stationText() {
@@ -347,8 +351,9 @@ function renderProfile() {
     </section>`;
 
   const bind = (root) => {
-    const ex = location.hash.includes("examples=1") && root.querySelector(".examples");  // from the landing's "Try an example"
-    if (ex) { ex.scrollIntoView({ block: "center" }); ex.querySelector("button").focus({ preventScroll: true }); history.replaceState(null, "", "#/profile"); }
+    if (location.hash.includes("examples=1")) { STATE.focusEx = true; setTimeout(() => { STATE.focusEx = false; }, 3000); history.replaceState(null, "", "#/profile"); }  // from the landing's "Try an example"
+    const ex = STATE.focusEx && root.querySelector(".examples");  // later redraws (profile load) replace main, so keep trying for 3s
+    if (ex) { ex.scrollIntoView({ block: "center" }); ex.querySelector("button").focus({ preventScroll: true }); }
     const fileInput = root.querySelector("[data-file]");
     const drop = root.querySelector("[data-drop]");
     const fail = (message) => { STATE.cv = "error"; STATE.cvError = message; rerender(); };
@@ -407,28 +412,37 @@ function renderProfile() {
         if (e.dataTransfer.files[0]) accept(e.dataTransfer.files[0]);
       });
     }
-    root.addEventListener("click", (e) => {
+    root.addEventListener("click", async (e) => {
       const b = e.target.closest("[data-act]");
       if (!b) return;
       const act = b.dataset.act;
-      if (act === "cv-replace") { STATE.cv = "empty"; STATE.review = null; rerender(); }
+      if (act === "cv-replace") { STATE.cv = "empty"; STATE.review = null; STATE.confirmSave = false; rerender(); }
       else if (act === "cv-choose") fileInput.click();
       else if (act === "cv-sample") read("aina.txt (synthetic sample)", { sample: "aina" });
       else if (act === "cv-save") {
+        if (STATE.saved && !b.dataset.mode) { STATE.confirmSave = true; rerender('[data-mode="add"]'); return; }
+        const before = new Set(STATE.saved ? STATE.saved.skills.map((s) => s.skill_id) : []);
+        const replace = b.dataset.mode === "replace";
+        STATE.confirmSave = false;
+        if (replace) {
+          try { await api("/api/profile", { method: "DELETE" }); } catch (err) { toast(errText(err)); return; }
+          before.clear();
+        }
         call("/api/profile/apply", { method: "POST", body: JSON.stringify({ review_id: STATE.review.review_id, kept_ids: [...STATE.keep] }) }, async (data) => {
           setProfileToken(data.token);
           STATE.saved = data.profile;
           STATE.review = null;
           STATE.cv = "parsed";
-          let note = `Saved ${data.profile.skills.length} skills to your profile.`;
+          const added = data.profile.skills.filter((s) => !before.has(s.skill_id)).length;
+          let note = before.size ? `Added ${added} new skills to your profile (${data.profile.skills.length - added} already there).` : `Saved ${data.profile.skills.length} skills to your profile.`;
           // Set separately: apply uses up the review, so a refused destination there would lose the user's ticks.
           const dest = STATE.destination && FORECAST.roles[STATE.destination];
           if (dest) {
             try {
               STATE.saved = (await api("/api/profile/target-role", { method: "POST", body: JSON.stringify({ roleId: STATE.destination }) })).profile;
-              note = `Destination set: ${dest.name}. Your pathway leads there.`;
+              note += ` Destination set: ${dest.name}.`;
             } catch (err) {
-              note = `Saved your skills, but ${dest.name} has no route for them yet.`;
+              note += ` ${dest.name} has no route for them yet.`;
             }
           }
           rerender();

@@ -17,3 +17,6 @@ data/raw/
 Thumbs.db
 .vscode/
 .idea/
+
+# Playwright MCP screenshots from QA runs
+.playwright-mcp/

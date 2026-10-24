@@ -436,8 +436,10 @@ function googleToken() {
     window.google.accounts.oauth2.initTokenClient({
       client_id: ACCOUNT.googleClientId,
       scope: "https://www.googleapis.com/auth/tasks",
-      callback: (r) => (r.error ? no(new Error("Google did not give access to Tasks.")) : ok(r.access_token)),
-      error_callback: () => no(new Error("Google sign-in was closed before it finished.")),
+      callback: (r) => (r.error ? no(new Error(r.error === "access_denied" ? "You did not give Varity access to Google Tasks." : "Google did not give access to Tasks.")) : ok(r.access_token)),
+      error_callback: (e) => no(new Error(e && e.type === "popup_closed" ? "Google sign-in was closed before it finished."
+        : e && e.type === "popup_failed_to_open" ? "Your browser blocked the Google pop-up. Allow pop-ups for this site and try again."
+        : "Google could not start sign-in. Try again later.")),
     }).requestAccessToken();
   });
 }
@@ -550,7 +552,7 @@ async function signIn() {
 function accountChip() {
   if (!ACCOUNT.enabled) return "";
   if (ACCOUNT.signedIn) return `<p class="acct-chip acct-chip--on">Saved to your account</p>`;
-  return `<p class="acct-chip">Saved in this browser only <button type="button" class="acct-link" data-global="signin">Sign in to keep it</button></p>`;
+  return `<p class="acct-chip">Saved for this browser <button type="button" class="acct-link" data-global="signin">Sign in to keep it</button></p>`;
 }
 
 function renderAcct() {
