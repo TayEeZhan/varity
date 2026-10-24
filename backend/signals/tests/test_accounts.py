@@ -65,6 +65,16 @@ def test_disabled_without_env(settings, monkeypatch):
     assert client.post("/api/login/prepare").status_code == 404
 
 
+def test_google_client_id_only_if_it_looks_like_one(settings, monkeypatch):
+    client = TestClient(create_app(load_context(settings)), follow_redirects=False, base_url="http://localhost")
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "GOCSPX-abcdefSECRET123")
+    assert client.get("/api/me").json()["data"]["googleClientId"] is None
+    assert "GOCSPX" not in client.get("/api/me").text
+    good = "123456-abc9def.apps.googleusercontent.com"
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", good)
+    assert client.get("/api/me").json()["data"]["googleClientId"] == good
+
+
 def test_login_redirect_has_pkce_state_and_safe_return(client):
     response, query = start_login(client, returnTo="/#/pathway")
     assert response.status_code == 302 and response.headers["location"].startswith(DOC["authorization_endpoint"])
