@@ -78,16 +78,36 @@ function sdgTable(rows) {
 /* ── Today ─────────────────────────────────────────────────────── */
 function stopRow(t) {
   const done = STATE.done.has(t.id);
-  return `<div class="stop${done ? " is-done" : ""}">
+  const locked = !canToggle(t.raw);
+  const hint = locked ? (done ? "Untick the later weeks first" : `Finish week ${t.week - 1} first`) : "";
+  return `<div class="stop${done ? " is-done" : ""}${locked && !done ? " is-locked" : ""}">
     ${bullet(t.line)}
     <div class="stop__mins">${Number(t.mins)}<small>min</small></div>
     <div class="stop__body">
       <div class="stop__title">${esc(t.title)}</div>
       <div class="stop__res">${ext(t.url, t.resource)}</div>
       <div class="stop__why"><b>Why today</b>${esc(t.why)} · ${esc(t.source)}</div>
+      ${hint ? `<div class="stop__lock">${esc(hint)}</div>` : ""}
     </div>
-    <button class="tick" data-act="tick" data-id="${esc(t.id)}" aria-pressed="${done}" aria-label="${done ? "Mark not done" : "Mark done"}: ${esc(t.title)}">${ICON.check}</button>
+    <button class="tick" data-act="tick" data-id="${esc(t.id)}" aria-pressed="${done}"${locked ? ` disabled title="${esc(hint)}"` : ""} aria-label="${done ? "Mark not done" : "Mark done"}: ${esc(t.title)}">${ICON.check}</button>
   </div>`;
+}
+
+/* Every task, grouped by week then day; the first unfinished day is marked "Up next". */
+function allTasksHTML() {
+  const fmt = (d) => new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  const weeks = [...new Set(TODAY.all.map((t) => t.week))];
+  return weeks.map((w) => {
+    const inWeek = TODAY.all.filter((t) => t.week === w);
+    const left = inWeek.filter((t) => !STATE.done.has(t.id)).length;
+    const days = [...new Set(inWeek.map((t) => t.date))].map((d) => {
+      const rows = inWeek.filter((t) => t.date === d);
+      const mins = rows.reduce((n, t) => n + t.mins, 0);
+      const tag = d === TODAY.day ? ` <span class="here-tag">Up next</span>` : "";
+      return `<div class="tday${d === TODAY.day ? " is-next" : ""}"><h4>${esc(fmt(d))} <span>· ${mins} min</span>${tag}</h4>${rows.map(stopRow).join("")}</div>`;
+    }).join("");
+    return `<section class="tweek"><h3>Week ${Number(w)} <span>· ${left ? `${left} of ${inWeek.length} left` : "done"}</span></h3>${days}</section>`;
+  }).join("");
 }
 
 /* What changed since the user accepted the plan, or one new skill the trend layer and job posts both rate as rising. */
@@ -119,8 +139,8 @@ function renderToday() {
   const doneStops = PATHWAY.filter((p) => p.status === "done").length;
   const allTasks = STATE.plan.tasks, tasksDone = allTasks.filter((t) => STATE.done.has(t.id)).length;
   const pct = allTasks.length ? Math.round((tasksDone / allTasks.length) * 100) : 100;  // a stop spans several days, so the bar counts tasks
-  const coming = PATHWAY.filter((p) => p.status === "next" && !tasks.some((t) => t.station === p.id)).slice(0, 4);
   const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
+  const coming = PATHWAY.filter((p) => p.status === "next" && !tasks.some((t) => t.station === p.id)).slice(0, 4);
   const gtasksOn = !!ACCOUNT.googleClientId && tasks.length > 0;
   const title = !TODAY.day ? "Today" : TODAY.day === todayIso() ? `Today, ${TODAY.date}` : `Next stop, ${TODAY.date}`;
   const lede = TODAY.day
@@ -141,8 +161,9 @@ function renderToday() {
     </section>
     <div class="today-grid">
       <section class="timetable" aria-labelledby="tt-h">
-        <div class="timetable__head"><h2 id="tt-h">Next stops <span>· ${mins} min</span></h2></div>
-        ${tasks.map(stopRow).join("") || `<p class="empty">Nothing left to do in this plan.</p>`}
+        <div class="timetable__head"><h2 id="tt-h">All tasks <span>· next day ${mins} min</span></h2></div>
+        ${tasks.length ? "" : `<p class="empty">Nothing left to do in this plan.</p>`}
+        ${allTasksHTML()}
       </section>
       <aside class="side">
         ${finished.length ? `<section class="panel"><h2>Finished skills</h2>
@@ -177,6 +198,8 @@ function renderToday() {
       if (act.dataset.act.startsWith("offer-")) return planDecision(act.dataset.act.slice(6), skill);
       if (act.dataset.act !== "tick") return;
       const id = act.dataset.id;
+      const task = STATE.plan.tasks.find((t) => t.id === id);
+      if (!task || !canToggle(task)) return;  // later weeks stay locked until earlier ones are done
       if (STATE.done.has(id)) STATE.done.delete(id); else STATE.done.add(id);
       saveDone();
       refreshStatus();
@@ -535,24 +558,26 @@ function renderPathway() {
   const blocked = gate("plan");
   if (blocked) return { html: head("Pathway", "The ordered stops from your skills to your route.") + blocked, bind: () => {} };
 
-  const weeks = [...new Set(PATHWAY.map((p) => p.week))];
+  // Weeks with a stop or a task: a stop's later parts can fall in a week where no stop starts.
+  const weeks = [...new Set([...PATHWAY.map((p) => p.week), ...TODAY.all.map((t) => t.week)])].sort((a, b) => a - b);
   const statusText = { done: "Done", current: "You are here", next: "Upcoming" };
   const stopHTML = (p) => `<div class="pstop is-${p.status}" data-stop="${esc(p.id)}">
       ${bullet(p.line, true)}
       <div><div class="pstop__t">${esc(p.title)}<span>${Number(p.mins)} min</span></div>
         <div class="pstop__r">${p.url ? ext(p.url, p.resource) : esc(p.resource)}</div>
-        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.length ? `<span class="tag" title="${esc(p.sdgTags.length > 1 ? sdgAll(p.sdgTags) : `Source: ${p.sdgTags[0].source}`)}">SDG ${esc(p.sdgTags[0].target)}${p.sdgTags.length > 1 ? ` +${p.sdgTags.length - 1}` : ""}</span>` : ""}</div>
+        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}${p.progress > 0 && p.progress < 1 ? `<span class="tag">${Math.round(p.progress * 100)}% done</span>` : ""}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.length ? `<span class="tag" title="${esc(p.sdgTags.length > 1 ? sdgAll(p.sdgTags) : `Source: ${p.sdgTags[0].source}`)}">SDG ${esc(p.sdgTags[0].target)}${p.sdgTags.length > 1 ? ` +${p.sdgTags.length - 1}` : ""}</span>` : ""}</div>
         ${p.sdgReason ? `<p class="pstop__why">${esc(p.sdgReason)}</p>` : ""}
         ${p.why ? `<p class="pstop__why">${esc(p.why)}</p>` : ""}
         ${p.reasons ? `<div class="chips">${p.reasons.map((c) => reasonChip(c)).join("")}</div>` : ""}</div>
     </div>`;
-  const planStart = new Date(STATE.plan.startDate).getTime();
-  const taskWeek = (t) => Math.floor((new Date(t.date).getTime() - planStart) / DAY_MS / 7) + 1;
+  const fmtDay = (d) => new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
   const weekHTML = (w) => {
     const stops = PATHWAY.filter((p) => p.week === w);
-    const mins = STATE.plan.tasks.filter((t) => taskWeek(t) === w).reduce((n, t) => n + t.minutes, 0);
-    const hrs = Math.round((mins / 60) * 10) / 10;
-    return `<section class="week"><h3>Week ${esc(w)} <span>${hrs} h</span></h3>${stops.map(stopHTML).join("")}</section>`;
+    const tasks = TODAY.all.filter((t) => t.week === w);
+    const hrs = Math.round((tasks.reduce((n, t) => n + t.mins, 0) / 60) * 10) / 10;
+    const list = tasks.map((t) => `<li class="${STATE.done.has(t.id) ? "is-done" : ""}"><span>${STATE.done.has(t.id) ? "✓" : "○"}</span>${esc(fmtDay(t.date))} · ${esc(t.title)} <small>${Number(t.mins)} min</small></li>`).join("");
+    return `<section class="week"><h3>Week ${esc(w)} <span>${hrs} h</span></h3>${stops.map(stopHTML).join("")}
+      ${list ? `<ul class="wtasks" aria-label="Tasks in week ${esc(w)}">${list}</ul><p><a href="#/today">Tick tasks on Today</a></p>` : ""}</section>`;
   };
 
   const plan = STATE.plan;

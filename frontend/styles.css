@@ -211,6 +211,17 @@ h2.sec small { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); }
 .stop.is-done .tick { background: var(--ink); }
 .stop.is-done .tick svg { opacity: 1; }
 .stop.is-done .stop__title { color: var(--ink-3); }
+.stop.is-locked { opacity: 0.55; }
+.tick:disabled { cursor: not-allowed; }
+.tick:disabled:active { transform: none; }
+.stop__lock { margin-top: 6px; font-size: var(--t-xs); font-weight: 700; color: var(--ink-3); }
+.tweek > h3 { font-size: var(--t-lg); font-weight: 800; padding: 18px 0 6px; border-bottom: 3px solid var(--ink); }
+.tweek > h3 span, .tday h4 span { font-weight: 500; color: var(--ink-3); font-size: var(--t-sm); }
+.tday h4 { font-size: var(--t-md); font-weight: 700; padding: 12px 0 0; display: flex; gap: 8px; align-items: center; }
+.wtasks { list-style: none; margin: 10px 0 6px; padding: 0; font-size: var(--t-sm); }
+.wtasks li { display: flex; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--rule); }
+.wtasks li small { margin-left: auto; color: var(--ink-3); white-space: nowrap; }
+.wtasks li.is-done { color: var(--ink-3); }
 .stop--cancelled { grid-template-columns: 26px 64px minmax(0, 1fr); }
 .stop--cancelled .stop__title, .stop--cancelled .stop__mins { color: var(--ink-3); text-decoration: line-through; text-decoration-thickness: 2px; }
 .stamp { display: inline-block; font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; border: 2px solid var(--fall); color: var(--fall); padding: 1px 6px; transform: rotate(-2deg); margin-right: 6px; }
