@@ -13,6 +13,7 @@ import hmac
 import json
 import logging
 import os
+import re
 import secrets
 import threading
 import time
@@ -35,6 +36,8 @@ FLOW_TTL_S = 600
 DEFAULT_RETURN = "/#/profile"
 FAILED = "/#/profile?login=failed"
 LIMIT_PER_MINUTE = 30
+GOOGLE_ID_RE = re.compile(r"^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$", re.IGNORECASE)
+_warned_google_id = False
 _discovery_cache: dict = {}
 _discovery_lock = threading.Lock()
 
@@ -246,13 +249,22 @@ def add_auth_routes(app: FastAPI, settings: Settings) -> None:
     def api_me(request: Request, x_profile_token: str | None = Header(default=None)):
         if limited(request):
             return envelope(error="too many requests, try again in a minute", status=429)
+        # A public OAuth client id: the browser asks Google for a Tasks token itself (see app.js).
+        # Never echo anything else (a pasted client secret would be published to every visitor).
+        global _warned_google_id
+        raw = (os.environ.get("GOOGLE_CLIENT_ID") or "").strip()
+        valid = bool(GOOGLE_ID_RE.match(raw))
+        if raw and not valid and not _warned_google_id:
+            _warned_google_id = True
+            log.warning("GOOGLE_CLIENT_ID is not a Google OAuth client id; Google Tasks is hidden")
+        google = {"googleClientId": raw if valid else None}
         if not enabled():
-            return envelope({"enabled": False, "signedIn": False, "user": None, "hasProfile": False})
+            return envelope({"enabled": False, "signedIn": False, "user": None, "hasProfile": False, **google})
         sub = session_sub(request)
         user = store.get_user(settings, sub) if sub else None
         owner = "u:" + sub if user else store.token_owner(x_profile_token)
         has = bool(owner and store.get_profile_json(settings, owner) is not None)
-        return envelope({"enabled": True, "signedIn": user is not None, "user": user, "hasProfile": has})
+        return envelope({"enabled": True, "signedIn": user is not None, "user": user, "hasProfile": has, **google})
 
     @app.get("/api/logout")
     def api_logout(request: Request):

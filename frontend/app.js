@@ -32,6 +32,8 @@ const TODAY = { date: "", tasks: [] };
 const TARGET = { role: "" };
 
 const SCREENS = {
+  home: renderLanding,
+  how: renderHow,
   flow: renderFlow,
   profile: renderProfile,
   today: renderToday,
@@ -41,13 +43,18 @@ const SCREENS = {
   radar: renderRadar,
   method: renderMethod,
 };
-const TITLES = { flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method" };
+const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method" };
 const DEFAULT_SCREEN = "today";
 
+/* An explicit hash wins ("#/" is the landing). With none, a visitor with a saved profile (account or this
+   browser's token) starts on Today; everyone else starts on the landing. */
 function currentScreen() {
-  const r = location.hash.replace(/^#\/?/, "");
-  return SCREENS[r] ? r : DEFAULT_SCREEN;
+  const r = location.hash.replace(/^#\/?/, "").split("?")[0];
+  if (r === "" && location.hash.startsWith("#/")) return "home";
+  if (SCREENS[r]) return r;
+  return hasKey() ? DEFAULT_SCREEN : "home";
 }
+let shownScreen = "";
 
 /* Draw the current screen into a fresh <main> (dropping old listeners).
    `refocus` is a selector to focus afterwards, so ticking a stop keeps keyboard position. */
@@ -74,7 +81,8 @@ function navigate() {
     }
     else a.removeAttribute("aria-current");
   });
-  document.title = `${TITLES[screen]} · Varity`;
+  shownScreen = screen;
+  document.title = screen === "home" ? TITLES.home : `${TITLES[screen]} · Varity`;
   const el = rerender();
   window.scrollTo(0, 0);
   el.focus({ preventScroll: true });
@@ -242,7 +250,8 @@ async function markLearned(skill) {
 async function loadMine() {
   await loadMe();
   STATE.loading = hasKey() ? "profile" : "";
-  rerender();
+  if (currentScreen() !== shownScreen) navigate();  // signed in with a profile: the bare URL means Today, not the landing
+  else rerender();
   await loadProfile();
   rerender();
   await loadRoutes();
@@ -444,6 +453,72 @@ async function generateCv(button) {
   }
 }
 
+/* ── Google Tasks (shown only when the server has GOOGLE_CLIENT_ID) ───────────────
+   The browser asks Google for a Tasks-only token and writes the list itself. The token stays in this
+   page's memory; Varity's server never sees it or the tasks. */
+const GTASKS = { busy: false };
+let gisLoading = null;
+function loadGis() {
+  gisLoading = gisLoading || new Promise((ok, no) => {
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.onload = ok;
+    s.onerror = () => { gisLoading = null; no(new Error("Could not load Google sign-in. Try again.")); };
+    document.head.appendChild(s);
+  });
+  return gisLoading;
+}
+function googleToken() {
+  return new Promise((ok, no) => {
+    window.google.accounts.oauth2.initTokenClient({
+      client_id: ACCOUNT.googleClientId,
+      scope: "https://www.googleapis.com/auth/tasks",
+      callback: (r) => (r.error ? no(new Error(r.error === "access_denied" ? "You did not give Varity access to Google Tasks." : "Google did not give access to Tasks.")) : ok(r.access_token)),
+      error_callback: (e) => no(new Error(e && e.type === "popup_closed" ? "Google sign-in was closed before it finished."
+        : e && e.type === "popup_failed_to_open" ? "Your browser blocked the Google pop-up. Allow pop-ups for this site and try again."
+        : "Google could not start sign-in. Try again later.")),
+    }).requestAccessToken();
+  });
+}
+async function gtasks(token, path, method = "GET", body) {
+  let res;
+  try {
+    res = await fetch(`https://tasks.googleapis.com/tasks/v1/${path}`, { method, body: body && JSON.stringify(body),
+      headers: { Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json" } : {}) } });
+  } catch (e) {
+    throw new Error("Could not reach Google Tasks. Try again.");
+  }
+  if (!res.ok) throw new Error(`Google Tasks refused the request (${res.status}). Try again.`);
+  return res.status === 204 ? null : res.json();
+}
+/* One dated list per push. New tasks go to the top unless "previous" is given, so chain them to keep the timetable order. */
+async function pushToGoogleTasks(tasks) {
+  await loadGis();
+  const token = await googleToken();
+  const list = await gtasks(token, "users/@me/lists", "POST", { title: `Varity · ${TODAY.date}` });
+  try {
+    let previous = "";
+    for (const t of tasks) {
+      const notes = [t.resource, t.url, `Why today: ${t.why} · ${t.source}`].filter(Boolean).join("\n");
+      const made = await gtasks(token, `lists/${encodeURIComponent(list.id)}/tasks${previous ? `?previous=${encodeURIComponent(previous)}` : ""}`,
+        "POST", { title: `${t.title} (${Number(t.mins)} min)`, notes, due: `${TODAY.day}T00:00:00.000Z` });
+      previous = made.id;
+    }
+  } catch (err) {
+    await gtasks(token, `users/@me/lists/${encodeURIComponent(list.id)}`, "DELETE").catch(() => {});  // no half-filled list left behind
+    throw err;
+  }
+  return { ...list, token };
+}
+async function undoGoogleTasks(list) {
+  try {
+    await gtasks(list.token, `users/@me/lists/${encodeURIComponent(list.id)}`, "DELETE");
+    toast("Removed the list from Google Tasks.");
+  } catch (err) {
+    toast(err.message);
+  }
+}
+
 /* Buttons that work on any screen. */
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-global]");
@@ -462,6 +537,17 @@ document.addEventListener("click", async (e) => {
     download("verity_plan.ics", "text/calendar", planIcs(STATE.plan));
   } else if (act === "generate-cv") {
     generateCv(b);
+  } else if (act === "gtasks" && TODAY.tasks.length && !GTASKS.busy) {
+    GTASKS.busy = true;
+    rerender();
+    try {
+      const list = await pushToGoogleTasks(TODAY.tasks);
+      toast(`Sent ${TODAY.tasks.length} stops to Google Tasks, list “${list.title}”.`, "Undo", () => undoGoogleTasks(list));
+    } catch (err) {
+      toast(err.message);
+    }
+    GTASKS.busy = false;
+    rerender();
   } else if (act === "example") {
     if (STATE.saved && !confirm("Replace your saved profile with this synthetic example?")) return;
     try {
@@ -481,14 +567,15 @@ document.addEventListener("click", async (e) => {
 });
 
 /* ── Accounts (hidden unless GET /api/me says login is configured) ─────────────── */
-const ACCOUNT = { enabled: false, signedIn: false, user: null, hasProfile: false };
+const ACCOUNT = { enabled: false, signedIn: false, user: null, hasProfile: false, googleClientId: "" };
 /* Is there a saved profile to ask for: the account's, or one this browser holds a token for? */
 const hasKey = () => (ACCOUNT.signedIn ? ACCOUNT.hasProfile : !!profileToken());
 
 async function loadMe() {
   try {
     const d = await api("/api/me");
-    Object.assign(ACCOUNT, { enabled: !!d.enabled, signedIn: !!(d.enabled && d.signedIn), user: d.user || null, hasProfile: !!d.hasProfile });
+    Object.assign(ACCOUNT, { enabled: !!d.enabled, signedIn: !!(d.enabled && d.signedIn), user: d.user || null, hasProfile: !!d.hasProfile,
+      googleClientId: d.googleClientId || "" });
   } catch (e) { /* login unavailable: no account UI */ }
   renderAcct();
 }
@@ -504,7 +591,7 @@ async function signIn() {
 function accountChip() {
   if (!ACCOUNT.enabled) return "";
   if (ACCOUNT.signedIn) return `<p class="acct-chip acct-chip--on">Saved to your account</p>`;
-  return `<p class="acct-chip">Saved in this browser only <button type="button" class="acct-link" data-global="signin">Sign in to keep it</button></p>`;
+  return `<p class="acct-chip">Saved for this browser <button type="button" class="acct-link" data-global="signin">Sign in to keep it</button></p>`;
 }
 
 function renderAcct() {
@@ -556,7 +643,9 @@ if (loginFailed) history.replaceState(null, "", location.pathname + location.sea
 
 window.addEventListener("hashchange", navigate);
 STATE.loading = profileToken() ? "profile" : "";
-navigate();  // draw at once; the data arrives below
+/* Bare URL and no browser token: an account may still hold a profile (Today, not the landing), so draw nothing until /api/me answers. */
+const waitForMe = !location.hash && !profileToken();
+if (!waitForMe) navigate();  // draw at once; the data arrives below
 if (loginFailed) toast("Sign-in did not finish. Try again.");
 loadMine();
 loadSignals().then(() => rerender());

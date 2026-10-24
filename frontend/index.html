@@ -3,20 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Varity</title>
-  <meta name="description" content="Varity turns your CV, daily AI signals and the job forecast into a reskilling route and a daily to-do list.">
+  <title>Varity: from CV to hired</title>
+  <meta name="description" content="A personal route from the skills you have to the job you want, with free resources where we have them.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Varity">
+  <meta property="og:title" content="Varity: from CV to hired">
+  <meta property="og:description" content="A personal route from the skills you have to the job you want, with free resources where we have them.">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2716%27 fill=%27%23121212%27/%3E%3Cpath d=%27M8.5 9h4l3.5 10.5L19.5 9h4L18 24h-4z%27 fill=%27%23fff%27/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=14">
-  <link rel="stylesheet" href="evidence.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="evidence.css?v=2">
+  <link rel="stylesheet" href="landing.css?v=3">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="band">
     <div class="band__inner">
-      <a class="mark" href="#/today" aria-label="Varity, go to Today">
+      <a class="mark" href="#/" aria-label="Varity, go to the start page">
         <span class="mark__bullet" aria-hidden="true">V</span>
         <span class="mark__word">Varity</span>
       </a>
@@ -27,8 +34,7 @@
         <a href="#/pathway" data-route="pathway">Pathway</a>
         <a href="#/signals" data-route="signals">Signals</a>
         <a href="#/forecast" data-route="forecast">Job forecast</a>
-        <a href="#/radar" data-route="radar">Skills radar</a>
-        <a href="#/method" data-route="method">Method</a>
+        <a href="#/how" data-route="how">How Varity works</a>
       </nav>
       <p class="band__meta">Signals: offline snapshot of <time datetime="2026-10-22T13:09+08:00">22 Oct, 13:09</time></p>
       <div class="acct" data-acct hidden></div>
@@ -41,11 +47,12 @@
     <p><strong>Varity prototype.</strong> Signals and skill momentum are output of the AI Trend Signal Layer (run <span data-run-id>20261022T050908-ab9c76</span>); if the server cannot be reached, the page shows a dated offline snapshot and says so. CVs are read by the skill profile intake: every skill is checked against a quote from the CV. The job forecast comes from the role forecast engine (Hacker News hiring posts). Match scores, routes, the pathway and today's stops are computed by code from your saved profile and the files in data/; example profiles are synthetic. Scenarios are estimates. Varity supports your judgement; it does not replace it.</p>
   </footer>
 
-  <script src="data.js?v=11"></script>
+  <script src="data.js?v=12"></script>
   <script src="diagram.js?v=11"></script>
-  <script src="screens.js?v=15"></script>
-  <script src="screens-explore.js?v=11"></script>
+  <script src="screens.js?v=20"></script>
+  <script src="screens-explore.js?v=12"></script>
   <script src="screens-evidence.js?v=1"></script>
-  <script src="app.js?v=14"></script>
+  <script src="landing.js?v=4"></script>
+  <script src="app.js?v=17"></script>
 </body>
 </html>
