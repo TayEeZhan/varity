@@ -14,9 +14,9 @@ Tick each box as you do it. Items marked [TEAM TO FILL] need a decision from you
 
 - [ ] Both members read the script aloud with a stopwatch, three times. Log each take in section 8.
 - [ ] Both members read `docs/ml-forecaster.md`, the backtest part of `docs/build-plan.md`, and `docs/submission/qa-prep.md`. Sheng Kuan speaks the forecast-test rows (5 and 8) and may get those questions.
-- [ ] Republish the Replit deployment with the Varity-only app (the live URL is not yet republished). Then open https://verity--eezhan0805.replit.app in a private window. It must show the eight Varity screens and real data, not an "offline snapshot" label on Job forecast or Skills radar. If the page still shows the Streamlit app, the deployment is old.
+- [ ] Check the Replit deployment (live, published 24 Oct 2026). Open https://verity--eezhan0805.replit.app in a private window. It must show the eight Varity screens and real data, not an "offline snapshot" label on Job forecast or Skills radar. If the page still shows the Streamlit app, the deployment is old.
 - [ ] Compare the page with the numbers in section 4. If a value differs, find out why (a refresh, a new snapshot) and fix the script, not the screen.
-- [ ] CV intake: the demo uses "Try an example", which needs no model. Show the CV upload in the video only if you have run it on the deployed app. Use a synthetic CV only, never a real one. The Claude call is a design that is not yet verified on Replit. With no credentials, a keyword pass takes over, and the page then shows no Claude result. Check which of the two you will show.
+- [ ] CV intake: the demo uses "Try an example", which needs no model. Show the CV upload in the video only if you have run it on the deployed app. Use a synthetic CV only, never a real one. The CV-intake Claude call is not yet confirmed live. With no key, a keyword pass takes over, and the page then shows no Claude result. Check which of the two you will show.
 - [ ] The app has no Refresh button. The Hacker News numbers are the committed snapshot (as of 2026-10), so they change only if someone re-runs the engine or the scheduled job and commits the files. If the data files changed since section 4 was written, repeat the number check. The Signals screen is different: the server re-ranks it while it runs, so its stories change.
 - [ ] Run the app once locally as a second source for the backup take (section 6): `pip install -r requirements.txt`, then `cd backend/signals` and `python -m trendsignal serve --port 8000`, then open http://localhost:8000.
 - [ ] Choose the account for the recording: a clean browser profile with no extensions, no saved logins, and no bookmarks bar.
@@ -31,6 +31,7 @@ Tick each box as you do it. Items marked [TEAM TO FILL] need a decision from you
 - [ ] Phone on silent. Charger plugged in. Stable network (wired if possible).
 - [ ] Wake the Replit app: open the URL 10 minutes before and click through all eight screens once.
 - [ ] Open Signals once. On a fresh deploy with no ranked run, one pipeline pass starts in the background, so Signals can show the offline snapshot until it finishes. Wait until the badge says live data.
+- [ ] Optional sign-in, not yet tested on the live app. In a private window on the live URL, click "Sign in", sign in with Replit, check that the profile and ticks stay after a reload, then sign out and delete the test account. Add a sign-in step to the demo script only if all of this works live. The demo does not need it: "Try an example" works without an account. [TEAM TO FILL: result and date]
 - [ ] Use a private window so no saved profile, route or ticks remain from an earlier take. Press "Try an example" fresh at 0:40.
 
 ## 4. State to check at 0:40 and the numbers to expect
@@ -55,7 +56,7 @@ Committed snapshot: `data/skill_scores.json` generated 2026-10-21T21:09:03Z, as 
 | Method, exposure | stances | "Most indices agree with our stance: language. Contested: ai_ml, cloud_devops, data, framework, practice."; correlation line with Microsoft -0.79 |
 | Method, k line | text | "The data cannot pin k down (point estimate 1.8 per 12 months, 95% CI -1.0 to 2.9). We use k = 2 as a labelled assumption." |
 | Signals | list | Live ranked stories from the last run. The numbers and titles change with each run: do not read them aloud |
-| Flow map | note | Says that Google sign-in and Google Tasks (steps 2 and 8) are not built |
+| Flow map | note | Says that Google sign-in and Google Tasks (steps 2 and 8) are not built. Replit sign-in is built; it is a different feature |
 
 If the app shows a different value, use the screen as the truth and edit the spoken number in the script.
 

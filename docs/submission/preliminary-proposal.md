@@ -47,7 +47,7 @@ Verity is a decision aid. It forecasts skill demand, ranks roles and builds a le
 - **Welch trend test.** A t-test compares the last 12 months with the 12 before and labels each skill Rising, Falling or No clear change. The direction held in 67.2% of 720 backtest cases.
 - **Learned role profiles.** We learn skill weights for 9 tech roles (8 with enough posts to rank) from Hacker News posts that name exactly one role.
 - **A model that lost.** We trained a gradient-boosting model (HistGradientBoostingRegressor) on all skills. Its error was 2.06 points, worse than 1.66. We did not ship it.
-- **CV intake with Claude Haiku 4.5.** The model only points at skills and gives a quote for each. Code drops any skill whose quote is not in the CV, word for word.
+- **CV intake with Claude Haiku 5.5.** The model only points at skills and gives a quote for each. Code drops any skill whose quote is not in the CV, word for word.
 
 Only the CV intake and two optional steps use a language model. The route advisor re-orders roles by at most 2 places and writes one checked summary line; the pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Code sets the forecast and every number and date, checks every model answer and takes over when the model is off. Two scenarios, Moderate and Fast AI disruption, are labelled as estimates. The user can also press "Try an example", which needs no model. HRD Corp status is shown as not verified.
 
@@ -63,10 +63,11 @@ The build also uses the workshop topics: generative AI (CV intake), data handlin
 - **Data and statistics:** pandas, NumPy, SciPy (Welch test), statsmodels (damped-trend model, tested only).
 - **Machine-learning experiment:** scikit-learn (not used in the app).
 - **Data sources:** Hacker News "Ask HN: Who is hiring?" threads through the Algolia HN Search API (free); Anthropic Economic Index (AI exposure); GPTs-are-GPTs, AIOE and Microsoft Working with AI (exposure cross-check only).
-- **Hosting:** Replit Reserved VM deployment (one always-on server). The live URL is not yet republished with the Varity-only app. Replit App Storage (data snapshots) and a Replit Scheduled Deployment (daily refresh): code built; Replit setup pending.
-- **Generative AI:** Claude Haiku 4.5 (Anthropic) for CV intake, through Replit AI Integrations (Replit-managed credentials, billed to Replit credits). A direct Anthropic key also works. With no credentials, a keyword pass takes over. Design: not yet verified on the live Replit app.
+- **Hosting:** Replit Autoscale deployment (2 vCPU / 4 GiB). Live, published 24 Oct 2026. Replit App Storage (data snapshots) and a Replit Scheduled Deployment (daily refresh): code built; Replit setup pending.
+- **Accounts (optional):** Sign in with Replit Auth (OpenID Connect). Replit PostgreSQL holds the account and the profile; the server uses SQLite when no database is set. Not yet tested on the live app.
+- **Generative AI:** Claude Haiku 5.5 (Anthropic) for CV intake, the route advisor and the pathway coach, through a team member's Anthropic API key (held in Replit Secrets; Anthropic bills that account). With no key, code takes over (keyword pass, formula ranking, code pathway). The route advisor is confirmed live; the CV-intake call is not yet confirmed live.
 
-**Sponsor GenAI API or cloud platform.** We use Replit for hosting. We will use App Storage and Scheduled Deployments once set up (code built; Replit setup pending). We use Replit AI Integrations for the CV intake (Claude Haiku 4.5), with a cap of $1 per day. We use no GPU, so we use no RunPod.
+**Sponsor GenAI API or cloud platform.** We use Replit for hosting and optional sign-in (Replit Auth). We will use App Storage and Scheduled Deployments once set up (code built; Replit setup pending). We do not use Replit AI Integrations. The CV intake uses Claude Haiku 5.5 through our own Anthropic API key, with a cap of $1 per day. We use no GPU, so we use no RunPod.
 
 ```mermaid
 flowchart LR
@@ -91,7 +92,9 @@ flowchart LR
     OTHER["demand, role, backtest,<br/>exposure files"]
   end
   subgraph REPLIT["Replit"]
-    APP["Varity: FastAPI + static web app<br/>Reserved VM deployment"]
+    APP["Varity: FastAPI + static web app<br/>Autoscale deployment"]
+    AUTH["Replit Auth (OIDC)<br/>optional sign-in"]
+    DB["Replit PostgreSQL<br/>accounts and profiles<br/>(not yet tested live)"]
     STORE["App Storage<br/>snapshots<br/>(setup pending;<br/>app does not read)"]
     JOB["Scheduled Deployment<br/>daily 09:00 MYT<br/>(setup pending)"]
   end
@@ -107,8 +110,10 @@ flowchart LR
   OTHER --> APP
   PATH --> APP
   JOB --> STORE
+  APP <--> AUTH
+  APP <--> DB
   HN -. "newest thread" .-> JOB
-  CV["CV intake with Claude Haiku 4.5<br/>via Replit AI Integrations<br/>(live run not yet verified)"] --> ROLE
+  CV["CV intake with Claude Haiku 5.5<br/>via Anthropic API<br/>(live call not yet confirmed)"] --> ROLE
 ```
 
 ### 3.2 Design-Thinking & Deployment Strategy
@@ -123,11 +128,11 @@ flowchart LR
 
 **Test.** Over 700 automated tests and a backtest with no look-ahead. In Phase 2 we will test with the three synthetic personas and [TEAM TO FILL: number] volunteer users.
 
-**Deployment.** The app runs on a Replit Reserved VM; the live site is not yet republished with this version. The daily refresh job and App Storage snapshots are code built; Replit setup pending. The app shows the committed data with its date. If the server is unreachable, the page shows a dated offline snapshot and says so.
+**Deployment.** The app runs on a Replit Autoscale deployment; the live site is published (24 Oct 2026). Without Replit PostgreSQL, saved profiles can reset when the app sleeps or restarts. The daily refresh job and App Storage snapshots are code built; Replit setup pending. The app shows the committed data with its date. If the server is unreachable, the page shows a dated offline snapshot and says so.
 
 **Hardest risk.** Hacker News is US-heavy. Our fallback: the app says so, and Malaysian sources are future work.
 
-(195/200 words)
+(198/200 words)
 
 ## 4. Environmental Impact Preliminary Framework & SDG
 
@@ -195,7 +200,7 @@ None. The repository was created on 21 Oct 2026, after the build clock started o
 | Microsoft Working with AI, AI applicability scores | Dataset | CC BY 4.0 |
 | O*NET-SOC crosswalk tables | Dataset (code mapping only) | O*NET data is mostly CC BY 4.0; the crosswalk pages state no licence of their own |
 | HistGradientBoostingRegressor (scikit-learn) | Model (experiment, not deployed) | BSD-3-Clause |
-| Claude Haiku 4.5 (`claude-haiku-4-5`), Anthropic, through Replit AI Integrations | Model (CV intake) | Commercial API terms. Replit bills the calls to Replit credits. |
+| Claude Haiku 5.5 (`claude-haiku-5-5`), Anthropic API | Model (CV intake, route advisor, pathway coach) | Commercial API terms. Anthropic bills a team member's account. |
 | Chart colour values in `frontend/` (the older values came from a "dataviz" skill used with Claude Code) | Design values | [TEAM TO FILL: confirm the origin and licence of the palette] |
 
 Sources: `data/SOURCES.md`, `requirements.txt`, `backend/signals/requirements.txt`, `requirements-dev.txt`, and the installed package metadata. A `>=` version is a lower bound; the installed version can be newer.

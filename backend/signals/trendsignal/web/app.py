@@ -304,6 +304,8 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
 
     from trendsignal.web.cv_api import add_cv_routes  # imported here: cv_api uses envelope and RateLimiter from this module
     add_cv_routes(app, ctx.settings)
+    from trendsignal.web.auth_api import add_auth_routes  # same reason as cv_api
+    add_auth_routes(app, ctx.settings)
     from trendsignal.web.roles_api import add_role_routes  # same reason as cv_api
     add_role_routes(app, ctx)
     from trendsignal.web.evidence_api import add_evidence_routes  # same reason as cv_api

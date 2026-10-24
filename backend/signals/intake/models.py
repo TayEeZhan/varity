@@ -99,6 +99,14 @@ class Removed(_Frozen):
     held_evidence: tuple[Evidence, ...] = Field(default=(), max_length=MAX_EVIDENCE_PER_SKILL)
 
 
+class Progress(_Frozen):
+    """Pathway tasks the user ticked, for the pathway identified by `signature`."""
+
+    signature: str = Field(max_length=128)
+    doneIds: tuple[str, ...] = Field(default=(), max_length=500)
+    updatedAt: str = Field(max_length=40)
+
+
 class Profile(_Frozen):
     """The skill ledger: profile.json v2."""
 
@@ -110,3 +118,4 @@ class Profile(_Frozen):
     skills: tuple[SkillEntry, ...] = Field(default=(), max_length=MAX_SKILLS)
     interests: tuple[Interest, ...] = Field(default=(), max_length=50)
     removed: tuple[Removed, ...] = Field(default=(), max_length=MAX_SKILLS)
+    progress: Progress | None = None
