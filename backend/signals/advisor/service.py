@@ -181,14 +181,15 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
     momentum, links = _momentum(momentum_rows), chip_mod.watch_map(data["taxonomy"], _watch_terms(momentum_rows))
     minutes, forecasts = _minutes_by_skill(data["resources"]), data["forecast"]["roles"]
     mycol = mycol_by_role(data)
-    roles = []
-    for r in out["roles"]:
+    def role_row(r: Mapping[str, Any]) -> dict:
         chips = chip_mod.role_chips(r, forecasts.get(r["role_id"]), momentum, links, minutes, hours_per_week, as_of)
-        roles.append({"roleId": r["role_id"], "name": r["name"], "formulaRank": r["rank"],
-                      "matchPct": round(r["match_score"] * 100), "trendLabel": r["outlook"]["trend_label"],
-                      "outlook": _outlook(forecasts.get(r["role_id"]), as_of["forecast"]), "tier": r["tier"],
-                      "have": [s["skill"] for s in r["have"]], "gap": [s["skill"] for s in r["gap"]], "chips": chips,
-                      "fastShift": r["fast_shift"], "sdg": _role_sdg(r, data), "mycol": mycol.get(r["role_id"], [])})
+        return {"roleId": r["role_id"], "name": r["name"], "formulaRank": r["rank"],
+                "matchPct": round(r["match_score"] * 100), "trendLabel": r["outlook"]["trend_label"],
+                "outlook": _outlook(forecasts.get(r["role_id"]), as_of["forecast"]), "tier": r["tier"],
+                "have": [s["skill"] for s in r["have"]], "gap": [s["skill"] for s in r["gap"]], "chips": chips,
+                "fastShift": r["fast_shift"], "sdg": _role_sdg(r, data), "mycol": mycol.get(r["role_id"], [])}
+
+    roles = [role_row(r) for r in out["roles"]]
 
     status, checked = "off:NO_ROLES", {"order": None, "roles": {}}
     if roles and use_llm:
@@ -211,7 +212,17 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
                        "fitLabel": chip_mod.fit_label(role["matchPct"] / 100, role["trendLabel"]),
                        "summary": llm.get("summary"), "reasons": llm.get("reasons") or reasons,
                        "watchOut": llm.get("watchOut") or watch, "salary": None})
+    # A low-match destination is not ranked, but the planner pins it, so it needs the same fields as a ranked row.
+    low_target = next((r for r in out["low_match"] if r["role_id"] == profile.target_role), None)
+    destination = None
+    if low_target:
+        row = role_row(low_target)
+        reasons, watch = chip_mod.default_pick(row["chips"])
+        destination = {**{k: v for k, v in row.items() if k != "chips"}, "rank": None,
+                       "fitLabel": chip_mod.fit_label(row["matchPct"] / 100, row["trendLabel"]),
+                       "summary": None, "reasons": reasons, "watchOut": watch, "salary": None}
     return {
+        "lowMatchTarget": destination,
         "rankedBy": "llm" if checked["order"] else "formula", "llmStatus": status, "scenario": scenario,
         "inputs": {"profileUpdatedAt": profile.updated_at, "signalsRunId": run_id,
                    "forecastAsOf": as_of["forecast"], "skillsAsOf": as_of["skills"]},
