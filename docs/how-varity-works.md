@@ -109,7 +109,7 @@ Reached from How Varity works (no top-bar tab).
 
 ### 2.8 Flow map (`#/flow`)
 
-**What the user sees.** The planned user flow as a transit map with three lines: First ride, Daily loop, Explore. It says plainly that Google sign-in and Google Tasks are not built.
+**What the user sees.** The planned user flow as a transit map with three lines: First ride, Daily loop, Explore. It says plainly that Google sign-in and two-way Google Tasks sync are not built. Pushing today's stops to Google Tasks is built when `GOOGLE_CLIENT_ID` is set.
 
 **What happens behind it.** Nothing from the server. `frontend/data.js` holds the station list and `frontend/diagram.js` draws it.
 
@@ -360,7 +360,7 @@ A `SpendGate` reserves the worst-case cost before a call and settles afterwards.
 - Role files are rebuilt by hand from raw posts. No job refreshes them.
 
 **Not built or not in the app** (`docs/architecture.md`, `README.md`):
-- Google sign-in and Google Tasks. The Flow map says so.
+- Google sign-in, and syncing ticks back from Google Tasks. The Flow map says so.
 - Salary data (route notes say "Salary data is not available yet").
 - JobStreet data (blocked by a Cloudflare challenge; we built no scraper). The Hiredly and Jobstore collectors exist (`engine/my_jobs.py`) but run only with written permission. `data/my_jobs_snapshots.csv` and `data/my_roles_snapshots.csv` hold only a header row.
 - Emerging-role discovery, the AI-news link to skills (`ai_news.py`), and a "what changed" diff are designs only.

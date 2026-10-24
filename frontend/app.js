@@ -416,6 +416,70 @@ function download(name, mime, text) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* ── Google Tasks (shown only when the server has GOOGLE_CLIENT_ID) ───────────────
+   The browser asks Google for a Tasks-only token and writes the list itself. The token stays in this
+   page's memory; Varity's server never sees it or the tasks. */
+const GTASKS = { busy: false };
+let gisLoading = null;
+function loadGis() {
+  gisLoading = gisLoading || new Promise((ok, no) => {
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.onload = ok;
+    s.onerror = () => { gisLoading = null; no(new Error("Could not load Google sign-in. Try again.")); };
+    document.head.appendChild(s);
+  });
+  return gisLoading;
+}
+function googleToken() {
+  return new Promise((ok, no) => {
+    window.google.accounts.oauth2.initTokenClient({
+      client_id: ACCOUNT.googleClientId,
+      scope: "https://www.googleapis.com/auth/tasks",
+      callback: (r) => (r.error ? no(new Error("Google did not give access to Tasks.")) : ok(r.access_token)),
+      error_callback: () => no(new Error("Google sign-in was closed before it finished.")),
+    }).requestAccessToken();
+  });
+}
+async function gtasks(token, path, method = "GET", body) {
+  let res;
+  try {
+    res = await fetch(`https://tasks.googleapis.com/tasks/v1/${path}`, { method, body: body && JSON.stringify(body),
+      headers: { Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json" } : {}) } });
+  } catch (e) {
+    throw new Error("Could not reach Google Tasks. Try again.");
+  }
+  if (!res.ok) throw new Error(`Google Tasks refused the request (${res.status}). Try again.`);
+  return res.status === 204 ? null : res.json();
+}
+/* One dated list per push. New tasks go to the top unless "previous" is given, so chain them to keep the timetable order. */
+async function pushToGoogleTasks(tasks) {
+  await loadGis();
+  const token = await googleToken();
+  const list = await gtasks(token, "users/@me/lists", "POST", { title: `Varity · ${TODAY.date}` });
+  try {
+    let previous = "";
+    for (const t of tasks) {
+      const notes = [t.resource, t.url, `Why today: ${t.why} · ${t.source}`].filter(Boolean).join("\n");
+      const made = await gtasks(token, `lists/${encodeURIComponent(list.id)}/tasks${previous ? `?previous=${encodeURIComponent(previous)}` : ""}`,
+        "POST", { title: `${t.title} (${Number(t.mins)} min)`, notes, due: `${TODAY.day}T00:00:00.000Z` });
+      previous = made.id;
+    }
+  } catch (err) {
+    await gtasks(token, `users/@me/lists/${encodeURIComponent(list.id)}`, "DELETE").catch(() => {});  // no half-filled list left behind
+    throw err;
+  }
+  return { ...list, token };
+}
+async function undoGoogleTasks(list) {
+  try {
+    await gtasks(list.token, `users/@me/lists/${encodeURIComponent(list.id)}`, "DELETE");
+    toast("Removed the list from Google Tasks.");
+  } catch (err) {
+    toast(err.message);
+  }
+}
+
 /* Buttons that work on any screen. */
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-global]");
@@ -432,6 +496,17 @@ document.addEventListener("click", async (e) => {
     download("verity_plan.md", "text/markdown", planMarkdown(STATE.plan));
   } else if (act === "download-ics" && STATE.plan) {
     download("verity_plan.ics", "text/calendar", planIcs(STATE.plan));
+  } else if (act === "gtasks" && TODAY.tasks.length && !GTASKS.busy) {
+    GTASKS.busy = true;
+    rerender();
+    try {
+      const list = await pushToGoogleTasks(TODAY.tasks);
+      toast(`Sent ${TODAY.tasks.length} stops to Google Tasks, list “${list.title}”.`, "Undo", () => undoGoogleTasks(list));
+    } catch (err) {
+      toast(err.message);
+    }
+    GTASKS.busy = false;
+    rerender();
   } else if (act === "example") {
     if (STATE.saved && !confirm("Replace your saved profile with this synthetic example?")) return;
     try {
@@ -451,14 +526,15 @@ document.addEventListener("click", async (e) => {
 });
 
 /* ── Accounts (hidden unless GET /api/me says login is configured) ─────────────── */
-const ACCOUNT = { enabled: false, signedIn: false, user: null, hasProfile: false };
+const ACCOUNT = { enabled: false, signedIn: false, user: null, hasProfile: false, googleClientId: "" };
 /* Is there a saved profile to ask for: the account's, or one this browser holds a token for? */
 const hasKey = () => (ACCOUNT.signedIn ? ACCOUNT.hasProfile : !!profileToken());
 
 async function loadMe() {
   try {
     const d = await api("/api/me");
-    Object.assign(ACCOUNT, { enabled: !!d.enabled, signedIn: !!(d.enabled && d.signedIn), user: d.user || null, hasProfile: !!d.hasProfile });
+    Object.assign(ACCOUNT, { enabled: !!d.enabled, signedIn: !!(d.enabled && d.signedIn), user: d.user || null, hasProfile: !!d.hasProfile,
+      googleClientId: d.googleClientId || "" });
   } catch (e) { /* login unavailable: no account UI */ }
   renderAcct();
 }

@@ -56,7 +56,7 @@ Committed snapshot: `data/skill_scores.json` generated 2026-10-21T21:09:03Z, as 
 | Method, exposure | stances | "Most indices agree with our stance: language. Contested: ai_ml, cloud_devops, data, framework, practice."; correlation line with Microsoft -0.79 |
 | Method, k line | text | "The data cannot pin k down (point estimate 1.8 per 12 months, 95% CI -1.0 to 2.9). We use k = 2 as a labelled assumption." |
 | Signals | list | Live ranked stories from the last run. The numbers and titles change with each run: do not read them aloud |
-| Flow map | note | Says that Google sign-in and Google Tasks (steps 2 and 8) are not built. Replit sign-in is built; it is a different feature |
+| Flow map | note | Says that Google sign-in (step 2) and Google Tasks sync back (step 10) are not built. Push to Google Tasks (step 8) is built when `GOOGLE_CLIENT_ID` is set. Replit sign-in is built; it is a different feature |
 
 If the app shows a different value, use the screen as the truth and edit the spoken number in the script.
 

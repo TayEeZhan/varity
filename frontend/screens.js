@@ -100,6 +100,7 @@ function renderToday() {
   const pct = PATHWAY.length ? Math.round((doneStops / PATHWAY.length) * 100) : 100;
   const coming = PATHWAY.filter((p) => p.status === "next" && !tasks.some((t) => t.station === p.id)).slice(0, 4);
   const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
+  const gtasksOn = !!ACCOUNT.googleClientId && tasks.length > 0;
   const title = !TODAY.day ? "Today" : TODAY.day === todayIso() ? `Today, ${TODAY.date}` : `Next stop, ${TODAY.date}`;
   const lede = TODAY.day
     ? `${tasks.length} stop${tasks.length === 1 ? "" : "s"}, ${mins} minutes, from your pathway. Each one says why it is on your list.`
@@ -122,9 +123,10 @@ function renderToday() {
       </section>
       <aside class="side">
         <section class="panel"><h2>Take it with you</h2>
-          <p>Download the plan or add its tasks to your calendar. Nothing is sent anywhere.</p>
+          <p>Download the plan or add its tasks to your calendar.${gtasksOn ? " Google Tasks gets today's stops only when you press its button, straight from your browser." : " Nothing is sent anywhere."}</p>
           <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
-          <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p></section>
+          <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
+          ${gtasksOn ? `<p><button class="btn" type="button" data-global="gtasks"${GTASKS.busy ? " disabled" : ""}>${GTASKS.busy ? "Sending to Google Tasks…" : "Send today to Google Tasks"}</button></p>` : ""}</section>
         <section class="panel"><h2>Coming up</h2>
           <ul class="next-list">${coming.map((p) => `<li>${bullet(p.line, true)}<span>${esc(p.title)}</span><span>Wk ${esc(p.week)}</span></li>`).join("")}</ul>
           <p style="margin-top:10px"><a href="#/pathway">See the whole route</a></p>
@@ -133,6 +135,7 @@ function renderToday() {
     </div>`;
 
   const bind = (root) => {
+    if (gtasksOn) loadGis().catch(() => {});  // loaded early so the Google popup opens inside the click
     const strip = root.querySelector("[data-strip]");
     if (strip && strip.scrollWidth > strip.clientWidth) {
       const idx = PATHWAY.findIndex((p) => p.status === "current");
