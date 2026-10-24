@@ -38,16 +38,41 @@ const scenarioToggle = () => `<div class="filters" role="group" aria-label="AI s
   </div>
   <p class="route-note">Both scenarios are estimates. The scenario does not change how roles rank. Fast shows how much role demand may fall if AI exposure cuts skill demand, and puts future skills earlier in the pathway.</p>`;
 
+const sdgAll = (tags) => tags.map((t) => `SDG ${t.target}: ${t.label}`).join(", ");
 const sdgTag = (t) => `<span class="tag" title="Source: ${esc(t.source)}">SDG ${esc(t.target)}: ${esc(t.label)}</span>`;
 
-/* "TalentCorp MyCOL 2024/2025": the occupation(s) on Malaysia's shortage list that match the role. */
-function mycolBadges(items) {
-  return items.map((m) => {
-    const text = `${m.label} ${m.year}: ${m.occupation} (MASCO ${m.mascoCode}) · ${m.strength} match (team judgement)`;
-    return m.url
-      ? `<a class="tag tag--mycol" href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener" title="Source: ${esc(m.label)} ${esc(m.year)}">${esc(text)}</a>`
-      : `<span class="tag tag--mycol">${esc(text)}</span>`;
+/* Compact marker row for a card: first SDG target (+N) and a MyCOL flag. Details live in sdgTable at the page bottom. */
+function marksHTML(tags, hasMycol) {
+  if (!tags.length && !hasMycol) return "";
+  const t = tags[0];
+  return `<div class="route__tags">${t ? `<span class="tag" title="${esc(tags.length > 1 ? sdgAll(tags) : `Source: ${t.source}`)}">SDG ${esc(t.target)}${tags.length > 1 ? ` +${tags.length - 1}` : ""}</span>` : ""}${hasMycol ? `<span class="tag tag--mycol">MyCOL</span>` : ""}</div>`;
+}
+
+/* "TalentCorp MyCOL 2024/2025": occupations on Malaysia's shortage list that match the role (direct matches first). */
+const mycolLinks = (items) => items.map((m) => {
+  const text = `${m.occupation} (MASCO ${m.mascoCode}, ${m.year})`;
+  const name = m.url ? `<a href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener" title="Source: ${esc(m.label)} ${esc(m.year)}">${esc(text)}</a>` : esc(text);
+  return `<p>${name} <span class="tag tag--mycol">${esc(m.strength)}</span> <span class="sdgt__note">(team judgement)</span></p>`;
+}).join("") || `<span class="sdgt__note">None listed</span>`;
+
+function sectorLines(sdg) {
+  return sdg.sectors.map((x) => `<p>${esc(x.name)}: ${esc(x.sharePct)}% of this role's posts vs ${esc(x.baselinePct)}% of all posts (${esc(x.count)} of ${esc(x.posts)}, last ${esc(x.months)} months, as of ${esc(x.asOf)}) <span class="sdgt__note">source: data/role_sdg.json</span> ${x.tags.map(sdgTag).join(" ")}</p>`).join("")
+    || `<span class="sdgt__note">No sector stands out</span>`;
+}
+
+/* One table: a row per role. rows = [{name, sdg: {tags, sectors}, mycol}] */
+function sdgTable(rows) {
+  const body = rows.map((r) => {
+    const seen = new Set();
+    const tags = [...r.sdg.tags, ...r.sdg.sectors.flatMap((x) => x.tags)].filter((t) => !seen.has(t.target) && seen.add(t.target));
+    return `<tr><th scope="row" data-label="Role">${esc(r.name)}</th>
+      <td data-label="SDG targets">${tags.map(sdgTag).join(" ") || `<span class="sdgt__note">None</span>`}</td>
+      <td data-label="Sector evidence">${sectorLines(r.sdg)}</td>
+      <td data-label="Malaysia (MyCOL 2024/2025)">${mycolLinks(r.mycol)}</td></tr>`;
   }).join("");
+  return `<table class="sdgt"><caption>SDG targets and Malaysia shortage-list links for each role</caption>
+    <thead><tr><th scope="col">Role</th><th scope="col">SDG targets</th><th scope="col">Sector evidence</th><th scope="col">Malaysia (MyCOL 2024/2025)</th></tr></thead>
+    <tbody>${body}</tbody></table>`;
 }
 
 /* ── Today ─────────────────────────────────────────────────────── */
@@ -175,9 +200,9 @@ function cvPanel() {
   return `<div class="drop" data-drop>
       ${ICON.up}
       <strong>Drop your CV here</strong>
-      <p>PDF or text, up to 5 MB and 4 pages. Use a public or synthetic CV. The file is read, not stored; only the skills you save are kept.</p>
+      <p>PDF, Word (.docx), OpenDocument (.odt), RTF, HTML or text, up to 5 MB and 4 pages. Use a public or synthetic CV. The file is read, not stored; only the skills you save are kept.</p>
       ${err}
-      <input type="file" accept=".pdf,.txt,.md" hidden data-file>
+      <input type="file" accept=".pdf,.docx,.odt,.rtf,.html,.htm,.txt,.md" hidden data-file>
       <button class="btn" type="button" data-act="cv-choose">Choose a file</button>
       <button class="btn btn--quiet" type="button" data-act="cv-sample">Use the synthetic sample CV</button>
     </div>
@@ -234,11 +259,6 @@ const SOURCE_TEXT = { profile: "your saved profile", role_forecast: "job forecas
   role_profiles: "role profiles", skill_scores: "skill scores" };
 const reasonChip = (c, cls = "") => `<span class="chip reason${cls}" title="Source: ${esc(SOURCE_TEXT[c.source] || c.source)}${c.asOf ? `, ${esc(c.asOf)}` : ""}"><span aria-hidden="true">${CHIP_ICON[c.type] || "•"}</span> ${esc(c.text)}</span>`;
 
-function roleSdgHTML(sdg) {
-  const sectors = sdg.sectors.map((x) => `<p class="route__sdg">${x.tags.map(sdgTag).join(" ")} ${esc(x.name)}: ${esc(x.sharePct)}% of this role's posts, against ${esc(x.baselinePct)}% of all posts (${esc(x.count)} of ${esc(x.posts)}, last ${esc(x.months)} months, as of ${esc(x.asOf)}). Source: data/role_sdg.json</p>`).join("");
-  return (sdg.tags.length ? `<p class="route__sdg">${sdg.tags.map(sdgTag).join(" ")}</p>` : "") + sectors;
-}
-
 function liveRouteRow(r, pinned = false) {
   const cur = STATE.routeId === r.roleId;
   const low = r.rank == null;  // a low-match destination: pinned for the user, never ranked
@@ -260,8 +280,7 @@ function liveRouteRow(r, pinned = false) {
       ${action}
     </div>
     <div class="route__why"><div class="chips">${r.reasons.map((c) => reasonChip(c)).join("")}${r.watchOut ? reasonChip(r.watchOut, " reason--watch") : ""}</div>
-      ${fast}${roleSdgHTML(r.sdg)}
-      ${r.mycol.length ? `<div class="route__tags">${mycolBadges(r.mycol)}</div>` : ""}</div>
+      ${fast}${marksHTML(r.sdg.tags, r.mycol.length > 0)}</div>
     <div class="route__gap">
       <div><h3>You already have</h3><div class="chips">${r.have.map((h) => `<span class="chip">${esc(h)}</span>`).join("") || "<span>None yet</span>"}</div></div>
       <div><h3>Skills gap</h3><div class="chips">${r.gap.map((g) => `<span class="chip chip--gap">${esc(g)}</span>`).join("") || "<span>No gap</span>"}</div></div>
@@ -280,11 +299,15 @@ function liveRoutes() {
   const others = s.roles.filter((r) => r.roleId !== goal);
   const lowOthers = s.lowMatch.filter((r) => r.roleId !== goal);
   const low = lowOthers.length ? `<p class="empty"><b>Low match, not ranked:</b> ${lowOthers.map((r) => `${esc(r.name)} (${Number(r.matchPct)}%)`).join(", ")}</p>` : "";
+  const ranked = [dest, ...others].filter(Boolean);
   const unmapped = s.unmappedSkills.length ? `<p class="empty"><b>Not in the job data yet, so not counted:</b> ${s.unmappedSkills.map(esc).join(", ")}</p>` : "";
   const list = others.length ? others.map((r) => liveRouteRow(r)).join("")
     : dest ? "" : `<p class="empty">No role matches your saved skills well yet. Add skills from another CV.</p>`;
   return `<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>
-    ${dest ? `${liveRouteRow(dest, true)}${others.length ? `<h3 class="routes-sub">Other routes</h3>` : ""}` : ""}${list}${low}${unmapped}`;
+    ${dest ? `${liveRouteRow(dest, true)}${others.length ? `<h3 class="routes-sub">Other routes</h3>` : ""}` : ""}${list}${low}${unmapped}
+    ${ranked.length ? `<section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why these jobs matter: SDG and Malaysia links</h2>
+      <p class="route-note">Each role is tied to the UN Sustainable Development Goals (SDG) and to Malaysia's list of occupations in short supply (MyCOL). Hover a target to see its source.</p>
+      ${sdgTable(ranked)}</section>` : ""}`;
 }
 
 function plannerHTML() {
@@ -321,6 +344,8 @@ function renderProfile() {
     </section>`;
 
   const bind = (root) => {
+    const ex = location.hash.includes("examples=1") && root.querySelector(".examples");  // from the landing's "Try an example"
+    if (ex) { ex.scrollIntoView({ block: "center" }); ex.querySelector("button").focus({ preventScroll: true }); history.replaceState(null, "", "#/profile"); }
     const fileInput = root.querySelector("[data-file]");
     const drop = root.querySelector("[data-drop]");
     const fail = (message) => { STATE.cv = "error"; STATE.cvError = message; rerender(); };
@@ -340,7 +365,7 @@ function renderProfile() {
       toast("CV read. Check each skill against its quote.");
     };
     const accept = (file) => {
-      if (!/\.(pdf|txt|md)$/i.test(file.name)) return fail(`“${file.name}” is not a PDF or text file. Export your CV as a PDF and try again.`);
+      if (!/\.(pdf|docx|odt|rtf|html?|txt|md)$/i.test(file.name)) return fail(`“${file.name}” is not a supported file type. Export your CV as a PDF and try again.`);
       if (file.size > 5 * 1024 * 1024) return fail(`“${file.name}” is larger than 5 MB.`);
       const reader = new FileReader();
       reader.onload = () => read(file.name, { file_name: file.name, file_b64: String(reader.result).split(",")[1] || "" });
@@ -466,7 +491,7 @@ function renderPathway() {
       ${bullet(p.line, true)}
       <div><div class="pstop__t">${esc(p.title)}<span>${Number(p.mins)} min</span></div>
         <div class="pstop__r">${p.url ? ext(p.url, p.resource) : esc(p.resource)}</div>
-        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.map(sdgTag).join("")}</div>
+        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.length ? `<span class="tag" title="${esc(p.sdgTags.length > 1 ? sdgAll(p.sdgTags) : `Source: ${p.sdgTags[0].source}`)}">SDG ${esc(p.sdgTags[0].target)}${p.sdgTags.length > 1 ? ` +${p.sdgTags.length - 1}` : ""}</span>` : ""}</div>
         ${p.sdgReason ? `<p class="pstop__why">${esc(p.sdgReason)}</p>` : ""}
         ${p.why ? `<p class="pstop__why">${esc(p.why)}</p>` : ""}
         ${p.reasons ? `<div class="chips">${p.reasons.map((c) => reasonChip(c)).join("")}</div>` : ""}</div>
@@ -506,13 +531,11 @@ function renderPathway() {
       <p>The files are built in your browser from this pathway. Nothing is sent anywhere.</p>
       <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
       <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p></section>
-    <section class="panel" aria-labelledby="sdg-h"><h2 id="sdg-h">SDG and MyCOL links</h2>
-      ${sdg.lines.map((l) => `<p>${esc(l)}</p>`).join("")}
-      <p>${esc(sdg.line)}</p>
-      ${roleSdgHTML(plan.roleSdg)}
-      ${plan.mycol.length ? `<div class="route__tags">${mycolBadges(plan.mycol)}</div>` : ""}
-    </section>
-    <div class="weeks">${weeks.map(weekHTML).join("")}</div>`;
+    <div class="weeks">${weeks.map(weekHTML).join("")}</div>
+    <section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why this job matters: SDG and Malaysia links</h2>
+      ${sdg.lines.map((l) => `<p class="route-note">${esc(l)}</p>`).join("")}
+      <p class="route-note">${esc(sdg.line)}</p>
+      ${sdgTable([{ name: TARGET.role, sdg: plan.roleSdg, mycol: plan.mycol }])}</section>`;
 
   const bind = (root) => {
     const map = root.querySelector(".pathmap");

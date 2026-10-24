@@ -32,6 +32,8 @@ const TODAY = { date: "", tasks: [] };
 const TARGET = { role: "" };
 
 const SCREENS = {
+  home: renderLanding,
+  how: renderHow,
   flow: renderFlow,
   profile: renderProfile,
   today: renderToday,
@@ -41,13 +43,18 @@ const SCREENS = {
   radar: renderRadar,
   method: renderMethod,
 };
-const TITLES = { flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method" };
+const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method" };
 const DEFAULT_SCREEN = "today";
 
+/* An explicit hash wins ("#/" is the landing). With none, a visitor with a saved profile (account or this
+   browser's token) starts on Today; everyone else starts on the landing. */
 function currentScreen() {
-  const r = location.hash.replace(/^#\/?/, "");
-  return SCREENS[r] ? r : DEFAULT_SCREEN;
+  const r = location.hash.replace(/^#\/?/, "").split("?")[0];
+  if (r === "" && location.hash.startsWith("#/")) return "home";
+  if (SCREENS[r]) return r;
+  return hasKey() ? DEFAULT_SCREEN : "home";
 }
+let shownScreen = "";
 
 /* Draw the current screen into a fresh <main> (dropping old listeners).
    `refocus` is a selector to focus afterwards, so ticking a stop keeps keyboard position. */
@@ -74,7 +81,8 @@ function navigate() {
     }
     else a.removeAttribute("aria-current");
   });
-  document.title = `${TITLES[screen]} · Varity`;
+  shownScreen = screen;
+  document.title = screen === "home" ? TITLES.home : `${TITLES[screen]} · Varity`;
   const el = rerender();
   window.scrollTo(0, 0);
   el.focus({ preventScroll: true });
@@ -216,7 +224,8 @@ async function loadPlan() {
 async function loadMine() {
   await loadMe();
   STATE.loading = hasKey() ? "profile" : "";
-  rerender();
+  if (currentScreen() !== shownScreen) navigate();  // signed in with a profile: the bare URL means Today, not the landing
+  else rerender();
   await loadProfile();
   rerender();
   await loadRoutes();
@@ -517,7 +526,9 @@ if (loginFailed) history.replaceState(null, "", location.pathname + location.sea
 
 window.addEventListener("hashchange", navigate);
 STATE.loading = profileToken() ? "profile" : "";
-navigate();  // draw at once; the data arrives below
+/* Bare URL and no browser token: an account may still hold a profile (Today, not the landing), so draw nothing until /api/me answers. */
+const waitForMe = !location.hash && !profileToken();
+if (!waitForMe) navigate();  // draw at once; the data arrives below
 if (loginFailed) toast("Sign-in did not finish. Try again.");
 loadMine();
 loadSignals().then(() => rerender());
