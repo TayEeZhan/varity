@@ -10,6 +10,7 @@ import codecs
 import html.parser
 import io
 import json
+import os
 import re
 import subprocess
 import sys
@@ -42,6 +43,8 @@ MESSAGES = {
 # Runs in the child process. Exit codes tell the parent what went wrong without parsing text.
 _LIMITS = r"""
 import io, json, os, sys
+# -I ignores PYTHONPATH, which is how Replit finds installed packages (.pythonlibs): take the parent's.
+sys.path.extend(json.loads(os.environ.get("VARITY_CHILD_PATH", "[]")))
 if os.name == "posix":
     import resource
     resource.setrlimit(resource.RLIMIT_AS, (int(sys.argv[-2]), int(sys.argv[-2])))
@@ -94,10 +97,16 @@ def read_pdf(data: bytes) -> str:
     return _run_child(_CHILD, [str(MAX_PAGES), str(MAX_CHARS)], data)
 
 
+def _package_dirs() -> list[str]:
+    """The parent's absolute import folders (never "" or the working directory), so the child can import pypdf."""
+    return [p for p in sys.path if p and os.path.isabs(p) and os.path.isdir(p)]
+
+
 def _run_child(code: str, args: list[str], data: bytes) -> str:
     command = [sys.executable, "-I", "-c", code, *args, str(MEMORY_LIMIT_BYTES), str(PDF_TIMEOUT_S)]
     try:
-        result = subprocess.run(command, input=data, capture_output=True, timeout=PDF_TIMEOUT_S, check=False)
+        result = subprocess.run(command, input=data, capture_output=True, timeout=PDF_TIMEOUT_S, check=False,
+                                env={**os.environ, "VARITY_CHILD_PATH": json.dumps(_package_dirs())})
     except subprocess.TimeoutExpired:
         raise ReadError("TIMEOUT") from None
     except Exception:
