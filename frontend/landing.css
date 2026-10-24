@@ -30,36 +30,41 @@
 .lp-stops b { display: block; font-size: var(--t-md); font-weight: 800; line-height: 1.2; }
 .lp-stops p { color: var(--ink-2); font-size: var(--t-sm); margin: 6px 0 0; max-width: 28ch; }
 
-/* The train: parked at "See your match" until motion starts. 15s loop, five stops of 3s; it pauses for the
-   first 12% of each fifth. Stop distances are px along the line path (landing.js LINE_PATH). */
-.lp-train { transform: translate(236px, 290px); }
+/* The train (roof view): three cars, each on the same path, shifted back by --lag, so they bend round corners.
+   One registered property --d (the lead car centre, px along the path) is animated; the nose is 32px ahead of
+   it. The path starts 268px left of the visible line (lead-in), so every distance is the line distance + 268.
+   Parked at "See your match" until motion starts. 15s loop, five stops of 3s; it pauses for the first 12% of
+   each fifth. Stop distances (nose 14px short of each dot): keep in step with landing.js LINE_PATH / LINE_STOPS. */
+@property --d { syntax: "<length>"; inherits: true; initial-value: 0px; }
+.lp-train { --d: 514px; }
+.lp-car { transform: translate(calc(254px - var(--lag)), 290px); }
 @supports (offset-path: path("M0 0")) {
-  .lp-train {
+  .lp-car {
     transform: none;
-    offset-path: path("M8 290 H360 L440 210 H640 L720 130 H985");
-    offset-rotate: 0deg;
-    offset-distance: 228px;
-    animation: lp-ride 15s infinite;
+    offset-path: path("M-260 290 H360 L440 210 H640 L720 130 H985");
+    offset-rotate: auto;
+    offset-distance: calc(var(--d) - var(--lag));
   }
+  .lp-train { animation: lp-ride 15s infinite; }
   .lp-halo { animation: lp-stop 15s infinite; }
   .lp-lbl--n { animation: lp-off 15s infinite; }
   .lp-lbl--b { animation: lp-on 15s infinite; }
   .lp-map .s2 { animation-delay: 3s; } .lp-map .s3 { animation-delay: 6s; } .lp-map .s4 { animation-delay: 9s; } .lp-map .s5 { animation-delay: 12s; }
 }
 @keyframes lp-ride {
-  0%   { offset-distance: 53px;  opacity: 0; animation-timing-function: ease-out; }
-  2%   { offset-distance: 53px;  opacity: 1; }
-  12%  { offset-distance: 53px;  animation-timing-function: cubic-bezier(.45,0,.25,1); }
-  20%  { offset-distance: 228px; }
-  32%  { offset-distance: 228px; animation-timing-function: cubic-bezier(.45,0,.25,1); }
-  40%  { offset-distance: 521px; }
-  52%  { offset-distance: 521px; animation-timing-function: cubic-bezier(.45,0,.25,1); }
-  60%  { offset-distance: 834px; }
-  72%  { offset-distance: 834px; animation-timing-function: cubic-bezier(.45,0,.25,1); }
-  80%  { offset-distance: 974px; }
-  93%  { offset-distance: 974px; opacity: 1; }
-  98%  { offset-distance: 974px; opacity: 0; }
-  100% { offset-distance: 53px;  opacity: 0; }
+  0%   { --d: 339px;  opacity: 0; animation-timing-function: ease-out; }
+  2%   { --d: 339px;  opacity: 1; }
+  12%  { --d: 339px;  animation-timing-function: cubic-bezier(.45,0,.25,1); }
+  20%  { --d: 514px; }
+  32%  { --d: 514px; animation-timing-function: cubic-bezier(.45,0,.25,1); }
+  40%  { --d: 807px; }
+  52%  { --d: 807px; animation-timing-function: cubic-bezier(.45,0,.25,1); }
+  60%  { --d: 1120px; }
+  72%  { --d: 1120px; animation-timing-function: cubic-bezier(.45,0,.25,1); }
+  80%  { --d: 1260px; }
+  93%  { --d: 1260px; opacity: 1; }
+  98%  { --d: 1260px; opacity: 0; }
+  100% { --d: 339px;  opacity: 0; }
 }
 @keyframes lp-stop { 0%, 12% { opacity: 1; } 13%, 100% { opacity: 0; } }
 @keyframes lp-on { 0%, 12% { opacity: 1; } 13%, 100% { opacity: 0; } }
@@ -147,10 +152,17 @@
   .hw-card { padding: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lp-train { animation: none !important; offset-distance: 228px; opacity: 1; }
+  .lp-train { animation: none !important; opacity: 1; }
   .lp-halo, .lp-lbl, .lp-lbl--b { animation: none !important; }
   .lp-halo.s2 { opacity: 1; }
   .lp-lbl--n.s2 { opacity: 0; }
   .lp-lbl--b.s2 { opacity: 1; }
   .lp-more a, .lp-more span { transition: none; }
 }
+
+/* No @property: park like reduced motion (class set from landing.js). */
+.lp-static .lp-train, .lp-static .lp-halo, .lp-static .lp-lbl { animation: none !important; }
+.lp-static .lp-train { opacity: 1; }
+.lp-static .lp-halo.s2 { opacity: 1; }
+.lp-static .lp-lbl--n.s2 { opacity: 0; }
+.lp-static .lp-lbl--b.s2 { opacity: 1; }
