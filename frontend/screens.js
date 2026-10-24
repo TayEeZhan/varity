@@ -210,7 +210,7 @@ function savedTable() {
   const why = (s) => (s.evidence_quote ? `“${esc(s.evidence_quote)}”`
     : esc((s.evidence.find((e) => e.rule) || s.evidence.find((e) => e.note) || {}).rule || (s.evidence.find((e) => e.note) || {}).note || "Added by you"));
   const basis = (s) => (isExample(s) ? "Synthetic example" : BASIS[s.basis]);
-  return `<table class="skills"><thead><tr><th scope="col">Skill</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th><th scope="col">Edit</th></tr></thead>
+  return `<table class="skills"><thead><tr><th scope="col">Skill and Experience</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th><th scope="col">Edit</th></tr></thead>
     <tbody>${STATE.saved.skills.map((s) => `<tr><td>${esc(s.name)}</td><td><span class="lvl">${esc(basis(s))}</span></td><td class="q">${why(s)}</td><td>${esc(yearsText(s.years))}</td>
       <td><button class="btn btn--quiet" data-act="skill-remove" data-id="${esc(s.skill_id)}" aria-label="Remove ${esc(s.name)}">Remove</button></td></tr>`).join("")}</tbody></table>`;
 }
