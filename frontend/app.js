@@ -243,7 +243,14 @@ async function markLearned(skill) {
     return;
   }
   toast(`${skill} is now in your profile.`);
-  await refreshRoutes();
+  const kept = STATE.done;
+  await refreshRoutes();  // clears ticks and gets a new planId, so put back ticks whose task is still in the plan
+  if (!STATE.plan) return;
+  const ids = new Set(STATE.plan.tasks.map((t) => t.id));
+  STATE.done = new Set([...STATE.done, ...[...kept].filter((id) => ids.has(id))]);
+  saveDone();
+  refreshStatus();
+  rerender();
 }
 
 /* Load profile, routes and pathway one after the other, drawing after each so the page is never blank. */
