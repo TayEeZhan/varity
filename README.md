@@ -26,7 +26,7 @@
 | Resource          | Link |
 | ----------------- | ---- |
 | GitHub Repository | https://github.com/TayEeZhan/varity |
-| Live Demo         | https://verity--eezhan0805.replit.app |
+| Live Demo         | https://verity--eezhan0805.replit.app/#/ |
 | RunPod Endpoint   | Not used (no GPU workload) |
 | Slide Deck        | https://claude.ai/artifact/S2wLJMTcXwLLqC78ESTqTM |
 | Demo Video        | https://youtu.be/EIXXsKRXtlU |
