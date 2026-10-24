@@ -107,6 +107,26 @@ class Progress(_Frozen):
     updatedAt: str = Field(max_length=40)
 
 
+class Declined(_Frozen):
+    """A skill the user said "not now" to. Not offered again before `until` (YYYY-MM-DD)."""
+
+    skill: str = Field(max_length=60)
+    until: str = Field(max_length=10)
+
+
+class PlanState(_Frozen):
+    """The pathway the user last accepted, so a rebuild can say what changed (advisor/planner.py)."""
+
+    role_id: str = Field(max_length=60)
+    start_date: str = Field(max_length=10)  # fixed when first accepted, so task dates do not slide every day
+    skills: tuple[str, ...] = Field(default=(), max_length=60)
+    accepted_at: str = Field(max_length=40)
+    pushed: tuple[str, ...] = Field(default=(), max_length=20)  # trend skills the user added
+    declined: tuple[Declined, ...] = Field(default=(), max_length=60)
+    last_offer_at: str | None = Field(default=None, max_length=40)
+    offers: Literal["ask", "off"] = "ask"
+
+
 class Profile(_Frozen):
     """The skill ledger: profile.json v2."""
 
@@ -119,3 +139,4 @@ class Profile(_Frozen):
     interests: tuple[Interest, ...] = Field(default=(), max_length=50)
     removed: tuple[Removed, ...] = Field(default=(), max_length=MAX_SKILLS)
     progress: Progress | None = None
+    plan: PlanState | None = None
