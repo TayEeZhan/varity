@@ -90,6 +90,26 @@ function stopRow(t) {
   </div>`;
 }
 
+/* What changed since the user accepted the plan, or one new skill the trend layer and job posts both rate as rising. */
+function planBand() {
+  const { change, offer } = STATE.plan;
+  const band = (sign, body, acts) => `<div class="service" role="status"><span class="service__sign">${sign}</span><div>${body}</div><div class="service__acts">${acts}</div></div>`;
+  if (change) {
+    const rows = [...change.added.map((a) => `<li><b>+ ${esc(a.skill)}</b> ${esc(a.reason)}</li>`),
+      ...change.removed.map((r) => `<li><b>− ${esc(r.skill)}</b> ${esc(r.reason)}</li>`)].join("");
+    return band("Plan changed", `<p>Job data or signals moved since you accepted this plan. Your ticks are kept.</p><ul class="plan-change">${rows}</ul>`,
+      `<button class="btn" type="button" data-act="plan-keep">Keep change</button><button class="btn" type="button" data-act="plan-revert">Revert</button>`);
+  }
+  if (offer) {
+    const skill = esc(offer.skill);
+    return band("New skill", `<p><b>${skill}</b> is rising in AI news and in job posts.</p><ul class="plan-change"><li>${esc(offer.news)}</li><li>${esc(offer.jobs)}</li></ul>`,
+      `<button class="btn" type="button" data-act="offer-add" data-skill="${skill}">Add to plan</button><button class="btn" type="button" data-act="offer-later" data-skill="${skill}">Not now</button>`);
+  }
+  return "";
+}
+
+const stepDone = (s) => s.taskIds.length > 0 && s.taskIds.every((id) => STATE.done.has(id));
+
 function renderToday() {
   const blocked = gate("plan");
   if (blocked) return { html: head("Today", "Your next stops, taken from your pathway.") + blocked, bind: () => {} };
@@ -107,8 +127,10 @@ function renderToday() {
     ? `${tasks.length} stop${tasks.length === 1 ? "" : "s"}, ${mins} minutes, from your pathway. Each one says why it is on your list.`
     : "You have ticked every task in this plan.";
 
+  const finished = STATE.plan.steps.filter(stepDone);
   const html = `
     ${head(esc(title), esc(lede), real("Your plan · computed from your profile"))}
+    ${planBand()}
     <section class="route-strip" aria-label="Your route">
       <div class="route-strip__head">
         <h2><span class="bullets">${used.map((l) => bullet(l)).join("")}</span>To ${esc(TARGET.role)}</h2>
@@ -123,10 +145,14 @@ function renderToday() {
         ${tasks.map(stopRow).join("") || `<p class="empty">Nothing left to do in this plan.</p>`}
       </section>
       <aside class="side">
+        ${finished.length ? `<section class="panel"><h2>Finished skills</h2>
+          <p>Mark a skill as learned to add it to your profile. It leaves your plan and your match goes up.</p>
+          <ul class="next-list">${finished.map((s) => `<li><span>${esc(s.skill)}</span><button class="btn" type="button" data-act="learned" data-skill="${esc(s.skill)}">Mark as learned</button></li>`).join("")}</ul></section>` : ""}
         <section class="panel"><h2>Take it with you</h2>
           <p>Download the plan or add its tasks to your calendar.${gtasksOn ? " Google Tasks gets today's stops only when you press its button, straight from your browser." : " Nothing is sent anywhere."}</p>
           <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
           <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
+      <p><button class="btn btn--primary" type="button" data-global="generate-cv">Generate CV for this role (.md)</button></p>
           ${gtasksOn ? `<p><button class="btn" type="button" data-global="gtasks"${GTASKS.busy ? " disabled" : ""}>${GTASKS.busy ? "Sending to Google Tasks…" : "Send today to Google Tasks"}</button></p>` : ""}</section>
         <section class="panel"><h2>Coming up</h2>
           <ul class="next-list">${coming.map((p) => `<li>${bullet(p.line, true)}<span>${esc(p.title)}</span><span>Wk ${esc(p.week)}</span></li>`).join("")}</ul>
@@ -143,13 +169,20 @@ function renderToday() {
       strip.scrollLeft = Math.max(0, (idx / PATHWAY.length) * strip.scrollWidth - 60);
     }
     root.addEventListener("click", (e) => {
-      const b = e.target.closest('[data-act="tick"]');
-      if (!b) return;
-      const id = b.dataset.id;
+      const act = e.target.closest("[data-act]");
+      if (!act) return;
+      const { skill } = act.dataset;
+      if (act.dataset.act === "learned") return markLearned(skill);
+      if (act.dataset.act.startsWith("plan-")) return planDecision(act.dataset.act.slice(5));
+      if (act.dataset.act.startsWith("offer-")) return planDecision(act.dataset.act.slice(6), skill);
+      if (act.dataset.act !== "tick") return;
+      const id = act.dataset.id;
       if (STATE.done.has(id)) STATE.done.delete(id); else STATE.done.add(id);
       saveDone();
       refreshStatus();
       rerender(`[data-id="${id}"]`);
+      const step = STATE.plan.steps.find((s) => s.taskIds.includes(id));
+      if (step && STATE.done.has(id) && stepDone(step)) toast(`Every ${step.skill} task is done.`, "Mark as learned", () => markLearned(step.skill));
     });
   };
   return { html, bind };
@@ -547,7 +580,8 @@ function renderPathway() {
     <section class="panel" aria-labelledby="ex-h"><h2 id="ex-h">Take the plan with you</h2>
       <p>The files are built in your browser from this pathway. Nothing is sent anywhere.</p>
       <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
-      <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p></section>
+      <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
+      <p><button class="btn btn--primary" type="button" data-global="generate-cv">Generate CV for this role (.md)</button></p></section>
     <div class="weeks">${weeks.map(weekHTML).join("")}</div>
     <section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why this job matters: SDG and Malaysia links</h2>
       ${sdg.lines.map((l) => `<p class="route-note">${esc(l)}</p>`).join("")}

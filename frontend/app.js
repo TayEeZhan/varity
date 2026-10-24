@@ -19,7 +19,7 @@ const STATE = {
   suggestError: "",
   plan: null,             // GET /api/pathway for the chosen route
   planError: "",
-  sig: "",                // short hash of the plan's tasks; keys the ticks kept in localStorage
+  sig: "",                // the plan id (its role); keys the ticks kept in localStorage and on the server
   signalsLive: false,     // true once GET /api/signals replaced the offline snapshot
   forecastLive: false,    // true once GET /api/roles/forecast replaced the offline snapshot
   filter: "all",
@@ -220,6 +220,32 @@ async function loadPlan() {
   }
 }
 
+/* Keep / Revert a changed plan, or Add / Not now a trend skill (POST /api/pathway/decision). */
+const DECISION_TEXT = { keep: "Plan updated.", revert: "Kept your old plan. The new skills are hidden for 30 days.",
+  add: "Added to your plan.", later: "Hidden for 30 days." };
+async function planDecision(action, skill) {
+  try {
+    applyPlan(await api("/api/pathway/decision", { method: "POST",
+      body: JSON.stringify({ roleId: STATE.routeId, action, skill: skill || null, scenario: STATE.scenario }) }));
+    toast(DECISION_TEXT[action]);
+  } catch (e) {
+    toast(errText(e));
+  }
+  rerender();
+}
+
+/* Every task of a skill is ticked: the user says it is learned, so it joins the profile and leaves the gap. */
+async function markLearned(skill) {
+  try {
+    STATE.saved = (await api("/api/profile/learned", { method: "POST", body: JSON.stringify({ skill }) })).profile;
+  } catch (e) {
+    toast(errText(e));
+    return;
+  }
+  toast(`${skill} is now in your profile.`);
+  await refreshRoutes();
+}
+
 /* Load profile, routes and pathway one after the other, drawing after each so the page is never blank. */
 async function loadMine() {
   await loadMe();
@@ -258,12 +284,6 @@ function refreshStatus() {
   PATHWAY.forEach((p, i) => { p.status = stepStatus(steps[i], firstOpen); });
 }
 
-/* Short hash (djb2) of a string: keys the saved ticks and the calendar UIDs. */
-function shortHash(text) {
-  let h = 5381;
-  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) >>> 0;
-  return h.toString(16).padStart(8, "0");
-}
 const doneKey = () => `varity.done.${STATE.sig}`;
 function saveDone() {
   try { localStorage.setItem(doneKey(), JSON.stringify([...STATE.done])); } catch (e) { /* ticks last this visit only */ }
@@ -299,7 +319,7 @@ function applyPlan(plan) {
   TODAY.tasks = [];
   TARGET.role = "";
   if (!plan) { STATE.sig = ""; return; }
-  STATE.sig = shortHash(plan.tasks.map((t) => `${t.id}|${t.title}|${t.date}`).join("\n"));
+  STATE.sig = plan.planId;  // task ids are stable per skill, so ticks survive new dates and added skills
   const prog = STATE.saved && STATE.saved.progress;
   STATE.done = prog && prog.signature === STATE.sig && Array.isArray(prog.doneIds) ? new Set(prog.doneIds) : loadDone();
   const start = new Date(plan.startDate).getTime();
@@ -416,6 +436,23 @@ function download(name, mime, text) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* A CV for the target role from the saved CV and current skills. The server checks every claim; nothing is saved. */
+const CV_NOTES = { no_cv: "No saved CV: upload it again for a full version.", llm: "" };
+async function generateCv(button) {
+  button.disabled = true;
+  try {
+    const cv = await api("/api/cv/generate", { method: "POST" });
+    download("verity_cv.md", "text/markdown", cv.markdown);
+    const note = CV_NOTES[cv.mode] ?? "AI is off, so your CV is kept as it was with an updated skills list.";
+    const dropped = cv.dropped.length ? ` ${cv.dropped.length} unsupported line(s) removed.` : "";
+    toast(`CV for ${cv.role} downloaded. ${note}${dropped}`.trim());
+  } catch (e) {
+    toast(errText(e));
+  } finally {
+    button.disabled = false;
+  }
+}
+
 /* ── Google Tasks (shown only when the server has GOOGLE_CLIENT_ID) ───────────────
    The browser asks Google for a Tasks-only token and writes the list itself. The token stays in this
    page's memory; Varity's server never sees it or the tasks. */
@@ -498,6 +535,8 @@ document.addEventListener("click", async (e) => {
     download("verity_plan.md", "text/markdown", planMarkdown(STATE.plan));
   } else if (act === "download-ics" && STATE.plan) {
     download("verity_plan.ics", "text/calendar", planIcs(STATE.plan));
+  } else if (act === "generate-cv") {
+    generateCv(b);
   } else if (act === "gtasks" && TODAY.tasks.length && !GTASKS.busy) {
     GTASKS.busy = true;
     rerender();

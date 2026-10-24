@@ -15,8 +15,10 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from advisor import chips as chip_mod
+from advisor import planner
 from advisor.llm import LlmUnavailable, advise, call_model, coach, verify_advice, verify_coaching
 from advisor.mapping import map_profile, taxonomy_index
+from intake.ledger import now_iso as ledger_now
 from intake.models import Profile
 
 VERITY_ROOT = Path(__file__).resolve().parents[3]
@@ -281,10 +283,16 @@ def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], ru
     role = next((r for r in out["roles"] + out["low_match"] if r["role_id"] == role_id), None)
     if role is None:
         raise RoleNotFound(role_id)
-    role_gaps = [role["gap"]] + [r["gap"] for r in out["roles"] if r["role_id"] != role_id]
-    plan = pathway_mod.build_pathway(role["name"], role["gap"], role_gaps, data["scores"], data["resources"],
+    today = (start_date or pathway_mod.today_myt()).isoformat()
+    state = profile.plan if profile.plan and profile.plan.role_id == role_id else None
+    scores = pathway_mod._skill_index(data["scores"])
+    declined = planner.active_declined(profile.plan, today)
+    gap = [g for g in role["gap"] if g["skill"] not in declined]
+    gap += planner.pushed_gap(state, held, [g["skill"] for g in gap], scores)
+    other_gaps = [r["gap"] for r in out["roles"] if r["role_id"] != role_id]
+    plan = pathway_mod.build_pathway(role["name"], gap, [gap] + other_gaps, data["scores"], data["resources"],
                                      scenario=scenario, hours_per_week=hours_per_week,
-                                     start_date=start_date or pathway_mod.today_myt(), taxonomy=data["taxonomy"])
+                                     start_date=state.start_date if state else today, taxonomy=data["taxonomy"])
     as_of = _as_of(profile, data, run_id)
     momentum, links = _momentum(momentum_rows), chip_mod.watch_map(data["taxonomy"], _watch_terms(momentum_rows))
     steps = []
@@ -308,7 +316,17 @@ def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], ru
         steps = _apply_coaching(steps, checked)
     tasks = pathway_mod.schedule_tasks(steps, hours_per_week, date.fromisoformat(plan["start_date"]))
     minutes = sum(t["minutes"] for t in tasks)
+    planned = [s["skill"] for s in steps]
+    change = planner.diff(state, steps, held, scores)
+    offer = None if change else planner.trend_offer(
+        profile.plan if state else None, today, held, planned + [g["skill"] for g in role["gap"]], other_gaps, scores,
+        momentum, links, {r["skill"] for r in data["resources"]["resources"]}, plan["skill_scores_as_of"])
+    # Saved by the API without asking: the first plan for a role, or a plan that only lost skills the user now holds.
+    silent = state is None or (change is None and set(state.skills) != set(planned))
+    pushed = set(state.pushed) if state else set()
     return {
+        "planId": role_id, "change": change, "offer": offer,
+        "planState": planner.accept(profile.plan, role_id, planned, today, ledger_now()) if silent else None,
         "roleId": role_id, "targetRole": role["name"], "matchPct": round(role["match_score"] * 100),
         "scenario": scenario, "scenarioLabel": plan["scenario_label"], "hoursPerWeek": hours_per_week,
         "startDate": plan["start_date"], "finishDate": tasks[-1]["deadline"] if tasks else None,
@@ -316,7 +334,7 @@ def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], ru
         "personalisedBy": "llm" if personalised else "formula", "llmStatus": status,
         "stages": [{"name": st["name"], "label": st["label"],
                     "skills": [s["skill"] for s in steps if s["stage"] == st["name"]]} for st in plan["stages"]],
-        "steps": [_step_out(s) for s in steps], "tasks": [_task_out(t) for t in tasks],
+        "steps": [{**_step_out(s), "pushed": s["skill"] in pushed} for s in steps], "tasks": [_task_out(t) for t in tasks],
         "unresolved": [s["skill"] for s in steps if not s["resource"]],
         "totals": {"steps": len(steps), "tasks": len(tasks), "minutes": minutes, "hours": round(minutes / 60, 1)},
         "notes": plan["notes"],
