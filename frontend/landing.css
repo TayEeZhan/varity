@@ -1,0 +1,156 @@
+/* Varity: landing (.lp) and How Varity works (.hw). Tokens come from styles.css; breakpoints 960 / 640. */
+
+.lp section, .hw section { margin-top: clamp(40px, 6vw, 72px); }
+.lp h2.sec.lp-nobar { border-bottom: 0; padding-bottom: 0; margin-bottom: 20px; }
+.lp-chip { background: var(--ink); color: #fff; border-color: var(--ink); margin-left: 8px; vertical-align: middle; }
+.lp a:focus-visible, .hw a:focus-visible, .lp-map:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* ── Hero ── */
+.lp-hero { margin-top: 0 !important; padding: clamp(16px, 4vw, 56px) 0 0; }
+.lp-hero h1 { font-size: clamp(2.5rem, 8.5vw, 6rem); font-weight: 800; letter-spacing: -0.02em; line-height: 0.98; max-width: 11em; overflow-wrap: break-word; }
+.lp-sub { font-size: var(--t-lg); color: var(--ink-2); max-width: 46ch; margin-top: 24px; }
+.lp-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-top: 28px; }
+.lp-cta .btn { min-height: 48px; padding: 0 26px; border-radius: 24px; font-size: var(--t-lg); }
+.lp-alt { font-weight: 700; }
+
+/* ── Line map ── */
+.lp-map { border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink); overflow-x: auto; padding: 8px 0 4px; }
+.lp-map svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.lp-hint { display: none; font-size: var(--t-xs); color: var(--ink-3); margin-top: 6px; }
+.lp-line { fill: none; stroke: var(--apps); stroke-width: 12; stroke-linejoin: round; stroke-linecap: round; }
+.lp-branch { fill: none; stroke: var(--explore); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 0.1 11; }
+.lp-dot, .lp-cap { fill: #fff; stroke: var(--ink); stroke-width: 3px; }
+.lp-lbl { font-family: var(--font); font-size: 17px; font-weight: 600; fill: var(--ink); text-anchor: middle; }
+.lp-lbl--b { font-weight: 800; opacity: 0; }
+.lp-lbl--soft { font-weight: 500; fill: var(--ink-3); font-size: 14px; text-anchor: start; }
+.lp-halo { fill: var(--signal); opacity: 0; }
+
+.lp-stops { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0 24px; }
+.lp-stops li { padding-top: 14px; }
+.lp-stops b { display: block; font-size: var(--t-md); font-weight: 800; line-height: 1.2; }
+.lp-stops p { color: var(--ink-2); font-size: var(--t-sm); margin: 6px 0 0; max-width: 28ch; }
+
+/* The train: parked at "See your match" until motion starts. 15s loop, five stops of 3s; it pauses for the
+   first 12% of each fifth. Stop distances are px along the line path (landing.js LINE_PATH). */
+.lp-train { transform: translate(236px, 290px); }
+@supports (offset-path: path("M0 0")) {
+  .lp-train {
+    transform: none;
+    offset-path: path("M8 290 H360 L440 210 H640 L720 130 H985");
+    offset-rotate: 0deg;
+    offset-distance: 228px;
+    animation: lp-ride 15s infinite;
+  }
+  .lp-halo { animation: lp-stop 15s infinite; }
+  .lp-lbl--n { animation: lp-off 15s infinite; }
+  .lp-lbl--b { animation: lp-on 15s infinite; }
+  .lp-map .s2 { animation-delay: 3s; } .lp-map .s3 { animation-delay: 6s; } .lp-map .s4 { animation-delay: 9s; } .lp-map .s5 { animation-delay: 12s; }
+}
+@keyframes lp-ride {
+  0%   { offset-distance: 53px;  opacity: 0; animation-timing-function: ease-out; }
+  2%   { offset-distance: 53px;  opacity: 1; }
+  12%  { offset-distance: 53px;  animation-timing-function: cubic-bezier(.45,0,.25,1); }
+  20%  { offset-distance: 228px; }
+  32%  { offset-distance: 228px; animation-timing-function: cubic-bezier(.45,0,.25,1); }
+  40%  { offset-distance: 521px; }
+  52%  { offset-distance: 521px; animation-timing-function: cubic-bezier(.45,0,.25,1); }
+  60%  { offset-distance: 834px; }
+  72%  { offset-distance: 834px; animation-timing-function: cubic-bezier(.45,0,.25,1); }
+  80%  { offset-distance: 974px; }
+  93%  { offset-distance: 974px; opacity: 1; }
+  98%  { offset-distance: 974px; opacity: 0; }
+  100% { offset-distance: 53px;  opacity: 0; }
+}
+@keyframes lp-stop { 0%, 12% { opacity: 1; } 13%, 100% { opacity: 0; } }
+@keyframes lp-on { 0%, 12% { opacity: 1; } 13%, 100% { opacity: 0; } }
+@keyframes lp-off { 0%, 12% { opacity: 0; } 13%, 100% { opacity: 1; } }
+
+/* ── What you get ── */
+.lp-get { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 32px; list-style: none; margin: 0; padding: 0; position: relative; }
+.lp-get::before { content: ""; position: absolute; left: 11px; right: 0; top: 11px; height: 3px; background: var(--ink); }
+.lp-get li { position: relative; padding-top: 44px; }
+.lp-get li::before { content: ""; position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--paper); border: 3px solid var(--ink); }
+.lp-get li:last-child::before { background: var(--ink); }
+.lp-get b { font-size: var(--t-xl); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+
+/* ── Departures board ── */
+.lp-rows { margin-top: 4px; border: 2px solid var(--ink); border-top-width: 0; }
+.lp-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 110px; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
+.lp-row:last-child { border-bottom: 0; }
+.lp-row--head { background: var(--ink); color: #fff; font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 14px; }
+.lp-role { font-weight: 700; }
+.lp-rows .bullet { background: var(--ink); }
+.lp-trend { font-weight: 700; }
+.lp-trend--Rising { color: var(--rise); }
+.lp-trend--Falling { color: var(--fall); }
+.lp-trend--flat { color: var(--ink-2); }
+.lp-when { color: var(--ink-2); }
+.lp-note { margin-top: 10px; font-size: var(--t-sm); color: var(--ink-3); }
+
+/* ── How Varity works links, footer line ── */
+.lp-more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 3px solid var(--ink); }
+.lp-more a { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 16px 18px 0; border-bottom: 1px solid var(--rule); font-size: var(--t-lg); font-weight: 800; letter-spacing: -0.01em; text-decoration: none; transition: background 150ms var(--ease); }
+.lp-more a:hover { background: var(--paper-2); }
+.lp-more span { transition: transform 150ms var(--ease); }
+.lp-more a:hover span { transform: translateX(4px); }
+.lp-end { margin-top: clamp(40px, 6vw, 72px); color: var(--ink-3); font-size: var(--t-sm); }
+.lp-end strong { color: var(--ink); }
+.lp-end a { font-weight: 700; color: var(--ink); margin-left: 12px; }
+
+/* ── How Varity works ── */
+.hw h1 { font-size: var(--t-2xl); font-weight: 800; letter-spacing: -0.02em; padding-bottom: 10px; border-bottom: 3px solid var(--ink); }
+.hw-lede { margin-top: 16px; font-size: var(--t-lg); color: var(--ink-2); max-width: 62ch; }
+.hw-journey { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; position: relative; }
+.hw-journey::before { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 3px; background: var(--ink); }
+.hw-journey li { position: relative; padding-top: 36px; }
+.hw-journey li::before { content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); }
+.hw-journey h3 { font-size: var(--t-lg); font-weight: 800; letter-spacing: -0.02em; }
+.hw-journey p { margin-top: 6px; color: var(--ink-2); }
+.hw-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 20px; }
+.hw-card { border: 2px solid var(--ink); padding: 24px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.hw-card h3 { font-size: var(--t-xl); font-weight: 800; letter-spacing: -0.02em; padding-bottom: 10px; border-bottom: 3px solid var(--ink); }
+.hw-card p { color: var(--ink-2); }
+.hw-card .btn { align-self: flex-start; }
+.hw-live { margin: 0; padding: 12px 0 0; border-top: 1px solid var(--rule); list-style: none; font-size: var(--t-sm); color: var(--ink-2); }
+.hw-live li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
+.hw-t { font-weight: 700; }
+.hw-rise { color: var(--rise); }
+.hw-fall { color: var(--fall); }
+.hw-fact { padding-top: 12px; border-top: 1px solid var(--rule); font-size: var(--t-sm); color: var(--ink-2); }
+.hw-live[hidden], .hw-fact[hidden] { display: none; }
+.hw-not { margin: 16px 0 0; padding: 0; list-style: none; max-width: 62ch; }
+.hw-not li { padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.hw-not li::before { content: "\00d7"; font-weight: 800; margin-right: 10px; }
+.hw-back { margin-top: 48px; font-weight: 700; }
+
+@media (max-width: 960px) {
+  .lp-hint { display: block; }
+  .lp-stops { grid-template-columns: 1fr; gap: 0; border-top: 0; margin-top: 8px; }
+  .lp-stops li { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+  .lp-stops p { max-width: 46ch; }
+  .lp-get { grid-template-columns: 1fr; gap: 28px; }
+  .lp-get::before { left: 11px; right: auto; top: 12px; bottom: 12px; width: 3px; height: auto; }
+  .lp-get li { padding: 0 0 0 48px; }
+  .lp-more { grid-template-columns: 1fr; }
+  .hw-cards { grid-template-columns: 1fr; gap: 16px; }
+  .hw-journey { grid-template-columns: 1fr; gap: 20px; }
+  .hw-journey::before { left: 10px; right: auto; top: 0; bottom: 0; width: 3px; height: auto; }
+  .hw-journey li { padding: 0 0 0 44px; }
+  .hw-journey li::before { left: 0; top: 2px; }
+}
+@media (max-width: 640px) {
+  .lp-row { grid-template-columns: 30px minmax(0, 1fr) auto; }
+  .lp-when { grid-column: 2 / -1; font-size: var(--t-sm); margin-top: -6px; }
+  .lp-row--head { display: none; }
+  .lp-cta .btn { width: 100%; }
+  .hw-lede { font-size: var(--t-md); }
+  .hw-card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-train { animation: none !important; offset-distance: 228px; opacity: 1; }
+  .lp-halo, .lp-lbl, .lp-lbl--b { animation: none !important; }
+  .lp-halo.s2 { opacity: 1; }
+  .lp-lbl--n.s2 { opacity: 0; }
+  .lp-lbl--b.s2 { opacity: 1; }
+  .lp-more a, .lp-more span { transition: none; }
+}
