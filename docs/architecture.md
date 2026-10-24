@@ -258,7 +258,7 @@ flowchart LR
 - **How it works.** Each gap skill goes to the first stage it fits. Stage 1, `no_regret`: needed by 2 or more of the counted roles, not Falling, not AI-substitutable. Stage 2, `near_term`: in the top half of the gap skills by share now. Stage 3, `future_bet`: Rising or AI-complement. The Fast scenario moves stage 3 to second place. Tasks last at most 45 minutes on Monday to Friday, with dates in Malaysia time.
 - **Why built this way.** Code sets the dates and builds the order. The optional pathway coach may re-order steps within a stage, pick among the listed resources and write one checked "why" line; it never changes a date, a minute count or a stage. A resource can come only from `data/resources.json`, and only if its link returned HTTP 200 (77 resources for the 40 skills, checked on 2026-10-22, docs/pathway.md). A skill without a verified resource gets no task. The engine never invents a course. HRD Corp claim status is not verified, so no claim is made.
 - **How tested.** `tests/test_pathway.py`, including a test that every chosen link exists in the resource list.
-- **Status.** [IN APP]. "What changed and why" (a full diff view between two runs, `data/diff.json` in the contract) is [PLANNED]. Google sign-in and Google Tasks are not built; the Flow map says so. Replit sign-in is built (section 3.20).
+- **Status.** [IN APP]. "What changed and why" (a full diff view between two runs, `data/diff.json` in the contract) is [PLANNED]. Google sign-in and two-way Google Tasks sync are not built; the Flow map says so. One-way push of today's stops to Google Tasks is built (needs `GOOGLE_CLIENT_ID`). Replit sign-in is built (section 3.20).
 
 ### 3.11 New-skill discovery radar [BUILT]
 
@@ -326,7 +326,7 @@ flowchart LR
 ### 3.16 Varity web app [IN APP]
 
 - **What it does.** The only user interface. A static page in `frontend/` (HTML, CSS, JavaScript, no build step) served by the FastAPI backend at `/`. It has eight screens:
-  - **Flow map**: the planned user flow as a transit map. It says that Google sign-in and Google Tasks are not built. Replit sign-in is built (section 3.20); Google sign-in and Google Tasks are still not built.
+  - **Flow map**: the planned user flow as a transit map. It says that Google sign-in and two-way Google Tasks sync are not built. Replit sign-in is built (section 3.20).
   - **CV & routes**: CV upload (section 3.18), or "Try an example" with 3 synthetic profiles (`data/example_profiles.json`), which needs no LLM. Routes are ranked by `0.7 * match + 0.3 * outlook` (section 3.9). Reasons are typed chips with a source and a date (section 3.19). Each route has SDG tags and MyCOL badges. A Moderate or Fast scenario toggle is labelled as an estimate.
   - **Today**: the next stops, taken from the pathway.
   - **Pathway**: the ordered stops from the saved profile to the chosen route (`engine/pathway.py`). `.md` and `.ics` downloads are built in the browser.
@@ -422,7 +422,7 @@ flowchart LR
 - **What is stored.** Per account (table `users`): the Replit user id (`sub`), email, display name, profile image URL, and the created and last-login times. Per profile: the skill ledger, the target role and the pathway tick progress. Never the raw CV text and never tokens.
 - **Where.** `backend/signals/trendsignal/web/accounts_store.py`. Replit PostgreSQL when `DATABASE_URL` is set, else the SQLite file.
 - **Delete and move.** `DELETE /api/me` removes the user and the profile. An anonymous profile moves into the account on the first sign-in.
-- **Not built.** Google sign-in and Google Tasks. Only Replit sign-in exists.
+- **Not built.** Google sign-in and syncing ticks back from Google Tasks. Only Replit sign-in exists. Pushing today's stops to Google Tasks is built: the browser uses Google Identity Services for a Tasks-only token and calls the Tasks API directly.
 - **Status.** [IN APP]. Local tests and a local signed-in walkthrough only; not yet tested on the live app.
 
 ---

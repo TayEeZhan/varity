@@ -246,13 +246,15 @@ def add_auth_routes(app: FastAPI, settings: Settings) -> None:
     def api_me(request: Request, x_profile_token: str | None = Header(default=None)):
         if limited(request):
             return envelope(error="too many requests, try again in a minute", status=429)
+        # A public OAuth client id: the browser asks Google for a Tasks token itself (see app.js).
+        google = {"googleClientId": os.environ.get("GOOGLE_CLIENT_ID") or None}
         if not enabled():
-            return envelope({"enabled": False, "signedIn": False, "user": None, "hasProfile": False})
+            return envelope({"enabled": False, "signedIn": False, "user": None, "hasProfile": False, **google})
         sub = session_sub(request)
         user = store.get_user(settings, sub) if sub else None
         owner = "u:" + sub if user else store.token_owner(x_profile_token)
         has = bool(owner and store.get_profile_json(settings, owner) is not None)
-        return envelope({"enabled": True, "signedIn": user is not None, "user": user, "hasProfile": has})
+        return envelope({"enabled": True, "signedIn": user is not None, "user": user, "hasProfile": has, **google})
 
     @app.get("/api/logout")
     def api_logout(request: Request):
