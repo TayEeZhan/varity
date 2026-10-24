@@ -41,7 +41,7 @@ Our backtest shows the risk of false confidence. Twelve months ahead, a skill's 
 
 ### 2.2 Proposed AI Solution
 
-Verity is a decision aid. It forecasts skill demand, ranks roles and builds a learning plan. A person makes every decision. Our AI and machine learning:
+Verity is a decision aid. It forecasts skill demand, ranks roles and builds a learning plan. Our AI and machine learning:
 
 - **Statistical forecast.** We model each skill's monthly share of job posts on a logit scale. A rolling-origin backtest over 24 test months chose the model. Production picks between "last month" (naive) and "mean of the last 3 months" (naive3) by backtest. Today it picks naive3, with a 12-month error of 1.66 percentage points. The trend models scored 2.13 and 2.27. A conformal band wraps each forecast. It covered 93.8% of real values against an 80% target.
 - **Welch trend test.** A t-test compares the last 12 months with the 12 before and labels each skill Rising, Falling or No clear change. The direction held in 67.2% of 720 backtest cases.
@@ -49,24 +49,24 @@ Verity is a decision aid. It forecasts skill demand, ranks roles and builds a le
 - **A model that lost.** We trained a gradient-boosting model (HistGradientBoostingRegressor) on all skills. Its error was 2.06 points, worse than 1.66. We did not ship it.
 - **CV intake with Claude Haiku 4.5.** The model only points at skills and gives a quote for each. Code drops any skill whose quote is not in the CV, word for word.
 
-Only the CV intake uses a language model. Code, not a model, sets the forecast, the role ranking and the plan order. Two scenarios, Moderate and Fast AI disruption, are labelled as estimates. The user can also enter skills in a form (example profiles plus a skill picker). HRD Corp status is shown as not verified.
+Only the CV intake and two optional steps use a language model. The route advisor re-orders roles by at most 2 places and writes one checked summary line; the pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Code sets the forecast and every number and date, checks every model answer and takes over when the model is off. Two scenarios, Moderate and Fast AI disruption, are labelled as estimates. The user can also press "Try an example", which needs no model. HRD Corp status is shown as not verified.
 
-The build also uses the workshop topics in general terms: generative AI (CV intake), data handling (stored snapshots) and cloud deployment (Replit).
+The build also uses the workshop topics: generative AI (CV intake), data handling and cloud deployment (Replit).
 
-(297/300 words)
+(293/300 words)
 
 ## 3. Technical Approach
 
 ### 3.1 Conceptual Tech Stack
 
-- **Language and app:** Python 3.12, Streamlit (five tabs: Roles, Pathway, Skills, Skill detail, Method).
+- **Language and app:** Python 3.12. FastAPI with uvicorn serves a static HTML, CSS and JavaScript web app (eight screens: Flow map, CV & routes, Today, Pathway, Signals, Job forecast, Skills radar, Method). No Streamlit.
 - **Data and statistics:** pandas, NumPy, SciPy (Welch test), statsmodels (damped-trend model, tested only).
 - **Machine-learning experiment:** scikit-learn (not used in the app).
 - **Data sources:** Hacker News "Ask HN: Who is hiring?" threads through the Algolia HN Search API (free); Anthropic Economic Index (AI exposure); GPTs-are-GPTs, AIOE and Microsoft Working with AI (exposure cross-check only).
-- **Hosting:** Replit Autoscale deployment (live). Replit App Storage (data snapshots) and a Replit Scheduled Deployment (daily refresh): code merged; Replit setup pending.
+- **Hosting:** Replit Reserved VM deployment (one always-on server). The live URL is not yet republished with the Varity-only app. Replit App Storage (data snapshots) and a Replit Scheduled Deployment (daily refresh): code built; Replit setup pending.
 - **Generative AI:** Claude Haiku 4.5 (Anthropic) for CV intake, through Replit AI Integrations (Replit-managed credentials, billed to Replit credits). A direct Anthropic key also works. With no credentials, a keyword pass takes over. Design: not yet verified on the live Replit app.
 
-**Sponsor GenAI API or cloud platform.** We use Replit for hosting. We will use App Storage and Scheduled Deployments once set up (code merged; Replit setup pending). We use Replit AI Integrations for the CV intake (Claude Haiku 4.5), with a cap of $1 per day. We use no GPU, so we use no RunPod.
+**Sponsor GenAI API or cloud platform.** We use Replit for hosting. We will use App Storage and Scheduled Deployments once set up (code built; Replit setup pending). We use Replit AI Integrations for the CV intake (Claude Haiku 4.5), with a cap of $1 per day. We use no GPU, so we use no RunPod.
 
 ```mermaid
 flowchart LR
@@ -74,6 +74,7 @@ flowchart LR
     HN["Hacker News Who is hiring<br/>via Algolia HN API"]
     AEI["Anthropic Economic Index"]
     XCHK["GPTs-are-GPTs, AIOE,<br/>Microsoft Working with AI<br/>(cross-check only)"]
+    NEWS["AI news and research<br/>RSS, arXiv, HF papers, HN"]
     RES["77 checked learning links"]
   end
   subgraph ENG["Engine modules (Python)"]
@@ -83,15 +84,15 @@ flowchart LR
     EXP["AI exposure and<br/>Moderate / Fast scenarios"]
     ROLE["Role match<br/>learned role profiles"]
     PATH["Pathway and<br/>daily to-do list"]
-    DISC["New-skill radar<br/>(human review)"]
+    RANK["AI trend ranker<br/>re-ranks every 15 min"]
   end
   subgraph FILES["Data files (committed aggregates)"]
     SCORES["skill_scores.json"]
     OTHER["demand, role, backtest,<br/>exposure files"]
   end
   subgraph REPLIT["Replit"]
-    APP["Streamlit app<br/>Autoscale deployment"]
-    STORE["App Storage<br/>snapshots<br/>(setup pending)"]
+    APP["Varity: FastAPI + static web app<br/>Reserved VM deployment"]
+    STORE["App Storage<br/>snapshots<br/>(setup pending;<br/>app does not read)"]
     JOB["Scheduled Deployment<br/>daily 09:00 MYT<br/>(setup pending)"]
   end
   HN --> TAG --> DEM --> FC --> SCORES
@@ -99,7 +100,7 @@ flowchart LR
   XCHK --> EXP
   DEM --> ROLE --> OTHER
   FC --> OTHER
-  DEM --> DISC --> OTHER
+  NEWS --> RANK --> APP
   RES --> PATH
   SCORES --> ROLE --> PATH
   SCORES --> APP
@@ -107,8 +108,7 @@ flowchart LR
   PATH --> APP
   JOB --> STORE
   HN -. "newest thread" .-> JOB
-  STORE --> APP
-  CV["CV intake with Claude Haiku 4.5<br/>via Replit AI Integrations<br/>(code merged; live run not yet verified)"] -.-> ROLE
+  CV["CV intake with Claude Haiku 4.5<br/>via Replit AI Integrations<br/>(live run not yet verified)"] --> ROLE
 ```
 
 ### 3.2 Design-Thinking & Deployment Strategy
@@ -119,15 +119,15 @@ flowchart LR
 
 **Ideate.** LinkedIn and X break terms or hold personal data. JobStreet blocked plain requests with a bot challenge. We chose Hacker News hiring threads. We tried a machine-learning forecaster and dropped it when it lost.
 
-**Prototype.** A five-tab Streamlit app.
+**Prototype.** Varity, an eight-screen web app with a FastAPI backend.
 
 **Test.** Over 700 automated tests and a backtest with no look-ahead. In Phase 2 we will test with the three synthetic personas and [TEAM TO FILL: number] volunteer users.
 
-**Deployment.** The app runs as a Replit Autoscale deployment. The daily refresh job and App Storage snapshots are code merged; Replit setup pending. Once set up, the job will refresh the data at 09:00 Malaysia time and save a snapshot. On failure, the app shows the last good data with its date.
+**Deployment.** The app runs on a Replit Reserved VM; the live site is not yet republished with this version. The daily refresh job and App Storage snapshots are code built; Replit setup pending. The app shows the committed data with its date. If the server is unreachable, the page shows a dated offline snapshot and says so.
 
 **Hardest risk.** Hacker News is US-heavy. Our fallback: the app says so, and Malaysian sources are future work.
 
-(187/200 words)
+(195/200 words)
 
 ## 4. Environmental Impact Preliminary Framework & SDG
 
@@ -142,7 +142,7 @@ Phase 2 impact figures are **targets** for the team to measure in Phase 2 user t
 **Sources.**
 - Hays Asia Salary Guide 2025 (56% and 26%) and MOSTI (more than 600,000 workers): both as cited in the Domain 1 brief. [TEAM TO FILL: add the full reference and link from the brief.]
 - United Nations, Sustainable Development Goals, targets 4.4, 8.2 and 8.5: https://sdgs.un.org/goals.
-- Verity KPIs: the app shows plan progress per session (`engine/pathway.py`, `progress()`) but stores no events; we will record all three KPIs in the Phase 2 test session.
+- Verity KPIs: the Today and Pathway screens show how many stops are done, but we store no events; we will record all three KPIs in the Phase 2 test session.
 
 **Environmental note.** Verity runs on CPU only. It trains no model in production. The daily refresh job takes about 7 seconds.
 
@@ -165,8 +165,18 @@ None. The repository was created on 21 Oct 2026, after the build clock started o
 
 | Name | Type | License |
 |---|---|---|
-| Streamlit 1.66.1 | Library | Apache-2.0 |
-| Pillow 13.0.0 | Library | MIT-CMU |
+| FastAPI >=0.115 | Library | MIT |
+| uvicorn[standard] >=0.30 | Library | BSD-3-Clause |
+| Jinja2 >=3.1 | Library | BSD-3-Clause (PyPI) |
+| APScheduler >=3.10,<4 | Library | MIT (PyPI) |
+| feedparser >=6.0 | Library | BSD-2-Clause (PyPI) |
+| pypdf >=6.21 | Library | BSD-3-Clause |
+| httpx >=0.28 | Library | BSD-3-Clause |
+| pydantic >=2.10 | Library | MIT |
+| anthropic >=2.0.0 | Library | MIT |
+| typesafe-sdk 0.7.5 | Library (optional Jev ranker, off by default) | [TEAM TO FILL: licence] |
+| PyYAML >=6.0 | Library | MIT |
+| Markdown >=3.7 | Library | BSD-3-Clause |
 | pandas 3.0.6 | Library | BSD-3-Clause |
 | NumPy 2.5.4 | Library | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 |
 | requests 2.34.2 | Library | Apache-2.0 |
@@ -177,7 +187,6 @@ None. The repository was created on 21 Oct 2026, after the build clock started o
 | scikit-learn 1.9.1 | Library (experiment only) | BSD-3-Clause |
 | joblib 1.6.0 | Library (experiment only) | BSD-3-Clause |
 | threadpoolctl 3.7.0 | Library (experiment only) | BSD-3-Clause |
-| Altair 6.3.0 (installed with Streamlit, imported by `app.py`) | Library | BSD-3-Clause |
 | Hacker News "Ask HN: Who is hiring?" threads, via Algolia HN Search API | Dataset | No licence stated in `data/SOURCES.md`. We commit only aggregate counts and thread links. |
 | Anthropic Economic Index, release 2026-06-26 | Dataset | CC BY (data), MIT (code) |
 | O*NET 31.0 Database, Task Statements | Dataset | CC BY 4.0 |
@@ -187,9 +196,9 @@ None. The repository was created on 21 Oct 2026, after the build clock started o
 | O*NET-SOC crosswalk tables | Dataset (code mapping only) | O*NET data is mostly CC BY 4.0; the crosswalk pages state no licence of their own |
 | HistGradientBoostingRegressor (scikit-learn) | Model (experiment, not deployed) | BSD-3-Clause |
 | Claude Haiku 4.5 (`claude-haiku-4-5`), Anthropic, through Replit AI Integrations | Model (CV intake) | Commercial API terms. Replit bills the calls to Replit credits. |
-| Chart colour values in `app.py` (from a "dataviz" skill used with Claude Code) | Design values | [TEAM TO FILL: confirm the licence of the palette file] |
+| Chart colour values in `frontend/` (the older values came from a "dataviz" skill used with Claude Code) | Design values | [TEAM TO FILL: confirm the origin and licence of the palette] |
 
-Sources: `data/SOURCES.md`, `requirements.txt`, `requirements-dev.txt`, and the installed package metadata.
+Sources: `data/SOURCES.md`, `requirements.txt`, `backend/signals/requirements.txt`, `requirements-dev.txt`, and the installed package metadata. A `>=` version is a lower bound; the installed version can be newer.
 
 ### 6.3 Other declarations
 

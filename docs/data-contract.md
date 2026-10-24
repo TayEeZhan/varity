@@ -148,7 +148,7 @@ How the numbers are made:
 - `as_of`: `build_scores(as_of)` uses only data with target <= `as_of`. The earliest supported `as_of` is the first month with 24 usable origins (2023-11 for data from 2019-01). Earlier values raise an error. `exposure.csv` is not time-cut.
 
 ## Role match files (engine output, UI reads them) - E7
-Code: `engine/roles.py`. Build (about 2 minutes): `python -m engine.roles --raw-dir <folder with the raw HN thread JSON>`. Tests: `tests/test_roles.py`. UI: the Roles tab in `app.py`.
+Code: `engine/roles.py`. Build (about 2 minutes): `python -m engine.roles --raw-dir <folder with the raw HN thread JSON>`. Tests: `tests/test_roles.py`. UI: the CV & routes screen of the Varity app (the Streamlit Roles tab was retired 24 Oct).
 A post belongs to a role if its cleaned text matches the role's `title_pattern` (case-insensitive). One post can belong to several roles. Counting rules are the same as `demand_monthly.csv` (top-level, non-deleted, non-empty posts; a post counts once per role and once per skill).
 None of these files holds post text. They hold counts, shares, skill names and HN thread ids only.
 

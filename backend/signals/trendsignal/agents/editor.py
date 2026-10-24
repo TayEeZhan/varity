@@ -14,6 +14,7 @@ from dataclasses import dataclass
 import anthropic
 from anthropic import beta_tool
 
+from intake.llm_extract import output_config
 from trendsignal.llm import usage_cost
 from trendsignal.queries import StoryView
 
@@ -111,7 +112,7 @@ def write_brief(client: anthropic.Anthropic, model: str, title: str, kind: str, 
             system=EDITOR_SYSTEM,
             tools=tools,
             messages=[{"role": "user", "content": f"Write the {kind} brief titled: {title}"}],
-            output_config={"effort": "medium"},
+            output_config=output_config(model, "medium"),
             max_iterations=MAX_ITERATIONS,
             betas=["server-side-fallback-2026-07-01"],
             fallbacks="default",

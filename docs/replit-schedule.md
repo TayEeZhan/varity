@@ -3,10 +3,9 @@
 What this sets up:
 
 1. A **Scheduled Deployment** runs `python -m engine.scheduled` every day at 09:00 Malaysia time. It downloads the newest Hacker News "Who is hiring?" thread, rebuilds the scores, and saves the result in **Replit App Storage**.
-2. Every app instance reads the newest saved result (cached for 10 minutes). Visitors see a banner: "Data refreshed automatically on ... (scheduled job). Committed snapshot: ...".
-3. The **Refresh live data** button in the app saves its result to the same place, so one click helps every visitor.
+2. The scheduled job is the refresh path: it saves the newest result to the store, and nothing in the web app refreshes data by hand.
 
-If App Storage is empty, broken, or older than the committed data, the app shows the committed data. Nothing breaks.
+If App Storage is empty, broken, or older than the committed data, a reader of the store falls back to the committed data. Nothing breaks.
 
 > Labels in the Replit UI change from time to time. Wherever this page says "verify this label in your Replit UI", look for the closest match and tell me if it differs, so I can fix this page. Do not guess.
 
@@ -16,7 +15,7 @@ If App Storage is empty, broken, or older than the committed data, the app shows
 |---|---|
 | `engine/store.py` | Saves and loads snapshots. `LocalStore` (a folder, for tests and local runs) and `ReplitStore` (App Storage). |
 | `engine/scheduled.py` | The job. Exit code 0 = good, 1 = failed. Prints one JSON line. |
-| `engine/live.py` | The app's link to the store (10-minute cache, banner text, save after a manual refresh). |
+| `engine/live.py` | Reads the newest stored snapshot (only if newer than the committed data) and builds the banner text. |
 | `requirements.txt` | New line: `replit-object-storage==1.0.2` (checked against the OSV advisory database on 22 Oct 2026: no advisories for it or for the packages it installs). |
 
 Layout in the bucket (only files this feature writes; nothing else is touched):
@@ -36,7 +35,7 @@ The newest 14 snapshots are kept. Older ones are deleted. If a job fails half wa
 
 1. Merge the branch `feat/scheduled-refresh` into `main` (after you review it).
 2. In Replit, pull the new code (Git tool, "Pull"; verify this label in your Replit UI).
-3. Publish the Autoscale app again, so it installs the new package from `requirements.txt` (the build command is `pip install -r requirements.txt`).
+3. Publish the app again, so it installs the new package from `requirements.txt` (the build command is `pip install -r requirements.txt`).
 
 ## Part 2. Create the App Storage bucket
 
@@ -70,7 +69,7 @@ The newest 14 snapshots are kept. Older ones are deleted. If a job fails half wa
    Check which time zone the schedule form uses (verify in your Replit UI). If it uses UTC, `0 1 * * *` is right. If it uses your own time zone, use 09:00 and ignore the cron above.
 4. Click the button that creates or publishes the deployment (verify this label in your Replit UI).
 
-**Possible limit (verify):** Replit may allow only one deployment type for each app. If the form does not let you add a Scheduled deployment next to the Autoscale one, tell me before you change anything. Options then: (a) create a second Replit app from the same GitHub repo for the job only and give it the same bucket; or (b) use only the manual **Refresh live data** button, which already saves for every visitor. Do not delete the Autoscale deployment.
+**Possible limit (verify):** Replit may allow only one deployment type for each app. If the form does not let you add a Scheduled deployment next to the Reserved VM one, tell me before you change anything. Option: create a second Replit app from the same GitHub repo for the job only and give it the same bucket. Do not delete the Reserved VM deployment.
 
 ## Part 4. Secrets
 
@@ -107,11 +106,8 @@ Note: I could not check whether the workspace and the published app share one bu
 
 ## Part 6. Check that it worked
 
-1. Open the app URL. In the main area you should see an info box:
-   "Data refreshed automatically on 2026-10-23T01:00:05Z (scheduled job). Committed snapshot: 2026-10-21T21:09:03Z."
-   (If the stored data is not newer than the committed data, there is no banner. This is correct.)
-2. The app asks the store at most once every 10 minutes. To check at once, click **Reload data** in the sidebar. This button only appears when a newer stored snapshot exists.
-3. Optional: open the App Storage page. You should see `latest.json` and a `snapshots/` folder.
+1. Check the job log (Part 7) shows `"ok": true`. The Varity web app does not read these snapshots yet (only `engine.live` can, and nothing in `backend/` calls it), so there is no banner to look for.
+2. Optional: open the App Storage page. You should see `latest.json` and a `snapshots/` folder.
 
 ## Part 7. Look at the logs
 

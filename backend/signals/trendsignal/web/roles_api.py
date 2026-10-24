@@ -12,6 +12,7 @@ from fastapi import FastAPI, Header, Query, Request
 from pydantic import BaseModel, Field
 
 from advisor import service
+from advisor.llm import LlmUnavailable, call_model
 from intake import ledger
 from trendsignal.jobs import AppContext
 from trendsignal.output import latest_run_id
@@ -21,6 +22,7 @@ from trendsignal.web.cv_api import client_ip, load_profile, save_profile
 
 ROLES_LIMIT_PER_MINUTE = 30
 MIN_HOURS, MAX_HOURS = 1, 40
+MODEL_CALLS_PER_MINUTE = 4  # per IP: counted only when a paid model call really starts, never for a cached answer
 
 
 class TargetRoleIn(BaseModel):
@@ -30,6 +32,15 @@ class TargetRoleIn(BaseModel):
 def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
     settings = ctx.settings
     limiter = RateLimiter(ROLES_LIMIT_PER_MINUTE)
+    model_limiter = RateLimiter(MODEL_CALLS_PER_MINUTE)
+
+    def model_call(request: Request):
+        """The model call for this client: the per-IP limit is spent here, after the cache lookup."""
+        def call(*args, **kwargs):
+            if not model_limiter.allow(client_ip(request)):
+                raise LlmUnavailable("RATE_LIMITED")
+            return call_model(*args, **kwargs)
+        return call
 
     def signals() -> tuple[list[dict], str | None]:
         rows = [{**row, "terms": ctx.watchlist.skills.get(row["skill"], [])}
@@ -57,7 +68,7 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
 
     @app.get("/api/roles/suggestions")
     def api_role_suggestions(request: Request, scenario: Literal["moderate", "fast"] = "moderate",
-                             hoursPerWeek: float = Query(default=5, ge=MIN_HOURS, le=MAX_HOURS),
+                             hoursPerWeek: int = Query(default=5, ge=MIN_HOURS, le=MAX_HOURS),
                              x_profile_token: str | None = Header(default=None)):
         """Roles ranked for the saved profile, each with reason chips built from the profile, forecast and signals."""
         profile, data, error = checks(request, x_profile_token)
@@ -65,7 +76,8 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
             return error
         rows, run_id = signals()
         return envelope(service.suggestions(profile, rows, run_id, settings.db_path, scenario=scenario,
-                                            hours_per_week=hoursPerWeek, use_llm=settings.llm_mode != "off", data=data))
+                                            hours_per_week=hoursPerWeek, use_llm=settings.llm_mode != "off",
+                                            call=model_call(request), data=data))
 
     @app.post("/api/profile/target-role")
     def api_target_role(payload: TargetRoleIn, request: Request, x_profile_token: str | None = Header(default=None)):
@@ -73,7 +85,7 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
         profile, data, error = checks(request, x_profile_token)
         if error:
             return error
-        if payload.roleId not in service.role_ids(data):
+        if payload.roleId not in service.pathway_role_ids(profile, data):
             return envelope(error="unknown role", status=422, meta={"code": "VALIDATION_ERROR"})
         if profile.target_role != payload.roleId:
             profile = ledger.set_details(profile, name=profile.name, target_role=payload.roleId)
@@ -82,7 +94,7 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
 
     @app.get("/api/pathway")
     def api_pathway(request: Request, roleId: str | None = Query(default=None, max_length=60),
-                    hoursPerWeek: float = Query(default=5, ge=MIN_HOURS, le=MAX_HOURS),
+                    hoursPerWeek: int = Query(default=5, ge=MIN_HOURS, le=MAX_HOURS),
                     scenario: Literal["moderate", "fast"] = "moderate",
                     x_profile_token: str | None = Header(default=None)):
         """The pathway to roleId, or to the saved route. Its dated tasks feed the Today page."""
@@ -95,7 +107,8 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
         rows, run_id = signals()
         try:
             plan = service.pathway(profile, role_id, rows, run_id, settings.db_path, scenario=scenario,
-                                   hours_per_week=hoursPerWeek, use_llm=settings.llm_mode != "off", data=data)
+                                   hours_per_week=hoursPerWeek, use_llm=settings.llm_mode != "off",
+                                   call=model_call(request), data=data)
         except service.RoleNotFound:
             return envelope(error="no pathway for this role: unknown, or too few job posts to learn it", status=422,
                             meta={"code": "VALIDATION_ERROR"})

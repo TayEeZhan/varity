@@ -1,7 +1,6 @@
 /* Screen renderers for Signals, Job forecast and the Flow map. Each returns { html, bind(root) }. */
 
 /* ── Signals ───────────────────────────────────────────────────── */
-const ROUTE_SKILLS = { "LLM application development": "var(--apps)", "AI security": "var(--guard)", "LLM serving and inference": "var(--serve)" };
 const FILTERS = [
   { id: "all", label: "All", match: () => true },
   { id: "security", label: "Security", match: (s) => s.category === "Security incident" },
@@ -10,9 +9,6 @@ const FILTERS = [
   { id: "policy", label: "APIs & policy", match: (s) => /API|Policy/.test(s.category) },
   { id: "models", label: "Model releases", match: (s) => s.category === "Model release" },
 ];
-
-/* Story links come from crawled feeds: allow only http(s). */
-const safeUrl = (u) => (/^https?:\/\//i.test(u) ? u : "#");
 
 function noticesHTML() {
   const f = FILTERS.find((x) => x.id === STATE.filter);
@@ -25,7 +21,7 @@ function noticesHTML() {
       <div class="notice__rank">${s.rank}</div>
       <div>
         <div class="notice__title"><a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener">${esc(s.title)}</a></div>
-        <div class="notice__meta">${esc(s.category)} · ${s.sources.map(esc).join(" + ")} · first seen ${s.date}</div>
+        <div class="notice__meta">${esc(s.category)} · ${s.sources.map(esc).join(" + ")} · first seen ${esc(s.date)}</div>
         <div class="notice__why">Ranks here because: ${s.why.map(esc).join(" · ")}</div>
       </div>
       <div class="notice__score">${s.score.toFixed(1)}<small>score</small><i style="width:${Math.round((s.score / max) * 100)}%"></i></div>
@@ -36,13 +32,12 @@ function renderSignals() {
   const skills = SKILLS.slice().sort((a, b) => b.momentum - a.momentum);
   const max = Math.max(...SKILLS.flatMap((s) => s.weekly));
   const rows = skills.map((s) => {
-    const color = ROUTE_SKILLS[s.skill] || "#8a8b8e";
-    const yours = ROUTE_SKILLS[s.skill] ? `<span class="yours">On your route</span>` : "";
-    return `<tr><td>${esc(s.skill)}${yours}</td><td>${ridershipSVG(s.weekly, max, color)}</td><td class="num">${s.weekly[4]}</td><td class="num hide-sm">+${s.momentum.toFixed(1)}</td></tr>`;
+    const color = "#8a8b8e";
+    return `<tr><td>${esc(s.skill)}</td><td>${ridershipSVG(s.weekly, max, color)}</td><td class="num">${s.weekly[4]}</td><td class="num hide-sm">${s.momentum >= 0 ? "+" : ""}${s.momentum.toFixed(1)}</td></tr>`;
   }).join("");
 
   const html = `
-    ${head("Signals", "What moved in AI and dev tooling this week, ranked by a fixed formula from dated, named sources. Every rank shows its reasons.", real(`Real data · ${SIGNAL_RUN.storyCount} stories · ${SIGNAL_RUN.generatedAt}`))}
+    ${head("Signals", "What moved in AI and dev tooling this week, ranked by a fixed formula from dated, named sources. Every rank shows its reasons.", (STATE.signalsLive ? real : snapshot)(`${STATE.signalsLive ? "Real data" : "Offline snapshot"} · ${SIGNAL_RUN.storyCount} stories · ${SIGNAL_RUN.generatedAt}`))}
     <div class="signals-grid">
       <section aria-labelledby="sm-h">
         <h2 class="sec" id="sm-h">Skill momentum <small>Mentions per week, last 5 weeks</small></h2>
@@ -107,11 +102,10 @@ function renderForecast() {
     </div>`;
   };
 
-  const asOf = esc(FORECAST.as_of || "?") + (FORECAST.partial_month ? " (month in progress)" : "");
   const html = `
-    ${head("Job forecast", "How demand for tech roles may change over the next 12 months, from the share of Hacker News “Who is hiring?” posts that name each role. Ranges are estimates.")}
+    ${head("Job forecast", "How demand for tech roles may change over the next 12 months, from the share of Hacker News “Who is hiring?” posts that name each role. Ranges are estimates, not counts. Two scenarios exist for routes: the forecast here is the moderate one; the fast AI scenario is shown on CV &amp; routes, also as an estimate.")}
     <div class="fc-bar-head">
-      ${real(`Real data · HN hiring posts · as of ${asOf}${STATE.forecastLive ? "" : " · saved copy"}`)}
+      ${(STATE.forecastLive ? real : snapshot)(`${STATE.forecastLive ? "Real data" : "Offline snapshot"} · HN hiring posts · as of ${(FORECAST.as_of || "?") + (FORECAST.partial_month ? " (month in progress)" : "")}`)}
       <div class="fc-key">
         <span><i class="k-tick"></i>Share now</span>
         <span><i class="k-bar"></i>In 12 months</span>
@@ -144,9 +138,10 @@ function stopCard(s) {
   const L = FLOW_LINES[s.line];
   const link = s.screen
     ? `<a class="btn btn--primary" href="#/${s.screen}">Open ${SCREEN_NAME[s.screen]} ${ICON.arrow}</a>`
-    : `<p class="muted">Not drawn in this prototype; the five core screens are.</p>`;
+    : `<p class="muted">Not drawn in this prototype. Varity has eight pages, listed in the top bar.</p>`;
   return `<h2><span class="stop-card__num" style="border-color:${L.color}">${s.n}</span>${esc(s.label)}</h2>
     <dl><div><dt>Line</dt><dd>${L.name}, ${L.note}</dd></div><div><dt>The user</dt><dd>${esc(s.does)}</dd></div><div><dt>They see</dt><dd>${esc(s.sees)}</dd></div></dl>
+    ${s.built === false ? `<p class="muted">Not built yet.</p>` : ""}
     ${link}`;
 }
 
@@ -158,7 +153,7 @@ function renderFlow() {
     </section>`;
 
   const html = `
-    ${head("How Varity is used", "The user flow as a transit map: a first ride taken once, a daily loop ridden every morning, and two explore stops to visit any time. Select a station to see what the user does there.")}
+    ${head("How Varity is used", "The planned user flow as a transit map: a first ride taken once, a daily loop ridden every morning, and two explore stops to visit any time. Select a station to see what the user does there. Not built yet: Google sign-in and Google Tasks (steps 2, 8 and 10), reordering or skipping stops (step 6) and the service-change band (step 12). Varity offers a plan download and a calendar file instead.")}
     <div class="flow">
       <div>
         <div class="diagram">${flowSVG()}</div>

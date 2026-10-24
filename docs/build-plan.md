@@ -3,7 +3,9 @@
 Team **Hokkien Mee Is Purple** (Ee Zhan, Sheng Kuan). XMUM SDC Hackathon 2026, Domain 1 (Aiversecity Future-Ready Workforce).
 Preliminary deadline: **Sun 25 Oct 2026, 07:59:59 MYT**. Our target: submit **Sat 24 Oct, 21:00**.
 Live prototype: https://verity--eezhan0805.replit.app (real forecasts; see the status table below).
-Status on 22 Oct 2026: over 700 automated tests pass.
+Status on 22 Oct 2026: over 700 automated tests pass (counted before the Streamlit tests were removed; re-count).
+
+Retired 24 Oct: the Streamlit UI (`app.py`) was replaced by Varity (FastAPI plus a static web app in `frontend/`). Mentions of Streamlit, `app.py`, the Refresh button and the as-of slider below are historical; `docs/architecture.md` describes the current app.
 
 Legend: ✅ built and tested · 🟡 built, not yet shown in the app · ⏳ planned · ❓ needs a team decision
 
@@ -12,7 +14,7 @@ Sections 2 and 3 below are the plan as written earlier. This table is the curren
 
 | Part | Status | Where |
 |---|---|---|
-| P1-P11 skill engine and app on real data (forecast, band, trend label, statuses, scenarios, refresh, as-of view) | ✅ merged | PR #1 |
+| P1-P11 skill engine and app on real data (forecast, band, trend label, statuses, scenarios; the Streamlit refresh and as-of view were retired 24 Oct) | ✅ merged | PR #1 |
 | E7 role match (profiles learned from single-role HN posts, tiers, Roles tab, personas) | ✅ merged | PR #2 |
 | E8 pathway (stages, daily to-do, progress, .md/.ics export, SDG lines, 77 verified resources) | ✅ merged | PR #4 |
 | Step 4 daily scheduled refresh + Replit App Storage | ✅ merged; Replit UI setup still to do | PR #3, docs/replit-schedule.md |
@@ -20,7 +22,7 @@ Sections 2 and 3 below are the plan as written earlier. This table is the curren
 | Step 9 exposure cross-check (3 indices) and data-based k | ✅ merged; only "language" stance robust; k cannot be pinned down | PR #6, docs/exposure-crosscheck.md |
 | Step 7 new-skill discovery radar | ✅ merged; weak backtest, human review only | PR #7, docs/skill-discovery.md |
 | Step 8 JobStreet Malaysia | ❌ stopped: Cloudflare challenge; needs a data partnership | docs/jobstreet.md (branch feat/jobstreet-my) |
-| E9 "what changed and why" | 🟡 partial: Refresh lists changed skills; no full diff view | app.py |
+| E9 "what changed and why" | ⏳ no full diff view; the Streamlit Refresh list was retired 24 Oct | none |
 | S1 CV extraction (Claude Haiku 4.5) | ✅ merged (PR #16); live run on Replit not yet verified | docs/skill-profile-intake-architecture.md |
 | S2 AI news ranker feed | ⏳ Sheng Kuan; plugs into `ext_momentum` | docs/ml-forecaster.md |
 | Submission documents, pitch script, Q&A | ⏳ drafts on branch docs/submission | docs/submission/ |
@@ -61,7 +63,7 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
                                          |
    S1 CV extractor -> profile.json -> E7 role match -> E8 pathway / daily to-do -> E9 "what changed"
                                          |
-                                  Streamlit app on Replit
+                                  Varity app on Replit (FastAPI + static frontend; Streamlit retired 24 Oct)
 ```
 
 ---
@@ -160,8 +162,8 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
   - If the Replit disk is read-only, it works in a temporary folder.
   - If the network fails, it keeps the last good data and shows its date.
 
-### P11. Streamlit app on Replit ✅
-- **What it does now:** five tabs (Roles, Pathway, Skills, Skill detail, Method), a sidebar with the Moderate/Fast scenario, the As-of month and Refresh, and sources per skill. It is deployed at the URL above.
+### P11. Streamlit app on Replit ✅ (retired 24 Oct: replaced by Varity)
+- **What it did (Streamlit version):** five tabs (Roles, Pathway, Skills, Skill detail, Method), a sidebar with the Moderate/Fast scenario, the As-of month and Refresh, and sources per skill. It is deployed at the URL above.
 - **Why Streamlit:** one Python program reads the engine directly. No separate server is needed, and it is fast to build and deploy on Replit, which is compulsory.
 - **Why the versions are pinned:** Replit's package firewall blocks Pillow versions with known security issues (six advisories on 20 Oct 2026). We moved to Streamlit 1.66.1 with Pillow 13.0.0, and checked every package against the OSV advisory database.
 
@@ -243,7 +245,7 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
 
 ### LLM ✅ (design; live run on Replit not yet verified)
 - The CV intake uses Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works. The intake has a daily cap of $1 (`VERITY_INTAKE_DAILY_BUDGET_USD`).
-- The forecast, role match, pathway and SDG parts use no LLM.
+- The forecast, role match score, pathway engine and SDG parts are computed by code. An optional route advisor and pathway coach may re-order within code's limits and write one checked sentence each.
 - No local models and no fine-tuning, so no GPU and no RunPod.
 
 ### Documents ⏳

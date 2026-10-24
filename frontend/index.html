@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="evidence.css?v=1">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -26,21 +27,24 @@
         <a href="#/pathway" data-route="pathway">Pathway</a>
         <a href="#/signals" data-route="signals">Signals</a>
         <a href="#/forecast" data-route="forecast">Job forecast</a>
+        <a href="#/radar" data-route="radar">Skills radar</a>
+        <a href="#/method" data-route="method">Method</a>
       </nav>
-      <p class="band__meta">Signals updated <time datetime="2026-10-22T13:09+08:00">22 Oct, 13:09</time></p>
+      <p class="band__meta">Signals: offline snapshot of <time datetime="2026-10-22T13:09+08:00">22 Oct, 13:09</time></p>
     </div>
   </header>
 
   <main id="main" tabindex="-1"></main>
 
   <footer class="foot">
-    <p><strong>Varity prototype.</strong> Signals and skill momentum are real output of the AI Trend Signal Layer (run <span data-run-id>20261022T050908-ab9c76</span>). CVs are read by the skill profile intake: every skill is checked against a quote from the CV. The job forecast is real output of the role forecast engine (Hacker News hiring posts). Routes, pathway and today's stops are synthetic demo data. Varity supports your judgement; it does not replace it.</p>
+    <p><strong>Varity prototype.</strong> Signals and skill momentum are output of the AI Trend Signal Layer (run <span data-run-id>20261022T050908-ab9c76</span>); if the server cannot be reached, the page shows a dated offline snapshot and says so. CVs are read by the skill profile intake: every skill is checked against a quote from the CV. The job forecast comes from the role forecast engine (Hacker News hiring posts). Match scores, routes, the pathway and today's stops are computed by code from your saved profile and the files in data/; example profiles are synthetic. Scenarios are estimates. Varity supports your judgement; it does not replace it.</p>
   </footer>
 
-  <script src="data.js?v=10"></script>
-  <script src="diagram.js?v=10"></script>
-  <script src="screens.js?v=11"></script>
-  <script src="screens-explore.js?v=10"></script>
-  <script src="app.js?v=11"></script>
+  <script src="data.js?v=11"></script>
+  <script src="diagram.js?v=11"></script>
+  <script src="screens.js?v=12"></script>
+  <script src="screens-explore.js?v=11"></script>
+  <script src="screens-evidence.js?v=1"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>

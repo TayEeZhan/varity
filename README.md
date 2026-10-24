@@ -2,7 +2,7 @@
 
 Verity reads a tech developer's CV, forecasts which skills are rising or falling from dated public data, and gives ranked future roles and a learning plan. Every claim shows its source and date, and the plan changes when the data changes. The app shows real forecasts built from public data.
 
-**Live prototype:** https://verity--eezhan0805.replit.app
+**Live prototype:** https://verity--eezhan0805.replit.app (not yet republished with the Varity-only app; until it is, the live site may show the older version)
 
 **Architecture:** [docs/architecture.md](docs/architecture.md) covers every feature, its status, and how future job roles are predicted.
 
@@ -11,31 +11,39 @@ Verity reads a tech developer's CV, forecasts which skills are rising or falling
 | Folder | What it is |
 |---|---|
 | `frontend/` | Varity web app (static HTML/CSS/JS, no build step) |
-| `backend/signals/intake/` | Skill profile intake: reads a CV and keeps the skill profile behind the CV page (`/api/cv/extract`, `/api/profile`) |
-| `backend/signals/` | AI trend signal system: collects, ranks and serves the Signals page data (`GET /api/signals`) |
-| `app.py`, `engine/`, `data/` | Current Streamlit prototype (skill forecast); moves into `backend/` later |
+| `backend/signals/` | The only server: FastAPI app (`python -m trendsignal serve`) that serves `frontend/` at `/` and the JSON APIs. It also holds the AI trend ranker (`trendsignal/`), the CV intake (`intake/`) and the role advisor (`advisor/`) |
+| `engine/` | Plain Python: demand, forecast, backtest, exposure, role match, pathway, radar. Imported by the backend. Not a server |
+| `data/` | Committed CSV and JSON files that the engine writes and the backend reads, plus `SOURCES.md` |
+| `docs/` | Architecture, build plan, data contract, submission documents |
+| `tests/` | Tests for `engine/` (backend tests are in `backend/signals/tests/`) |
 
-## Run the Varity web app
+## Screens
+
+Varity is the only app. It has eight screens:
+
+- **Flow map**: the planned user flow as a transit map. It says that Google sign-in and Google Tasks are not built.
+- **CV & routes**: upload a CV, or press "Try an example" (3 synthetic profiles). Shows ranked routes to roles.
+- **Today**: your next stops, taken from your pathway.
+- **Pathway**: the ordered stops from your skills to your route. You can download it as `.md` or `.ics`.
+- **Signals**: AI and dev-tooling signals, ranked from dated sources.
+- **Job forecast**: 12-month outlook for tech roles, from Hacker News hiring posts.
+- **Skills radar**: skill demand and change, with a forecast per skill.
+- **Method**: backtests, AI exposure cross-check, and data sources.
+
+## Run Varity locally
 
 ```
+pip install -r requirements.txt
 cd backend/signals
-pip install -r requirements.txt
-python -m trendsignal serve --scheduler --port 8000
+python -m trendsignal serve --port 8000
 ```
 
-Open http://localhost:8000. The backend serves `frontend/` at `/`, re-ranks every 15 minutes, and the Signals page loads live data from `/api/signals`. The old ranker feed is at `/feed`. Opened without the backend, the page shows the bundled snapshot in `frontend/data.js`.
-
-## Run the Streamlit prototype locally
-
-```
-pip install -r requirements.txt
-streamlit run app.py
-```
+Open http://localhost:8000. The backend serves `frontend/` at `/`. Add `--scheduler` to re-rank the Signals every 15 minutes; only with `--scheduler` does the first start also fill an empty database (without it the Signals page may be empty until you run `python -m trendsignal run`). Opened without the backend, the page shows dated offline snapshots and says so.
 
 ## Deploy on Replit
 
 1. Import this GitHub repo into Replit.
-2. Press Run. The app starts on port 8080 (see `.replit`).
+2. Press Run. The app starts on port 8080 (see `.replit`; the command is `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`).
 3. Press Deploy. Use the Deployment URL, not the dev URL.
 
 ## Data and AI disclosure
@@ -53,7 +61,8 @@ This product includes information from O*NET OnLine by the U.S. Department of La
 AI models in the running app:
 
 - CV intake: Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). With no credentials, a keyword pass takes over. The model only points at skill mentions. Code checks every quote word for word. A daily cap of $1 applies (`VERITY_INTAKE_DAILY_BUDGET_USD`). This is the design; we have not yet verified it on the live Replit app. Use synthetic CVs only: CV text goes to Anthropic through Replit.
-- The skill forecast, role match, pathway and SDG parts use no LLM.
+- The skill forecast, role match, pathway steps, dates and SDG parts are code. Only the CV intake and two optional steps use an LLM. The optional route advisor re-orders roles by at most 2 places, picks reason chips that code wrote and writes one checked summary line; the fit label always comes from code. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. All of it runs within code's limits and falls back to code.
+- "Try an example" needs no LLM.
 - The signal ranker (`backend/signals/`) can use Claude and Jev (TypeSafe AI), but both are off by default.
 
 AI tools used in development: Claude Code (Anthropic).

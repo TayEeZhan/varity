@@ -21,11 +21,11 @@ Where a field has nothing to declare, we write "None".
 
 ### 2.1 Architecture overview
 
-Verity is one Python program. A Streamlit app imports the engine modules.
+Verity is one Python server and a static web app. FastAPI, run with uvicorn, serves `frontend/` and the JSON APIs, and imports the engine modules.
 
-**Data flow.** The engine downloads every monthly Hacker News "Who is hiring?" thread through the Algolia HN Search API: 94 threads and 48,508 job posts, January 2019 to October 2026. A tagger finds 40 taxonomy skills in each post with regular expressions. The engine turns the tags into a monthly share per skill. It forecasts 12 months ahead, adds a conformal band and a Welch trend label, and joins an AI exposure score from the Anthropic Economic Index. The role module learns role profiles from posts that name one role. The pathway module orders the learning plan. A discovery module lists new-skill candidates.
+**Data flow.** The engine downloads every monthly Hacker News "Who is hiring?" thread through the Algolia HN Search API: 94 threads and 48,508 job posts, January 2019 to October 2026. A tagger finds 40 taxonomy skills in each post. The engine turns the tags into a monthly share per skill. It forecasts 12 months ahead, adds a conformal band and a Welch trend label, and joins an AI exposure score from the Anthropic Economic Index. The role module learns role profiles from posts that name one role. The pathway module orders the learning plan. A ranker re-ranks AI news every 15 minutes.
 
-**Storage and refresh.** The repository holds only aggregates. Raw post text stays in gitignored folders on the team's machines and, during a refresh, in a temporary folder on the Replit server. A daily Replit Scheduled Deployment (code merged; Replit setup pending) will fetch the newest thread, rebuild the scores and save a snapshot to Replit App Storage. The app reads the newest snapshot, or else the committed files.
+**Storage and refresh.** The repository holds only aggregates. Raw post text stays in gitignored folders on the team's machines. The app reads the committed files in `data/` (demand data as of October 2026). A daily Replit Scheduled Deployment (code built; setup pending) will save snapshots to App Storage; the app does not read them yet.
 
 The CV intake uses Claude Haiku 4.5 to point at skills; code checks each quote.
 
@@ -33,12 +33,22 @@ The CV intake uses Claude Haiku 4.5 to point at skills; code checks each quote.
 
 ### 2.2 Libraries, versions and licences
 
-Versions are exact. They come from `requirements.txt` and `requirements-dev.txt`, and match the packages installed in the project environment. Licences come from the installed package metadata. The replit-object-storage licence comes from its PyPI page, because that package is not installed in the local environment.
+A version with `==` is pinned in `requirements.txt` or `requirements-dev.txt`. A version with `>=` is the lower bound written in `backend/signals/requirements.txt`; the installed version can be newer. Licences of installed packages come from the package metadata. Licences of packages not installed in the local environment come from their PyPI pages and are marked (PyPI).
 
 | Name & Version | Purpose | License |
 |---|---|---|
-| streamlit 1.66.1 | Web interface (`app.py`) | Apache-2.0 |
-| pillow 13.0.0 | Image library that Streamlit needs. Pinned to a version that Replit's package firewall accepts. | MIT-CMU |
+| fastapi >=0.115 | Web server and JSON APIs (`backend/signals/trendsignal/web/`) | MIT |
+| uvicorn[standard] >=0.30 | Server that runs the FastAPI app | BSD-3-Clause |
+| jinja2 >=3.1 | HTML templates of the ranker pages (`/feed`, `/story`) | BSD-3-Clause (PyPI) |
+| apscheduler >=3.10,<4 | Re-ranks the AI signals every 15 minutes (`--scheduler`) | MIT (PyPI) |
+| feedparser >=6.0 | Reads RSS and Atom feeds in the signal ranker | BSD-2-Clause (PyPI) |
+| pypdf >=6.21 | Reads text from an uploaded PDF CV | BSD-3-Clause |
+| httpx >=0.28 | HTTP client in the signal ranker | BSD-3-Clause |
+| pydantic >=2.10 | Checks API input and the structured output of the language model | MIT |
+| anthropic >=2.0.0 | Client for the Anthropic Messages API (CV intake, optional advisor) | MIT |
+| typesafe-sdk 0.7.5 | Client for the optional Jev ranker (off by default) | [TEAM TO FILL: licence, not installed locally] |
+| pyyaml >=6.0 | Reads the ranker's configuration files | MIT |
+| markdown >=3.7 | Turns the ranker's prose briefs into HTML | BSD-3-Clause |
 | pandas 3.0.6 | Tables and CSV files | BSD-3-Clause |
 | numpy 2.5.4 | Numeric arrays and the forecast maths | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 |
 | requests 2.34.2 | HTTP calls to the Algolia HN Search API | Apache-2.0 |
@@ -49,7 +59,6 @@ Versions are exact. They come from `requirements.txt` and `requirements-dev.txt`
 | scikit-learn 1.9.1 | Gradient-boosting experiment only (`requirements-dev.txt`; not installed on Replit) | BSD-3-Clause |
 | joblib 1.6.0 | Dependency of scikit-learn (`requirements-dev.txt`) | BSD-3-Clause |
 | threadpoolctl 3.7.0 | Dependency of scikit-learn (`requirements-dev.txt`) | BSD-3-Clause |
-| altair 6.3.0 (installed with Streamlit, not pinned by us) | Charts in `app.py` | BSD-3-Clause |
 
 ## 3. External services
 
@@ -61,24 +70,24 @@ Versions are exact. They come from `requirements.txt` and `requirements-dev.txt`
 | HTTP GET requests to learning-resource URLs | Free. Public web pages. | One-time check on 22 Oct 2026 that each of the 77 links in `data/resources.json` returns HTTP 200. We keep only links that returned 200. This check is not part of the running app. |
 | Anthropic Messages API (Claude Haiku 4.5), through Replit AI Integrations | Replit-managed credentials, billed to Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). | One call per CV. The model returns skill mentions with exact quotes. Details in 4.1. |
 
-No other API is used. Only the CV intake calls an LLM API. The forecast, role match, pathway and SDG parts call none.
+No other API is used. Only the CV intake and the two optional steps (route advisor, pathway coach) call an LLM API. The forecast, role match, pathway dates and SDG parts call none.
 
 ### 3.2 Cloud platform and plan
 
 | Service | Use | Plan and region |
 |---|---|---|
-| Replit Autoscale deployment | Hosts the Streamlit app. Build: `pip install -r requirements.txt`. | Plan: [TEAM TO FILL: Replit plan on the deploying account]. Region: [TEAM TO FILL: region shown in Replit] |
+| Replit Reserved VM deployment | Hosts the Varity server (FastAPI, no Streamlit). Build: `pip install -r requirements.txt`. Run: `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. The live URL is not yet republished with this version. | Plan: [TEAM TO FILL: Replit plan on the deploying account]. Region: [TEAM TO FILL: region shown in Replit] |
 | Replit AI Integrations (Anthropic) | Gives the CV intake its Claude Haiku 4.5 credentials. Replit bills the calls to Replit credits. | Design: not yet verified on the live app. [TEAM TO FILL: confirm the integration is enabled on the deployment] |
-| Replit App Storage | Will store the newest data snapshot (keeps the last 14). | Code merged; Replit setup pending. [TEAM TO FILL: confirm the bucket exists] |
-| Replit Scheduled Deployment | Will run `python -m engine.scheduled` daily at 09:00 Malaysia time (cron `0 1 * * *` in UTC). | Code merged; Replit setup pending. [TEAM TO FILL: confirm the Scheduled Deployment is created and has run once] |
+| Replit App Storage | Will store the newest data snapshot (keeps the last 14). The Varity app does not read it yet. | Code built; Replit setup pending. [TEAM TO FILL: confirm the bucket exists] |
+| Replit Scheduled Deployment | Will run `python -m engine.scheduled` daily at 09:00 Malaysia time (cron `0 1 * * *` in UTC). | Code built; Replit setup pending. [TEAM TO FILL: confirm the Scheduled Deployment is created and has run once] |
 
-Status note: the code for App Storage and the scheduled job is merged, but the Replit setup is pending. Our setup guide (`docs/replit-schedule.md`) lists the steps. Do them, then remove "pending" from this table and from the proposal (sections 3.1 and 3.2).
+Status note: the code for App Storage and the scheduled job is built, but the Replit setup is pending. Our setup guide (`docs/replit-schedule.md`) lists the steps. Do them, then remove "pending" from this table and from the proposal (sections 3.1 and 3.2).
 
 ## 4. AI, models and data
 
 ### 4.1 AI models
 
-**One part of the app uses an LLM: the CV intake.** Every other part uses no LLM. The forecast, the Welch label, the role match, the learning pathway and the SDG sector links are code and statistics. The app uses no GPU and no self-hosted model.
+**Only the CV intake and two optional steps use an LLM.** The two optional steps are the route advisor and the pathway coach. Every other part uses no LLM. The forecast, the Welch label, the role match, the learning pathway and the SDG sector links are code and statistics. The app uses no GPU and no self-hosted model.
 
 | Model | Provider | Use | Status |
 |---|---|---|---|
@@ -86,6 +95,7 @@ Status note: the code for App Storage and the scheduled job is merged, but the R
 | HistGradientBoostingRegressor (scikit-learn 1.9.1) | scikit-learn | Experiment: a correction to the naive3 forecast | **Not deployed.** It lost the backtest (error 2.06 against 1.66 percentage points). |
 | Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations | Anthropic, via Replit | CV intake. One call per CV. The model only points at skill mentions in the CV text and returns a quote for each. Code checks that every quote appears word for word in the CV. Code turns the phrase into a skill id and reads the years. The model sets no score, rank, forecast or date. | Design. Replit manages the credentials and bills Replit credits. Not yet verified on the live app. [TEAM TO FILL: confirm after the first live run] |
 | Claude Haiku (default `claude-haiku-5-5`) with a direct `ANTHROPIC_API_KEY` | Anthropic | The same job, when a direct key is set (for example in local runs) | Alternative route. Same checks. |
+| Same model route as the CV intake (`VARITY_ADVISOR_MODEL`, `VARITY_COACH_MODEL` default to the intake model) | Anthropic, via Replit | Optional route advisor: re-orders the ranked roles by at most 2 places and picks among reason chips that code wrote. Optional pathway coach: re-orders steps inside one stage and picks among resource links that code listed. Code checks both answers. The fit label, scores and dates always come from code. | Needs credentials. Without them, code's order stands. Not yet verified on the live app. |
 | Keyword pass | Our code | The same job with no credentials, or when the Claude call fails: matches skill names in the CV text | Fallback. Needs no key and costs nothing. |
 
 **Budget cap.** The CV intake keeps a daily spend counter. The default cap is $1 per day (`VERITY_INTAKE_DAILY_BUDGET_USD`, default 1.0). When the cap is reached, the keyword pass takes over.
@@ -103,7 +113,7 @@ Status note: the code for App Storage and the scheduled job is merged, but the R
 | AIOE (Felten, Raj, Seamans) | https://github.com/AIOE-Data/AIOE | Exposure index (cross-check only) | No licence file. We use it with citation and do not redistribute the files. | N |
 | Microsoft Working with AI, AI applicability scores | https://github.com/microsoft/working-with-ai | Exposure index (cross-check only) | CC BY 4.0 | N |
 | O*NET-SOC crosswalk tables | https://www.onetcenter.org/taxonomy/2019/walk.html | Occupation code mapping only | O*NET data is mostly CC BY 4.0; the pages state no licence of their own | N |
-| Three synthetic personas (Aina, Ben, Chloe) | Written by the team, in `app.py` | Synthetic example skill lists | Our own work | N (synthetic) |
+| Three synthetic example profiles (Aina, Ben, Chloe) | Written by the team, in `data/example_profiles.json` | Synthetic example skill lists | Our own work | N (synthetic) |
 | Learning resources list (77 links) | Written by the team, in `data/resources.json`. Links point to the providers. | Titles and links only. We copy no page content. | Our own work | N |
 
 Full URLs, versions, commit hashes and file checksums: `data/SOURCES.md`.
@@ -125,7 +135,7 @@ A stronger model reviews each major part before we call it done. The team review
 
 ## 5. Sponsor resources
 
-**Replit** (Core plan: [TEAM TO FILL: confirm]). We use it for hosting and for Replit AI Integrations (Claude Haiku 4.5, billed to Replit credits). We plan to use App Storage and Scheduled Deployments (code merged; Replit setup pending). Replit is essential for the hackathon (compulsory). It is replaceable. `engine/store.py` has a local-folder store, and a direct Anthropic key replaces AI Integrations. Proof of use: the live URL https://verity--eezhan0805.replit.app. [TEAM TO FILL: attach any extra proof, such as a project history link.]
+**Replit** (Core plan: [TEAM TO FILL: confirm]). We use it for hosting and for Replit AI Integrations (Claude Haiku 4.5, billed to Replit credits). We plan to use App Storage and Scheduled Deployments (code built; Replit setup pending). Replit is essential for the hackathon (compulsory). It is replaceable. `engine/store.py` has a local-folder store, and a direct Anthropic key replaces AI Integrations. Proof of use: the live URL https://verity--eezhan0805.replit.app. [TEAM TO FILL: attach any extra proof, such as a project history link.]
 
 (81/100 words)
 

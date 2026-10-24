@@ -7,8 +7,6 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from engine import live  # noqa: E402
-
 
 @pytest.fixture(autouse=True)
 def isolated_store(tmp_path, monkeypatch):
@@ -21,9 +19,7 @@ def isolated_store(tmp_path, monkeypatch):
     monkeypatch.setenv("VERITY_LIVE_DIR", str(tmp_path / "live"))
     for name in ("REPL_ID", "REPLIT_DEPLOYMENT", "VERITY_STORE", "VERITY_BUCKET"):
         monkeypatch.delenv(name, raising=False)
-    live._cached_start_dir.clear()
     yield
-    live._cached_start_dir.clear()
 
 
 def write_data_folder(folder: Path, generated_at: str = "2026-10-22T01:00:00Z", marker: str = "a") -> Path:
