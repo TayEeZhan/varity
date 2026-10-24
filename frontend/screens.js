@@ -38,16 +38,41 @@ const scenarioToggle = () => `<div class="filters" role="group" aria-label="AI s
   </div>
   <p class="route-note">Both scenarios are estimates. The scenario does not change how roles rank. Fast shows how much role demand may fall if AI exposure cuts skill demand, and puts future skills earlier in the pathway.</p>`;
 
+const sdgAll = (tags) => tags.map((t) => `SDG ${t.target}: ${t.label}`).join(", ");
 const sdgTag = (t) => `<span class="tag" title="Source: ${esc(t.source)}">SDG ${esc(t.target)}: ${esc(t.label)}</span>`;
 
-/* "TalentCorp MyCOL 2024/2025": the occupation(s) on Malaysia's shortage list that match the role. */
-function mycolBadges(items) {
-  return items.map((m) => {
-    const text = `${m.label} ${m.year}: ${m.occupation} (MASCO ${m.mascoCode}) · ${m.strength} match (team judgement)`;
-    return m.url
-      ? `<a class="tag tag--mycol" href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener" title="Source: ${esc(m.label)} ${esc(m.year)}">${esc(text)}</a>`
-      : `<span class="tag tag--mycol">${esc(text)}</span>`;
+/* Compact marker row for a card: first SDG target (+N) and a MyCOL flag. Details live in sdgTable at the page bottom. */
+function marksHTML(tags, hasMycol) {
+  if (!tags.length && !hasMycol) return "";
+  const t = tags[0];
+  return `<div class="route__tags">${t ? `<span class="tag" title="${esc(tags.length > 1 ? sdgAll(tags) : `Source: ${t.source}`)}">SDG ${esc(t.target)}${tags.length > 1 ? ` +${tags.length - 1}` : ""}</span>` : ""}${hasMycol ? `<span class="tag tag--mycol">MyCOL</span>` : ""}</div>`;
+}
+
+/* "TalentCorp MyCOL 2024/2025": occupations on Malaysia's shortage list that match the role (direct matches first). */
+const mycolLinks = (items) => items.map((m) => {
+  const text = `${m.occupation} (MASCO ${m.mascoCode}, ${m.year})`;
+  const name = m.url ? `<a href="${esc(safeUrl(m.url))}" target="_blank" rel="noopener" title="Source: ${esc(m.label)} ${esc(m.year)}">${esc(text)}</a>` : esc(text);
+  return `<p>${name} <span class="tag tag--mycol">${esc(m.strength)}</span> <span class="sdgt__note">(team judgement)</span></p>`;
+}).join("") || `<span class="sdgt__note">None listed</span>`;
+
+function sectorLines(sdg) {
+  return sdg.sectors.map((x) => `<p>${esc(x.name)}: ${esc(x.sharePct)}% of this role's posts vs ${esc(x.baselinePct)}% of all posts (${esc(x.count)} of ${esc(x.posts)}, last ${esc(x.months)} months, as of ${esc(x.asOf)}) <span class="sdgt__note">source: data/role_sdg.json</span> ${x.tags.map(sdgTag).join(" ")}</p>`).join("")
+    || `<span class="sdgt__note">No sector stands out</span>`;
+}
+
+/* One table: a row per role. rows = [{name, sdg: {tags, sectors}, mycol}] */
+function sdgTable(rows) {
+  const body = rows.map((r) => {
+    const seen = new Set();
+    const tags = [...r.sdg.tags, ...r.sdg.sectors.flatMap((x) => x.tags)].filter((t) => !seen.has(t.target) && seen.add(t.target));
+    return `<tr><th scope="row" data-label="Role">${esc(r.name)}</th>
+      <td data-label="SDG targets">${tags.map(sdgTag).join(" ") || `<span class="sdgt__note">None</span>`}</td>
+      <td data-label="Sector evidence">${sectorLines(r.sdg)}</td>
+      <td data-label="Malaysia (MyCOL 2024/2025)">${mycolLinks(r.mycol)}</td></tr>`;
   }).join("");
+  return `<table class="sdgt"><caption>SDG targets and Malaysia shortage-list links for each role</caption>
+    <thead><tr><th scope="col">Role</th><th scope="col">SDG targets</th><th scope="col">Sector evidence</th><th scope="col">Malaysia (MyCOL 2024/2025)</th></tr></thead>
+    <tbody>${body}</tbody></table>`;
 }
 
 /* ── Today ─────────────────────────────────────────────────────── */
@@ -92,9 +117,11 @@ function renderToday() {
   const tasks = TODAY.tasks;
   const mins = tasks.reduce((n, t) => n + t.mins, 0);
   const doneStops = PATHWAY.filter((p) => p.status === "done").length;
-  const pct = PATHWAY.length ? Math.round((doneStops / PATHWAY.length) * 100) : 100;
+  const allTasks = STATE.plan.tasks, tasksDone = allTasks.filter((t) => STATE.done.has(t.id)).length;
+  const pct = allTasks.length ? Math.round((tasksDone / allTasks.length) * 100) : 100;  // a stop spans several days, so the bar counts tasks
   const coming = PATHWAY.filter((p) => p.status === "next" && !tasks.some((t) => t.station === p.id)).slice(0, 4);
   const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
+  const gtasksOn = !!ACCOUNT.googleClientId && tasks.length > 0;
   const title = !TODAY.day ? "Today" : TODAY.day === todayIso() ? `Today, ${TODAY.date}` : `Next stop, ${TODAY.date}`;
   const lede = TODAY.day
     ? `${tasks.length} stop${tasks.length === 1 ? "" : "s"}, ${mins} minutes, from your pathway. Each one says why it is on your list.`
@@ -107,7 +134,7 @@ function renderToday() {
     <section class="route-strip" aria-label="Your route">
       <div class="route-strip__head">
         <h2><span class="bullets">${used.map((l) => bullet(l)).join("")}</span>To ${esc(TARGET.role)}</h2>
-        <div class="progress">${doneStops} of ${PATHWAY.length} stops done <span class="progress__bar"><i style="width:${pct}%"></i></span>${Number(STATE.plan.matchPct)}% match now</div>
+        <div class="progress">${doneStops} of ${PATHWAY.length} stops done · ${tasksDone} of ${allTasks.length} tasks ticked <span class="progress__bar"><i style="width:${pct}%"></i></span>${Number(STATE.plan.matchPct)}% match now</div>
       </div>
       <p class="route-key">${used.map((l) => `<b>${esc(LINES[l].letter)}</b> ${esc(LINES[l].name)}: ${esc(LINES[l].skill)}`).join(" · ")}</p>
       <div class="diagram" data-strip>${stripSVG()}</div>
@@ -122,10 +149,11 @@ function renderToday() {
           <p>Mark a skill as learned to add it to your profile. It leaves your plan and your match goes up.</p>
           <ul class="next-list">${finished.map((s) => `<li><span>${esc(s.skill)}</span><button class="btn" type="button" data-act="learned" data-skill="${esc(s.skill)}">Mark as learned</button></li>`).join("")}</ul></section>` : ""}
         <section class="panel"><h2>Take it with you</h2>
-          <p>Download the plan or add its tasks to your calendar. Nothing is sent anywhere.</p>
+          <p>Download the plan or add its tasks to your calendar.${gtasksOn ? " Google Tasks gets today's stops only when you press its button, straight from your browser." : " Nothing is sent anywhere."}</p>
           <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
           <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
-      <p><button class="btn btn--primary" type="button" data-global="generate-cv">Generate CV for this role (.md)</button></p></section>
+      <p><button class="btn btn--primary" type="button" data-global="generate-cv">Generate CV for this role (.md)</button></p>
+          ${gtasksOn ? `<p><button class="btn" type="button" data-global="gtasks"${GTASKS.busy ? " disabled" : ""}>${GTASKS.busy ? "Sending to Google Tasks…" : "Send today to Google Tasks"}</button></p>` : ""}</section>
         <section class="panel"><h2>Coming up</h2>
           <ul class="next-list">${coming.map((p) => `<li>${bullet(p.line, true)}<span>${esc(p.title)}</span><span>Wk ${esc(p.week)}</span></li>`).join("")}</ul>
           <p style="margin-top:10px"><a href="#/pathway">See the whole route</a></p>
@@ -134,6 +162,7 @@ function renderToday() {
     </div>`;
 
   const bind = (root) => {
+    if (gtasksOn) loadGis().catch(() => {});  // loaded early so the Google popup opens inside the click
     const strip = root.querySelector("[data-strip]");
     if (strip && strip.scrollWidth > strip.clientWidth) {
       const idx = PATHWAY.findIndex((p) => p.status === "current");
@@ -187,14 +216,17 @@ function cvPanel() {
       ${STATE.review.injection_hint ? `<p class="err" role="alert">Some lines look like instructions to an AI. They were read as CV text only, and skills on them are not ticked.</p>` : ""}
       <p>Untick anything that is wrong, then save. Nothing is stored until you do.</p>
       ${destinationField()}
-      <button class="btn btn--primary" data-act="cv-save">Save ${STATE.keep.size} skills</button>
+      ${STATE.confirmSave && STATE.saved ? `<p role="alert"><b>You already have a saved profile.</b> Add these skills to it, or replace it?</p>
+      <button class="btn btn--primary" data-act="cv-save" data-mode="add">Add ${STATE.keep.size} skills</button>
+      <button class="btn" data-act="cv-save" data-mode="replace">Replace my profile</button>`
+        : `<button class="btn btn--primary" data-act="cv-save">Save ${STATE.keep.size} skills</button>`}
       <button class="btn btn--quiet" data-act="cv-replace">Cancel</button>
     </div>`;
   }
   if (STATE.cv === "parsed" && STATE.saved) {
     return `<div class="cvfile">
       <div class="cvfile__name">${ICON.file}Your saved profile</div>
-      <p>${STATE.saved.skills.length} skills · updated ${esc(STATE.saved.updated_at.slice(0, 10))}. ${STATE.saved.account ? "Kept on Varity's server under your account." : "Kept on Varity's server; only this browser holds the key to it."}</p>
+      <p>${STATE.saved.skills.length} skills · updated ${esc(STATE.saved.updated_at.slice(0, 10))}. ${STATE.saved.account ? "Kept on Varity's server under your account." : "Kept on Varity's server. Only this browser holds the key, so clearing your browser data loses it."}</p>
       ${typeof accountChip === "function" ? accountChip() : ""}
       <button class="btn" data-act="cv-replace">Read another CV</button>
       <button class="btn btn--quiet" data-act="profile-delete">Delete my profile</button>
@@ -208,9 +240,9 @@ function cvPanel() {
   return `<div class="drop" data-drop>
       ${ICON.up}
       <strong>Drop your CV here</strong>
-      <p>PDF or text, up to 5 MB and 4 pages. Use a public or synthetic CV. The file is read, not stored; only the skills you save are kept.</p>
+      <p>PDF, Word (.docx), OpenDocument (.odt), RTF, HTML or text, up to 5 MB and 4 pages. Use a public or synthetic CV. The file is read, not stored; only the skills you save are kept.</p>
       ${err}
-      <input type="file" accept=".pdf,.txt,.md" hidden data-file>
+      <input type="file" accept=".pdf,.docx,.odt,.rtf,.html,.htm,.txt,.md" hidden data-file>
       <button class="btn" type="button" data-act="cv-choose">Choose a file</button>
       <button class="btn btn--quiet" type="button" data-act="cv-sample">Use the synthetic sample CV</button>
     </div>
@@ -267,11 +299,6 @@ const SOURCE_TEXT = { profile: "your saved profile", role_forecast: "job forecas
   role_profiles: "role profiles", skill_scores: "skill scores" };
 const reasonChip = (c, cls = "") => `<span class="chip reason${cls}" title="Source: ${esc(SOURCE_TEXT[c.source] || c.source)}${c.asOf ? `, ${esc(c.asOf)}` : ""}"><span aria-hidden="true">${CHIP_ICON[c.type] || "•"}</span> ${esc(c.text)}</span>`;
 
-function roleSdgHTML(sdg) {
-  const sectors = sdg.sectors.map((x) => `<p class="route__sdg">${x.tags.map(sdgTag).join(" ")} ${esc(x.name)}: ${esc(x.sharePct)}% of this role's posts, against ${esc(x.baselinePct)}% of all posts (${esc(x.count)} of ${esc(x.posts)}, last ${esc(x.months)} months, as of ${esc(x.asOf)}). Source: data/role_sdg.json</p>`).join("");
-  return (sdg.tags.length ? `<p class="route__sdg">${sdg.tags.map(sdgTag).join(" ")}</p>` : "") + sectors;
-}
-
 function liveRouteRow(r, pinned = false) {
   const cur = STATE.routeId === r.roleId;
   const low = r.rank == null;  // a low-match destination: pinned for the user, never ranked
@@ -293,8 +320,7 @@ function liveRouteRow(r, pinned = false) {
       ${action}
     </div>
     <div class="route__why"><div class="chips">${r.reasons.map((c) => reasonChip(c)).join("")}${r.watchOut ? reasonChip(r.watchOut, " reason--watch") : ""}</div>
-      ${fast}${roleSdgHTML(r.sdg)}
-      ${r.mycol.length ? `<div class="route__tags">${mycolBadges(r.mycol)}</div>` : ""}</div>
+      ${fast}${marksHTML(r.sdg.tags, r.mycol.length > 0)}</div>
     <div class="route__gap">
       <div><h3>You already have</h3><div class="chips">${r.have.map((h) => `<span class="chip">${esc(h)}</span>`).join("") || "<span>None yet</span>"}</div></div>
       <div><h3>Skills gap</h3><div class="chips">${r.gap.map((g) => `<span class="chip chip--gap">${esc(g)}</span>`).join("") || "<span>No gap</span>"}</div></div>
@@ -313,11 +339,15 @@ function liveRoutes() {
   const others = s.roles.filter((r) => r.roleId !== goal);
   const lowOthers = s.lowMatch.filter((r) => r.roleId !== goal);
   const low = lowOthers.length ? `<p class="empty"><b>Low match, not ranked:</b> ${lowOthers.map((r) => `${esc(r.name)} (${Number(r.matchPct)}%)`).join(", ")}</p>` : "";
+  const ranked = [dest, ...others].filter(Boolean);
   const unmapped = s.unmappedSkills.length ? `<p class="empty"><b>Not in the job data yet, so not counted:</b> ${s.unmappedSkills.map(esc).join(", ")}</p>` : "";
   const list = others.length ? others.map((r) => liveRouteRow(r)).join("")
     : dest ? "" : `<p class="empty">No role matches your saved skills well yet. Add skills from another CV.</p>`;
   return `<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>
-    ${dest ? `${liveRouteRow(dest, true)}${others.length ? `<h3 class="routes-sub">Other routes</h3>` : ""}` : ""}${list}${low}${unmapped}`;
+    ${dest ? `${liveRouteRow(dest, true)}${others.length ? `<h3 class="routes-sub">Other routes</h3>` : ""}` : ""}${list}${low}${unmapped}
+    ${ranked.length ? `<section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why these jobs matter: SDG and Malaysia links</h2>
+      <p class="route-note">Each role is tied to the UN Sustainable Development Goals (SDG) and to Malaysia's list of occupations in short supply (MyCOL). Hover a target to see its source.</p>
+      ${sdgTable(ranked)}</section>` : ""}`;
 }
 
 function plannerHTML() {
@@ -327,7 +357,7 @@ function plannerHTML() {
   if (!STATE.saved) return `<p class="empty">Upload a CV or try an example profile. Routes appear after that.</p>`;
   if (STATE.suggestError) return problem(STATE.suggestError);
   if (!STATE.suggest) return "";
-  return `<div class="planner__from"><b>From</b> ${esc(STATE.saved.name || "your saved profile")} ${ICON.arrow} <b>To</b> the roles your skills fit best</div>${scenarioToggle()}${liveRoutes()}`;
+  return `<div class="planner__from"><b>From</b> ${esc(STATE.saved.name || "your saved profile")} ${ICON.arrow} <b>To</b> ${esc((FORECAST.roles[STATE.saved.target_role || STATE.destination] || {}).name || "the roles your skills fit best")}</div>${scenarioToggle()}${liveRoutes()}`;
 }
 
 function stationText() {
@@ -354,6 +384,9 @@ function renderProfile() {
     </section>`;
 
   const bind = (root) => {
+    if (location.hash.includes("examples=1")) { STATE.focusEx = true; setTimeout(() => { STATE.focusEx = false; }, 3000); history.replaceState(null, "", "#/profile"); }  // from the landing's "Try an example"
+    const ex = STATE.focusEx && root.querySelector(".examples");  // later redraws (profile load) replace main, so keep trying for 3s
+    if (ex) { ex.scrollIntoView({ block: "center" }); ex.querySelector("button").focus({ preventScroll: true }); }
     const fileInput = root.querySelector("[data-file]");
     const drop = root.querySelector("[data-drop]");
     const fail = (message) => { STATE.cv = "error"; STATE.cvError = message; rerender(); };
@@ -373,7 +406,7 @@ function renderProfile() {
       toast("CV read. Check each skill against its quote.");
     };
     const accept = (file) => {
-      if (!/\.(pdf|txt|md)$/i.test(file.name)) return fail(`“${file.name}” is not a PDF or text file. Export your CV as a PDF and try again.`);
+      if (!/\.(pdf|docx|odt|rtf|html?|txt|md)$/i.test(file.name)) return fail(`“${file.name}” is not a supported file type. Export your CV as a PDF and try again.`);
       if (file.size > 5 * 1024 * 1024) return fail(`“${file.name}” is larger than 5 MB.`);
       const reader = new FileReader();
       reader.onload = () => read(file.name, { file_name: file.name, file_b64: String(reader.result).split(",")[1] || "" });
@@ -412,28 +445,37 @@ function renderProfile() {
         if (e.dataTransfer.files[0]) accept(e.dataTransfer.files[0]);
       });
     }
-    root.addEventListener("click", (e) => {
+    root.addEventListener("click", async (e) => {
       const b = e.target.closest("[data-act]");
       if (!b) return;
       const act = b.dataset.act;
-      if (act === "cv-replace") { STATE.cv = "empty"; STATE.review = null; rerender(); }
+      if (act === "cv-replace") { STATE.cv = "empty"; STATE.review = null; STATE.confirmSave = false; rerender(); }
       else if (act === "cv-choose") fileInput.click();
       else if (act === "cv-sample") read("aina.txt (synthetic sample)", { sample: "aina" });
       else if (act === "cv-save") {
+        if (STATE.saved && !b.dataset.mode) { STATE.confirmSave = true; rerender('[data-mode="add"]'); return; }
+        const before = new Set(STATE.saved ? STATE.saved.skills.map((s) => s.skill_id) : []);
+        const replace = b.dataset.mode === "replace";
+        STATE.confirmSave = false;
+        if (replace) {
+          try { await api("/api/profile", { method: "DELETE" }); } catch (err) { toast(errText(err)); return; }
+          before.clear();
+        }
         call("/api/profile/apply", { method: "POST", body: JSON.stringify({ review_id: STATE.review.review_id, kept_ids: [...STATE.keep] }) }, async (data) => {
           setProfileToken(data.token);
           STATE.saved = data.profile;
           STATE.review = null;
           STATE.cv = "parsed";
-          let note = `Saved ${data.profile.skills.length} skills to your profile.`;
+          const added = data.profile.skills.filter((s) => !before.has(s.skill_id)).length;
+          let note = before.size ? `Added ${added} new skills to your profile (${data.profile.skills.length - added} already there).` : `Saved ${data.profile.skills.length} skills to your profile.`;
           // Set separately: apply uses up the review, so a refused destination there would lose the user's ticks.
           const dest = STATE.destination && FORECAST.roles[STATE.destination];
           if (dest) {
             try {
               STATE.saved = (await api("/api/profile/target-role", { method: "POST", body: JSON.stringify({ roleId: STATE.destination }) })).profile;
-              note = `Destination set: ${dest.name}. Your pathway leads there.`;
+              note += ` Destination set: ${dest.name}.`;
             } catch (err) {
-              note = `Saved your skills, but ${dest.name} has no route for them yet.`;
+              note += ` ${dest.name} has no route for them yet.`;
             }
           }
           rerender();
@@ -499,7 +541,7 @@ function renderPathway() {
       ${bullet(p.line, true)}
       <div><div class="pstop__t">${esc(p.title)}<span>${Number(p.mins)} min</span></div>
         <div class="pstop__r">${p.url ? ext(p.url, p.resource) : esc(p.resource)}</div>
-        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.map(sdgTag).join("")}</div>
+        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.length ? `<span class="tag" title="${esc(p.sdgTags.length > 1 ? sdgAll(p.sdgTags) : `Source: ${p.sdgTags[0].source}`)}">SDG ${esc(p.sdgTags[0].target)}${p.sdgTags.length > 1 ? ` +${p.sdgTags.length - 1}` : ""}</span>` : ""}</div>
         ${p.sdgReason ? `<p class="pstop__why">${esc(p.sdgReason)}</p>` : ""}
         ${p.why ? `<p class="pstop__why">${esc(p.why)}</p>` : ""}
         ${p.reasons ? `<div class="chips">${p.reasons.map((c) => reasonChip(c)).join("")}</div>` : ""}</div>
@@ -540,13 +582,11 @@ function renderPathway() {
       <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
       <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
       <p><button class="btn btn--primary" type="button" data-global="generate-cv">Generate CV for this role (.md)</button></p></section>
-    <section class="panel" aria-labelledby="sdg-h"><h2 id="sdg-h">SDG and MyCOL links</h2>
-      ${sdg.lines.map((l) => `<p>${esc(l)}</p>`).join("")}
-      <p>${esc(sdg.line)}</p>
-      ${roleSdgHTML(plan.roleSdg)}
-      ${plan.mycol.length ? `<div class="route__tags">${mycolBadges(plan.mycol)}</div>` : ""}
-    </section>
-    <div class="weeks">${weeks.map(weekHTML).join("")}</div>`;
+    <div class="weeks">${weeks.map(weekHTML).join("")}</div>
+    <section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why this job matters: SDG and Malaysia links</h2>
+      ${sdg.lines.map((l) => `<p class="route-note">${esc(l)}</p>`).join("")}
+      <p class="route-note">${esc(sdg.line)}</p>
+      ${sdgTable([{ name: TARGET.role, sdg: plan.roleSdg, mycol: plan.mycol }])}</section>`;
 
   const bind = (root) => {
     const map = root.querySelector(".pathmap");

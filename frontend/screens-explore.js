@@ -153,7 +153,7 @@ function renderFlow() {
     </section>`;
 
   const html = `
-    ${head("How Varity is used", "The planned user flow as a transit map: a first ride taken once, a daily loop ridden every morning, and two explore stops to visit any time. Select a station to see what the user does there. Not built yet: Google sign-in and Google Tasks (steps 2, 8 and 10), reordering or skipping stops (step 6) and the service-change band (step 12). Varity offers a plan download and a calendar file instead.")}
+    ${head("How Varity is used", "The planned user flow as a transit map: a first ride taken once, a daily loop ridden every morning, and two explore stops to visit any time. Select a station to see what the user does there. Not built yet: Google sign-in (step 2), syncing ticks back from Google Tasks (step 10), reordering or skipping stops (step 6) and the service-change band (step 12). Varity offers a plan download and a calendar file instead.")}
     <div class="flow">
       <div>
         <div class="diagram">${flowSVG()}</div>

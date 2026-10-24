@@ -118,4 +118,4 @@ def test_text_readers():
     with pytest.raises(ReadError, match="NOT_UTF8"):
         read_text(b"\xff\xfe\xfa")
     with pytest.raises(ReadError, match="UNSUPPORTED"):
-        read_upload("cv.docx", b"x")
+        read_upload("cv.xlsx", b"x")
