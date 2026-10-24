@@ -147,7 +147,7 @@ function setProfileToken(token) {
 
 /* JSON call to the backend. Throws Error(server message) on an API error and TypeError when unreachable. */
 async function api(path, options = {}) {
-  const token = profileToken();
+  const token = ACCOUNT.signedIn ? null : profileToken();  // signed in: the cookie speaks for the profile
   const headers = { Accept: "application/json", "Content-Type": "application/json", ...(token ? { "X-Profile-Token": token } : {}) };
   const res = await fetch(path, { ...options, headers });
   const body = await res.json().catch(() => null);
@@ -167,7 +167,7 @@ async function loadExamples() {
 
 async function loadProfile() {
   STATE.profileError = "";
-  if (!profileToken()) return;
+  if (!hasKey()) return;
   STATE.loading = "profile";
   try {
     STATE.saved = (await api("/api/profile")).profile;
@@ -213,7 +213,8 @@ async function loadPlan() {
 
 /* Load profile, routes and pathway one after the other, drawing after each so the page is never blank. */
 async function loadMine() {
-  STATE.loading = profileToken() ? "profile" : "";
+  await loadMe();
+  STATE.loading = hasKey() ? "profile" : "";
   rerender();
   await loadProfile();
   rerender();
@@ -256,6 +257,22 @@ function shortHash(text) {
 const doneKey = () => `varity.done.${STATE.sig}`;
 function saveDone() {
   try { localStorage.setItem(doneKey(), JSON.stringify([...STATE.done])); } catch (e) { /* ticks last this visit only */ }
+  pushProgress();
+}
+/* Ticks also go to the server (debounced). localStorage stays the fallback; one error toast per visit. */
+let progressTimer, progressWarned = false;
+function pushProgress() {
+  if (!STATE.saved || !STATE.sig) return;
+  clearTimeout(progressTimer);
+  progressTimer = setTimeout(async () => {
+    const body = { signature: STATE.sig, doneIds: [...STATE.done] };
+    try {
+      await api("/api/profile/progress", { method: "PUT", body: JSON.stringify(body) });
+      if (STATE.saved) STATE.saved.progress = { ...body, updatedAt: new Date().toISOString() };
+    } catch (e) {
+      if (!progressWarned) { progressWarned = true; toast("Could not save your ticks to the server. They are kept in this browser."); }
+    }
+  }, 500);
 }
 function loadDone() {
   try { return new Set(JSON.parse(localStorage.getItem(doneKey()) || "[]")); } catch (e) { return new Set(); }
@@ -273,7 +290,8 @@ function applyPlan(plan) {
   TARGET.role = "";
   if (!plan) { STATE.sig = ""; return; }
   STATE.sig = shortHash(plan.tasks.map((t) => `${t.id}|${t.title}|${t.date}`).join("\n"));
-  STATE.done = loadDone();
+  const prog = STATE.saved && STATE.saved.progress;
+  STATE.done = prog && prog.signature === STATE.sig && Array.isArray(prog.doneIds) ? new Set(prog.doneIds) : loadDone();
   const start = new Date(plan.startDate).getTime();
   const gap = 920 / Math.max(plan.steps.length - 1, 1);
   const byStep = {};
@@ -393,7 +411,9 @@ document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-global]");
   if (!b) return;
   const act = b.dataset.global;
-  if (act === "retry") {
+  if (act === "signin") {
+    signIn();
+  } else if (act === "retry") {
     loadMine();
   } else if (act === "scenario") {
     STATE.scenario = b.dataset.value;
@@ -420,9 +440,84 @@ document.addEventListener("click", async (e) => {
   }
 });
 
+/* ── Accounts (hidden unless GET /api/me says login is configured) ─────────────── */
+const ACCOUNT = { enabled: false, signedIn: false, user: null, hasProfile: false };
+/* Is there a saved profile to ask for: the account's, or one this browser holds a token for? */
+const hasKey = () => (ACCOUNT.signedIn ? ACCOUNT.hasProfile : !!profileToken());
+
+async function loadMe() {
+  try {
+    const d = await api("/api/me");
+    Object.assign(ACCOUNT, { enabled: !!d.enabled, signedIn: !!(d.enabled && d.signedIn), user: d.user || null, hasProfile: !!d.hasProfile });
+  } catch (e) { /* login unavailable: no account UI */ }
+  renderAcct();
+}
+
+async function signIn() {
+  try {
+    await api("/api/login/prepare", { method: "POST" });
+  } catch (e) { toast(errText(e)); return; }
+  const here = location.pathname + location.hash.replace(/\?login=failed/, "");
+  location.href = `/api/login?returnTo=${encodeURIComponent(here)}`;
+}
+
+function accountChip() {
+  if (!ACCOUNT.enabled) return "";
+  if (ACCOUNT.signedIn) return `<p class="acct-chip acct-chip--on">Saved to your account</p>`;
+  return `<p class="acct-chip">Saved in this browser only <button type="button" class="acct-link" data-global="signin">Sign in to keep it</button></p>`;
+}
+
+function renderAcct() {
+  const host = document.querySelector("[data-acct]");
+  if (!host) return;
+  host.hidden = !ACCOUNT.enabled;
+  if (!ACCOUNT.enabled) { host.innerHTML = ""; return; }
+  if (!ACCOUNT.signedIn) {
+    host.innerHTML = `<button type="button" class="acct__in" data-global="signin">Sign in</button>`;
+    return;
+  }
+  const u = ACCOUNT.user || {};
+  const first = (u.name || u.email || "You").trim().split(/\s+/)[0];
+  const img = u.imageUrl && safeUrl(u.imageUrl) !== "#" ? `<img src="${esc(safeUrl(u.imageUrl))}" alt="" referrerpolicy="no-referrer">` : "";
+  host.innerHTML = `<button type="button" class="acct__btn" aria-haspopup="menu" aria-expanded="false" aria-controls="acct-menu" aria-label="Account: ${esc(first)}">
+      <span class="acct__av" aria-hidden="true">${esc(first.charAt(0).toUpperCase())}${img}</span><span class="acct__name">${esc(first)}</span></button>
+    <div class="acct__menu" id="acct-menu" role="menu" hidden>
+      <p class="acct__who">Signed in as <b>${esc(u.email || u.name || "")}</b></p>
+      <a role="menuitem" href="/api/logout">Sign out</a>
+      <button type="button" role="menuitem" data-acct-delete>Delete account…</button>
+    </div>`;
+  const im = host.querySelector("img");
+  if (im) im.addEventListener("error", () => im.remove());
+  const btn = host.querySelector(".acct__btn"), menu = host.querySelector(".acct__menu");
+  const setOpen = (open, refocus) => {
+    menu.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    if (open) menu.querySelector("a").focus(); else if (refocus) btn.focus();
+  };
+  btn.addEventListener("click", () => setOpen(menu.hidden));
+  host.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) { e.stopPropagation(); setOpen(false, true); } });
+  host.addEventListener("focusout", (e) => { if (!menu.hidden && !host.contains(e.relatedTarget)) setOpen(false); });
+  document.addEventListener("click", (e) => { if (!menu.hidden && !host.contains(e.target)) setOpen(false); });
+  host.querySelector("[data-acct-delete]").addEventListener("click", async () => {
+    setOpen(false, true);
+    if (!confirm("Delete your account? This deletes your account and your saved profile from Varity's server. It cannot be undone.")) return;
+    try {
+      await api("/api/me", { method: "DELETE" });
+      setProfileToken(null);
+      location.href = "/#/profile";
+      location.reload();
+    } catch (err) { toast(errText(err)); }
+  });
+}
+
+/* A failed sign-in returns with ?login=failed in the hash: say so once and clean the hash before routing. */
+const loginFailed = /\?login=failed/.test(location.hash);
+if (loginFailed) history.replaceState(null, "", location.pathname + location.search + location.hash.replace(/\?login=failed/, ""));
+
 window.addEventListener("hashchange", navigate);
 STATE.loading = profileToken() ? "profile" : "";
 navigate();  // draw at once; the data arrives below
+if (loginFailed) toast("Sign-in did not finish. Try again.");
 loadMine();
 loadSignals().then(() => rerender());
 loadForecast().then(() => rerender());

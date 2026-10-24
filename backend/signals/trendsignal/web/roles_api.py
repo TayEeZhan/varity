@@ -18,7 +18,8 @@ from trendsignal.jobs import AppContext
 from trendsignal.output import latest_run_id
 from trendsignal.queries import skill_momentum
 from trendsignal.web.app import RateLimiter, envelope
-from trendsignal.web.cv_api import client_ip, load_profile, save_profile
+from trendsignal.web.auth_api import owner_of
+from trendsignal.web.cv_api import client_ip, load_profile, profile_out, save_profile
 
 ROLES_LIMIT_PER_MINUTE = 30
 MIN_HOURS, MAX_HOURS = 1, 40
@@ -59,7 +60,7 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
         if not limiter.allow(client_ip(request)):
             return None, None, envelope(error="too many requests, try again in a minute", status=429,
                                         meta={"code": "RATE_LIMITED"})
-        profile = load_profile(settings, token)
+        profile = load_profile(settings, owner_of(request, token))
         if profile is None:
             return None, None, envelope(error="no saved profile: read and save a CV first", status=404,
                                         meta={"code": "PROFILE_NOT_FOUND"})
@@ -89,8 +90,8 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
             return envelope(error="unknown role", status=422, meta={"code": "VALIDATION_ERROR"})
         if profile.target_role != payload.roleId:
             profile = ledger.set_details(profile, name=profile.name, target_role=payload.roleId)
-            save_profile(settings, x_profile_token, profile)
-        return envelope({"profile": profile.model_dump(mode="json")})
+            save_profile(settings, owner_of(request, x_profile_token), profile)
+        return envelope(profile_out(profile, owner_of(request, x_profile_token)))
 
     @app.get("/api/pathway")
     def api_pathway(request: Request, roleId: str | None = Query(default=None, max_length=60),

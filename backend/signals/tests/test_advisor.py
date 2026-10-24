@@ -10,6 +10,7 @@ from intake import ledger
 from intake.models import Evidence, SkillEntry
 from trendsignal.jobs import load_context
 from trendsignal.web.app import create_app
+from trendsignal.web.accounts_store import token_owner
 from trendsignal.web.cv_api import load_profile
 
 TAXONOMY = [{"skill": "TypeScript", "synonyms": []}, {"skill": "JavaScript / TypeScript", "synonyms": ["TypeScript", "JS"]},
@@ -92,7 +93,7 @@ def test_route_switch_changes_the_pathway(client, token):
 
 
 def _profile(settings, token):
-    return load_profile(settings, token)
+    return load_profile(settings, token_owner(token))
 
 
 def test_llm_order_reasons_and_cache(settings, token):

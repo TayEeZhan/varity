@@ -76,8 +76,8 @@ def test_save_load_remove_delete_round_trip(client, settings):
     assert again["excel"]["default_keep"] is False and again["excel"]["note"]
 
     with connect(settings.db_path) as conn:
-        stored = [row["token_hash"] for row in conn.execute("SELECT token_hash FROM profiles")]
-    assert stored and token not in stored  # only the hash is kept
+        stored = [row["owner_key"] for row in conn.execute("SELECT owner_key FROM owner_profiles")]
+    assert stored and all(k.startswith("t:") and token not in k for k in stored)  # only the hash is kept
 
     assert client.delete("/api/profile", headers=headers).json()["data"]["deleted"] is True
     assert client.get("/api/profile", headers=headers).status_code == 404
