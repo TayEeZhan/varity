@@ -27,11 +27,11 @@ def check(response, status, message=None):
 
 
 def test_missing_field_is_plain_english(frontend_client):
-    check(frontend_client.post("/api/feedback", json={"signal": "useful"}), 422, "Missing field: story_id")
+    check(frontend_client.post("/api/profile/apply", json={"kept_ids": []}), 422, "Missing field: review_id")
 
 
 def test_invalid_value_is_plain_english(frontend_client):
-    check(frontend_client.post("/api/feedback", json={"story_id": 1, "signal": "nope"}), 422, "Invalid value for signal")
+    check(frontend_client.post("/api/profile/apply", json={"review_id": "r", "kept_ids": "nope"}), 422, "Invalid value for kept_ids")
 
 
 def test_unknown_api_path_is_a_404_envelope(frontend_client):
@@ -43,7 +43,7 @@ def test_wrong_method_is_a_405_envelope(frontend_client):
 
 
 def test_http_exception_404_uses_the_envelope(frontend_client):
-    check(frontend_client.get("/api/stories/99999"), 404, "story not found")
+    check(frontend_client.post("/api/admin/run"), 404, "Not found.")  # raised as HTTPException when no admin token is set
 
 
 def test_oversized_cv_upload_gets_the_too_large_message(frontend_client):

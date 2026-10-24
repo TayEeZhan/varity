@@ -35,7 +35,7 @@ To get Jev's probabilities, use either connection:
 | `rank [--no-collect] [--force] [--ranker formula\|jev] [--limit N] [--hours H] [--format table\|json\|csv] [--out DIR]` | Collect, rank, write the files, print the list |
 | `run [--force] [--source ID]` | Collect and rank without printing the list |
 | `sources` | Source health (ok / stale / disabled) |
-| `serve --scheduler` | Re-rank every 15 minutes and rewrite `data/ranked/`; also serves Varity's frontend at `/`, `/api/signals` for its Signals page, and the older feed at `/feed` |
+| `serve --scheduler` | Re-rank every 15 minutes and rewrite `data/ranked/`; also serves Varity's frontend at `/`, and `/api/signals` for its Signals page (the older TrendSignal feed, briefs, RSS and story APIs were removed) |
 
 ## Pipeline
 
