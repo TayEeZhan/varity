@@ -26,7 +26,8 @@ from trendsignal.db import connect
 ADVISOR_MODEL = os.environ.get("VARITY_ADVISOR_MODEL", INTAKE_MODEL)
 COACH_MODEL = os.environ.get("VARITY_COACH_MODEL", INTAKE_MODEL)
 PROMPT_VERSION = "advisor-v2"
-ADVISOR_MAX_TOKENS, COACH_MAX_TOKENS = 1200, 1500
+# Thinking tokens share this budget: 1200 cut the ranking JSON off mid-string (off:INVALID_OUTPUT).
+ADVISOR_MAX_TOKENS, COACH_MAX_TOKENS = 4000, 4000
 TIMEOUT_S = 45.0
 PRICE_IN_PER_M, PRICE_OUT_PER_M = PRICES_PER_M.get(ADVISOR_MODEL, PRICES_PER_M["claude-haiku-4-5"])
 CHARS_PER_TOKEN = 3
@@ -115,9 +116,11 @@ def call_model(model: str, system: str, user: str, output: type[BaseModel], max_
     except (anthropic.RateLimitError, anthropic.APIConnectionError, anthropic.NotFoundError):
         gate.settle(reserved, 0.0)
         raise LlmUnavailable("API_ERROR") from None
-    except (anthropic.APIStatusError, pydantic.ValidationError):
+    except (anthropic.APIStatusError, pydantic.ValidationError) as exc:
         gate.settle(reserved, reserved)
-        raise LlmUnavailable("INVALID_OUTPUT") from None
+        # JSON that ends mid-way means the answer ran out of max_tokens, not that the model broke a rule.
+        cut = isinstance(exc, pydantic.ValidationError) and any(e["type"] == "json_invalid" for e in exc.errors())
+        raise LlmUnavailable("TRUNCATED" if cut else "INVALID_OUTPUT") from None
     except Exception:  # anything else from the SDK (e.g. bad JSON): still a fallback, never an HTTP 500
         gate.settle(reserved, reserved)
         raise LlmUnavailable("API_ERROR") from None
@@ -125,6 +128,8 @@ def call_model(model: str, system: str, user: str, output: type[BaseModel], max_
     gate.settle(reserved, ((getattr(usage, "input_tokens", 0) or 0) * PRICE_IN_PER_M
                            + (getattr(usage, "output_tokens", 0) or 0) * PRICE_OUT_PER_M) / 1e6)
     parsed = getattr(response, "parsed_output", None)
+    if response.stop_reason == "max_tokens":
+        raise LlmUnavailable("TRUNCATED")
     if response.stop_reason != "end_turn" or not isinstance(parsed, output):
         raise LlmUnavailable("INVALID_OUTPUT")
     return parsed
