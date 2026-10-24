@@ -154,8 +154,8 @@ Skills) can replace this file later; check their licences first.
 
 ## 4. LLM contract
 
-**Model.** When the backend runs on Replit: Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. With a direct `ANTHROPIC_API_KEY`, the default is Claude Haiku 5.5 (`claude-haiku-5-5`). Extraction is narrow work, so the cheapest current model is enough;
-one CV costs about **$0.001** (this estimate is for `claude-haiku-5-5`). The Replit route is the design and is not yet verified on the live app. Only
+**Model.** Claude Haiku 5.5 (`claude-haiku-5-5`) with a direct `ANTHROPIC_API_KEY` (a team member's key, in Replit Secrets). The code can fall back to Replit AI Integrations (`claude-haiku-4-5`) when no key is set; the team does not use it. Extraction is narrow work, so the cheapest current model is enough;
+one CV costs about **$0.001** (this estimate is for `claude-haiku-5-5`). The CV-intake call is not yet confirmed on the live app. Only
 `llm_extract.py` knows the provider.
 
 ```python
@@ -358,6 +358,6 @@ bigger skill list (ESCO / O*NET), LLM-suggested skills.
 
 ## 11. Decisions needed
 
-1. Verify the Replit AI Integrations route (Claude Haiku 4.5) on the deployed app. The declaration names it.
+1. Confirm the CV-intake call (Claude Haiku 5.5, direct key) on the deployed app. The declaration names it.
 2. Ee Zhan: accept `profile.json` v2 (`skill_id` key, `basis` values) and say which bases E7 counts.
 3. Should pathway completions add evidence on their own, or only after the user ticks "I did this"?
