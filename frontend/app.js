@@ -28,7 +28,7 @@ const STATE = {
 
 /* Filled from GET /api/pathway by applyPlan; empty until a profile and a route exist. */
 const PATHWAY = [];
-const TODAY = { date: "", tasks: [] };
+const TODAY = { date: "", tasks: [], all: [] };
 const TARGET = { role: "" };
 
 const SCREENS = {
@@ -255,7 +255,43 @@ function refreshStatus() {
   if (!STATE.plan) return;
   const steps = STATE.plan.steps;
   const firstOpen = steps.find((s) => !(s.taskIds.length && s.taskIds.every((id) => STATE.done.has(id))));
-  PATHWAY.forEach((p, i) => { p.status = stepStatus(steps[i], firstOpen); });
+  PATHWAY.forEach((p, i) => {
+    p.status = stepStatus(steps[i], firstOpen);
+    p.progress = steps[i].taskIds.length ? steps[i].taskIds.filter((id) => STATE.done.has(id)).length / steps[i].taskIds.length : 0;
+  });
+  buildToday();
+}
+
+/* Week number of a task, counted from the plan start (week 1 = first 7 days). */
+function taskWeek(t) {
+  return Math.floor((new Date(t.date).getTime() - new Date(STATE.plan.startDate).getTime()) / DAY_MS / 7) + 1;
+}
+
+/* Weeks unlock in order: a task can be ticked once every earlier week is done, and unticked
+   only while no later week has a tick (so progress never skips a week). */
+function canToggle(t) {
+  const w = taskWeek(t);
+  if (STATE.done.has(t.id)) return !STATE.plan.tasks.some((o) => taskWeek(o) > w && STATE.done.has(o.id));
+  return STATE.plan.tasks.every((o) => taskWeek(o) >= w || STATE.done.has(o.id));
+}
+
+/* TODAY.all = every task in screen shape; TODAY.tasks = the first unfinished day (also what Google Tasks gets). */
+function buildToday() {
+  const plan = STATE.plan;
+  const view = (t) => {
+    const i = plan.steps.findIndex((s) => s.order === t.step);
+    const stop = PATHWAY[i], step = plan.steps[i];
+    const chip = step.reasons[0];
+    return { id: t.id, station: stop.id, line: stop.line, mins: t.minutes, title: t.title, resource: t.resourceTitle,
+      url: t.resourceUrl, date: t.date, week: taskWeek(t), raw: t,
+      why: step.whyForYou || (chip ? chip.text : t.reason), source: chip ? `${SOURCE_TEXT[chip.source] || chip.source}, ${chip.asOf || "undated"}` : "Pathway" };
+  };
+  TODAY.all = plan.tasks.map(view);
+  const next = plan.tasks.find((t) => !STATE.done.has(t.id));
+  const day = next ? next.date : null;
+  TODAY.date = day ? new Date(`${day}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }) : "nothing left";
+  TODAY.day = day;
+  TODAY.tasks = TODAY.all.filter((t) => t.date === day);
 }
 
 /* Short hash (djb2) of a string: keys the saved ticks and the calendar UIDs. */
@@ -297,6 +333,7 @@ function applyPlan(plan) {
   PATHWAY.length = 0;
   TODAY.date = "";
   TODAY.tasks = [];
+  TODAY.all = [];
   TARGET.role = "";
   if (!plan) { STATE.sig = ""; return; }
   STATE.sig = shortHash(plan.tasks.map((t) => `${t.id}|${t.title}|${t.date}`).join("\n"));
@@ -304,7 +341,6 @@ function applyPlan(plan) {
   STATE.done = prog && prog.signature === STATE.sig && Array.isArray(prog.doneIds) ? new Set(prog.doneIds) : loadDone();
   const start = new Date(plan.startDate).getTime();
   const gap = 920 / Math.max(plan.steps.length - 1, 1);
-  const byStep = {};
   PATHWAY.push(...plan.steps.map((s, i) => {
     const res = s.resource || {};
     const stop = {
@@ -314,20 +350,9 @@ function applyPlan(plan) {
       cost: res.cost === "free" ? "Free" : res.cost || "–", sdgTags: s.sdgTags, sdgReason: s.sdgReason,
       why: s.whyForYou, reasons: s.reasons,
     };
-    byStep[s.order] = { stop, step: s };
     return stop;
   }));
   refreshStatus();
-  const next = plan.tasks.find((t) => !STATE.done.has(t.id));
-  const day = next ? next.date : null;
-  TODAY.date = day ? new Date(`${day}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }) : "nothing left";
-  TODAY.day = day;
-  TODAY.tasks = plan.tasks.filter((t) => t.date === day).map((t) => {
-    const { stop, step } = byStep[t.step];
-    const chip = step.reasons[0];
-    return { id: t.id, station: stop.id, line: stop.line, mins: t.minutes, title: t.title, resource: t.resourceTitle,
-      url: t.resourceUrl, why: step.whyForYou || (chip ? chip.text : t.reason), source: chip ? `${SOURCE_TEXT[chip.source] || chip.source}, ${chip.asOf || "undated"}` : "Pathway" };
-  });
   TARGET.role = plan.targetRole;
 }
 
