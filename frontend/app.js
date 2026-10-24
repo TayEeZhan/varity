@@ -427,6 +427,23 @@ function download(name, mime, text) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* A CV for the target role from the saved CV and current skills. The server checks every claim; nothing is saved. */
+const CV_NOTES = { no_cv: "No saved CV: upload it again for a full version.", llm: "" };
+async function generateCv(button) {
+  button.disabled = true;
+  try {
+    const cv = await api("/api/cv/generate", { method: "POST" });
+    download("verity_cv.md", "text/markdown", cv.markdown);
+    const note = CV_NOTES[cv.mode] ?? "AI is off, so your CV is kept as it was with an updated skills list.";
+    const dropped = cv.dropped.length ? ` ${cv.dropped.length} unsupported line(s) removed.` : "";
+    toast(`CV for ${cv.role} downloaded. ${note}${dropped}`.trim());
+  } catch (e) {
+    toast(errText(e));
+  } finally {
+    button.disabled = false;
+  }
+}
+
 /* Buttons that work on any screen. */
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-global]");
@@ -443,6 +460,8 @@ document.addEventListener("click", async (e) => {
     download("verity_plan.md", "text/markdown", planMarkdown(STATE.plan));
   } else if (act === "download-ics" && STATE.plan) {
     download("verity_plan.ics", "text/calendar", planIcs(STATE.plan));
+  } else if (act === "generate-cv") {
+    generateCv(b);
   } else if (act === "example") {
     if (STATE.saved && !confirm("Replace your saved profile with this synthetic example?")) return;
     try {

@@ -17,6 +17,8 @@ TABLES = (
     "CREATE TABLE IF NOT EXISTS owner_profiles (owner_key TEXT PRIMARY KEY, profile_json TEXT NOT NULL, updated_at TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS users (sub TEXT PRIMARY KEY, email TEXT, display_name TEXT, image_url TEXT, "
     "created_at TEXT NOT NULL, last_login_at TEXT NOT NULL)",
+    # The cleaned CV (contacts already [email]/[phone]), kept apart so profile responses never carry it.
+    "CREATE TABLE IF NOT EXISTS owner_cvs (owner_key TEXT PRIMARY KEY, cv_text TEXT NOT NULL, updated_at TEXT NOT NULL)",
 )
 _ready: set[str] = set()
 
@@ -79,7 +81,19 @@ def put_profile_json(settings: Settings, owner_key: str, profile_json: str, upda
          (owner_key, profile_json, updated_at))
 
 
+def get_cv_text(settings: Settings, owner_key: str) -> str | None:
+    row = _run(settings, "SELECT cv_text FROM owner_cvs WHERE owner_key = ?", (owner_key,), fetch=True)
+    return row[0] if row else None
+
+
+def put_cv_text(settings: Settings, owner_key: str, cv_text: str, updated_at: str) -> None:
+    _run(settings, "INSERT INTO owner_cvs (owner_key, cv_text, updated_at) VALUES (?, ?, ?) "
+         "ON CONFLICT(owner_key) DO UPDATE SET cv_text = excluded.cv_text, updated_at = excluded.updated_at",
+         (owner_key, cv_text, updated_at))
+
+
 def delete_profile_row(settings: Settings, owner_key: str) -> bool:
+    _run(settings, "DELETE FROM owner_cvs WHERE owner_key = ?", (owner_key,))
     deleted = _run(settings, "DELETE FROM owner_profiles WHERE owner_key = ?", (owner_key,)) > 0
     if not database_url() and owner_key.startswith("t:"):
         try:
@@ -100,6 +114,9 @@ def move_profile(settings: Settings, src: str, dst: str) -> bool:
     if row is None:
         return False
     put_profile_json(settings, dst, row[0], row[1])
+    cv_text = get_cv_text(settings, src)
+    if cv_text is not None:
+        put_cv_text(settings, dst, cv_text, row[1])
     delete_profile_row(settings, src)
     return True
 
@@ -118,4 +135,4 @@ def get_user(settings: Settings, sub: str) -> dict | None:
 
 def delete_user(settings: Settings, sub: str) -> None:
     _run(settings, "DELETE FROM users WHERE sub = ?", (sub,))
-    _run(settings, "DELETE FROM owner_profiles WHERE owner_key = ?", ("u:" + sub,))
+    delete_profile_row(settings, "u:" + sub)

@@ -124,7 +124,8 @@ function renderToday() {
         <section class="panel"><h2>Take it with you</h2>
           <p>Download the plan or add its tasks to your calendar. Nothing is sent anywhere.</p>
           <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
-          <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p></section>
+          <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
+      <p><button class="btn btn--primary" type="button" data-global="generate-cv">Generate CV for this role (.md)</button></p></section>
         <section class="panel"><h2>Coming up</h2>
           <ul class="next-list">${coming.map((p) => `<li>${bullet(p.line, true)}<span>${esc(p.title)}</span><span>Wk ${esc(p.week)}</span></li>`).join("")}</ul>
           <p style="margin-top:10px"><a href="#/pathway">See the whole route</a></p>
@@ -537,7 +538,8 @@ function renderPathway() {
     <section class="panel" aria-labelledby="ex-h"><h2 id="ex-h">Take the plan with you</h2>
       <p>The files are built in your browser from this pathway. Nothing is sent anywhere.</p>
       <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
-      <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p></section>
+      <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
+      <p><button class="btn btn--primary" type="button" data-global="generate-cv">Generate CV for this role (.md)</button></p></section>
     <section class="panel" aria-labelledby="sdg-h"><h2 id="sdg-h">SDG and MyCOL links</h2>
       ${sdg.lines.map((l) => `<p>${esc(l)}</p>`).join("")}
       <p>${esc(sdg.line)}</p>
