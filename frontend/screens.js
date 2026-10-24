@@ -160,7 +160,8 @@ function cvPanel() {
   if (STATE.cv === "parsed" && STATE.saved) {
     return `<div class="cvfile">
       <div class="cvfile__name">${ICON.file}Your saved profile</div>
-      <p>${STATE.saved.skills.length} skills · updated ${esc(STATE.saved.updated_at.slice(0, 10))}. Kept on Varity's server; only this browser holds the key to it.</p>
+      <p>${STATE.saved.skills.length} skills · updated ${esc(STATE.saved.updated_at.slice(0, 10))}. ${STATE.saved.account ? "Kept on Varity's server under your account." : "Kept on Varity's server; only this browser holds the key to it."}</p>
+      ${typeof accountChip === "function" ? accountChip() : ""}
       <button class="btn" data-act="cv-replace">Read another CV</button>
       <button class="btn btn--quiet" data-act="profile-delete">Delete my profile</button>
       ${exampleButtons()}

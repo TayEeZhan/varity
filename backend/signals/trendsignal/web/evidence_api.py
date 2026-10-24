@@ -19,6 +19,7 @@ from advisor import service
 from advisor.mapping import map_profile, taxonomy_index
 from trendsignal.config import Settings
 from trendsignal.web.app import RateLimiter, envelope
+from trendsignal.web.auth_api import owner_of
 from trendsignal.web.cv_api import client_ip, load_profile
 
 from engine import radar as radar_mod  # noqa: E402  (advisor.service puts the repo root on sys.path)
@@ -63,9 +64,9 @@ def contested_skills(data_dir: Path) -> set[str] | None:
     return {r["skill"] for r in rows if (r.get("stance_robust") or "").strip().lower() == "false"}
 
 
-def held_skills(settings: Settings, token: str | None, data_dir: Path) -> tuple[list[str], list[str]]:
+def held_skills(settings: Settings, owner: str | None, data_dir: Path) -> tuple[list[str], list[str]]:
     """(taxonomy skills held by the saved profile, names that match no taxonomy skill). Both empty without a profile."""
-    profile = load_profile(settings, token)
+    profile = load_profile(settings, owner)
     taxonomy = load("taxonomy.json", data_dir, required=False)
     if profile is None or not taxonomy:
         return [], []
@@ -73,11 +74,11 @@ def held_skills(settings: Settings, token: str | None, data_dir: Path) -> tuple[
     return sorted(held), unmapped
 
 
-def radar_payload(settings: Settings, token: str | None, data_dir: Path = DATA_DIR) -> dict:
+def radar_payload(settings: Settings, owner: str | None, data_dir: Path = DATA_DIR) -> dict:
     scores = load("skill_scores.json", data_dir)
     backtest = load("backtest.json", data_dir, required=False)
     contested = contested_skills(data_dir)
-    held, unmapped = held_skills(settings, token, data_dir)
+    held, unmapped = held_skills(settings, owner, data_dir)
     skills = scores.get("skills") or []
     radar = radar_mod.radar_points(skills, held, contested or ())
     by_name = {s.get("skill"): s for s in skills}
@@ -191,7 +192,7 @@ def add_evidence_routes(app: FastAPI, settings: Settings, data_dir: Path = DATA_
     @app.get("/api/skills/radar")
     def api_skills_radar(request: Request, x_profile_token: str | None = Header(default=None)):
         """Every skill by demand share and tested change; the saved profile's skills are marked."""
-        return guarded(request, lambda: radar_payload(settings, x_profile_token, data_dir))
+        return guarded(request, lambda: radar_payload(settings, owner_of(request, x_profile_token), data_dir))
 
     @app.get("/api/evidence")
     def api_evidence(request: Request):
