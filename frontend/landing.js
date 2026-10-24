@@ -58,10 +58,10 @@ function renderLanding() {
   const html = `<div class="lp">
     <section class="lp-hero" aria-labelledby="lp-h1">
       <h1 id="lp-h1">From CV to hired, one stop at a time.</h1>
-      <p class="lp-sub">A personal route from the skills you have to the job you want, with free resources at every stop.</p>
+      <p class="lp-sub">A personal route from the skills you have to the job you want, with free resources where we have them.</p>
       <div class="lp-cta">
         <a class="btn btn--primary" href="#/profile">Find my jobs</a>
-        <a class="lp-alt" href="#/profile">Not ready? Try an example</a>
+        <a class="lp-alt" href="#/profile?examples=1">Not ready? Try an example</a>
       </div>
     </section>
 
@@ -82,8 +82,9 @@ function renderLanding() {
     </section>
 
     <section id="lp-board" aria-labelledby="lp-board-h" hidden>
-      <h2 class="sec" id="lp-board-h"><span>Departures this month <span class="synthetic real lp-chip">Real data</span></span> <small data-asof></small></h2>
-      <div class="lp-rows" role="table" aria-label="Role demand this month">
+      <h2 class="sec" id="lp-board-h"><span>Departures: role demand <span class="synthetic real lp-chip">Real data</span></span> <small data-asof></small></h2>
+      <p class="lp-note">Demand trend, last 12 months vs the 12 before</p>
+      <div class="lp-rows" role="table" aria-label="Role demand trend">
         <div class="lp-row lp-row--head" role="row"><span role="columnheader"></span><span role="columnheader">Role</span><span role="columnheader">Demand</span><span role="columnheader">As of</span></div>
       </div>
       <p class="lp-note">Share of Hacker News hiring posts; a sample of tech hiring, not a count of jobs.</p>
@@ -102,7 +103,7 @@ function renderLanding() {
   return { html, bind: bindBoard };
 }
 
-/* "Departures this month": role demand trend from GET /api/roles/forecast. Stays hidden if it fails. */
+/* "Departures: role demand": role demand trend from GET /api/roles/forecast. Stays hidden if it fails. */
 async function bindBoard(root) {
   try {
     const d = await api("/api/roles/forecast");

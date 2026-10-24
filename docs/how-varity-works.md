@@ -2,7 +2,7 @@
 
 A guide for team members who must explain the whole app to judges. Any member may be asked about any part, so this file goes from plain words to technical detail.
 
-Written 24 Oct 2026. It describes the app on `origin/main` (commit `803e48d`, the deployed app), not the `preview/landing` branch. Every claim was checked in the code or in `data/`. File paths are from the repo root. Numbers come from `data/` files or docs, and the source is named next to each number. Where a fact could not be checked, the text says so.
+Written 24 Oct 2026. It describes the app on the `feat/landing` branch. Every claim was checked in the code or in `data/`. File paths are from the repo root. Numbers come from `data/` files or docs, and the source is named next to each number. Where a fact could not be checked, the text says so.
 
 The product name in the UI is "Varity". Some older docs spell it "Verity". It is the same app.
 
@@ -20,14 +20,20 @@ The product name in the UI is "Varity". Some older docs spell it "Verity". It is
 
 ## 2. The user journey, screen by screen
 
-The app has eight screens and one optional sign-in. The top bar is in `frontend/index.html`. The router is in `frontend/app.js` (`SCREENS`). The default screen is Today.
+The app has ten screens and one optional sign-in. The top bar (`frontend/index.html`) links to Flow map, CV & routes, Today, Pathway, Signals, Job forecast and How Varity works. Skills radar and Method have no top-bar tab; they are reached through the buttons on How Varity works. The router is in `frontend/app.js` (`SCREENS`). A visitor with no saved profile lands on the landing (`#/`); a visitor with a saved profile (an account's, or this browser's token) lands on Today. An explicit hash always wins.
+
+### 2.0 Landing (`#/`) and How Varity works (`#/how`)
+
+**Landing** (`frontend/landing.js`, `renderLanding`): the headline "From CV to hired, one stop at a time.", a "Find my jobs" button, "Not ready? Try an example" (goes to CV & routes and focuses the example buttons), a five-stop route map, and a "Departures: role demand" board. The board reads `GET /api/roles/forecast` (demand trend, last 12 months vs the 12 before, with the as-of month) and stays hidden if the call fails.
+
+**How Varity works** (`renderHow`): a four-step journey (CV, matches, skills gap, plan) and two cards that lead to Skills radar (`#/radar`) and Method (`#/method`).
 
 A pattern repeats on every screen. The browser calls an API route in `backend/signals/trendsignal/web/`. The route calls an engine function in `engine/`. The engine reads files in `data/`.
 
 ### 2.1 CV & routes (`#/profile`)
 
 **What the user sees.**
-- A drop zone: "PDF or text, up to 5 MB and 4 pages". Buttons: "Choose a file", "Use the synthetic sample CV", and "Try an example" with three synthetic people (Aina, Ben, Chloe).
+- A drop zone: "PDF, Word (.docx), OpenDocument (.odt), RTF, HTML or text, up to 5 MB and 4 pages". The server accepts PDF, DOCX, ODT, RTF, HTML, TXT and MD (`backend/signals/intake/readers.py`); an old .doc file is rejected with a message to save it as .docx or PDF. Buttons: "Choose a file", "Use the synthetic sample CV", and "Try an example" with three synthetic people (Aina, Ben, Chloe).
 - After a CV is read: a review table. Each skill has a tick box and an evidence quote from the CV. The user unticks wrong skills and saves.
 - An optional "Destination" drop-down ("Not sure yet" by default). If you pick a role, it is pinned on top as "Destination". Other routes still show.
 - A Moderate / Fast scenario toggle.
@@ -35,8 +41,7 @@ A pattern repeats on every screen. The browser calls an API route in `backend/si
   - the match % ("match now") and a fit label, for example "Good fit, rising demand";
   - an outlook line (Rising, No clear change or Falling) with its date;
   - reason chips (each has a source and a date in its tooltip);
-  - SDG tags and a line about the sector share;
-  - MyCOL badges;
+  - small chips only: the first SDG target (with "+N" when there are more; hover lists them all) and a "MyCOL" chip. The detail (every SDG target, sector evidence with its SDG targets, and the MyCOL links) sits in one table at the bottom of the page;
   - "You already have" and "Skills gap" lists.
 - Roles with match below 20% are listed as "Low match, not ranked". Skills that are not in the job data are listed as "Not in the job data yet, so not counted".
 
@@ -59,7 +64,7 @@ The Moderate / Fast toggle sends `?scenario=fast`. The ranking does not change. 
 
 ### 2.2 Pathway (`#/pathway`)
 
-**What the user sees.** The ordered stops from your skills to the chosen route, drawn as a transit line. Each stop has a skill, minutes, a free resource with a link, a cost tag, SDG tags and a "why for you" line. Three stages: no-regret, near-term, future bet. Side panels show totals and "SDG and MyCOL links".
+**What the user sees.** The ordered stops from your skills to the chosen route, drawn as a transit line. Each stop has a skill, minutes, a free resource with a link, a cost tag, a small SDG chip ("+N" when there are more; hover lists them) and a "why for you" line. Three stages: no-regret, near-term, future bet. The SDG and MyCOL detail sits in one table at the bottom.
 
 **What happens behind it.** `GET /api/pathway?roleId=...&scenario=...` (`roles_api.py`) calls `advisor/service.py` `pathway`. That calls `engine/pathway.py` `build_pathway`, which reads `data/skill_scores.json`, `data/resources.json` and `data/taxonomy.json`. Section 4.7 explains the stages.
 
@@ -88,11 +93,15 @@ If the server cannot be reached, `frontend/data.js` shows a dated offline snapsh
 
 ### 2.6 Skills radar (`#/radar`)
 
+Reached from How Varity works (no top-bar tab).
+
 **What the user sees.** A scatter chart of 40 skills: share of job posts (log scale) against the change in that share over the last 12 months. Only skills with a tested Rising or Falling label get a colour, by AI stance. All others are grey. A hollow dot means the AI stance is contested. Your own skills are ringed. Click a dot to see the 12-month forecast and the Fast estimate. A table repeats all the data.
 
 **What happens behind it.** `GET /api/skills/radar` (`evidence_api.py`, `radar_payload`) calls `engine/radar.py` and reads `data/skill_scores.json` and `data/exposure_robustness.csv`.
 
 ### 2.7 Method (`#/method`)
+
+Reached from How Varity works (no top-bar tab).
 
 **What the user sees.** Backtest tables for the skill forecast and the role forecast, band coverage, the trend label hit rate, the AI exposure cross-check, k shown as an "assumption", and the data sources.
 
@@ -134,7 +143,7 @@ flowchart LR
 
 ### 3.2 Walk-through
 
-1. **Static frontend.** `frontend/index.html` loads `data.js`, `diagram.js`, `screens.js`, `screens-explore.js`, `screens-evidence.js` and `app.js`. There is no bundler and no build step. A hash router draws one screen at a time. All user data comes from the API. A comment at the top of `frontend/app.js` says "Everything about the user comes from the API; nothing here is a sample."
+1. **Static frontend.** `frontend/index.html` loads `data.js`, `diagram.js`, `screens.js`, `screens-explore.js`, `screens-evidence.js`, `landing.js` and `app.js`. There is no bundler and no build step. A hash router draws one screen at a time. All user data comes from the API. A comment at the top of `frontend/app.js` says "Everything about the user comes from the API; nothing here is a sample."
 2. **FastAPI backend.** One server runs `python -m trendsignal serve` (`backend/signals/trendsignal/cli.py`). It serves `frontend/` at `/` and the JSON API under `/api`. It is the only server. The route files are `app.py`, `cv_api.py`, `roles_api.py`, `evidence_api.py` and `auth_api.py`. Each uses the same `{success, data, error}` envelope and per-IP rate limits (`RateLimiter`).
 3. **Engine.** `engine/*.py` is plain Python. It has no server and no database. It reads and writes files in `data/`. The backend imports it (`advisor/service.py` adds the repo root to `sys.path`).
 4. **Data files.** `data/` holds the committed CSV and JSON files. Raw Hacker News posts stay local in `data/raw/` (gitignored). Only counts, shares and thread links are committed (`docs/architecture.md` section 5).
@@ -233,7 +242,7 @@ Role backtest (`data/role_backtest.json`): the 80% band covered 93.62% of held-o
 **MyCOL** (`data/mycol.json`, `data/mycol_role_map.json`):
 - MyCOL is the Malaysia Critical Occupations List 2024/2025 from TalentCorp. It lists occupations in shortage. It is not a count of vacancies (`data/mycol.json` `meaning`).
 - We keep 10 tech-relevant occupations out of the 66 in the PDF (`data/mycol.json` `scope`). Names and MASCO codes were read by eye from page images (`how_read`).
-- `data/mycol_role_map.json` has 10 mappings from MyCOL occupations to our roles. Each is "direct" or "partial" and is team judgement. The badge says "MyCOL shortage occupation" and shows our mapping, never "this role is on the list". A role with no mapping shows nothing.
+- `data/mycol_role_map.json` has 10 mappings from MyCOL occupations to our roles. Each is "direct" or "partial" and is team judgement. The badge says "MyCOL" (the detail table shows the occupation and the strength) and shows our mapping, never "this role is on the list". A role with no mapping shows nothing.
 
 ### 4.7 The pathway builder
 

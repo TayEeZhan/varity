@@ -38,13 +38,14 @@ const scenarioToggle = () => `<div class="filters" role="group" aria-label="AI s
   </div>
   <p class="route-note">Both scenarios are estimates. The scenario does not change how roles rank. Fast shows how much role demand may fall if AI exposure cuts skill demand, and puts future skills earlier in the pathway.</p>`;
 
+const sdgAll = (tags) => tags.map((t) => `SDG ${t.target}: ${t.label}`).join(", ");
 const sdgTag = (t) => `<span class="tag" title="Source: ${esc(t.source)}">SDG ${esc(t.target)}: ${esc(t.label)}</span>`;
 
 /* Compact marker row for a card: first SDG target (+N) and a MyCOL flag. Details live in sdgTable at the page bottom. */
 function marksHTML(tags, hasMycol) {
   if (!tags.length && !hasMycol) return "";
   const t = tags[0];
-  return `<div class="route__tags">${t ? `<span class="tag" title="Source: ${esc(t.source)}">SDG ${esc(t.target)}${tags.length > 1 ? ` +${tags.length - 1}` : ""}</span>` : ""}${hasMycol ? `<span class="tag tag--mycol">MyCOL</span>` : ""}</div>`;
+  return `<div class="route__tags">${t ? `<span class="tag" title="${esc(tags.length > 1 ? sdgAll(tags) : `Source: ${t.source}`)}">SDG ${esc(t.target)}${tags.length > 1 ? ` +${tags.length - 1}` : ""}</span>` : ""}${hasMycol ? `<span class="tag tag--mycol">MyCOL</span>` : ""}</div>`;
 }
 
 /* "TalentCorp MyCOL 2024/2025": occupations on Malaysia's shortage list that match the role (direct matches first). */
@@ -55,7 +56,7 @@ const mycolLinks = (items) => items.map((m) => {
 }).join("") || `<span class="sdgt__note">None listed</span>`;
 
 function sectorLines(sdg) {
-  return sdg.sectors.map((x) => `<p>${esc(x.name)}: ${esc(x.sharePct)}% of this role's posts vs ${esc(x.baselinePct)}% of all posts (${esc(x.count)} of ${esc(x.posts)}, last ${esc(x.months)} months, as of ${esc(x.asOf)}) <span class="sdgt__note">source: data/role_sdg.json</span></p>`).join("")
+  return sdg.sectors.map((x) => `<p>${esc(x.name)}: ${esc(x.sharePct)}% of this role's posts vs ${esc(x.baselinePct)}% of all posts (${esc(x.count)} of ${esc(x.posts)}, last ${esc(x.months)} months, as of ${esc(x.asOf)}) <span class="sdgt__note">source: data/role_sdg.json</span> ${x.tags.map(sdgTag).join(" ")}</p>`).join("")
     || `<span class="sdgt__note">No sector stands out</span>`;
 }
 
@@ -343,6 +344,8 @@ function renderProfile() {
     </section>`;
 
   const bind = (root) => {
+    const ex = location.hash.includes("examples=1") && root.querySelector(".examples");  // from the landing's "Try an example"
+    if (ex) { ex.scrollIntoView({ block: "center" }); ex.querySelector("button").focus({ preventScroll: true }); history.replaceState(null, "", "#/profile"); }
     const fileInput = root.querySelector("[data-file]");
     const drop = root.querySelector("[data-drop]");
     const fail = (message) => { STATE.cv = "error"; STATE.cvError = message; rerender(); };
@@ -488,7 +491,7 @@ function renderPathway() {
       ${bullet(p.line, true)}
       <div><div class="pstop__t">${esc(p.title)}<span>${Number(p.mins)} min</span></div>
         <div class="pstop__r">${p.url ? ext(p.url, p.resource) : esc(p.resource)}</div>
-        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.length ? `<span class="tag" title="Source: ${esc(p.sdgTags[0].source)}">SDG ${esc(p.sdgTags[0].target)}${p.sdgTags.length > 1 ? ` +${p.sdgTags.length - 1}` : ""}</span>` : ""}</div>
+        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.length ? `<span class="tag" title="${esc(p.sdgTags.length > 1 ? sdgAll(p.sdgTags) : `Source: ${p.sdgTags[0].source}`)}">SDG ${esc(p.sdgTags[0].target)}${p.sdgTags.length > 1 ? ` +${p.sdgTags.length - 1}` : ""}</span>` : ""}</div>
         ${p.sdgReason ? `<p class="pstop__why">${esc(p.sdgReason)}</p>` : ""}
         ${p.why ? `<p class="pstop__why">${esc(p.why)}</p>` : ""}
         ${p.reasons ? `<div class="chips">${p.reasons.map((c) => reasonChip(c)).join("")}</div>` : ""}</div>

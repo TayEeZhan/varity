@@ -49,7 +49,7 @@ const DEFAULT_SCREEN = "today";
 /* An explicit hash wins ("#/" is the landing). With none, a visitor with a saved profile (account or this
    browser's token) starts on Today; everyone else starts on the landing. */
 function currentScreen() {
-  const r = location.hash.replace(/^#\/?/, "");
+  const r = location.hash.replace(/^#\/?/, "").split("?")[0];
   if (r === "" && location.hash.startsWith("#/")) return "home";
   if (SCREENS[r]) return r;
   return hasKey() ? DEFAULT_SCREEN : "home";
@@ -526,7 +526,9 @@ if (loginFailed) history.replaceState(null, "", location.pathname + location.sea
 
 window.addEventListener("hashchange", navigate);
 STATE.loading = profileToken() ? "profile" : "";
-navigate();  // draw at once; the data arrives below
+/* Bare URL and no browser token: an account may still hold a profile (Today, not the landing), so draw nothing until /api/me answers. */
+const waitForMe = !location.hash && !profileToken();
+if (!waitForMe) navigate();  // draw at once; the data arrives below
 if (loginFailed) toast("Sign-in did not finish. Try again.");
 loadMine();
 loadSignals().then(() => rerender());
