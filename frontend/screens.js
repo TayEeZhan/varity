@@ -153,6 +153,7 @@ function cvPanel() {
       <p>${esc(llmLine(STATE.review.llm_status))}</p>
       ${STATE.review.injection_hint ? `<p class="err" role="alert">Some lines look like instructions to an AI. They were read as CV text only, and skills on them are not ticked.</p>` : ""}
       <p>Untick anything that is wrong, then save. Nothing is stored until you do.</p>
+      ${destinationField()}
       <button class="btn btn--primary" data-act="cv-save">Save ${STATE.keep.size} skills</button>
       <button class="btn btn--quiet" data-act="cv-replace">Cancel</button>
     </div>`;
@@ -180,6 +181,16 @@ function cvPanel() {
       <button class="btn btn--quiet" type="button" data-act="cv-sample">Use the synthetic sample CV</button>
     </div>
     ${exampleButtons()}`;
+}
+
+/* The roles the forecast knows (live or snapshot): the only destinations that can get a route. */
+function destinationField() {
+  const roles = Object.entries(FORECAST.roles || {}).sort((a, b) => a[1].name.localeCompare(b[1].name));
+  if (!roles.length) return "";
+  const opts = roles.map(([id, r]) => `<option value="${esc(id)}"${STATE.destination === id ? " selected" : ""}>${esc(r.name)}</option>`).join("");
+  return `<label class="dest"><span class="dest__label">Destination (optional)</span>
+      <select class="dest__select" data-dest><option value="">Not sure yet</option>${opts}</select>
+      <span class="dest__hint">Pick the role you want. We'll still show other routes.</span></label>`;
 }
 
 function reviewTable() {
@@ -339,6 +350,8 @@ function renderProfile() {
       }
     };
     root.addEventListener("change", (e) => {
+      const dest = e.target.closest("[data-dest]");
+      if (dest) { STATE.destination = dest.value; return; }
       const box = e.target.closest("[data-keep]");
       if (!box) return;
       if (box.checked) STATE.keep.add(box.dataset.keep);
@@ -364,13 +377,24 @@ function renderProfile() {
       else if (act === "cv-choose") fileInput.click();
       else if (act === "cv-sample") read("aina.txt (synthetic sample)", { sample: "aina" });
       else if (act === "cv-save") {
-        call("/api/profile/apply", { method: "POST", body: JSON.stringify({ review_id: STATE.review.review_id, kept_ids: [...STATE.keep] }) }, (data) => {
+        call("/api/profile/apply", { method: "POST", body: JSON.stringify({ review_id: STATE.review.review_id, kept_ids: [...STATE.keep] }) }, async (data) => {
           setProfileToken(data.token);
           STATE.saved = data.profile;
           STATE.review = null;
           STATE.cv = "parsed";
+          let note = `Saved ${data.profile.skills.length} skills to your profile.`;
+          // Set separately: apply uses up the review, so a refused destination there would lose the user's ticks.
+          const dest = STATE.destination && FORECAST.roles[STATE.destination];
+          if (dest) {
+            try {
+              STATE.saved = (await api("/api/profile/target-role", { method: "POST", body: JSON.stringify({ roleId: STATE.destination }) })).profile;
+              note = `Destination set: ${dest.name}. Your pathway leads there.`;
+            } catch (err) {
+              note = `Saved your skills, but ${dest.name} has no route for them yet.`;
+            }
+          }
           rerender();
-          toast(`Saved ${data.profile.skills.length} skills to your profile.`);
+          toast(note);
           refreshRoutes();
         });
       }
