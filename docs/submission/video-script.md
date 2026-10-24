@@ -11,10 +11,10 @@ Deck: https://claude.ai/artifact/S2wLJMTcXwLLqC78ESTqTM (23 slides). **Bold** = 
 Hi, I'm Ee Zhan from team Hokkien Mee Is Purple, Universiti Malaya. This is Varity.
 
 **Slide 2 · Problem statement (0:12–0:35)**
-AI is changing tech jobs faster than people can reskill. In one year, AI went from solving 4.4% to 71.7% of real coding problems. Young workers feel it first: employment of 22-to-25-year-olds in AI-exposed jobs is 19% below trend. And in Malaysia, 56% of professionals use AI at work, but only 26% were trained. So a junior can't tell what to learn for the job they want.
+AI is advancing so fast that the skills you need keep piling up. In one year, AI went from solving 4.4% to 71.7% of real coding problems. By 2030, 39% of core skills will change, and AI skills are growing fastest. Computer science is hit hardest: AI could cover 94% of computer and maths tasks, more than any other field, and programmers are the most exposed job of all. People who can't keep up fall off track: employment of 22-to-25-year-olds in exposed jobs is already 19% below trend.
 
 **Slide 3 · Our solution (0:35–0:55)**
-Varity fixes that. Tell us the job you want, and we show you the route there. Know which skills are rising or falling, tested on nearly 50,000 dated job posts. Match: get job suggestions from AI and data, or pick your own role. Act: follow a dated daily plan with free resources, and get a new CV that proves it.
+Varity lets you catch up, close the gap and reach the job you want, all at once. Catch up: see which skills AI is making essential, tested on nearly 50,000 dated job posts and live AI news. Close the gap: get your exact gap for the job you choose, turned into a dated daily plan with free resources. Reach the job: your match rises as you learn, and you get a new CV that proves it.
 
 ## Part 2 · User flow (0:55–1:12)
 
