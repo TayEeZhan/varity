@@ -214,7 +214,7 @@ flowchart LR
 
 - **What it does.** Shows two futures per skill. Moderate is the forecast. Fast is `moderate * (1 - k * e_s)`, where `e_s` is the skill's exposure minus the mean over the 40 skills. `k = 2` is shown as an assumption (data/skill_scores.json, `scenario_params`).
 - **Key function.** `engine/scores.py`: `fast_scenario`.
-- **Why built this way.** The brief asks for more than one scenario, labelled as estimates. One stated formula is easy to explain and to challenge. The app labels both scenarios as estimates. The Fast band is never graded (`engine/outcome.py`).
+- **Why built this way.** The brief asks for more than one scenario, labelled as estimates. One stated formula is easy to explain and to challenge. The app labels both scenarios as estimates. The Fast band is never graded: only the Moderate band is backtested (`engine/backtest.py`).
 - **How tested.** `tests/test_scores.py`.
 - **Status.** [IN APP]
 
