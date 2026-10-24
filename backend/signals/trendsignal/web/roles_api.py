@@ -11,12 +11,14 @@ from typing import Literal
 from fastapi import FastAPI, Header, Query, Request
 from pydantic import BaseModel, Field
 
-from advisor import service
+from advisor import cv_writer, planner, service
 from advisor.llm import LlmUnavailable, call_model
 from intake import ledger
+from intake.models import Evidence
 from trendsignal.jobs import AppContext
 from trendsignal.output import latest_run_id
 from trendsignal.queries import skill_momentum
+from trendsignal.web import accounts_store
 from trendsignal.web.app import RateLimiter, envelope
 from trendsignal.web.auth_api import owner_of
 from trendsignal.web.cv_api import client_ip, load_profile, profile_out, save_profile
@@ -28,6 +30,18 @@ MODEL_CALLS_PER_MINUTE = 4  # per IP: counted only when a paid model call really
 
 class TargetRoleIn(BaseModel):
     roleId: str = Field(min_length=1, max_length=60)
+
+
+class DecisionIn(BaseModel):
+    roleId: str = Field(min_length=1, max_length=60)
+    action: Literal["keep", "revert", "add", "later"]
+    skill: str | None = Field(default=None, max_length=60)  # for add / later
+    scenario: Literal["moderate", "fast"] = "moderate"
+    hoursPerWeek: int = Field(default=5, ge=MIN_HOURS, le=MAX_HOURS)
+
+
+class LearnedIn(BaseModel):
+    skill: str = Field(min_length=1, max_length=60)  # a taxonomy skill name, as the pathway shows it
 
 
 def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
@@ -105,12 +119,78 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
         role_id = roleId or profile.target_role
         if not role_id:
             return envelope(error="pick a route first", status=409, meta={"code": "NO_TARGET_ROLE"})
+        plan, error = build_plan(request, x_profile_token, profile, data, role_id, scenario, hoursPerWeek)
+        return error or envelope(plan)
+
+    def build_plan(request: Request, token: str | None, profile, data, role_id: str, scenario: str, hours: int):
+        """(pathway, error). Saves the plan state when the service says it changed without needing a question."""
         rows, run_id = signals()
         try:
             plan = service.pathway(profile, role_id, rows, run_id, settings.db_path, scenario=scenario,
-                                   hours_per_week=hoursPerWeek, use_llm=settings.llm_mode != "off",
+                                   hours_per_week=hours, use_llm=settings.llm_mode != "off",
                                    call=model_call(request), data=data)
+        except service.RoleNotFound:
+            return None, envelope(error="no pathway for this role: unknown, or too few job posts to learn it", status=422,
+                                  meta={"code": "VALIDATION_ERROR"})
+        state = plan.pop("planState")
+        if state is not None:
+            save_profile(settings, owner_of(request, token), profile.model_copy(update={"plan": state}))
+        return plan, None
+
+    @app.post("/api/pathway/decision")
+    def api_pathway_decision(payload: DecisionIn, request: Request, x_profile_token: str | None = Header(default=None)):
+        """Keep / Revert a changed plan, or Add / Not now a trend skill. Returns the pathway after the decision."""
+        profile, data, error = checks(request, x_profile_token)
+        if error:
+            return error
+        plan, error = build_plan(request, x_profile_token, profile, data, payload.roleId, payload.scenario, payload.hoursPerWeek)
+        if error:
+            return error
+        profile = load_profile(settings, owner_of(request, x_profile_token))  # build_plan may have saved a new state
+        state, today, now = profile.plan, service.pathway_mod.today_myt().isoformat(), ledger.now_iso()
+        if payload.action in ("keep", "revert"):
+            if not plan["change"] or state is None:
+                return envelope(error="nothing changed in this plan", status=409, meta={"code": "NO_CHANGE"})
+            state = (planner.accept(state, payload.roleId, [s["skill"] for s in plan["steps"]], today, now)
+                     if payload.action == "keep" else planner.revert(state, plan["change"], today, now))
+        else:
+            if not plan["offer"] or plan["offer"]["skill"] != payload.skill or state is None:
+                return envelope(error="that skill is not on offer", status=409, meta={"code": "NO_OFFER"})
+            state = planner.answer_offer(state, payload.skill, payload.action == "add", today, now)
+        profile = profile.model_copy(update={"plan": state})
+        save_profile(settings, owner_of(request, x_profile_token), profile)
+        plan, error = build_plan(request, x_profile_token, profile, data, payload.roleId, payload.scenario, payload.hoursPerWeek)
+        return error or envelope(plan)
+
+    @app.post("/api/profile/learned")
+    def api_profile_learned(payload: LearnedIn, request: Request, x_profile_token: str | None = Header(default=None)):
+        """The user finished a skill's pathway tasks: add it to the profile (source pathway, self-reported)."""
+        profile, data, error = checks(request, x_profile_token)
+        if error:
+            return error
+        if payload.skill not in {t["skill"] for t in data["taxonomy"]}:
+            return envelope(error="unknown skill", status=422, meta={"code": "VALIDATION_ERROR"})
+        evidence = Evidence(source="pathway", method="task_done", context="user", added_at=ledger.now_iso(),
+                            added_by="user", note=f"Finished every pathway task for {payload.skill}")
+        try:
+            profile = ledger.add_evidence(profile, service.pathway_mod.task_slug(payload.skill), payload.skill,
+                                          evidence, caller="pathway")
+        except ledger.LedgerError as exc:
+            return envelope(error=str(exc), status=422)
+        save_profile(settings, owner_of(request, x_profile_token), profile)
+        return envelope(profile_out(profile, owner_of(request, x_profile_token)))
+
+    @app.post("/api/cv/generate")
+    def api_cv_generate(request: Request, x_profile_token: str | None = Header(default=None)):
+        """A new CV for the target role: the saved CV text plus the current skills. Saves nothing."""
+        profile, data, error = checks(request, x_profile_token)
+        if error:
+            return error
+        if not profile.target_role:
+            return envelope(error="pick a target role first", status=422, meta={"code": "NO_TARGET_ROLE"})
+        cv_text = accounts_store.get_cv_text(settings, owner_of(request, x_profile_token))
+        try:
+            return envelope(cv_writer.generate(profile, profile.target_role, cv_text, data, model_call(request)))
         except service.RoleNotFound:
             return envelope(error="no pathway for this role: unknown, or too few job posts to learn it", status=422,
                             meta={"code": "VALIDATION_ERROR"})
-        return envelope(plan)

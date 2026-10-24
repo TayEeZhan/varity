@@ -101,10 +101,11 @@ class ReviewStore:
     """
 
     def __init__(self) -> None:
-        self._items: dict[str, tuple[float, Review]] = {}
+        self._items: dict[str, tuple[float, tuple[Review, str]]] = {}
         self._lock = threading.Lock()
 
-    def put(self, review: Review) -> str:
+    def put(self, review: tuple[Review, str]) -> str:
+        """review is (the review rows, the cleaned CV text saved with them)."""
         review_id = secrets.token_urlsafe(16)
         now = time.monotonic()
         with self._lock:
@@ -114,7 +115,7 @@ class ReviewStore:
             self._items[review_id] = (now + REVIEW_TTL_S, review)
         return review_id
 
-    def pop(self, review_id: str) -> Review | None:
+    def pop(self, review_id: str) -> tuple[Review, str] | None:
         with self._lock:
             item = self._items.pop(review_id, None)
         return item[1] if item and item[0] > time.monotonic() else None
@@ -225,7 +226,7 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
         except ReadError as exc:
             return envelope(error=exc.message, status=422, meta={"code": exc.code})
         return envelope({
-            "review_id": reviews.put(result.review),
+            "review_id": reviews.put((result.review, result.cv_text)),
             "llm_status": result.llm_status,
             "model": MODEL_LABEL,
             "injection_hint": result.injection_hint,
@@ -240,9 +241,10 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
         """Save the rows the user kept. Returns the profile and the token to keep for next time."""
         if not profile_limiter.allow(client(request)):
             return envelope(error="too many requests, try again in a minute", status=429)
-        review = reviews.pop(payload.review_id)
-        if review is None:
+        popped = reviews.pop(payload.review_id)
+        if popped is None:
             return envelope(error="this review has expired, read the CV again", status=410)
+        review, cv_text = popped
         profile = load_profile(settings, owner_of(request, x_profile_token))
         owner, token = save_target(owner_of(request, x_profile_token), x_profile_token, profile is not None)
         profile = profile or ledger.new_profile()
@@ -258,6 +260,7 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
             return envelope(error="unknown route: pick a role from the suggestions", status=422,
                             meta={"code": "VALIDATION_ERROR"})
         save_profile(settings, owner, profile)
+        store.put_cv_text(settings, owner, cv_text, profile.updated_at)
         return envelope(profile_out(profile, owner, token))
 
     @app.get("/api/profile/examples")
