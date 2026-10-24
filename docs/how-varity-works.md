@@ -2,7 +2,7 @@
 
 A guide for team members who must explain the whole app to judges. Any member may be asked about any part, so this file goes from plain words to technical detail.
 
-Written 24 Oct 2026. It describes the app on the `feat/landing` branch. Every claim was checked in the code or in `data/`. File paths are from the repo root. Numbers come from `data/` files or docs, and the source is named next to each number. Where a fact could not be checked, the text says so.
+Written 24 Oct 2026, updated 25 Oct 2026 for `main` (plan memory, learned skills, Generate CV, Google Tasks, and the AI-jury evaluation of the Signals ranker). Every claim was checked in the code or in `data/`. File paths are from the repo root. Numbers come from `data/` files or docs, and the source is named next to each number. Where a fact could not be checked, the text says so.
 
 The product name in the UI is "Varity". Some older docs spell it "Verity". It is the same app.
 
@@ -70,7 +70,11 @@ The Moderate / Fast toggle sends `?scenario=fast`. The ranking does not change. 
 
 ### 2.3 Today (`#/today`)
 
-**What the user sees.** The next day's stops from the pathway, with total minutes and a tick button on each. A progress bar shows "N of M stops done". Two buttons: "Download plan (.md)" and "Add to calendar (.ics)". A "Coming up" list. The text says "Nothing is sent anywhere."
+**What the user sees.** The next day's stops from the pathway, with total minutes and a tick button on each. A progress bar shows "N of M stops done". Buttons: "Download plan (.md)", "Add to calendar (.ics)", "Generate CV for this role (.md)" and, when the server has `GOOGLE_CLIENT_ID`, "Send today to Google Tasks". A "Coming up" list.
+- **Mark as learned.** When every task of a skill is ticked, a toast and a "finished" list offer "Mark as learned". The skill joins the profile (source `pathway`), leaves the gap, and the match % rises (`POST /api/profile/learned`).
+- **Plan memory and re-plan banner.** The accepted plan is stored on the profile (`Profile.plan`) with stable task ids, so ticks no longer reset. If a rebuild adds or drops skills, a yellow "Service change" banner shows the reasons with Keep / Revert (`POST /api/pathway/decision`, `backend/signals/advisor/planner.py`).
+- **Trend-gated new skill.** A new skill is offered only when AI-news momentum and the job-post trend both rise, another nearby role needs it, and a checked resource exists. At most one offer a week; "Not now" hides it for 30 days.
+- **Google Tasks.** The browser asks Google for a Tasks-only token and writes one dated list itself, with an Undo. The server never sees the token or the tasks.
 
 **What happens behind it.**
 - Today uses the same `GET /api/pathway` data. `applyPlan` in `frontend/app.js` picks the first task that is not ticked, and shows all tasks on that date.
@@ -267,13 +271,17 @@ Role backtest (`data/role_backtest.json`): the 80% band covered 93.62% of held-o
 
 ### 4.9 The AI-trend signal ranker (Signals screen)
 
-This is Sheng Kuan's package in `backend/signals/trendsignal/`. The design rule is "code extracts, Jev decides, code ranks" (`backend/signals/ARCHITECTURE_JEV_RANKER.md`). Jev is an optional decision model.
+This is Sheng Kuan's package in `backend/signals/trendsignal/`. The design rule is "code extracts, Jev decides, code ranks" (`backend/signals/ARCHITECTURE_JEV_RANKER.md`). Jev is a decision model; it was tested and now gives a second opinion.
 
 Steps: collectors (`collectors/`: RSS, arXiv, Hugging Face papers, Hacker News; X, Threads and Bluesky are optional) → normalise to one canonical URL → cluster duplicates into stories (URL match, then TF-IDF similarity; `pipeline/cluster.py`) → build a feature vector in code (`pipeline/features.py`) → rank.
 
 The default ranker is the formula (`TRENDSIGNAL_RANKER` defaults to `formula`; `trendsignal/config.py`). From `backend/signals/config/weights.yaml`, importance is a weighted sum of six features: impact 0.25, authority 0.20, corroboration 0.20, velocity 0.15, dev relevance 0.10, novelty 0.10. Tier limits: Must-know at 75 and above, Worth-a-look at 50 and above, at most 5 Must-know per day. Guardrails: social-only stories are never Must-know, and a Must-know needs an official or research source or 3 independent reports (`decision/ranker.py` docstring).
 
-Jev (through OpenRouter) is used only if configured and set as the ranker. The rule is that Jev ranks by default only after it beats the formula on a hand-labelled gold set. Today the formula ranks.
+**How the ranker was evaluated (the AI jury).** We graded the ranker against an independent 3-model AI jury (`backend/signals/eval/jury.py`): models from different makers, called through OpenRouter, each label every story with the same question human labellers get. Jev is never a juror, so the answer key stays independent of the model under test, and the jury is trusted only after it agrees with a human-labelled sample (`TRUST_AGREEMENT = 0.75`). Metrics are precision@5 and NDCG@10 (`eval/metrics.py`).
+
+What the jury showed: urgent security news was buried. It breaks on community sites days before official advisories, and one event was split across several stories. We fixed the clustering and added a guarded "urgent security" rule (`is_security_item`). NDCG@10 rose from 0.37 to 0.53, and the critical PHP RCE moved from #4 to #1 Must-know.
+
+**Jev.** Jev (`jev-1.13.0`, TypeSafe AI) is a decision model. On the same jury labels it scored NDCG@10 0.25, worse than the formula. Our promotion rule says Jev ranks only after it beats the formula, so the formula stays the ranker and Jev is shown as a second opinion.
 
 The Signals data does not feed the skill forecast. That link is a design only (`docs/architecture.md` section 3.17).
 
@@ -288,7 +296,8 @@ The Signals data does not feed the skill forecast. That link is a design only (`
 | CV intake | Points at skill mentions and copies one evidence quote for each | Drops any skill whose quote is not in the CV word for word; drops any skill whose phrase is not in its quote; reads years of experience itself; matches names to the skill graph | `backend/signals/intake/llm_extract.py`, `verify.py` |
 | Route advisor (optional) | Re-orders roles; picks reason chips; writes one summary line | Writes all chips. Accepts the order only if it is a permutation that moves no role more than 2 places (`MAX_MOVE = 2`). Checks the summary text against allowed text and skill names. Always writes the fit label (`fit_label`: Strong fit at 0.5 or more, Good fit at 0.3 or more, else Partial fit) | `backend/signals/advisor/llm.py`, `chips.py`, `service.py` |
 | Pathway coach (optional) | Re-orders steps within one stage; picks a resource from a list; writes a "why for you" line | Accepts the order only if no step leaves its stage. A resource must be one of the listed URLs. Dates, minutes and stages stay as code set them | `advisor/llm.py` `verify_coaching` |
-| Signal ranker (optional) | Jev or Claude, off by default | Formula ranks | section 4.9 |
+| Generate CV | Rewrites the CV for the target role: summary, reworded bullets, skills section | Picks and orders the skills; a checker drops any job, school, date, number or skill that the original CV or the verified profile cannot back. No model: the original CV plus a code-built skills list | `backend/signals/advisor/cv_writer.py`, `POST /api/cv/generate` |
+| Signal ranker | Jev gives a second opinion; a 3-model AI jury graded the ranker offline | Formula ranks (it beat Jev on the jury labels) | section 4.9 |
 
 **Model and key.** Claude Haiku 5.5 (`claude-haiku-5-5`) through the Anthropic API (`MODEL` in `intake/llm_extract.py`). The key `ANTHROPIC_API_KEY` is a team member's, set in Replit Secrets (`README.md`). Anthropic bills that account. The code can also use Replit AI Integrations with `claude-haiku-4-5` when no key is set. The team does not use that route.
 
@@ -323,7 +332,8 @@ A `SpendGate` reserves the worst-case cost before a call and settles afterwards.
 **What is stored** (`web/accounts_store.py`):
 - Table `users`: Replit user id (`sub`), email, display name, profile image URL, created time, last login time.
 - Table `owner_profiles`: the profile as JSON. It holds the skill ledger (skills with evidence quotes), the target role, and the pathway tick progress.
-- Never stored: the raw CV text, and tokens. The CV is read and dropped. Only the skills you save are kept.
+- Table `owner_cvs`: the cleaned CV text (emails, phone and ID numbers already redacted), saved on profile apply so "Generate CV" can work. It moves with the profile and is deleted with it.
+- Never stored: the uncleaned CV text, and tokens.
 
 **Delete.** `DELETE /api/me` deletes the account and the profile. "Delete my profile" deletes an anonymous profile (`DELETE /api/profile`). An anonymous profile moves into the account on the first sign-in.
 
@@ -379,7 +389,10 @@ A `SpendGate` reserves the worst-case cost before a call and settles afterwards.
 Short answers. Say each one, then stop. Numbers are from the files named. These are updated from `docs/submission/qa-prep.md` to the current app.
 
 **1. Isn't this just a chatbot? Where is the AI?**
-There is no chatbot. The forecast, role match, pathway dates and SDG parts use no language model, because a model can invent numbers. The statistical learning is role profiles learned from real posts and tested forecast bands. Claude Haiku 5.5 appears in three places: CV intake (it points, code checks quotes), the optional route advisor (moves a role at most 2 places) and the optional pathway coach. Code takes over when the model is off. (`backend/signals/advisor/llm.py`)
+There is no chatbot. The forecast, role match, pathway dates and SDG parts use no language model, because a model can invent numbers. The statistical learning is role profiles learned from real posts and tested forecast bands. Claude Haiku 5.5 appears in four places: CV intake (it points, code checks quotes), Generate CV (a checker drops any unbacked claim), the optional route advisor (moves a role at most 2 places) and the optional pathway coach. Code takes over when the model is off. (`backend/signals/advisor/llm.py`, `cv_writer.py`)
+
+**1b. How do you know the news ranking is any good?**
+We graded it against an independent 3-model AI jury, checked against human labels. The jury showed urgent security news was buried, so we fixed clustering and added a guarded urgent-security rule: NDCG@10 went from 0.37 to 0.53, and a critical PHP RCE moved from #4 to #1. The Jev decision model scored 0.25, so by our promotion rule the formula ranks and Jev is a second opinion. (`backend/signals/eval/`)
 
 **2. Why trust a forecast that is basically "no change"?**
 We tested alternatives and "no change" won. Over 616 held-out forecasts, naive3 had 1.66 points of error, drift 2.13, damped 2.27. The band held 93.8% of real values, and a Rising or Falling label pointed the right way 67.2% of the time. We claim no precise future, and the user decides. (`data/backtest.json`)
@@ -432,4 +445,6 @@ Also be ready for: cost and business model (nothing in the repo covers it; say s
 - **PKCE** (pronounced "pixy"): Proof Key for Code Exchange. The app makes a secret, sends only its hash (S256) when it starts sign-in, and proves the secret when it finishes. This stops a stolen sign-in code from being used.
 - **Autoscale**: Replit's deployment type (`deploymentTarget = "cloudrun"`) that starts and stops server instances with traffic.
 - **PDPA**: Malaysia's Personal Data Protection Act.
-- **Jev**: an optional decision model (TypeSafe AI) that can rank signal stories. Off by default.
+- **Jev**: a decision model (TypeSafe AI, `jev-1.13.0`) tested as the signal ranker. It lost to the formula on the AI-jury labels (NDCG@10 0.25 vs 0.53), so it is shown as a second opinion only.
+- **AI jury**: three models from different makers that label stories independently, used as the answer key to grade the ranker after it agreed with human labels.
+- **NDCG@10**: a 0–1 score for how well the top 10 order matches the answer key; mistakes near the top cost more.
