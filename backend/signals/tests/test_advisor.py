@@ -92,6 +92,20 @@ def test_route_switch_changes_the_pathway(client, token):
     assert client.get("/api/pathway?roleId=analytics_engineer", headers=headers).status_code == 422
 
 
+def test_low_match_destination_gets_a_full_row(client, token):
+    headers = {"X-Profile-Token": token}
+    data = client.get("/api/roles/suggestions", headers=headers).json()["data"]
+    assert data["lowMatchTarget"] is None
+    low = data["lowMatch"][0]  # aina's sample CV leaves at least one role under the match floor
+    assert client.post("/api/profile/target-role", json={"roleId": low["roleId"]}, headers=headers).status_code == 200
+    data = client.get("/api/roles/suggestions", headers=headers).json()["data"]
+    row = data["lowMatchTarget"]
+    assert data["targetRoleId"] == low["roleId"] == row["roleId"]
+    assert row["rank"] is None and row["matchPct"] == low["matchPct"] and row["gap"]
+    assert 1 <= len(row["reasons"]) <= 3 and "chips" not in row
+    assert low["roleId"] not in [r["roleId"] for r in data["roles"]]  # pinning is display only: the ranking is unchanged
+
+
 def _profile(settings, token):
     return load_profile(settings, token_owner(token))
 
