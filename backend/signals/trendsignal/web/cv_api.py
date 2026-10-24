@@ -1,15 +1,14 @@
 """Varity's CV page: read a CV with the intake (intake/), let the user confirm each skill, keep the profile.
 
-No accounts: the browser holds a random profile token and sends it as X-Profile-Token. Only the
-token's SHA-256 is stored, so a copied database does not give access to anyone's profile. The raw
-CV is never stored; only the skills, their quotes and the rules behind them.
+Anonymous use: the browser holds a random profile token and sends it as X-Profile-Token. Only the
+token's SHA-256 is stored, so a copied database does not give access to anyone's profile. A signed-in
+account (auth_api.py) needs no token. The raw CV is never stored; only the skills, their quotes and the rules behind them.
 """
 
 from __future__ import annotations
 
 import base64
 import binascii
-import hashlib
 import os
 import secrets
 import threading
@@ -25,14 +24,15 @@ from pydantic import BaseModel, Field
 from intake import ledger
 from intake.keyword_pass import build_patterns
 from intake.llm_extract import MODEL_LABEL, LlmUnavailable, extract_mentions, load_cached_run
-from intake.models import MAX_YEARS, SKILL_ID_PATTERN, Evidence, Profile
+from intake.models import MAX_YEARS, SKILL_ID_PATTERN, Evidence, Profile, Progress
 from intake.pipeline import run_intake
 from intake.readers import MAX_BYTES, MAX_CHARS, ReadError, read_upload
 from intake.reconcile import Review, apply_review
 from intake.skills import load_graph, slugify
 from trendsignal.config import Settings
-from trendsignal.db import connect
+from trendsignal.web import accounts_store as store
 from trendsignal.web.app import RateLimiter, envelope
+from trendsignal.web.auth_api import owner_of
 
 SAMPLES_DIR = Path(__file__).resolve().parents[2] / "intake" / "samples"
 SAMPLES = {"aina": "aina.txt", "daniel": "daniel.txt", "priya": "priya.txt"}
@@ -85,6 +85,11 @@ def example_profile(example: dict) -> Profile:
     return profile
 
 
+class ProgressIn(BaseModel):
+    signature: str = Field(max_length=128)
+    doneIds: list[Annotated[str, Field(max_length=64)]] = Field(max_length=500)
+
+
 class RemoveIn(BaseModel):
     skill_id: str = Field(pattern=SKILL_ID_PATTERN)
 
@@ -115,32 +120,18 @@ class ReviewStore:
         return item[1] if item and item[0] > time.monotonic() else None
 
 
-def _token_hash(token: str) -> str:
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+def load_profile(settings: Settings, owner: str | None) -> Profile | None:
+    """owner is an owner_key ("t:..." or "u:..."), from auth_api.owner_of or accounts_store.token_owner."""
+    raw = store.get_profile_json(settings, owner) if owner else None
+    return Profile.model_validate_json(raw) if raw else None
 
 
-def load_profile(settings: Settings, token: str | None) -> Profile | None:
-    if not token or len(token) > 100:
-        return None
-    with connect(settings.db_path) as conn:
-        row = conn.execute("SELECT profile_json FROM profiles WHERE token_hash = ?", (_token_hash(token),)).fetchone()
-    return Profile.model_validate_json(row["profile_json"]) if row else None
+def save_profile(settings: Settings, owner: str, profile: Profile) -> None:
+    store.put_profile_json(settings, owner, profile.model_dump_json(), profile.updated_at)
 
 
-def save_profile(settings: Settings, token: str, profile: Profile) -> None:
-    with connect(settings.db_path) as conn:
-        conn.execute(
-            "INSERT INTO profiles (token_hash, profile_json, updated_at) VALUES (?, ?, ?) "
-            "ON CONFLICT(token_hash) DO UPDATE SET profile_json = excluded.profile_json, updated_at = excluded.updated_at",
-            (_token_hash(token), profile.model_dump_json(), profile.updated_at),
-        )
-
-
-def delete_profile(settings: Settings, token: str | None) -> bool:
-    if not token or len(token) > 100:
-        return False
-    with connect(settings.db_path) as conn:
-        return conn.execute("DELETE FROM profiles WHERE token_hash = ?", (_token_hash(token),)).rowcount > 0
+def delete_profile(settings: Settings, owner: str | None) -> bool:
+    return bool(owner) and store.delete_profile_row(settings, owner)
 
 
 def _read_cv(payload: CvIn) -> str:
@@ -186,11 +177,21 @@ def _has_pathway(profile: Profile, role_id: str) -> bool:
         return False
 
 
-def _profile_out(profile: Profile, token: str | None = None) -> dict:
-    data = {"profile": profile.model_dump(mode="json")}
+def profile_out(profile: Profile, owner: str | None, token: str | None = None) -> dict:
+    account = bool(owner and owner.startswith("u:"))
+    dump = profile.model_dump(mode="json")
+    data = {"profile": {**dump, "account": account}, "account": account, "progress": dump["progress"]}
     if token:
         data["token"] = token
     return data
+
+
+def save_target(owner: str | None, header_token: str | None, has_profile: bool) -> tuple[str, str | None]:
+    """(owner key to save under, new token to hand back). Accounts need no token; a browser keeps its own or gets one."""
+    if owner and owner.startswith("u:"):
+        return owner, None
+    token = header_token if has_profile else secrets.token_urlsafe(32)
+    return store.token_owner(token), token
 
 
 def client_ip(request: Request) -> str:
@@ -215,7 +216,7 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
         """Read a CV and return review rows. Nothing is saved until /api/profile/apply."""
         if not cv_limiter.allow(client(request)):
             return envelope(error="too many CVs read from here, try again in a minute", status=429)
-        existing = load_profile(settings, x_profile_token)
+        existing = load_profile(settings, owner_of(request, x_profile_token))
         removed = frozenset(item.skill_id for item in existing.removed) if existing else frozenset()
         extractor, label, off_reason = _choose_extractor(payload, settings)
         try:
@@ -242,8 +243,8 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
         review = reviews.pop(payload.review_id)
         if review is None:
             return envelope(error="this review has expired, read the CV again", status=410)
-        profile = load_profile(settings, x_profile_token)
-        token = x_profile_token if profile else secrets.token_urlsafe(32)
+        profile = load_profile(settings, owner_of(request, x_profile_token))
+        owner, token = save_target(owner_of(request, x_profile_token), x_profile_token, profile is not None)
         profile = profile or ledger.new_profile()
         try:
             profile = apply_review(profile, review, payload.kept_ids, edited_years=payload.edited_years)
@@ -256,8 +257,8 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
         if payload.target_role and not _has_pathway(profile, payload.target_role):
             return envelope(error="unknown route: pick a role from the suggestions", status=422,
                             meta={"code": "VALIDATION_ERROR"})
-        save_profile(settings, token, profile)
-        return envelope(_profile_out(profile, token))
+        save_profile(settings, owner, profile)
+        return envelope(profile_out(profile, owner, token))
 
     @app.get("/api/profile/examples")
     def api_profile_examples():
@@ -273,37 +274,54 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
         example = next((e for e in load_examples() if e["id"] == payload.id), None)
         if example is None:
             return envelope(error="unknown example profile", status=404)
-        token = x_profile_token if load_profile(settings, x_profile_token) else secrets.token_urlsafe(32)
+        current = owner_of(request, x_profile_token)
+        owner, token = save_target(current, x_profile_token, load_profile(settings, current) is not None)
         profile = example_profile(example)
-        save_profile(settings, token, profile)
-        return envelope(_profile_out(profile, token))
+        save_profile(settings, owner, profile)
+        return envelope(profile_out(profile, owner, token))
 
     @app.get("/api/profile")
     def api_profile(request: Request, x_profile_token: str | None = Header(default=None)):
         if not profile_limiter.allow(client(request)):
             return envelope(error="too many requests, try again in a minute", status=429)
-        profile = load_profile(settings, x_profile_token)
-        return envelope(_profile_out(profile)) if profile else envelope(error="no saved profile", status=404)
+        owner = owner_of(request, x_profile_token)
+        profile = load_profile(settings, owner)
+        return envelope(profile_out(profile, owner)) if profile else envelope(error="no saved profile", status=404)
 
     @app.post("/api/profile/remove")
     def api_profile_remove(payload: RemoveIn, request: Request, x_profile_token: str | None = Header(default=None)):
         """Remove one skill. It stays removed when the next CV is read."""
         if not profile_limiter.allow(client(request)):
             return envelope(error="too many requests, try again in a minute", status=429)
-        profile = load_profile(settings, x_profile_token)
+        owner = owner_of(request, x_profile_token)
+        profile = load_profile(settings, owner)
         if profile is None:
             return envelope(error="no saved profile", status=404)
         try:
             profile = ledger.remove_skill(profile, payload.skill_id)
         except ledger.LedgerError as exc:
             return envelope(error=str(exc), status=422)
-        save_profile(settings, x_profile_token, profile)
-        return envelope(_profile_out(profile))
+        save_profile(settings, owner, profile)
+        return envelope(profile_out(profile, owner))
+
+    @app.put("/api/profile/progress")
+    def api_profile_progress(payload: ProgressIn, request: Request, x_profile_token: str | None = Header(default=None)):
+        """Remember which pathway tasks are ticked, for the pathway named by signature."""
+        if not profile_limiter.allow(client(request)):
+            return envelope(error="too many requests, try again in a minute", status=429)
+        owner = owner_of(request, x_profile_token)
+        profile = load_profile(settings, owner)
+        if profile is None:
+            return envelope(error="no saved profile", status=404)
+        progress = Progress(signature=payload.signature, doneIds=tuple(dict.fromkeys(payload.doneIds)), updatedAt=ledger.now_iso())
+        profile = profile.model_copy(update={"progress": progress})
+        save_profile(settings, owner, profile)
+        return envelope(profile_out(profile, owner))
 
     @app.delete("/api/profile")
     def api_profile_delete(request: Request, x_profile_token: str | None = Header(default=None)):
         if not profile_limiter.allow(client(request)):
             return envelope(error="too many requests, try again in a minute", status=429)
-        if not delete_profile(settings, x_profile_token):
+        if not delete_profile(settings, owner_of(request, x_profile_token)):
             return envelope(error="no saved profile", status=404)
         return envelope({"deleted": True})
