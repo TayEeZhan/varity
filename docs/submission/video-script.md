@@ -1,98 +1,100 @@
 # Varity pitch video: solo script
 
-One presenter (Tay Ee Zhan). Target 6:30, inside the 5–7 minute limit. About 150 words a minute.
-Deck: https://claude.ai/artifact/S2wLJMTcXwLLqC78ESTqTM (22 slides). **Bold** = do this on screen. [X] = read the number off the screen.
+One presenter (Tay Ee Zhan). Target about 6:40, inside the 5–7 minute limit (about 150 words a minute).
+Deck: https://claude.ai/artifact/S2wLJMTcXwLLqC78ESTqTM (23 slides). **Bold** = do this on screen. [X] = read the number off the screen.
 
 ---
 
-## Part 1 · Problem (0:00–1:10)
+## Part 1 · Problem and solution (0:00–0:55)
 
-**Slide 1 · Cover (0:00–0:15)**
-Hi, I'm Ee Zhan from team Hokkien Mee Is Purple, (university removed). This is Varity: you tell it the job you want, and it gives you the route there, one stop at a time.
+**Slide 1 · Cover (0:00–0:12)**
+Hi, I'm Ee Zhan from team Hokkien Mee Is Purple, (university removed). This is Varity.
 
-**Slide 2 · AI moves in months (0:15–0:35)**
-In 2023, AI solved 4.4% of real coding problems. One year later, 71.7%. The length of task it can finish doubles about every seven months. Degrees run on a four-year cycle. A student starting today graduates into a different job.
+**Slide 2 · Problem statement (0:12–0:35)**
+AI is changing tech jobs faster than people can reskill. In one year, AI went from solving 4.4% to 71.7% of real coding problems. Young workers feel it first: employment of 22-to-25-year-olds in AI-exposed jobs is 19% below trend. And in Malaysia, 56% of professionals use AI at work, but only 26% were trained. So a junior can't tell what to learn for the job they want.
 
-**Slide 3 · Juniors hit first (0:35–0:55)**
-And it hits the youngest first: employment of 22-to-25-year-olds in AI-exposed jobs is 19% below trend. In Malaysia, 56% of professionals already use AI at work, but only 26% have any formal training, and MOSTI says 600,000 workers must reskill within three to five years.
+**Slide 3 · Our solution (0:35–0:55)**
+Varity fixes that. Tell us the job you want, and we show you the route there. Know which skills are rising or falling, tested on nearly 50,000 dated job posts. Match: get job suggestions from AI and data, or pick your own role. Act: follow a dated daily plan with free resources, and get a new CV that proves it.
 
-**Slide 4 · The gap (0:55–1:10)**
-The research tells you *what* is changing. Nothing tells *you* what to learn next for the role you want. And hype hides the signal: half of all hiring posts now say "AI", yet demand for the LLM skill itself shows no clear change.
+## Part 2 · User flow (0:55–1:12)
 
-## Part 2 · User flow (1:10–1:30)
+**Slide 4 · User flow (0:55–1:12)**
+The journey has four stops, straight from the Domain 1 brief: tell us about yourself, see the Skills Radar, get matched, follow a pathway. Then our own extra stop: prove it, with a new CV. You decide at every stop.
 
-**Slide 5 · User flow (1:10–1:30)**
-Varity follows the Domain 1 journey. Tell us about yourself. See the Skills Radar. Get matched. Follow a pathway. And our own extra stop: prove it, with a new CV. You decide at every stop.
+## Part 3 · Live demo (1:12–4:05)
 
-## Part 3 · Live demo (1:30–4:00)
+**Slide 5 · Live demo (1:12–1:17)**
+Let's see it live on Replit, with a synthetic CV.
 
-**Slide 6 · Live demo (1:30–1:35)**
-Let's ride the line, on the live Replit app, with a synthetic CV.
+**Slide 6 → browser · Demo 1: job suggestions (1:17–2:30)**
+- **Landing → "Find my jobs" → upload the synthetic CV.** "Claude reads my CV, but every skill must come with a quote from it. If the quote isn't there word for word, code throws the skill out."
+- **Untick one skill, save.** "I stay in charge: I untick anything wrong."
+- **Scroll the job suggestions.** "These job suggestions are ranked by an AI advisor using our data: my match score, demand trends and my skills gap. The AI can only move a role two places, and every reason shows its source and date. Here: [X]% match, what I already have, and what I'm missing."
+- **Open "Destination", pick a role.** "But I don't have to take the AI's advice. I can pick any role I want myself, and it's pinned on top with its own plan."
+- **Flip Moderate → Fast.** "And two scenarios, not one guess: Fast AI disruption adds a labelled estimate."
 
-**Slide 7 → switch to the browser · Demo part 1 (1:35–2:50)**
-- **Landing → "Find my jobs".** "Here's the landing page."
-- **Upload the synthetic CV.** "Claude Haiku reads it, but every skill must come with a quote from the CV. If the quote isn't there word for word, code throws the skill out."
-- **Untick one skill, save.** "I'm in charge: I untick what's wrong."
-- **Pick a Destination role.** "Say I want to be an AI application engineer."
-- **Walk one route card.** "My match is [X]%. Here's what I already have, and my skills gap. Each reason has its source and date, and here's the SDG target this role serves."
-- **Flip Moderate → Fast.** "Two scenarios, not one guess. Fast AI disruption adds a labelled estimate; nothing pretends to be certain."
+**Slide 7 → browser · Demo 2: job forecast (2:30–3:05)**
+- **Open Job forecast.** "This is the job forecast. For each of eight tech roles: its share of hiring posts today, a forecast twelve months ahead with its range, and a Rising or Falling label."
+- **Point at a post count link.** "Every number links back to the Hacker News threads it came from, with a date. And it says 'estimate', because it is one."
 
-**Slide 8 → browser · Demo part 2 (2:50–4:00)**
-- **Pathway.** "My gap becomes a dated plan in three stages, each stop 45 minutes or less, with a free, link-checked resource."
-- **Today: tick two stops.** "Today's stops, a progress bar, and one click sends them to Google Tasks."
-- **Mark a skill learned.** "When I finish a skill, I mark it learned, and watch: my match goes up to [X]%."
-- **★ Generate CV.** "Our extra feature, beyond the brief: Generate CV. Here's a new CV for my target role, and a list of what changed. Every job, date and skill is checked against my original CV and profile. Nothing is invented."
-- **Signals and Skills radar.** "And this is the live trend layer: AI news re-ranked every 15 minutes, every source dated."
+**Slide 8 → browser · Demo 3: pathway to CV (3:05–4:05)**
+- **Pathway.** "My skills gap becomes a dated plan in three stages. Each stop takes 45 minutes or less and uses a free, link-checked resource."
+- **Today: tick two stops.** "Here are today's stops, my progress, and one click sends them to Google Tasks."
+- **Mark a skill learned.** "When I finish a skill, I mark it learned, and my match goes up to [X]%."
+- **★ Generate CV.** "And our extra feature, beyond the brief: Generate CV. A new CV for my target role, with a list of what changed. Every job, date and skill is checked against my original CV. Nothing is invented."
 
-## Part 4 · Backend (4:00–5:45)
+## Part 4 · Backend (4:05–6:05)
 
-**Slide 9 · The AI points. Code proves. (4:00–4:15)**
-One rule runs the whole backend: the AI points, code proves. Claude works in four places, and code checks every answer. No key or an error? Code takes over and the app still works.
+**Slide 9 · The AI points. Code proves. (4:05–4:15)**
+One rule runs the backend: the AI points, code proves. If there's no API key or a call fails, code takes over and the app still works.
 
-**Slide 10 · F1 Intake (4:15–4:25)**
-Intake: we redact contact details, Claude returns skills with quotes, and code keeps only quotes found in the CV.
+**Slide 10 · Every AI model we use (4:15–4:35)**
+Here is every AI model in Varity. Claude Haiku does four user-facing jobs: reading the CV, re-ranking job suggestions, coaching the pathway and writing the new CV. For the news feed, Haiku labels stories, Claude Sonnet writes the brief, and the Jev model gives a second opinion. A jury of Anthropic, OpenAI and Google models works offline only. Forecasts and scores never use a model.
 
-**Slide 11 · F2 Trend signals (4:25–4:40)**
-The trend layer has two updatable sources: every Hacker News hiring thread since 2019, nearly 50,000 posts, and an AI news pipeline. When the data changes, your plan re-plans and tells you why.
+**Slide 11 · F1 Intake (4:35–4:43)**
+Intake: we redact contact details first, and code keeps only skills whose quotes are really in the CV.
 
-**Slide 12 · Forecast evidence (4:40–4:55)**
-We backtested the forecast on 616 held-out cases. The simple model beat the trend models and our own machine learning, so the simple one ships. Our band held 94% of real values.
+**Slide 12 · F2 Trend signals (4:43–4:55)**
+Trends come from two sources we update: every Hacker News hiring thread since 2019, and an AI news pipeline. When the data changes, your plan updates and tells you why.
 
-**Slide 13 · AI jury (4:55–5:10)**
-We graded the news ranker with an independent three-model AI jury. It found urgent security news was buried; our fix raised ranking quality from 0.37 to 0.53. The Jev model scored 0.25, so by our own rule it stays a second opinion.
+**Slide 13 · Forecast evidence (4:55–5:07)**
+We tested the forecast on 616 past cases. The simple model beat the trend models and our own machine learning, so the simple one ships.
 
-**Slide 14 · F3 Matching (5:10–5:18)**
-Matching is one explainable line: 70% skill match plus 30% outlook, with weights learned from real job posts.
+**Slide 14 · AI jury (5:07–5:20)**
+An independent three-model AI jury graded our news ranker. It found urgent security news was buried. Our fix raised ranking quality from 0.37 to 0.53. Jev scored 0.25, so it stays a second opinion.
 
-**Slide 15 · F4 Pathway (5:18–5:26)**
-The pathway uses only 77 link-checked, free resources. No resource, no task. We never invent a course.
+**Slide 15 · F3 Matching (5:20–5:27)**
+The match score fits on one line: 70% skill match plus 30% outlook, with weights learned from real job posts.
 
-**Slide 16 · F5 SDG (5:26–5:34)**
-Every skill and role carries an SDG target, and we measure which sectors actually hire for each role, so the link means something.
+**Slide 16 · Job role suggestions (5:27–5:42)**
+For job suggestions, code scores the roles and writes the reasons. Claude re-ranks within two places and writes one line. Code verifies it. And the user has the last word: accept a suggestion, or pick your own destination.
 
-**Slide 17 · F6 Uncertainty (5:34–5:40)**
-Two scenarios and a tested range, every estimate labelled.
+**Slide 17 · F4 Pathway (5:42–5:48)**
+The pathway uses only 77 link-checked free resources. If a skill has no resource, it gets no task. We never invent a course.
 
-**Slide 18 · ★ Generate CV architecture (5:40–5:45)**
-And our extra: Claude only rewrites; code picks the skills and checks every claim.
+**Slide 18 · F5 SDG (5:48–5:54)**
+Every skill and role is tagged with SDG targets. We check which sectors actually hire for each role.
 
-## Part 5 · Close (5:45–6:30)
+**Slide 19 · F6 Uncertainty (5:54–5:59)**
+Two scenarios and a tested range. Every estimate is labelled.
 
-**Slide 19 · Problems solved (5:45–6:00)**
-So: you know which skills to learn, you see your real gap, your plan stays current, and your learning finally reaches your CV.
+**Slide 20 · ★ Generate CV architecture (5:59–6:05)**
+In Generate CV, Claude only rewrites. Code picks the skills and checks every claim.
 
-**Slide 20 · Hardest risks (6:00–6:10)**
-Our hardest risk is reliable trend data. We use a free public source back to 2019, show the date of the last good data, and say plainly that it is US-heavy.
+## Part 5 · Future and close (6:05–6:40)
 
-**Slide 21 · Impact (6:10–6:20)**
-In Phase 2 we'll measure three SDG targets with real users: 50% finish a plan step, 80% pick a role, 60% add a rising skill.
+**Slide 21 · Scaling direction (6:05–6:22)**
+Next stops. More industries: the same engine works for health, clean energy or finance, with their own skills and roles, starting with all 66 of Malaysia's critical occupations. And a direct link to job search apps: once you're ready, go straight to live openings for your role, from ready to applied in one place.
 
-**Slide 22 · Close (6:20–6:30)**
+**Slide 22 · Impact (6:22–6:32)**
+In Phase 2 we'll measure three SDG targets with real users: 50% finish a plan step, 80% pick a role, and 60% add a rising skill.
+
+**Slide 23 · Close (6:32–6:40)**
 Tell us the role you want. We'll show you the route. Varity is live now at the link on screen. Thank you.
 
 ---
 
 ## Recording tips
 - Record the demo in one take on the deployed URL. Have a synthetic CV from `demo-cvs/` ready.
-- If the CV read is slow, cut the wait in editing, or use "Try an example" (no model needed).
-- Running long? Shorten slide 13 to one sentence and say slides 14–17 in one breath each. Running short? Spend the spare time on the demo.
+- If the CV read is slow, cut the wait when you edit, or use "Try an example", which needs no model.
+- If you run long, shorten slides 14 and 17–19 to one sentence each. If you run short, spend the spare time on the job-suggestion demo.
