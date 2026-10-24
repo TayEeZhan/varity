@@ -55,7 +55,7 @@ Here is every AI model in Varity. Claude Haiku does four user-facing jobs: readi
 Intake: we redact contact details first, and code keeps only skills whose quotes are really in the CV.
 
 **Slide 12 · F2 Trend signals (4:43–4:55)**
-Trends come from two sources we update: every Hacker News hiring thread since 2019, and an AI news pipeline. When the data changes, your plan updates and tells you why.
+Trends come from two sources we update: every Hacker News hiring thread since 2019, and an AI news pipeline. And it never goes stale: a timer goes online every 15 minutes to re-fetch and re-rank the news, and a daily job picks up each new hiring thread. When the data changes, your plan updates and tells you why.
 
 **Slide 13 · Forecast evidence (4:55–5:07)**
 We tested the forecast on 616 past cases. The simple model beat the trend models and our own machine learning, so the simple one ships.
