@@ -19,7 +19,6 @@ from trendsignal.pipeline.cluster import ClusterItem, assign_clusters
 from trendsignal.pipeline.enrich import EnrichItem, build_source_document, enrich_story
 from trendsignal.pipeline.similarity import TfidfIndex, doc_text
 from trendsignal.timeutil import now_utc
-from trendsignal.web.app import render_brief_html
 from tests.conftest import fake_message, raw, seed, source
 from tests.test_enrich import fake_client, good_payload
 
@@ -42,14 +41,6 @@ def test_headings_must_be_the_title_or_a_known_section(line):
 def test_reference_style_link_definitions_are_rejected():
     assert "reference" in check_line('[r]: javascript:alert(1) "t [S1]"', FACTS)
 
-
-def test_renderer_neutralises_script_links_even_if_the_verifier_missed_them():
-    html = render_brief_html("[click](javascript:alert(1)) and ![x](https://evil.example/p.png) [S1]")
-    assert "javascript:" not in html and "<img" not in html and 'href="#"' in html
-    assert 'href="https://ok.example/a"' in render_brief_html("[ok](https://ok.example/a)")
-
-
-# ---------------------------------------------------------------- finding 2: claims about the wrong story
 
 def test_invented_names_fail_even_with_a_valid_citation():
     assert "name" in check_line("Google says OpenAI acquired Anthropic and shut down Claude [S1]", FACTS)

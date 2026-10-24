@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 
 from trendsignal.config import Settings, SourceConfig, Watchlist
 from trendsignal.db import connect, loads
-from trendsignal.models import FEEDBACK_SIGNALS
 from trendsignal.timeutil import now_utc, parse_iso, to_iso
 
 TIER_SORT = {"must_know": 0, "worth_a_look": 1, "emerging": 2, "minor": 3}
@@ -203,27 +202,6 @@ def source_health(settings: Settings, sources: tuple[SourceConfig, ...]) -> list
             "consecutive_failures": state["consecutive_failures"] if state else 0,
         })
     return health
-
-
-def latest_digest(settings: Settings, kind: str) -> dict | None:
-    with connect(settings.db_path) as conn:
-        row = conn.execute("SELECT * FROM digests WHERE kind = ? ORDER BY digest_date DESC LIMIT 1", (kind,)).fetchone()
-    if row is None:
-        return None
-    return {"kind": row["kind"], "date": row["digest_date"], "body_md": row["body_md"],
-            "generated_by": row["generated_by"], "verification": loads(row["verification_json"], {}),
-            "created_at": row["created_at"]}
-
-
-def record_feedback(settings: Settings, story_id: int, signal: str) -> bool:
-    if signal not in FEEDBACK_SIGNALS:
-        raise ValueError(f"signal must be one of {FEEDBACK_SIGNALS}")
-    with connect(settings.db_path) as conn:
-        if conn.execute("SELECT 1 FROM stories WHERE id = ?", (story_id,)).fetchone() is None:
-            return False
-        conn.execute("INSERT INTO feedback (story_id, signal, created_at) VALUES (?, ?, ?)",
-                     (story_id, signal, to_iso(now_utc())))
-    return True
 
 
 def last_run(settings: Settings, job_prefix: str) -> str | None:
