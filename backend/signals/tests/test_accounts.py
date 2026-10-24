@@ -56,9 +56,11 @@ def example_id(client):
 
 def test_disabled_without_env(settings, monkeypatch):
     monkeypatch.delenv("REPL_ID", raising=False)
+    monkeypatch.delenv("GOOGLE_CLIENT_ID", raising=False)
     monkeypatch.delenv("SESSION_SECRET", raising=False)
     client = TestClient(create_app(load_context(settings)), follow_redirects=False, base_url="http://localhost")
-    assert client.get("/api/me").json()["data"] == {"enabled": False, "signedIn": False, "user": None, "hasProfile": False}
+    assert client.get("/api/me").json()["data"] == {"enabled": False, "signedIn": False, "user": None, "hasProfile": False,
+                                                    "googleClientId": None}
     assert client.get("/api/login").status_code == 404
     assert client.post("/api/login/prepare").status_code == 404
 
