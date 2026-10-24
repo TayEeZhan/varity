@@ -9,7 +9,7 @@ Every component has one status tag.
 
 | Tag | Meaning |
 |---|---|
-| **[IN APP]** | Built and tested, and the Varity app uses it (directly, or through the data files it reads). It is on branch `feat/varity-only`. The Replit site is not yet republished, so the live URL may still show the older version. |
+| **[IN APP]** | Built and tested, and the Varity app uses it (directly, or through the data files it reads). The live site runs it (published 24 Oct 2026). |
 | **[BUILT]** | Built and tested, but the Varity app does not use it. It runs offline, as evidence, or is gated. |
 | **[PLANNED]** | Not built. A design only. |
 
@@ -49,7 +49,7 @@ flowchart LR
         RF["refresh.py<br/>[BUILT]"]
         TS["trendsignal collectors<br/>[IN APP: backend/signals]"]
         MJ["my_jobs.py [BUILT, job sites gated]<br/>MyCOL list [IN APP]"]
-        CVX["CV extractor, Claude Haiku 4.5<br/>[IN APP: backend/signals/intake]<br/>keyword fallback without credentials"]
+        CVX["CV extractor, Claude Haiku 5.5<br/>[IN APP: backend/signals/intake]<br/>keyword fallback without credentials"]
     end
 
     subgraph ENG["Engine, engine/*.py, pure Python"]
@@ -69,7 +69,7 @@ flowchart LR
     end
 
     subgraph REPLIT["Replit"]
-        APP["Varity: FastAPI + static frontend, Reserved VM<br/>[IN APP; not yet republished]"]
+        APP["Varity: FastAPI + static frontend, Replit Autoscale<br/>[IN APP; live 24 Oct 2026]"]
         ST["App Storage snapshots<br/>[BUILT, setup pending, app does not read]"]
         JOB["Scheduled job, daily 09:00 MYT<br/>[BUILT, setup pending]"]
     end
@@ -337,7 +337,7 @@ flowchart LR
 - **Offline behaviour.** `frontend/data.js` keeps only dated real snapshots, labelled "offline snapshot". If the server cannot be reached, the page says so. No synthetic data is shown as real.
 - **Key code.** `frontend/app.js`, `frontend/screens*.js`, `backend/signals/trendsignal/web/` (`app.py`, `cv_api.py`, `roles_api.py`, `evidence_api.py`). In `engine/radar.py`, a skill gets a colour only if its Welch label is Rising or Falling. Every other skill is grey, so the chart never claims a change the test did not find.
 - **Removed from the Streamlit version.** The in-app Refresh and Reload buttons and the stored-snapshot banner; the as-of slider (past view); the Evidence skills table with filters, the skill detail tab, the Malaysia jobs snapshot table, the AI-in-posts chart and the candidate new-skills radar; the SDG goal picker and re-rank.
-- **Status.** [IN APP]. Not yet republished on Replit.
+- **Status.** [IN APP]. Live, published 24 Oct 2026.
 
 ### 3.17 AI-advancement ranker (Sheng Kuan) [IN APP] and its integration [PLANNED]
 
@@ -349,7 +349,7 @@ flowchart LR
     N --> K["Cluster into stories<br/>URL match, then TF-IDF"]
     K --> F["Feature vector<br/>built by code"]
     F --> J{"Jev available?"}
-    J -- yes --> JV["Jev decision model<br/>tier and impact probabilities<br/>Replit AI Integrations / OpenRouter"]
+    J -- yes --> JV["Jev decision model<br/>tier and impact probabilities<br/>OpenRouter"]
     J -- no --> FX["Formula fallback<br/>deterministic score"]
     F -. "category unsure, optional" .-> H["Claude Haiku<br/>category and flags only"]
     H -.-> F
@@ -362,7 +362,7 @@ flowchart LR
 - **Outputs.** `data/ranked/latest.json` (rank, title, link, sources, tier probabilities, expected impact, confidence, final score, top features).
 - **Why built this way.** The feature vector is code only, so every rank can be reproduced. A formula always runs, so if Jev fails, times out or is not configured, the formula ranks and the row says so. The promotion rule says Jev ranks by default only if it beats the formula on a hand-labelled gold set.
 - **How tested.** The package has its own test suite and runs without network. A branch review found 211 tests passing.
-- **Status.** [IN APP]. It serves the Signals screen of the Varity web app (`GET /api/signals`). Not yet republished on Replit.
+- **Status.** [IN APP]. It serves the Signals screen of the Varity web app (`GET /api/signals`). Live, published 24 Oct 2026.
 
 **Integration. [PLANNED]**
 
@@ -383,11 +383,11 @@ flowchart LR
 - Feeding `ext_momentum` into the forecaster happens only after a historical backfill and only if the backtest improves (section 4.3 and 4.4).
 - **Status.** [PLANNED]
 
-### 3.18 CV intake with Claude Haiku 4.5 [IN APP]
+### 3.18 CV intake with Claude Haiku 5.5 [IN APP]
 
 ```mermaid
 flowchart LR
-    CV["CV text<br/>synthetic only in the demo"] --> LLM["Claude Haiku 4.5<br/>point at skill mentions,<br/>return a quote for each"]
+    CV["CV text<br/>synthetic only in the demo"] --> LLM["Claude Haiku 5.5<br/>point at skill mentions,<br/>return a quote for each"]
     LLM --> Q{"Is evidence_quote<br/>an exact substring<br/>of the CV?"}
     Q -- no --> X["Code drops the skill"]
     Q -- yes --> V{"Skill name in<br/>taxonomy.json?"}
@@ -399,11 +399,11 @@ flowchart LR
 
 - **What it does.** Reads a CV and returns skills, each with an exact quote from the CV. Code reads the years of experience. The design is in `docs/skill-profile-intake-architecture.md`. The code is in `backend/signals/intake/`.
 - **Contract.** One Claude call returns `{skill, evidence_quote, years}` as schema-constrained JSON. The LLM points. Code proves: it drops any skill whose quote is not in the CV text, word for word. Skill names must match the skill graph.
-- **Model and credentials.** When the backend runs on Replit, it uses Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). With no credentials, a keyword pass takes over. This is the design; we have not verified it on the live Replit app, which is not yet republished. "Try an example" on the CV & routes screen skips the LLM: it loads one of 3 synthetic profiles from `data/example_profiles.json`.
+- **Model and credentials.** The CV intake uses Claude Haiku 5.5 (`claude-haiku-5-5`) through the Anthropic API. The team sets `ANTHROPIC_API_KEY` (a team member's key) in Replit Secrets and Production app secrets, and Anthropic bills that account. With no key, a keyword pass takes over. The code can also use Replit AI Integrations (`claude-haiku-4-5`) when no key is set; the team does not use that route. The CV-intake call is not yet confirmed on the live app. The route advisor was confirmed live with a synthetic example profile. "Try an example" on the CV & routes screen skips the LLM: it loads one of 3 synthetic profiles from `data/example_profiles.json`.
 - **Cost cap.** A daily spend counter caps intake at $1 per day (`VERITY_INTAKE_DAILY_BUDGET_USD`, default 1.0).
 - **Why built this way.** The check stops the LLM from inventing a skill. The LLM does not score or rank.
 - **Human control.** The user can remove or add skills and sets the target role.
-- **Data.** Synthetic CVs only. No real CVs. CV text goes to Anthropic through Replit. A PDPA assessment and a retention rule are needed before real uploads (docs/submission/qa-prep.md).
+- **Data.** Synthetic CVs only. No real CVs. CV text goes to Anthropic directly. A PDPA assessment and a retention rule are needed before real uploads (docs/submission/qa-prep.md).
 - **Owner.** Sheng Kuan.
 - **Status.** [IN APP] (pull request 16). The CV page is the CV & routes screen.
 
@@ -412,7 +412,7 @@ flowchart LR
 - **What it does.** Adds a reason to each ranked route. Reasons are typed chips, each with a source and a date. Code writes every chip (`backend/signals/advisor/chips.py`).
 - **Optional LLM step.** `backend/signals/advisor/llm.py` may re-order the roles by at most 2 places from the formula rank, and it only picks among chips that code wrote. Code checks the answer. The fit label is always code's. Without credentials, the formula order stands. A second optional step, the pathway coach, may re-order steps inside one stage and pick among resource links that code listed; code checks it the same way.
 - **Why built this way.** The LLM never produces a score, a rank outside the 2-place limit, a number or a date (section 1, principle 2).
-- **Status.** [IN APP]. Not yet republished on Replit.
+- **Status.** [IN APP]. Live, published 24 Oct 2026.
 
 ---
 
@@ -588,11 +588,11 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 
 ## 6. Deployment and operations
 
-- **App.** Varity (FastAPI with uvicorn, static HTML/CSS/JS) on Replit, deployed as a Reserved VM (`deploymentTarget = "gce"` in `.replit`), so one always-on server keeps saved profiles, the signals database and the scheduler. The run command is `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. The build command is `pip install -r requirements.txt`. One install covers everything. The live URL is https://verity--eezhan0805.replit.app (README.md). It has not been republished with the Varity-only app yet, so it may still show the older version.
+- **App.** Varity (FastAPI with uvicorn, static HTML/CSS/JS) on Replit, deployed on Replit Autoscale (`deploymentTarget = "cloudrun"` in `.replit`; 2 vCPU / 4 GiB; recommended setting: max 1 instance). Saved profiles and the signals database live on the instance's disk, so a profile can reset when the app sleeps or restarts; "Try an example" re-creates one in one click. When the signals database is empty, a background pipeline run at startup rebuilds it (seen live: run 20261024T062256, 235 stories). The run command is `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. The build command is `pip install -r requirements.txt`. One install covers everything. The live URL is https://verity--eezhan0805.replit.app (README.md). It is live, published 24 Oct 2026.
 - **Why this stack.** One Python server serves the static frontend and the JSON APIs, and it reuses the engine. Replit is compulsory for the hackathon.
 - **App Storage.** Holds the snapshots from section 3.13. The code is built. The bucket is not created yet. The Varity app does not read it.
 - **Scheduled job.** `python -m engine.scheduled`, daily at 09:00 Malaysia time, as a Replit Scheduled deployment. The code is built. The Replit UI setup is pending (docs/replit-schedule.md). The app has no Refresh button; the committed HN snapshot (as of 2026-10) changes only when someone re-runs the engine or this job. The Signals ranker is separate: `--scheduler` re-ranks every 15 minutes inside the server.
-- **Secrets.** The refresh job needs none, because HN data is public. Two optional secrets exist: `VERITY_STORE=replit` and `VERITY_BUCKET`. The CV intake needs no secret on Replit, because Replit AI Integrations supplies the credentials. A direct `ANTHROPIC_API_KEY`, and the ranker's Jev or Claude keys, stay in Replit Secrets, never in git.
+- **Secrets.** The refresh job needs none, because HN data is public. Two optional secrets exist: `VERITY_STORE=replit` and `VERITY_BUCKET`. The LLM features need `ANTHROPIC_API_KEY`, set in Replit Secrets and Production app secrets. That key, and the ranker's Jev or Claude keys, stay out of git.
 - **Pinned requirements.** The root `requirements.txt` pins the engine packages (pandas 3.0.6, numpy 2.5.4, scipy 1.18.1, statsmodels 0.15.0, requests 2.34.2, replit-object-storage 1.0.2, typesafe-sdk 0.7.5) and includes `backend/signals/requirements.txt` (fastapi, uvicorn, jinja2, apscheduler, feedparser, pypdf, httpx, pydantic, anthropic and others, with `>=` lower bounds). Streamlit and Pillow are no longer installed.
 - **Dev requirements.** `requirements-dev.txt` adds scikit-learn, joblib and threadpoolctl for the ML experiment only. Replit does not install them.
 - **Tests.** Over 700 automated tests pass (docs/build-plan.md). The test files are in `tests/`.
@@ -601,10 +601,10 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 
 ## 7. Trust and safety
 
-- **Privacy.** The app has no sign-in. An uploaded CV is read by the CV intake, and the backend keeps the resulting skill profile under an anonymous profile token (`X-Profile-Token`). Raw HN posts can hold names and contact details. They stay in gitignored folders on team machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored (docs/submission/tech-declaration.md). The CV intake sends CV text to Anthropic through Replit. We use synthetic CVs only. Real CVs need a PDPA assessment and a retention rule first.
+- **Privacy.** The app has no sign-in. An uploaded CV is read by the CV intake, and the backend keeps the resulting skill profile under an anonymous profile token (`X-Profile-Token`). Raw HN posts can hold names and contact details. They stay in gitignored folders on team machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored (docs/submission/tech-declaration.md). The CV intake sends CV text to Anthropic directly. We use synthetic CVs only. Real CVs need a PDPA assessment and a retention rule first.
 - **No bot-protection bypass.** We fetch only from public APIs and from pages that `robots.txt` allows. When a site answers with a challenge, we stop. This is why JobStreet has no scraper (docs/jobstreet.md on branch `feat/jobstreet-my`). `docs/data-contract.md` also excludes LinkedIn and X from the engine's sources.
 - **Sources and licences.** `data/SOURCES.md` lists every dataset with URL, date and licence. AEI is CC BY. O*NET is CC BY 4.0 and is credited in the README. The AIOE data has no licence file, so we cite it and do not redistribute it (docs/exposure-crosscheck.md, section 5).
-- **AI disclosure.** Claude Code is the major development tool (code, tests, data pipeline and documents, from the team's prompts and plans). Replit Agent is a minor tool: environment setup, with two commits that change only `.replit` (docs/submission/tech-declaration.md). Claude Haiku 4.5 in the CV intake is declared as an AI model (tech declaration, section 4.1). Jev is declared if it is turned on. The forecast, role match and SDG parts run no LLM. The optional route advisor (section 3.19) re-orders routes by at most 2 places and writes one checked summary line. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Both fall back to code.
+- **AI disclosure.** Claude Code is the major development tool (code, tests, data pipeline and documents, from the team's prompts and plans). Replit Agent is a minor tool: environment setup, with two commits that change only `.replit` (docs/submission/tech-declaration.md). Claude Haiku 5.5 (CV intake, route advisor, pathway coach) is declared as an AI model (tech declaration, section 4.1). Jev is declared if it is turned on. The forecast, role match and SDG parts run no LLM. The optional route advisor (section 3.19) re-orders routes by at most 2 places and writes one checked summary line. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Both fall back to code.
 - **The LLM boundary.** An LLM may point (CV skill mentions with exact quotes, optional category fallback in the ranker) or word things. Code checks the output. No LLM sets a number, a rank, a forecast or a date.
 
 ---
@@ -615,7 +615,7 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 |---|---|
 | Engine, app, docs, backtests, deployment | Ee Zhan |
 | AI-advancement ranker, `ai_news.py` integration | Sheng Kuan |
-| CV intake with Claude Haiku 4.5 | Sheng Kuan |
+| CV intake with Claude Haiku 5.5 | Sheng Kuan |
 | `data/resources.json` fill and checks | Sheng Kuan (docs/data-contract.md) [TEAM TO CONFIRM] |
 | Per-module breakdown for the submission | [TEAM TO CONFIRM] |
 
@@ -630,7 +630,7 @@ Every major part gets a review by a stronger model before it is called done (doc
 3. **JobStreet route.** Ask JobStreet for a sanctioned route, use a file they send, use another Malaysian source, or drop the step (docs/jobstreet.md on branch `feat/jobstreet-my`). The team's written permission has not been seen by the engine side.
 4. **Sheng Kuan's branch fixes.** The fixes from the review of `AI-trend-signal-layer` are open. [TEAM TO CONFIRM: list and owner]
 5. **Gmail history.** Commits in `main` show a personal Gmail address as author. The repo goes public at submission. Options: switch future commits to the GitHub noreply address, or also rewrite history (docs/build-plan.md, docs/submission/README.md).
-6. **LLM naming.** The CV intake uses Claude Haiku 4.5 (`claude-haiku-4-5`) on Replit. Verify it on the deployed app. Decide whether the Jev route is used in the demo or shown as a second opinion only.
+6. **LLM naming.** The CV intake uses Claude Haiku 5.5 (`claude-haiku-5-5`) through a direct Anthropic key. Confirm the CV-intake call on the deployed app. Decide whether the Jev route is used in the demo or shown as a second opinion only.
 7. **Scheduled job setup.** Create the App Storage bucket and the Scheduled deployment on Replit.
-8. **Role outlook scope.** The role level, band and backtest are in the Varity app (sections 4.2 and 4.4). Decide when `feat/varity-only` is merged into `main` and the Replit site is republished. Emerging-role discovery (section 4.3) stays a design.
+8. **Role outlook scope.** The role level, band and backtest are in the Varity app (sections 4.2 and 4.4). Emerging-role discovery (section 4.3) stays a design.
 9. **Job-site snapshots.** Hiredly and Jobstore collectors are ready. Run them only when written permission from each site is on file (docs/malaysia-data.md).

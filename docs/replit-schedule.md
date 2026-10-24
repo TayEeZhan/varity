@@ -69,7 +69,7 @@ The newest 14 snapshots are kept. Older ones are deleted. If a job fails half wa
    Check which time zone the schedule form uses (verify in your Replit UI). If it uses UTC, `0 1 * * *` is right. If it uses your own time zone, use 09:00 and ignore the cron above.
 4. Click the button that creates or publishes the deployment (verify this label in your Replit UI).
 
-**Possible limit (verify):** Replit may allow only one deployment type for each app. If the form does not let you add a Scheduled deployment next to the Reserved VM one, tell me before you change anything. Option: create a second Replit app from the same GitHub repo for the job only and give it the same bucket. Do not delete the Reserved VM deployment.
+**Possible limit (verify):** Replit may allow only one deployment type for each app. If the form does not let you add a Scheduled deployment next to the Autoscale one, tell me before you change anything. Option: create a second Replit app from the same GitHub repo for the job only and give it the same bucket. Do not delete the Autoscale deployment.
 
 ## Part 4. Secrets
 
