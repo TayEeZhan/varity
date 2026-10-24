@@ -81,17 +81,25 @@ function stripSVG() {
   const pts = PATHWAY.map((s, i) => ({ ...s, sx: x0 + i * step }));
   const segs = pts.slice(1).map((p, i) => `<line x1="${pts[i].sx}" y1="${Y}" x2="${p.sx}" y2="${Y}" stroke="var(--${p.line})" stroke-width="10" stroke-linecap="round"/>`).join("")
     + `<line x1="${pts[pts.length - 1].sx}" y1="${Y}" x2="${W - 166}" y2="${Y}" stroke="var(--apps)" stroke-width="10" stroke-linecap="round"/>`;
+  const cur = pts.find((p) => p.status === "current") || pts[pts.length - 1];
+  // Each ticked part moves the marker along the line towards the next stop (or the target role).
+  const ci = pts.indexOf(cur);
+  const nextX = ci < pts.length - 1 ? pts[ci + 1].sx : W - 163;
+  const frac = cur.status === "done" ? 1 : cur.progress || 0;
+  const hx = cur.sx + frac * (nextX - cur.sx);
+  const ridden = hx > x0 ? `<line x1="${x0}" y1="${Y}" x2="${hx}" y2="${Y}" stroke="#121212" stroke-width="4" stroke-linecap="round"/>` : "";
   const stns = pts.map((p) => {
     const weight = p.status === "current" ? 800 : 600;
     const lbl = `<text class="stn__label" transform="translate(${p.sx + 6} ${Y - 24}) rotate(-35)" style="font-size:12px;font-weight:${weight}">${esc(p.title)}</text>`;
-    return `<g>${stationMark(p.sx, Y, p.status)}${lbl}</g>`;
+    const mark = p === cur && frac > 0 ? stationMark(p.sx, Y, "next") : stationMark(p.sx, Y, p.status);
+    return `<g>${mark}${lbl}</g>`;
   }).join("");
-  const cur = pts.find((p) => p.status === "current") || pts[pts.length - 1];
-  const here = `<rect x="${cur.sx - 46}" y="${Y + 24}" width="92" height="22" rx="3" fill="#fccc0a"/><text x="${cur.sx}" y="${Y + 39}" text-anchor="middle" style="font-size:12px;font-weight:800">You are here</text>`;
+  const puck = frac > 0 ? `<g class="here-puck">${stationMark(hx, Y, "current")}</g>` : "";
+  const here = `${puck}<rect x="${hx - 46}" y="${Y + 24}" width="92" height="22" rx="3" fill="#fccc0a"/><text x="${hx}" y="${Y + 39}" text-anchor="middle" style="font-size:12px;font-weight:800">You are here</text>`;
   const term = `<rect x="${W - 172}" y="${Y - 18}" width="18" height="36" rx="9" fill="#fff" stroke="#121212" stroke-width="4"/>`
     + `<text class="stn__label" transform="translate(${W - 158} ${Y - 28}) rotate(-35)" style="font-size:13px;font-weight:800">${esc(TARGET.role)}</text>`;
   const n = pts.indexOf(cur) + 1;
-  return `<svg viewBox="0 0 ${W} 172" role="img" aria-label="Your route: ${PATHWAY.length} stops to ${esc(TARGET.role)}. You are at stop ${n}.">${segs}${stns}${here}${term}</svg>`;
+  return `<svg viewBox="0 0 ${W} 172" role="img" aria-label="Your route: ${PATHWAY.length} stops to ${esc(TARGET.role)}. You are at stop ${n}, ${Math.round(frac * 100)}% through it.">${segs}${ridden}${stns}${here}${term}</svg>`;
 }
 
 /* ── User-flow map ─────────────────────────────────────────────── */
