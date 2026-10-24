@@ -325,8 +325,19 @@ def test_tasks_never_exceed_45_minutes_and_add_up(scores, taxonomy, minutes, hou
 
 def test_task_ids_are_unique_and_ordered(scores, resources, taxonomy, staging_case):
     gap, top = staging_case
-    ids = [t["id"] for t in build(gap, top, scores, resources, taxonomy)["tasks"]]
-    assert ids == [f"T{i:03d}" for i in range(1, len(ids) + 1)]
+    tasks = build(gap, top, scores, resources, taxonomy)["tasks"]
+    ids = [t["id"] for t in tasks]
+    assert len(set(ids)) == len(ids)
+    assert ids == [f"{pw.task_slug(t['skill'])}-{t['part']}" for t in tasks]
+
+
+def test_task_ids_survive_an_added_skill(scores, resources, taxonomy):
+    docker = [gap_item("Docker", 0.9)]
+    both = [gap_item("Go", 0.95), gap_item("Docker", 0.9)]
+    before = {t["id"] for t in build(docker, [docker], scores, resources, taxonomy)["tasks"]}
+    after = {t["id"] for t in build(both, [both], scores, resources, taxonomy)["tasks"]}
+    assert before and before <= after  # ticks keyed by id still match after the plan grows
+    assert pw.task_slug("JavaScript / TypeScript") == "javascript-typescript"
 
 
 def test_dates_follow_start_date_on_weekdays_with_a_daily_budget(scores, taxonomy):
@@ -536,7 +547,7 @@ def test_markdown_export(scores, taxonomy):
     assert "[Docker docs](https://example.org/docker)" in md
     assert "Needed by 2 of the 2 roles counted" in md
     assert "No verified free resource yet" in md          # Go has no resource
-    assert "| T001 | 2026-10-26 | 45 |" in md
+    assert "| docker-1 | 2026-10-26 | 45 |" in md
     assert "SDG 4.4: 1 step (Docker)" in md
     assert "HRD Corp-claimable status not verified" in md
     assert "estimate" in md.lower()
@@ -665,8 +676,7 @@ def test_default_start_date_uses_malaysia_today(monkeypatch, scores, resources, 
 def test_ics_uids_are_unique_across_two_plans(scores, resources, taxonomy):
     one = build([gap_item("Docker", 0.9)], [[gap_item("Docker", 0.9)]], scores, resources, taxonomy)
     two = build([gap_item("Go", 0.9)], [[gap_item("Go", 0.9)]], scores, resources, taxonomy)
-    assert one["tasks"][0]["id"] == two["tasks"][0]["id"] == "T001"
-    assert one["tasks"][0]["date"] == two["tasks"][0]["date"]   # same id and date as before the fix
+    assert one["tasks"][0]["date"] == two["tasks"][0]["date"]   # same date: the UID must still differ
     uids = re.findall(r"UID:(\S+)", unfold(pw.to_ics(one["tasks"], now=FIXED_NOW) + pw.to_ics(two["tasks"], now=FIXED_NOW)))
     assert len(uids) == len(one["tasks"]) + len(two["tasks"]) and len(set(uids)) == len(uids)
 

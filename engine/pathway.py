@@ -19,6 +19,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -246,6 +247,11 @@ def _pick_resource(options: Sequence[Mapping[str, Any]]) -> tuple[dict | None, l
 
 # ---------------------------------------------------------------- daily tasks
 
+def task_slug(skill: str) -> str:
+    """"JavaScript / TypeScript" -> "javascript-typescript": the skill part of a task id."""
+    return re.sub(r"[^a-z0-9]+", "-", skill.lower()).strip("-")[:48] or "skill"
+
+
 def schedule_tasks(steps: Sequence[dict], hours_per_week: float, start_date: date) -> list[dict]:
     """Split steps into daily tasks of at most MAX_TASK_MINUTES and give each a date.
 
@@ -276,7 +282,7 @@ def schedule_tasks(steps: Sequence[dict], hours_per_week: float, start_date: dat
         step_deadline = pieces[-1][0].isoformat()
         ids = []
         for i, (d, chunk) in enumerate(pieces, start=1):
-            tid = f"T{len(tasks) + 1:03d}"
+            tid = f"{task_slug(step['skill'])}-{i}"  # stable when skills are added, dropped or re-dated
             ids.append(tid)
             res = step["resource"]
             tasks.append({

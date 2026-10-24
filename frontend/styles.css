@@ -175,6 +175,8 @@ h2.sec small { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); }
 .service .btn { min-height: 36px; border-radius: 18px; background: transparent; }
 .service .btn:hover { background: rgba(0, 0, 0, 0.08); }
 .service.is-kept { grid-template-columns: auto 1fr; }
+.plan-change { margin: 6px 0 0; padding: 0; list-style: none; }
+.plan-change li { margin: 2px 0; }
 
 /* ── Today ─────────────────────────────────────────────────────── */
 .route-strip { border: 2px solid var(--ink); padding: 18px 20px 6px; }
