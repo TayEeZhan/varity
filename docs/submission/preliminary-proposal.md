@@ -64,9 +64,10 @@ The build also uses the workshop topics: generative AI (CV intake), data handlin
 - **Machine-learning experiment:** scikit-learn (not used in the app).
 - **Data sources:** Hacker News "Ask HN: Who is hiring?" threads through the Algolia HN Search API (free); Anthropic Economic Index (AI exposure); GPTs-are-GPTs, AIOE and Microsoft Working with AI (exposure cross-check only).
 - **Hosting:** Replit Autoscale deployment (2 vCPU / 4 GiB). Live, published 24 Oct 2026. Replit App Storage (data snapshots) and a Replit Scheduled Deployment (daily refresh): code built; Replit setup pending.
+- **Accounts (optional):** Sign in with Replit Auth (OpenID Connect). Replit PostgreSQL holds the account and the profile; the server uses SQLite when no database is set. Not yet tested on the live app.
 - **Generative AI:** Claude Haiku 5.5 (Anthropic) for CV intake, the route advisor and the pathway coach, through a team member's Anthropic API key (held in Replit Secrets; Anthropic bills that account). With no key, code takes over (keyword pass, formula ranking, code pathway). The route advisor is confirmed live; the CV-intake call is not yet confirmed live.
 
-**Sponsor GenAI API or cloud platform.** We use Replit for hosting. We will use App Storage and Scheduled Deployments once set up (code built; Replit setup pending). We do not use Replit AI Integrations. The CV intake uses Claude Haiku 5.5 through our own Anthropic API key, with a cap of $1 per day. We use no GPU, so we use no RunPod.
+**Sponsor GenAI API or cloud platform.** We use Replit for hosting and optional sign-in (Replit Auth). We will use App Storage and Scheduled Deployments once set up (code built; Replit setup pending). We do not use Replit AI Integrations. The CV intake uses Claude Haiku 5.5 through our own Anthropic API key, with a cap of $1 per day. We use no GPU, so we use no RunPod.
 
 ```mermaid
 flowchart LR
@@ -92,6 +93,8 @@ flowchart LR
   end
   subgraph REPLIT["Replit"]
     APP["Varity: FastAPI + static web app<br/>Autoscale deployment"]
+    AUTH["Replit Auth (OIDC)<br/>optional sign-in"]
+    DB["Replit PostgreSQL<br/>accounts and profiles<br/>(not yet tested live)"]
     STORE["App Storage<br/>snapshots<br/>(setup pending;<br/>app does not read)"]
     JOB["Scheduled Deployment<br/>daily 09:00 MYT<br/>(setup pending)"]
   end
@@ -107,6 +110,8 @@ flowchart LR
   OTHER --> APP
   PATH --> APP
   JOB --> STORE
+  APP <--> AUTH
+  APP <--> DB
   HN -. "newest thread" .-> JOB
   CV["CV intake with Claude Haiku 5.5<br/>via Anthropic API<br/>(live call not yet confirmed)"] --> ROLE
 ```
@@ -123,11 +128,11 @@ flowchart LR
 
 **Test.** Over 700 automated tests and a backtest with no look-ahead. In Phase 2 we will test with the three synthetic personas and [TEAM TO FILL: number] volunteer users.
 
-**Deployment.** The app runs on a Replit Autoscale deployment; the live site is published (24 Oct 2026). Saved profiles can reset when the app sleeps or restarts. The daily refresh job and App Storage snapshots are code built; Replit setup pending. The app shows the committed data with its date. If the server is unreachable, the page shows a dated offline snapshot and says so.
+**Deployment.** The app runs on a Replit Autoscale deployment; the live site is published (24 Oct 2026). Without Replit PostgreSQL, saved profiles can reset when the app sleeps or restarts. The daily refresh job and App Storage snapshots are code built; Replit setup pending. The app shows the committed data with its date. If the server is unreachable, the page shows a dated offline snapshot and says so.
 
 **Hardest risk.** Hacker News is US-heavy. Our fallback: the app says so, and Malaysian sources are future work.
 
-(195/200 words)
+(198/200 words)
 
 ## 4. Environmental Impact Preliminary Framework & SDG
 
