@@ -92,7 +92,7 @@ p { margin: 0; }
 .acct__menu a:hover, .acct__menu button:hover { background: var(--paper-2); }
 .acct__menu > :last-child { border-bottom: 0; }
 .acct-chip { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 12px 0 0; font-size: var(--t-sm); font-weight: 600; color: var(--ink-2); }
-.acct-chip--on { padding: 3px 10px; border-radius: 13px; background: var(--ink); color: #fff; }
+.acct-chip.acct-chip--on { padding: 3px 10px; border-radius: 13px; background: var(--ink); color: #fff; }
 .acct-link { background: none; border: 0; padding: 0; font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
 /* ── Page frame ─────────────────────────────────────────────────── */

@@ -13,22 +13,34 @@ const LINE_STOPS = [
   { name: "Hired", text: "Your route ends at the job you chose.", x: 985, y: 130, ly: 198 },
 ];
 
-/* The train. Side view, nose to the right: sloped wedge nose, headlight, windshield, windows, doors,
-   three cars, pantograph, wheels, blue stripe. Fixed colours (it is a drawing). Never rotated. */
-const TRAIN_SYMBOL = `<symbol id="lp-train" viewBox="0 -2 320 58">
-  <g stroke="#121212" stroke-width="4" stroke-linejoin="round" fill="#fff">
-    <rect x="4" y="8" width="92" height="36" rx="5"/><rect x="102" y="8" width="92" height="36" rx="5"/>
-    <path d="M200 8 H262 L308 30 Q316 34 316 40 V44 H200 Z"/>
-  </g>
-  <g fill="#121212"><rect x="95" y="20" width="8" height="18"/><rect x="193" y="20" width="8" height="18"/></g>
-  <g stroke="#121212" stroke-width="10" fill="none" stroke-dasharray="13 2"><path d="M10 21 H90"/><path d="M108 21 H188"/><path d="M206 21 H254"/></g>
-  <g fill="#fff" stroke="#121212" stroke-width="2.5"><rect x="30" y="13" width="11" height="29" rx="1"/><rect x="60" y="13" width="11" height="29" rx="1"/><rect x="128" y="13" width="11" height="29" rx="1"/><rect x="158" y="13" width="11" height="29" rx="1"/><rect x="226" y="13" width="11" height="29" rx="1"/></g>
-  <path d="M262 12 L295 27 H262 Z" fill="#121212"/>
-  <circle cx="311" cy="37" r="3" fill="#fccc0a" stroke="#121212" stroke-width="1.5"/>
-  <path d="M5 35 H95 M103 35 H193 M201 35 H310" stroke="#0039a6" stroke-width="5" fill="none"/>
-  <path d="M132 8 L148 0 L164 8 M141 0 H155" stroke="#121212" stroke-width="3" fill="none" stroke-linejoin="round"/>
-  <g fill="#121212"><rect x="12" y="44" width="28" height="3"/><rect x="62" y="44" width="28" height="3"/><rect x="110" y="44" width="28" height="3"/><rect x="160" y="44" width="28" height="3"/><rect x="208" y="44" width="28" height="3"/><rect x="274" y="44" width="28" height="3"/>
-    <circle cx="19" cy="49" r="4"/><circle cx="33" cy="49" r="4"/><circle cx="69" cy="49" r="4"/><circle cx="83" cy="49" r="4"/><circle cx="117" cy="49" r="4"/><circle cx="131" cy="49" r="4"/><circle cx="167" cy="49" r="4"/><circle cx="181" cy="49" r="4"/><circle cx="215" cy="49" r="4"/><circle cx="229" cy="49" r="4"/><circle cx="281" cy="49" r="4"/><circle cx="295" cy="49" r="4"/></g>
+/* The train, seen from above (a roof plan), nose to the right: three articulated cars (landing.css moves each
+   one along the line separately, so they bend round corners), gangway connectors, darker centre roof strip,
+   two AC units per car, pantograph on the middle car, long tapered Shinkansen-style nose with a windscreen
+   band and a yellow headlight. Fixed colours (it is a drawing). Each symbol is centred on its car; the
+   <use> x puts that centre on the path point, offset-rotate turns it along the line. */
+const TRAIN_SYMBOL = `
+<symbol id="lp-lead" viewBox="107 0 69 24">
+  <g stroke="#121212" stroke-width="2.5" stroke-linejoin="round" fill="#fff"><path d="M109.5 5.5 Q109.5 1.5 113.5 1.5 H134 C152 1.5 167 6 173 10 Q175 12 173 14 C167 18 152 22.5 134 22.5 H113.5 Q109.5 22.5 109.5 18.5 Z"/></g>
+  <rect x="114" y="8" width="28" height="8" fill="#c4cad3"/>
+  <g fill="#fff" stroke="#121212" stroke-width="1.2"><rect x="117" y="9" width="9" height="6"/><rect x="129" y="9" width="9" height="6"/></g>
+  <path d="M146 8 C155 8.5 161 10.5 165 12 C161 13.5 155 15.5 146 16 Q148 12 146 8 Z" fill="#121212"/>
+  <g stroke="#0039a6" stroke-width="2" fill="none" stroke-linecap="round"><path d="M113 4.5 H134 C144 4.5 152 6 157 8"/><path d="M113 19.5 H134 C144 19.5 152 18 157 16"/></g>
+  <circle cx="172.5" cy="12" r="2.2" fill="#fccc0a" stroke="#121212" stroke-width="1"/>
+</symbol>
+<symbol id="lp-mid" viewBox="54 0 57 24">
+  <rect x="102" y="7" width="8" height="10" fill="#121212"/>
+  <rect x="55.5" y="1.5" width="47" height="21" rx="5" fill="#fff" stroke="#121212" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="60" y="8" width="38" height="8" fill="#c4cad3"/>
+  <g fill="#fff" stroke="#121212" stroke-width="1.2"><rect x="64" y="9" width="9" height="6"/><rect x="85" y="9" width="9" height="6"/></g>
+  <path d="M74 12 L79 6 L84 12 L79 18 Z M74 12 H84" stroke="#121212" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+  <path d="M59 4.5 H99 M59 19.5 H99" stroke="#0039a6" stroke-width="2" fill="none" stroke-linecap="round"/>
+</symbol>
+<symbol id="lp-tail" viewBox="0 0 57 24">
+  <rect x="48" y="7" width="8" height="10" fill="#121212"/>
+  <rect x="1.5" y="1.5" width="47" height="21" rx="5" fill="#fff" stroke="#121212" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="6" y="8" width="38" height="8" fill="#c4cad3"/>
+  <g fill="#fff" stroke="#121212" stroke-width="1.2"><rect x="10" y="9" width="9" height="6"/><rect x="31" y="9" width="9" height="6"/></g>
+  <path d="M5 4.5 H45 M5 19.5 H45" stroke="#0039a6" stroke-width="2" fill="none" stroke-linecap="round"/>
 </symbol>`;
 
 function lineMapSvg() {
@@ -49,7 +61,11 @@ function lineMapSvg() {
     <text class="lp-lbl lp-lbl--soft" x="${b.x + 156}" y="${b.y + 75}">Other roles</text>
     <path class="lp-line" d="${LINE_PATH}"/>
     ${halo}${dots}${labels}
-    <g class="lp-train"><use href="#lp-train" x="-100" y="-32.3" width="150" height="27.2"/></g>
+    <g class="lp-train">
+      <g class="lp-car" style="--lag:113px"><use href="#lp-tail" x="-28.5" y="-12" width="57" height="24"/></g>
+      <g class="lp-car" style="--lag:59px"><use href="#lp-mid" x="-28.5" y="-12" width="57" height="24"/></g>
+      <g class="lp-car" style="--lag:0px"><use href="#lp-lead" x="-34.5" y="-12" width="69" height="24"/></g>
+    </g>
   </svg>`;
 }
 
@@ -100,7 +116,11 @@ function renderLanding() {
 
     <p class="lp-end"><strong>Supports your judgement; it does not replace it.</strong> <a href="#/how">How Varity works</a></p>
   </div>`;
-  return { html, bind: bindBoard };
+  return { html, bind: (root) => {
+    // Without @property the ride cannot interpolate: park everything instead of letting it jump.
+    if (typeof CSSPropertyRule === "undefined") root.querySelector(".lp-map").classList.add("lp-static");
+    return bindBoard(root);
+  } };
 }
 
 /* "Departures: role demand": role demand trend from GET /api/roles/forecast. Stays hidden if it fails. */
