@@ -1,4 +1,5 @@
 import io
+import time
 import zipfile
 
 import pytest
@@ -41,7 +42,14 @@ def test_rtf_escapes_and_skipped_groups():
     assert read_upload("cv.rtf", rtf) == "Caf" + chr(0xE9) + "\nIt" + chr(0x2019) + "s\tok"
 
 
-@pytest.mark.parametrize("data", [b"{\\rtf1 unclosed", b"not rtf", b"{\\rtf1 x}}"])
+def test_rtf_line_breaks_code_pages_and_trailing_nul():
+    # Shaped like WordPad / RichTextBox output: CRLF after control words, SimSun bytes, a NUL after the end.
+    rtf = (rb"{\rtf1\ansi\ansicpg1252{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil\fcharset134 SimSun;}}" b"\r\n"
+           rb"\pard\f0 Python\par" b"\r\n" rb"Caf\'e9 \emdash  \f1\'d6\'d0\'ce\'c4\f0\par" b"\r\n}\r\n\0")
+    assert read_upload("cv.rtf", rtf) == "Python\nCaf" + chr(0xE9) + " " + chr(0x2014) + " " + chr(0x4E2D) + chr(0x6587) + "\n"
+
+
+@pytest.mark.parametrize("data", [b"{\\rtf1 unclosed", b"not rtf", b"{\\rtf1 x}}", b"{\\rtf1 x} trailing"])
 def test_rtf_malformed(data):
     with pytest.raises(ReadError) as e:
         read_upload("cv.rtf", data)
@@ -57,7 +65,7 @@ def test_html_drops_script_and_style():
 def test_zip_bomb_rejected(monkeypatch):
     monkeypatch.setattr(readers, "MAX_XML_BYTES", 10)
     with pytest.raises(ReadError) as e:
-        read_upload("cv.docx", docx("<w:p><w:r><w:t>hello hello hello</w:t></w:r></w:p>"))
+        readers._parse_docx(docx("<w:p><w:r><w:t>hello hello hello</w:t></w:r></w:p>"))  # in-process: patch must apply
     assert e.value.code == "UNSAFE"
 
 
@@ -104,3 +112,67 @@ def test_old_doc_and_unknown_extension():
     with pytest.raises(ReadError) as e:
         read_upload("cv.exe", b"x")
     assert e.value.message == "Upload a PDF, Word (.docx), OpenDocument (.odt), RTF, HTML or text (.txt, .md) file."
+
+
+BS = chr(92)
+
+
+def rtf(body: str) -> bytes:
+    return (("{" + BS + "rtf1" + BS + "ansi ") + body.replace("~", BS) + "}").encode("latin-1")
+
+
+def code_of(name: str, data: bytes) -> str:
+    with pytest.raises(ReadError) as e:
+        read_upload(name, data)
+    return e.value.code
+
+
+def test_html_quadratic_input_is_bounded():
+    start = time.monotonic()
+    try:
+        read_upload("cv.html", b"<a" * 200_000)
+    except ReadError as e:
+        assert e.code in ("TIMEOUT", "UNREADABLE", "NO_TEXT")
+    assert time.monotonic() - start < 15
+
+
+def test_deeply_nested_runs_do_not_crash():
+    n = 5000
+    assert read_upload("cv.docx", docx("<w:p>" + "<w:r>" * n + "<w:t>deep</w:t>" + "</w:r>" * n + "</w:p>")) == "deep"
+
+
+def test_corrupt_deflate_stream_is_unreadable():
+    data = bytearray(docx("<w:p><w:r><w:t>" + "hello " * 500 + "</w:t></w:r></w:p>"))
+    i = data.index(b"PK") + 30 + len("word/document.xml")  # start of the deflate stream
+    data[i:i + 8] = bytes([255]) * 8
+    assert code_of("cv.docx", bytes(data)) == "UNREADABLE"
+    with pytest.raises(ReadError):  # also the direct (in-process) parser: zlib.error is mapped
+        readers._parse_docx(bytes(data))
+
+
+def test_rtf_huge_unicode_number_is_read_not_crash():
+    assert read_upload("cv.rtf", rtf("a~u" + "9" * 5000 + "?b")).startswith("a")
+
+
+def test_rtf_negative_unicode_joins_surrogate_pairs_and_never_leaves_lone_ones():
+    assert read_upload("cv.rtf", rtf("A~u-10179?~u-8704?B")) == "A" + chr(0x1F600) + "B"
+    text = read_upload("cv.rtf", rtf("A~u-10179?B"))
+    text.encode("utf-8")  # a lone surrogate would raise here
+    assert text == "A" + chr(0xFFFD) + "B"
+
+
+def test_rtf_backslash_newline_is_a_paragraph_break():
+    assert read_upload("cv.rtf", rtf("Hello~" + chr(10) + "World")) == "Hello\nWorld"
+
+
+def test_docx_nested_paragraphs_and_fallback_emit_text_once():
+    mc = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xml = (f'<w:document xmlns:w="{W}" xmlns:mc="{mc}"><w:body><w:p><w:r><w:t>Outer</w:t></w:r>'
+           '<mc:AlternateContent><mc:Choice><w:p><w:r><w:t>Box</w:t></w:r></w:p></mc:Choice>'
+           '<mc:Fallback><w:p><w:r><w:t>Box</w:t></w:r></w:p></mc:Fallback></mc:AlternateContent>'
+           '<w:r><w:t>End</w:t></w:r></w:p></w:body></w:document>')
+    assert read_upload("cv.docx", make_zip("word/document.xml", xml)) == "OuterEnd\nBox"
+
+
+def test_many_empty_paragraphs_rejected_by_xml_cap():
+    assert code_of("cv.docx", docx("<w:p/>" * 400_000)) == "UNSAFE"
