@@ -65,7 +65,7 @@ def test_admin_endpoints_are_off_without_a_token_and_need_the_right_one(client, 
     object.__setattr__(settings, "admin_token", "s3cret")
     ctx = load_context(settings)
     secured = TestClient(create_app(ctx))
-    assert secured.post("/api/admin/run", headers={"X-Admin-Token": "wrong"}).status_code == 403
+    assert secured.post("/api/admin/run", headers={"X-Admin-Token": "wrong"}).status_code == 401
 
 
 def test_brief_pages_and_digest_api_before_any_brief(client):
