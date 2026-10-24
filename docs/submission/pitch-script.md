@@ -22,7 +22,7 @@ Branch: `docs/submission`. Updated 24 Oct 2026 for the Varity-only app (the Stre
 
 | Item | Setting |
 |---|---|
-| URL | https://verity--eezhan0805.replit.app. It is not yet republished with the Varity-only app. Republish first, or record from a local run (`cd backend/signals && python -m trendsignal serve --port 8000`, then http://localhost:8000). Check that the page shows real data and no "offline snapshot" label |
+| URL | https://verity--eezhan0805.replit.app. It is live (published 24 Oct 2026). If it is down, record from a local run (`cd backend/signals && python -m trendsignal serve --port 8000`, then http://localhost:8000). Check that the page shows real data and no "offline snapshot" label |
 | Screen | CV & routes, with a fresh browser session (no saved profile) |
 | AI scenario | Moderate |
 | Example profile | "Aina (synthetic)", under "Try an example" |
@@ -124,8 +124,8 @@ All files are in the repository. "Computed" means `advisor.service.suggestions` 
 ## Open items for the team
 
 1. **AI-share numbers.** The script uses 6.4% (January 2019) and 54.6% (September 2026, the last full month) from `data/ai_context_monthly.csv`. `docs/build-plan.md` states its 12-month pooled figures and says so. The deck (slide 2) and the proposal use the same two values.
-2. **Claude Haiku.** The script says that only the CV intake and two optional steps (route advisor, pathway coach) use a language model (Claude Haiku 4.5 through Replit AI Integrations, a design not yet verified on the live app). The tech declaration says the same. Demo "Try an example", which needs no model. Do not demo the CV upload unless you have tested it on the deployed app first.
+2. **Claude Haiku.** The script says that only the CV intake and two optional steps (route advisor, pathway coach) use a language model (Claude Haiku 5.5 through the team's Anthropic API key; the route advisor is confirmed live, the CV-intake call is not yet). The tech declaration says the same. Demo "Try an example", which needs no model. Do not demo the CV upload unless you have tested it on the deployed app first.
 3. **Data does not change in the app.** The Varity app has no Refresh button. The Hacker News data is the committed snapshot (as of 2026-10), so the numbers in the table above change only when someone re-runs the engine or the scheduled job. Signals is different: it is re-ranked while the server runs, so never read its story titles or ranks aloud.
-4. **Live site version.** The Replit deployment has not been republished with the Varity-only app. Republish, then check every number in the table above on the live URL before you record.
+4. **Live site version.** The Replit deployment is live (published 24 Oct 2026). Check every number in the table above on the live URL before you record.
 5. **Rows rewritten on 24 Oct.** Rows 2, 3, 4a, 4b, 5, 6 and 7 were rewritten for the Varity screens. The old as-of slider, skill detail, candidate-skills radar and Refresh steps no longer exist in the app. Rehearse the new rows against the running app: the screen text in the "On screen" column is from the code, not from a recording.
 6. **Who explains what.** Sheng Kuan speaks rows 5 and 8, which cover the forecast tests that Ee Zhan built. Both members should read `docs/ml-forecaster.md` and the backtest section of `docs/build-plan.md` before recording. Judges may ask either of you about any row.

@@ -6,7 +6,7 @@ channel = "stable-25_05"
 packages = ["glibcLocales"]
 
 [deployment]
-deploymentTarget = "gce"
+deploymentTarget = "cloudrun"
 build = ["sh", "-c", "pip install -r requirements.txt"]
 run = ["sh", "-c", "cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler"]
 
