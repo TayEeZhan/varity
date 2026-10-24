@@ -179,11 +179,13 @@ function exposureSection(x, k) {
   const occ = x.occupations.map((o) => `<tr><th scope="row">${esc(o.title)}</th><td>${esc(o.category)}</td><td class="num">${evN(o.automationPct, 1)}%</td></tr>`).join("");
   const cc = x.crossCheck || [];
   const cols = cc.length ? Object.keys(cc[0]) : [];
-  const ccTable = cc.length ? `<table class="ev-table"><caption>Each source cell: the category's z-score (0 = average of the 40 skills) and the stance that source would give.</caption>
+  const nSkills = cc.reduce((n, r) => n + (Number(r.Skills) || 0), 0);
+  const others = Math.max(Object.keys(x.sources || {}).length - 1, 0);
+  const ccTable = cc.length ? `<table class="ev-table"><caption>Each source cell: the category's z-score (0 = average of the ${nSkills || "all"} skills) and the stance that source would give.</caption>
     <thead><tr>${cols.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>
     <tbody>${cc.map((r) => `<tr>${cols.map((c, i) => (i === 0 ? `<th scope="row">${esc(r[c])}</th>` : `<td>${esc(r[c])}</td>`)).join("")}</tr>`).join("")}</tbody></table>` : "";
   const kHTML = k ? `<h3>The size of the AI effect (k)</h3><p><span class="ev-tag">assumption</span> ${esc(k.line)}</p><p class="method">${esc(k.caption)} Generated ${esc((k.generatedAt || "?").slice(0, 10))}.</p>` : "";
-  return `<section class="ev-sec" aria-labelledby="ex-h"><h2 class="sec" id="ex-h">AI exposure <small>Anthropic Economic Index and three other sources</small></h2>
+  return `<section class="ev-sec" aria-labelledby="ex-h"><h2 class="sec" id="ex-h">AI exposure <small>Anthropic Economic Index${others ? ` and ${others} other sources` : ""}</small></h2>
     <p>The AI stance of a skill comes from the share of work in its occupations that people hand over to AI in Claude.ai usage (Anthropic Economic Index, automation share). The category-to-occupation map is a team judgement.</p>
     <table class="ev-table"><caption>Automation share by occupation</caption><thead><tr><th scope="col">Occupation</th><th scope="col">Skill category</th><th scope="col" class="num">Automation share</th></tr></thead><tbody>${occ}</tbody></table>
     ${cc.length ? `<h3>Cross-check: which stances are robust, which are contested</h3>${ccTable}

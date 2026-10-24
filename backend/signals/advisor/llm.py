@@ -19,7 +19,7 @@ import anthropic
 import pydantic
 from pydantic import BaseModel, Field
 
-from intake.llm_extract import MODEL as INTAKE_MODEL, PRICES_PER_M, LlmUnavailable, SpendGate
+from intake.llm_extract import MODEL as INTAKE_MODEL, PRICES_PER_M, LlmUnavailable, SpendGate, output_config
 from trendsignal.db import connect
 
 # Same default as the CV intake: claude-haiku-4-5 on the Replit AI Integrations route, else claude-haiku-5-5.
@@ -105,7 +105,7 @@ def call_model(model: str, system: str, user: str, output: type[BaseModel], max_
     try:
         response = client.messages.parse(model=model, max_tokens=max_tokens, system=system,
                                          messages=[{"role": "user", "content": user}], output_format=output,
-                                         output_config={"effort": "low"})
+                                         output_config=output_config(model, "low"))
     except anthropic.APITimeoutError:
         gate.settle(reserved, reserved)  # it may still have been billed
         raise LlmUnavailable("TIMEOUT") from None

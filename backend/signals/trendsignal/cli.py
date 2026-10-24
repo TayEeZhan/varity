@@ -113,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.scheduler:
             os.environ["TRENDSIGNAL_SCHEDULER"] = "1"
-        bootstrap_if_empty(load_context())
+            bootstrap_if_empty(load_context())
         uvicorn.run("trendsignal.web.app:create_app", factory=True, host=args.host, port=args.port)
         return 0
 

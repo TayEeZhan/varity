@@ -70,13 +70,13 @@ A version with `==` is pinned in `requirements.txt` or `requirements-dev.txt`. A
 | HTTP GET requests to learning-resource URLs | Free. Public web pages. | One-time check on 22 Oct 2026 that each of the 77 links in `data/resources.json` returns HTTP 200. We keep only links that returned 200. This check is not part of the running app. |
 | Anthropic Messages API (Claude Haiku 4.5), through Replit AI Integrations | Replit-managed credentials, billed to Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). | One call per CV. The model returns skill mentions with exact quotes. Details in 4.1. |
 
-No other API is used. Only the CV intake calls an LLM API. The forecast, role match, pathway and SDG parts call none.
+No other API is used. Only the CV intake and the two optional steps (route advisor, pathway coach) call an LLM API. The forecast, role match, pathway dates and SDG parts call none.
 
 ### 3.2 Cloud platform and plan
 
 | Service | Use | Plan and region |
 |---|---|---|
-| Replit Autoscale deployment | Hosts the Varity server (FastAPI, no Streamlit). Build: `pip install -r requirements.txt`. Run: `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. The live URL is not yet republished with this version. | Plan: [TEAM TO FILL: Replit plan on the deploying account]. Region: [TEAM TO FILL: region shown in Replit] |
+| Replit Reserved VM deployment | Hosts the Varity server (FastAPI, no Streamlit). Build: `pip install -r requirements.txt`. Run: `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. The live URL is not yet republished with this version. | Plan: [TEAM TO FILL: Replit plan on the deploying account]. Region: [TEAM TO FILL: region shown in Replit] |
 | Replit AI Integrations (Anthropic) | Gives the CV intake its Claude Haiku 4.5 credentials. Replit bills the calls to Replit credits. | Design: not yet verified on the live app. [TEAM TO FILL: confirm the integration is enabled on the deployment] |
 | Replit App Storage | Will store the newest data snapshot (keeps the last 14). The Varity app does not read it yet. | Code built; Replit setup pending. [TEAM TO FILL: confirm the bucket exists] |
 | Replit Scheduled Deployment | Will run `python -m engine.scheduled` daily at 09:00 Malaysia time (cron `0 1 * * *` in UTC). | Code built; Replit setup pending. [TEAM TO FILL: confirm the Scheduled Deployment is created and has run once] |

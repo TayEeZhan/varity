@@ -245,7 +245,7 @@ HN "Who is hiring?" threads (2019-01 .. now)          Anthropic Economic Index +
 
 ### LLM ✅ (design; live run on Replit not yet verified)
 - The CV intake uses Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works. The intake has a daily cap of $1 (`VERITY_INTAKE_DAILY_BUDGET_USD`).
-- The forecast, role match, pathway and SDG parts use no LLM.
+- The forecast, role match score, pathway engine and SDG parts are computed by code. An optional route advisor and pathway coach may re-order within code's limits and write one checked sentence each.
 - No local models and no fine-tuning, so no GPU and no RunPod.
 
 ### Documents ⏳

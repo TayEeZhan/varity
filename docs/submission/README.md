@@ -48,6 +48,6 @@ Confirm the file-name spacing rule in the organisers' submission video. The merm
 
 - [ ] Declare Jev (TypeSafe AI, via Replit AI Integrations / OpenRouter) and any Claude models (Haiku, Sonnet) in the tech declaration, sections 4.1 and 5. Done for Claude Haiku 4.5 in the CV intake. Still open for Jev and the ranker's Sonnet use: they are off by default, and 4.1 says so.
 - [ ] Declare the new data sources (RSS, arXiv, HF papers, HN, Bluesky, X API, Threads) in section 4.2 with their terms and personal-data flags.
-- [x] Change every "no LLM" line: tech declaration 3.1 and 4.1, pitch row 10, qa-prep #1, #18 and #19, deck slide 7, `docs/architecture.md`, `docs/build-plan.md`, root `README.md`. The wording now says that the CV intake and an optional route advisor use an LLM (the Streamlit `app.py` text is gone). Check that the Varity screens still read true.
+- [x] Change every "no LLM" line: tech declaration 3.1 and 4.1, pitch row 10, qa-prep #1, #18 and #19, deck slide 7, `docs/architecture.md`, `docs/build-plan.md`, root `README.md`. The wording now says that the CV intake, an optional route advisor and an optional pathway coach use an LLM (the Streamlit `app.py` text is gone). Check that the Varity screens still read true.
 - [ ] Resolve the conflict with the "we did not use X" statements (for example the X and Bluesky lines in the proposal 3.2, `docs/data-contract.md` and `docs/build-plan.md`).
 - [ ] Be ready to explain the six commits that share one timestamp (22 Oct 13:13).

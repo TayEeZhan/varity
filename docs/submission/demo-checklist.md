@@ -29,7 +29,7 @@ Tick each box as you do it. Items marked [TEAM TO FILL] need a decision from you
 - [ ] Mouse: slow pointer speed, a visible pointer. Move it to point at things and leave it still while you speak.
 - [ ] Microphone: record 10 seconds, play it back, check for fan noise and clipping. Close the window or door.
 - [ ] Phone on silent. Charger plugged in. Stable network (wired if possible).
-- [ ] Wake the Replit app: open the URL 10 minutes before and click through all eight screens once. An autoscale deployment can be slow on its first request after a quiet period. (Likely, not tested.)
+- [ ] Wake the Replit app: open the URL 10 minutes before and click through all eight screens once.
 - [ ] Open Signals once. On a fresh deploy with no ranked run, one pipeline pass starts in the background, so Signals can show the offline snapshot until it finishes. Wait until the badge says live data.
 - [ ] Use a private window so no saved profile, route or ticks remain from an earlier take. Press "Try an example" fresh at 0:40.
 
@@ -75,7 +75,7 @@ The order follows the navigation, so nothing is reset between steps. Start with 
 ## 6. Fallback plan
 
 - [ ] **Backup take on the local copy.** Run `cd backend/signals && python -m trendsignal serve --port 8000` and record the same demo at `http://localhost:8000`. The local copy shows the committed snapshot, so its numbers match section 4. Signals will show the offline snapshot or a fresh local run, so do not read its stories aloud. Keep it unedited as `backup-local-demo` outside the repo.
-- [ ] **If the Replit site is slow or down during the take:** stop, wait one minute, reload and retry. After two failures, record the demo on the local copy and say nothing about it in the video (the numbers are the same). Record the real-site Refresh later and cut it in.
+- [ ] **If the Replit site is slow or down during the take:** stop, wait one minute, reload and retry. After two failures, record the demo on the local copy and say nothing about it in the video (the numbers are the same).
 - [ ] **If the Signals screen shows "offline snapshot" during the take:** keep the take. The page says so on its own. Say only: "If the live run is not reachable, Varity shows a dated offline snapshot and says so." Do not hide it.
 - [ ] **If the data files change before the take:** do not re-record the earlier rows. Speak the numbers you see only if they differ from the script, and fix the script text in the same commit as the video.
 - [ ] **Backup pitch video for the final round.** The organisers want a backup video on YouTube for 1 Nov, used only if the live demo fails (BRIEF). Plan a second recording after the final-round changes.
