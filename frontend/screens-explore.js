@@ -33,7 +33,7 @@ function renderSignals() {
   const max = Math.max(...SKILLS.flatMap((s) => s.weekly));
   const rows = skills.map((s) => {
     const color = "#8a8b8e";
-    return `<tr><td>${esc(s.skill)}</td><td>${ridershipSVG(s.weekly, max, color)}</td><td class="num">${s.weekly[4]}</td><td class="num hide-sm">+${s.momentum.toFixed(1)}</td></tr>`;
+    return `<tr><td>${esc(s.skill)}</td><td>${ridershipSVG(s.weekly, max, color)}</td><td class="num">${s.weekly[4]}</td><td class="num hide-sm">${s.momentum >= 0 ? "+" : ""}${s.momentum.toFixed(1)}</td></tr>`;
   }).join("");
 
   const html = `
@@ -138,9 +138,10 @@ function stopCard(s) {
   const L = FLOW_LINES[s.line];
   const link = s.screen
     ? `<a class="btn btn--primary" href="#/${s.screen}">Open ${SCREEN_NAME[s.screen]} ${ICON.arrow}</a>`
-    : `<p class="muted">Not drawn in this prototype; the five core screens are.</p>`;
+    : `<p class="muted">Not drawn in this prototype. Varity has eight pages, listed in the top bar.</p>`;
   return `<h2><span class="stop-card__num" style="border-color:${L.color}">${s.n}</span>${esc(s.label)}</h2>
     <dl><div><dt>Line</dt><dd>${L.name}, ${L.note}</dd></div><div><dt>The user</dt><dd>${esc(s.does)}</dd></div><div><dt>They see</dt><dd>${esc(s.sees)}</dd></div></dl>
+    ${s.built === false ? `<p class="muted">Not built yet.</p>` : ""}
     ${link}`;
 }
 
@@ -152,7 +153,7 @@ function renderFlow() {
     </section>`;
 
   const html = `
-    ${head("How Varity is used", "The planned user flow as a transit map: a first ride taken once, a daily loop ridden every morning, and two explore stops to visit any time. Select a station to see what the user does there. Google sign-in and Google Tasks (steps 2 and 8) are not built: Varity offers a plan download and a calendar file instead.")}
+    ${head("How Varity is used", "The planned user flow as a transit map: a first ride taken once, a daily loop ridden every morning, and two explore stops to visit any time. Select a station to see what the user does there. Not built yet: Google sign-in and Google Tasks (steps 2, 8 and 10), reordering or skipping stops (step 6) and the service-change band (step 12). Varity offers a plan download and a calendar file instead.")}
     <div class="flow">
       <div>
         <div class="diagram">${flowSVG()}</div>

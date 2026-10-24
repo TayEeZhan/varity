@@ -49,7 +49,7 @@ Verity is a decision aid. It forecasts skill demand, ranks roles and builds a le
 - **A model that lost.** We trained a gradient-boosting model (HistGradientBoostingRegressor) on all skills. Its error was 2.06 points, worse than 1.66. We did not ship it.
 - **CV intake with Claude Haiku 4.5.** The model only points at skills and gives a quote for each. Code drops any skill whose quote is not in the CV, word for word.
 
-Only the CV intake and an optional route advisor (at most 2 places) use a language model. Code, not a model, sets the forecast, the role ranking and the plan order. Two scenarios, Moderate and Fast AI disruption, are labelled as estimates. The user can also press "Try an example", which needs no model. HRD Corp status is shown as not verified.
+Only the CV intake and two optional steps use a language model. The route advisor re-orders roles by at most 2 places and writes one checked summary line; the pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Code sets the forecast and every number and date, checks every model answer and takes over when the model is off. Two scenarios, Moderate and Fast AI disruption, are labelled as estimates. The user can also press "Try an example", which needs no model. HRD Corp status is shown as not verified.
 
 The build also uses the workshop topics: generative AI (CV intake), data handling and cloud deployment (Replit).
 
@@ -63,7 +63,7 @@ The build also uses the workshop topics: generative AI (CV intake), data handlin
 - **Data and statistics:** pandas, NumPy, SciPy (Welch test), statsmodels (damped-trend model, tested only).
 - **Machine-learning experiment:** scikit-learn (not used in the app).
 - **Data sources:** Hacker News "Ask HN: Who is hiring?" threads through the Algolia HN Search API (free); Anthropic Economic Index (AI exposure); GPTs-are-GPTs, AIOE and Microsoft Working with AI (exposure cross-check only).
-- **Hosting:** Replit Autoscale deployment. The live URL is not yet republished with the Varity-only app. Replit App Storage (data snapshots) and a Replit Scheduled Deployment (daily refresh): code built; Replit setup pending.
+- **Hosting:** Replit Reserved VM deployment (one always-on server). The live URL is not yet republished with the Varity-only app. Replit App Storage (data snapshots) and a Replit Scheduled Deployment (daily refresh): code built; Replit setup pending.
 - **Generative AI:** Claude Haiku 4.5 (Anthropic) for CV intake, through Replit AI Integrations (Replit-managed credentials, billed to Replit credits). A direct Anthropic key also works. With no credentials, a keyword pass takes over. Design: not yet verified on the live Replit app.
 
 **Sponsor GenAI API or cloud platform.** We use Replit for hosting. We will use App Storage and Scheduled Deployments once set up (code built; Replit setup pending). We use Replit AI Integrations for the CV intake (Claude Haiku 4.5), with a cap of $1 per day. We use no GPU, so we use no RunPod.
@@ -91,7 +91,7 @@ flowchart LR
     OTHER["demand, role, backtest,<br/>exposure files"]
   end
   subgraph REPLIT["Replit"]
-    APP["Varity: FastAPI + static web app<br/>Autoscale deployment"]
+    APP["Varity: FastAPI + static web app<br/>Reserved VM deployment"]
     STORE["App Storage<br/>snapshots<br/>(setup pending;<br/>app does not read)"]
     JOB["Scheduled Deployment<br/>daily 09:00 MYT<br/>(setup pending)"]
   end
@@ -123,7 +123,7 @@ flowchart LR
 
 **Test.** Over 700 automated tests and a backtest with no look-ahead. In Phase 2 we will test with the three synthetic personas and [TEAM TO FILL: number] volunteer users.
 
-**Deployment.** The app runs on Replit Autoscale; the live site is not yet republished with this version. The daily refresh job and App Storage snapshots are code built; Replit setup pending. The app shows the committed data with its date. If the server is unreachable, the page shows a dated offline snapshot and says so.
+**Deployment.** The app runs on a Replit Reserved VM; the live site is not yet republished with this version. The daily refresh job and App Storage snapshots are code built; Replit setup pending. The app shows the committed data with its date. If the server is unreachable, the page shows a dated offline snapshot and says so.
 
 **Hardest risk.** Hacker News is US-heavy. Our fallback: the app says so, and Malaysian sources are future work.
 

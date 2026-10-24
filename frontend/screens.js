@@ -242,7 +242,7 @@ function liveRouteRow(r) {
         <div class="route__role-sub"><b>${esc(r.fitLabel)}</b> · ${outlook}</div>
         ${r.summary ? `<p class="route__summary">${esc(r.summary)}</p>` : ""}</div>
       <div class="route__fact"><b>${r.gap.length} skills</b><span>to learn</span></div>
-      <div class="route__fact"><b>${r.have.length} of ${r.have.length + r.gap.length}</b><span>core skills held</span></div>
+      <div class="route__fact"><b>${r.have.length} of ${r.have.length + r.gap.length}</b><span>core skills held (match is weighted)</span></div>
       ${action}
     </div>
     <div class="route__why"><div class="chips">${r.reasons.map((c) => reasonChip(c)).join("")}${r.watchOut ? reasonChip(r.watchOut, " reason--watch") : ""}</div>
@@ -286,7 +286,7 @@ function renderProfile() {
   const parsed = STATE.cv === "parsed";
   const [station, stationSub] = stationText();
   const html = `
-    ${head("Your CV and routes", "Varity reads your CV, shows the sentence behind every skill it finds, then plans routes to roles that are rising.", STATE.suggest ? real("Match scores computed from your skills") : "")}
+    ${head("Your CV and routes", "Varity reads your CV, shows the sentence behind every skill it finds, then plans routes to roles, with each role's demand trend.", STATE.suggest ? real("Match scores computed from your skills") : "")}
     <div class="origin">
       <div>${cvPanel()}</div>
       <section aria-labelledby="org-h">
@@ -295,7 +295,7 @@ function renderProfile() {
       </section>
     </div>
     <section aria-labelledby="jp-h">
-      <h2 class="sec" id="jp-h">Journey planner <small>Match = share of the role's core skills your profile already shows</small></h2>
+      <h2 class="sec" id="jp-h">Journey planner <small>Match = weighted share of the role's core skills you hold (weights from job posts)</small></h2>
       ${parsed || STATE.loading ? plannerHTML() : `<p class="empty">Upload a CV or try an example profile. Routes appear after that.</p>`}
     </section>`;
 
@@ -416,6 +416,7 @@ function renderProfile() {
 /* "all with free resources" only when every chosen resource is free. */
 function costText(steps) {
   const costs = steps.filter((s) => s.resource).map((s) => s.resource.cost);
+  if (!costs.length) return "";
   const paid = costs.filter((c) => c !== "free");
   if (!paid.length) return "all with free resources";
   return `${costs.length - paid.length} of ${costs.length} resources are free; the others are ${[...new Set(paid)].join(" or ")}`;
@@ -425,7 +426,6 @@ function renderPathway() {
   const blocked = gate("plan");
   if (blocked) return { html: head("Pathway", "The ordered stops from your skills to your route.") + blocked, bind: () => {} };
 
-  const totalMin = PATHWAY.reduce((n, p) => n + p.mins, 0);
   const weeks = [...new Set(PATHWAY.map((p) => p.week))];
   const statusText = { done: "Done", current: "You are here", next: "Upcoming" };
   const stopHTML = (p) => `<div class="pstop is-${p.status}" data-stop="${esc(p.id)}">
@@ -437,9 +437,12 @@ function renderPathway() {
         ${p.why ? `<p class="pstop__why">${esc(p.why)}</p>` : ""}
         ${p.reasons ? `<div class="chips">${p.reasons.map((c) => reasonChip(c)).join("")}</div>` : ""}</div>
     </div>`;
+  const planStart = new Date(STATE.plan.startDate).getTime();
+  const taskWeek = (t) => Math.floor((new Date(t.date).getTime() - planStart) / DAY_MS / 7) + 1;
   const weekHTML = (w) => {
     const stops = PATHWAY.filter((p) => p.week === w);
-    const hrs = Math.round((stops.reduce((n, p) => n + p.mins, 0) / 60) * 10) / 10;
+    const mins = STATE.plan.tasks.filter((t) => taskWeek(t) === w).reduce((n, t) => n + t.minutes, 0);
+    const hrs = Math.round((mins / 60) * 10) / 10;
     return `<section class="week"><h3>Week ${esc(w)} <span>${hrs} h</span></h3>${stops.map(stopHTML).join("")}</section>`;
   };
 
@@ -447,7 +450,7 @@ function renderPathway() {
   const badge = real(plan.personalisedBy === "llm" ? "Personalised by AI, checked against the data" : "Built by the formula from your profile");
   const lede = !PATHWAY.length
     ? `You already have every core skill of ${esc(TARGET.role)}, so there is no gap to plan.`
-    : `${PATHWAY.length} stops over ${weeks.length} weeks, about ${Math.round(totalMin / 60)} hours (estimate), ${esc(costText(plan.steps))}. Hover a station to light its line.`;
+    : `${PATHWAY.length} stops over ${weeks.length} weeks, about ${Number(plan.totals.hours)} hours (estimate)${costText(plan.steps) ? `, ${esc(costText(plan.steps))}` : ""}. Hover a station to light its line.`;
   const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
   const sdg = plan.sdgSummary;
 

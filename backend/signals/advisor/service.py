@@ -71,6 +71,10 @@ def load_data(data_dir: Path = DATA_DIR) -> dict[str, Any]:
             data[key] = _read(str(data_dir / name), (data_dir / name).stat().st_mtime)
         except (OSError, ValueError):
             data[key] = None
+    doc = data["role_sdg"]
+    if doc is not None and not (isinstance(doc, dict) and isinstance(doc.get("roles"), dict)
+                                and isinstance(doc.get("sectors"), list)):
+        data["role_sdg"] = None  # malformed: treat like a missing optional file
     return data
 
 
@@ -133,7 +137,8 @@ def _match(profile: Profile, data: Mapping[str, Any], scenario: str) -> tuple[di
     return out, held, unmapped
 
 
-def _tag(as_of: Mapping[str, str | None], scenario: str) -> str:
+def _tag(as_of: Mapping[str, str | None], scenario: str | None = None) -> str:
+    """Cache tag: data dates, plus the scenario only where the prompt depends on it (the coach)."""
     return json.dumps([as_of, scenario], sort_keys=True)
 
 
@@ -188,7 +193,7 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
     status, checked = "off:NO_ROLES", {"order": None, "roles": {}}
     if roles and use_llm:
         try:
-            advice, status = advise(db_path, sorted(held), roles, call, _tag(as_of, scenario))
+            advice, status = advise(db_path, sorted(held), roles, call, _tag(as_of))
             checked = verify_advice(advice, roles, [t["skill"] for t in data["taxonomy"]])
         except LlmUnavailable as exc:
             status = f"off:{exc.code}"

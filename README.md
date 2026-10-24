@@ -38,7 +38,7 @@ cd backend/signals
 python -m trendsignal serve --port 8000
 ```
 
-Open http://localhost:8000. The backend serves `frontend/` at `/`. Add `--scheduler` to re-rank the Signals every 15 minutes. Opened without the backend, the page shows dated offline snapshots and says so.
+Open http://localhost:8000. The backend serves `frontend/` at `/`. Add `--scheduler` to re-rank the Signals every 15 minutes; only with `--scheduler` does the first start also fill an empty database (without it the Signals page may be empty until you run `python -m trendsignal run`). Opened without the backend, the page shows dated offline snapshots and says so.
 
 ## Deploy on Replit
 
@@ -61,7 +61,7 @@ This product includes information from O*NET OnLine by the U.S. Department of La
 AI models in the running app:
 
 - CV intake: Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). With no credentials, a keyword pass takes over. The model only points at skill mentions. Code checks every quote word for word. A daily cap of $1 applies (`VERITY_INTAKE_DAILY_BUDGET_USD`). This is the design; we have not yet verified it on the live Replit app. Use synthetic CVs only: CV text goes to Anthropic through Replit.
-- The skill forecast, role match, pathway and SDG parts use no LLM. An optional advisor can re-order the ranked roles by at most 2 places and pick reason chips that code wrote; the fit label always comes from code. An optional coach can re-order pathway steps inside one stage and pick among listed resources.
+- The skill forecast, role match, pathway steps, dates and SDG parts are code. Only the CV intake and two optional steps use an LLM. The optional route advisor re-orders roles by at most 2 places, picks reason chips that code wrote and writes one checked summary line; the fit label always comes from code. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. All of it runs within code's limits and falls back to code.
 - "Try an example" needs no LLM.
 - The signal ranker (`backend/signals/`) can use Claude and Jev (TypeSafe AI), but both are off by default.
 

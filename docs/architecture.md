@@ -24,7 +24,7 @@ Verity helps a junior or mid-level tech developer in Malaysia plan a career move
 ### Design principles
 
 1. **Code computes every number.** A language model never produces a score, a rank, a forecast or a date.
-2. **LLMs only point or word things.** An LLM may point at skill mentions in a CV or write a sentence. Code checks what it returns. The forecast, role match, pathway and SDG parts use no LLM.
+2. **LLMs only point or word things.** An LLM may point at skill mentions in a CV or write a sentence. Code checks what it returns. The forecast, role match, pathway dates and SDG parts are code. Only the CV intake and two optional steps (the route advisor and the pathway coach) use an LLM, within code's limits (section 3.19).
 3. **Every number has a source and a date.** The app shows both.
 4. **Tested before trusted.** A method enters the product only if a backtest on held-out data supports it. The simple method won the forecast test, so it ships (data/backtest.json).
 5. **The human decides.** Verity shows estimates and labels them. New skills and new roles need a person to approve them.
@@ -69,7 +69,7 @@ flowchart LR
     end
 
     subgraph REPLIT["Replit"]
-        APP["Varity: FastAPI + static frontend, Autoscale<br/>[IN APP; not yet republished]"]
+        APP["Varity: FastAPI + static frontend, Reserved VM<br/>[IN APP; not yet republished]"]
         ST["App Storage snapshots<br/>[BUILT, setup pending, app does not read]"]
         JOB["Scheduled job, daily 09:00 MYT<br/>[BUILT, setup pending]"]
     end
@@ -256,7 +256,7 @@ flowchart LR
 - **Outputs.** A plan object (`GET /api/pathway`). The `.md` and `.ics` exports are built in the browser.
 - **Key functions.** `engine/pathway.py`: `build_pathway`, `classify`, `schedule_tasks`, `progress`, `to_markdown`, `to_ics`, `sdg_headline`.
 - **How it works.** Each gap skill goes to the first stage it fits. Stage 1, `no_regret`: needed by 2 or more of the counted roles, not Falling, not AI-substitutable. Stage 2, `near_term`: in the top half of the gap skills by share now. Stage 3, `future_bet`: Rising or AI-complement. The Fast scenario moves stage 3 to second place. Tasks last at most 45 minutes on Monday to Friday, with dates in Malaysia time.
-- **Why built this way.** Code sets the order and the dates. A language model never changes them. A resource can come only from `data/resources.json`, and only if its link returned HTTP 200 (77 resources for the 40 skills, checked on 2026-10-22, docs/pathway.md). A skill without a verified resource gets no task. The engine never invents a course. HRD Corp claim status is not verified, so no claim is made.
+- **Why built this way.** Code sets the dates and builds the order. The optional pathway coach may re-order steps within a stage, pick among the listed resources and write one checked "why" line; it never changes a date, a minute count or a stage. A resource can come only from `data/resources.json`, and only if its link returned HTTP 200 (77 resources for the 40 skills, checked on 2026-10-22, docs/pathway.md). A skill without a verified resource gets no task. The engine never invents a course. HRD Corp claim status is not verified, so no claim is made.
 - **How tested.** `tests/test_pathway.py`, including a test that every chosen link exists in the resource list.
 - **Status.** [IN APP]. "What changed and why" (a full diff view between two runs, `data/diff.json` in the contract) is [PLANNED]. Google sign-in and Google Tasks are not built; the Flow map says so.
 
@@ -297,7 +297,7 @@ flowchart LR
 - **Inputs.** The public HN API. No secret is needed.
 - **Outputs.** Snapshots under `snapshots/<UTC time>/` in the bucket (`skill_scores.json`, `demand_monthly.csv`, `hn_threads.csv`, `ai_context_monthly.csv`, `meta.json`). `latest.json` points to the newest and is written last. The newest 14 snapshots are kept.
 - **Key functions.** `engine/scheduled.py`: `run`. `engine/store.py`: `LocalStore`, `ReplitStore`, `get_store`. `engine/live.py`: `start_dir`, `publish`, `banner`. `engine/live.py` is unused by the Varity app.
-- **Why built this way.** On Replit Autoscale each instance has a short-lived disk. A failed run never changes `latest.json`, so a reader keeps the last good data.
+- **Why built this way.** On Replit a redeploy replaces the disk. A failed run never changes `latest.json`, so a reader keeps the last good data.
 - **Limit.** The Varity app reads the committed `data/` files. It does not read the stored snapshots, and it has no Refresh button or banner. The demand data is the committed snapshot (as of 2026-10).
 - **How tested.** `tests/test_store.py`, `tests/test_scheduled.py`, `tests/test_refresh.py`.
 - **Status.** [BUILT]. The Replit UI steps (create the bucket, create the Scheduled deployment) are not done yet (docs/replit-schedule.md).
@@ -588,7 +588,7 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 
 ## 6. Deployment and operations
 
-- **App.** Varity (FastAPI with uvicorn, static HTML/CSS/JS) on Replit, deployed as Autoscale (`deploymentTarget = "cloudrun"` in `.replit`). The run command is `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. The build command is `pip install -r requirements.txt`. One install covers everything. The live URL is https://verity--eezhan0805.replit.app (README.md). It has not been republished with the Varity-only app yet, so it may still show the older version.
+- **App.** Varity (FastAPI with uvicorn, static HTML/CSS/JS) on Replit, deployed as a Reserved VM (`deploymentTarget = "gce"` in `.replit`), so one always-on server keeps saved profiles, the signals database and the scheduler. The run command is `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. The build command is `pip install -r requirements.txt`. One install covers everything. The live URL is https://verity--eezhan0805.replit.app (README.md). It has not been republished with the Varity-only app yet, so it may still show the older version.
 - **Why this stack.** One Python server serves the static frontend and the JSON APIs, and it reuses the engine. Replit is compulsory for the hackathon.
 - **App Storage.** Holds the snapshots from section 3.13. The code is built. The bucket is not created yet. The Varity app does not read it.
 - **Scheduled job.** `python -m engine.scheduled`, daily at 09:00 Malaysia time, as a Replit Scheduled deployment. The code is built. The Replit UI setup is pending (docs/replit-schedule.md). The app has no Refresh button; the committed HN snapshot (as of 2026-10) changes only when someone re-runs the engine or this job. The Signals ranker is separate: `--scheduler` re-ranks every 15 minutes inside the server.
@@ -604,7 +604,7 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 - **Privacy.** The app has no sign-in. An uploaded CV is read by the CV intake, and the backend keeps the resulting skill profile under an anonymous profile token (`X-Profile-Token`). Raw HN posts can hold names and contact details. They stay in gitignored folders on team machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored (docs/submission/tech-declaration.md). The CV intake sends CV text to Anthropic through Replit. We use synthetic CVs only. Real CVs need a PDPA assessment and a retention rule first.
 - **No bot-protection bypass.** We fetch only from public APIs and from pages that `robots.txt` allows. When a site answers with a challenge, we stop. This is why JobStreet has no scraper (docs/jobstreet.md on branch `feat/jobstreet-my`). `docs/data-contract.md` also excludes LinkedIn and X from the engine's sources.
 - **Sources and licences.** `data/SOURCES.md` lists every dataset with URL, date and licence. AEI is CC BY. O*NET is CC BY 4.0 and is credited in the README. The AIOE data has no licence file, so we cite it and do not redistribute it (docs/exposure-crosscheck.md, section 5).
-- **AI disclosure.** Claude Code is the major development tool (code, tests, data pipeline and documents, from the team's prompts and plans). Replit Agent is a minor tool: environment setup, with two commits that change only `.replit` (docs/submission/tech-declaration.md). Claude Haiku 4.5 in the CV intake is declared as an AI model (tech declaration, section 4.1). Jev is declared if it is turned on. The forecast, role match, pathway and SDG parts run no LLM. The optional advisor (section 3.19) may re-order routes by at most 2 places and pick code-written reason chips.
+- **AI disclosure.** Claude Code is the major development tool (code, tests, data pipeline and documents, from the team's prompts and plans). Replit Agent is a minor tool: environment setup, with two commits that change only `.replit` (docs/submission/tech-declaration.md). Claude Haiku 4.5 in the CV intake is declared as an AI model (tech declaration, section 4.1). Jev is declared if it is turned on. The forecast, role match and SDG parts run no LLM. The optional route advisor (section 3.19) re-orders routes by at most 2 places and writes one checked summary line. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Both fall back to code.
 - **The LLM boundary.** An LLM may point (CV skill mentions with exact quotes, optional category fallback in the ranker) or word things. Code checks the output. No LLM sets a number, a rank, a forecast or a date.
 
 ---

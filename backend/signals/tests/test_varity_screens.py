@@ -91,3 +91,27 @@ def test_auto_mode_without_a_key_says_no_key(settings, monkeypatch):
     assert suggestions["llmStatus"] == "off:NO_KEY"
     plan = client.get(f"/api/pathway?roleId={suggestions['roles'][0]['roleId']}", headers=headers).json()["data"]
     assert plan["llmStatus"] == "off:NO_KEY"
+
+
+def test_cached_advisor_answer_is_served_after_the_ip_limit_is_spent(llm_settings, monkeypatch):
+    from advisor.llm import Advice
+    from trendsignal.web import roles_api
+    calls = []
+    monkeypatch.setattr(roles_api, "call_model", lambda *a, **k: calls.append(1) or Advice(order=[], roles=[]))
+    monkeypatch.setattr(roles_api, "MODEL_CALLS_PER_MINUTE", 1)
+    client = TestClient(create_app(load_context(llm_settings)))
+    headers = {"X-Profile-Token": use_example(client)["data"]["token"]}
+    assert client.get("/api/roles/suggestions", headers=headers).json()["data"]["llmStatus"] == "llm"
+    assert client.get("/api/roles/suggestions", headers=headers).json()["data"]["llmStatus"] == "cached"
+    assert client.get("/api/roles/suggestions?scenario=fast", headers=headers).json()["data"]["llmStatus"] == "cached"
+    assert client.get("/api/roles/suggestions?hoursPerWeek=20", headers=headers).json()["data"]["llmStatus"] == "off:RATE_LIMITED"
+    assert len(calls) == 1
+
+
+def test_malformed_role_sdg_is_treated_as_missing(tmp_path):
+    import shutil
+    from advisor import service
+    for name in [*service.FILES.values(), *service.OPTIONAL_FILES.values()]:
+        shutil.copy(service.DATA_DIR / name, tmp_path / name)
+    (tmp_path / "role_sdg.json").write_text('{"roles": [], "sectors": {}}', encoding="utf-8")
+    assert service.load_data(tmp_path)["role_sdg"] is None

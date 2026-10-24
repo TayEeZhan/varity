@@ -78,3 +78,21 @@ def test_intake_model_label_and_price_follow_the_route(env):
     assert module.MODEL == "claude-haiku-4-5"
     assert module.MODEL_LABEL == "Claude Haiku 4.5 (Anthropic via Replit AI Integrations)"
     assert (module.PRICE_IN_PER_M, module.PRICE_OUT_PER_M) == (1.00, 5.00)
+
+
+def test_effort_is_sent_only_to_the_5_5_models():
+    assert llm_extract.output_config("claude-haiku-5-5", "low") == {"effort": "low"}
+    assert llm_extract.output_config("claude-haiku-4-5", "low") == {}
+    assert llm_extract.output_config("claude-sonnet-5", "medium") == {}
+    assert llm_extract.output_config("claude-haiku-4-5", "low", format={"type": "json_schema"}) == {"format": {"type": "json_schema"}}
+
+
+def test_enrich_request_for_haiku_4_5_has_no_effort(llm_settings):
+    from tests.test_enrich import DEV_TERMS, ITEM, fake_client, fake_message, good_payload
+    import json
+    from trendsignal.llm import LlmGate
+    from trendsignal.pipeline.enrich import enrich_story
+    client = fake_client(fake_message(json.dumps(good_payload())))
+    enrich_story([ITEM], client, "claude-haiku-4-5", LlmGate(llm_settings, spent_today=0.0), DEV_TERMS)
+    config = client.messages.calls[0]["output_config"]
+    assert "effort" not in config and config["format"]["type"] == "json_schema"
