@@ -277,11 +277,11 @@ Steps: collectors (`collectors/`: RSS, arXiv, Hugging Face papers, Hacker News; 
 
 The default ranker is the formula (`TRENDSIGNAL_RANKER` defaults to `formula`; `trendsignal/config.py`). From `backend/signals/config/weights.yaml`, importance is a weighted sum of six features: impact 0.25, authority 0.20, corroboration 0.20, velocity 0.15, dev relevance 0.10, novelty 0.10. Tier limits: Must-know at 75 and above, Worth-a-look at 50 and above, at most 5 Must-know per day. Guardrails: social-only stories are never Must-know, and a Must-know needs an official or research source or 3 independent reports (`decision/ranker.py` docstring).
 
-**How the ranker was evaluated (the AI jury).** We graded the ranker against an independent 3-model AI jury (`backend/signals/eval/jury.py`): models from different makers, called through OpenRouter, each label every story with the same question human labellers get. Jev is never a juror, so the answer key stays independent of the model under test, and the jury is trusted only after it agrees with a human-labelled sample (`TRUST_AGREEMENT = 0.75`). Metrics are precision@5 and NDCG@10 (`eval/metrics.py`).
+**How the ranker was evaluated (the AI jury).** We graded the ranker against an independent 3-model AI jury (`backend/signals/eval/jury.py`): Claude Sonnet 5.5, GPT-6.1 Sol and Gemini 4 Argon, called through Replit AI Integrations (OpenRouter), each label every story with the same question human labellers get. Jev is never a juror, so the answer key stays independent of the model under test, and the jury is trusted only after it agrees with a human-labelled sample (`TRUST_AGREEMENT = 0.75`). Metrics are precision@5 and NDCG@10 (`eval/metrics.py`).
 
 What the jury showed: urgent security news was buried. It breaks on community sites days before official advisories, and one event was split across several stories. We fixed the clustering and added a guarded "urgent security" rule (`is_security_item`). NDCG@10 rose from 0.37 to 0.53, and the critical PHP RCE moved from #4 to #1 Must-know.
 
-**Jev.** Jev (`jev-1.13.0`, TypeSafe AI) is a decision model. On the same jury labels it scored NDCG@10 0.25, worse than the formula. Our promotion rule says Jev ranks only after it beats the formula, so the formula stays the ranker and Jev is shown as a second opinion.
+**Jev.** Jev (`jev-1.13.0`, TypeSafe AI, called through Replit AI Integrations) is a decision model. On the same jury labels it scored NDCG@10 0.25, worse than the formula. Our promotion rule says Jev ranks only after it beats the formula, so the formula stays the ranker and Jev is shown as a second opinion.
 
 The Signals data does not feed the skill forecast. That link is a design only (`docs/architecture.md` section 3.17).
 
