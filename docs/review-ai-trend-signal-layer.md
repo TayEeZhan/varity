@@ -1,5 +1,7 @@
 # Review: branch `AI-trend-signal-layer` (Sheng Kuan)
 
+Retired 24 Oct: the Streamlit UI (`app.py`) was replaced by Varity, and this ranker now serves the Varity Signals screen. This review is historical.
+
 Reviewed on 23 Oct 2026 at commit `ba86df2`, read-only, by a stronger model (Claude Opus).
 
 ## Result

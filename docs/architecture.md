@@ -1,7 +1,7 @@
 # Verity: architecture
 
 Team Hokkien Mee Is Purple (Ee Zhan, Sheng Kuan). XMUM SDC Hackathon 2026, Domain 1.
-Written 23 Oct 2026 on branch `docs/architecture`; updated on the integration branch `feat/integrate`. The status table in `docs/build-plan.md` is the source of truth for what is built.
+Written 23 Oct 2026 on branch `docs/architecture`; updated 24 Oct 2026 on branch `feat/varity-only`. The Streamlit UI was retired on 24 Oct: Varity (FastAPI backend plus a static web app) is the only app. The status table in `docs/build-plan.md` is the source of truth for what is built.
 
 ## How to read this document
 
@@ -9,9 +9,8 @@ Every component has one status tag.
 
 | Tag | Meaning |
 |---|---|
-| **[LIVE]** | Built and merged in `main`. |
-| **[BRANCH]** | Built on an unmerged branch or package. Not in `main`. |
-| **[BRANCH: integrate]** | Built on the integration branch `feat/integrate`, which merges `feat/journey-ui`, `feat/role-forecast`, `feat/sdg-sectors`, `feat/my-jobs` and `docs/architecture`. Wired together and tested there. Not in `main` until that branch is merged. |
+| **[IN APP]** | Built and tested, and the Varity app uses it (directly, or through the data files it reads). It is on branch `feat/varity-only`. The Replit site is not yet republished, so the live URL may still show the older version. |
+| **[BUILT]** | Built and tested, but the Varity app does not use it. It runs offline, as evidence, or is gated. |
 | **[PLANNED]** | Not built. A design only. |
 
 A planned part never appears as a working part. Every number comes from a file. The file is in brackets, for example (data/backtest.json). When a number has no file, it is left out.
@@ -20,12 +19,12 @@ A planned part never appears as a working part. Every number comes from a file. 
 
 ## 1. Purpose and the user
 
-Verity helps a junior or mid-level tech developer in Malaysia plan a career move. The user is, for example, "Aina, a junior Python developer" (a synthetic persona in `app.py`). Verity shows which skills are rising or falling in dated public job data. It ranks future roles by how well the user's skills match them. It then turns the skill gap into an ordered plan with daily tasks. Every number shows its source and date, and the user makes the decision. Tech roles are the starting group, because they have the best free, dated, public data.
+Verity helps a junior or mid-level tech developer in Malaysia plan a career move. The user is, for example, "Aina, a junior Python developer" (a synthetic example profile in `data/example_profiles.json`). Verity shows which skills are rising or falling in dated public job data. It ranks future roles by how well the user's skills match them. It then turns the skill gap into an ordered plan with daily tasks. Every number shows its source and date, and the user makes the decision. Tech roles are the starting group, because they have the best free, dated, public data.
 
 ### Design principles
 
 1. **Code computes every number.** A language model never produces a score, a rank, a forecast or a date.
-2. **LLMs only point or word things.** An LLM may point at skill mentions in a CV or write a sentence. Code checks what it returns. The forecast, role match, pathway and SDG parts use no LLM.
+2. **LLMs only point or word things.** An LLM may point at skill mentions in a CV or write a sentence. Code checks what it returns. The forecast, role match, pathway dates and SDG parts are code. Only the CV intake and two optional steps (the route advisor and the pathway coach) use an LLM, within code's limits (section 3.19).
 3. **Every number has a source and a date.** The app shows both.
 4. **Tested before trusted.** A method enters the product only if a backtest on held-out data supports it. The simple method won the forecast test, so it ships (data/backtest.json).
 5. **The human decides.** Verity shows estimates and labels them. New skills and new roles need a person to approve them.
@@ -46,22 +45,22 @@ flowchart LR
     end
 
     subgraph COL["Collectors"]
-        BF["backfill_hn.py<br/>[LIVE]"]
-        RF["refresh.py<br/>[LIVE]"]
-        TS["trendsignal collectors<br/>[MERGED: backend/signals, not deployed]"]
-        MJ["my_jobs.py + MyCOL<br/>[BRANCH: integrate]<br/>job sites gated"]
-        CVX["CV extractor, Claude Haiku 4.5<br/>[MERGED: backend/signals/intake;<br/>not deployed yet]"]
+        BF["backfill_hn.py<br/>[BUILT]"]
+        RF["refresh.py<br/>[BUILT]"]
+        TS["trendsignal collectors<br/>[IN APP: backend/signals]"]
+        MJ["my_jobs.py [BUILT, job sites gated]<br/>MyCOL list [IN APP]"]
+        CVX["CV extractor, Claude Haiku 4.5<br/>[IN APP: backend/signals/intake]<br/>keyword fallback without credentials"]
     end
 
     subgraph ENG["Engine, engine/*.py, pure Python"]
-        TAG["tagging + demand<br/>[LIVE]"]
-        EXP["exposure + k<br/>[LIVE]"]
-        FC["forecast + backtest<br/>+ trend label [LIVE]"]
-        SC["scores [LIVE]"]
-        RM["roles: profiles + match<br/>[LIVE]"]
-        PW["pathway [LIVE]"]
-        DS["discover radar [LIVE]"]
-        SDG["sdg sectors [BRANCH: integrate]"]
+        TAG["tagging + demand<br/>[IN APP]"]
+        EXP["exposure + k<br/>[IN APP]"]
+        FC["forecast + backtest<br/>+ trend label [IN APP]"]
+        SC["scores [IN APP]"]
+        RM["roles: profiles + match<br/>[IN APP]"]
+        PW["pathway [IN APP]"]
+        DS["discover radar [BUILT]"]
+        SDG["sdg sector tags [IN APP]"]
     end
 
     subgraph FILES["Data files in data/"]
@@ -70,13 +69,13 @@ flowchart LR
     end
 
     subgraph REPLIT["Replit"]
-        APP["Streamlit app, Autoscale<br/>[LIVE]"]
-        ST["App Storage snapshots<br/>[LIVE code, setup pending]"]
-        JOB["Scheduled job, daily 09:00 MYT<br/>[LIVE code, setup pending]"]
+        APP["Varity: FastAPI + static frontend, Reserved VM<br/>[IN APP; not yet republished]"]
+        ST["App Storage snapshots<br/>[BUILT, setup pending, app does not read]"]
+        JOB["Scheduled job, daily 09:00 MYT<br/>[BUILT, setup pending]"]
     end
 
-    subgraph AIL["Sheng Kuan's AI-advancement layer, separate service"]
-        RK["trendsignal ranker<br/>[MERGED: backend/signals, not deployed]"]
+    subgraph AIL["Sheng Kuan's AI-advancement layer, same server"]
+        RK["trendsignal ranker, every 15 min<br/>[IN APP: Signals screen]"]
         RJ["data/ranked/latest.json"]
     end
 
@@ -97,35 +96,36 @@ flowchart LR
     D1 --> APP
     JOB --> RF
     JOB --> ST
-    ST --> APP
     NEWS --> TS --> RK --> RJ
+    RK --> APP
     RJ -. "ai_news.py [PLANNED]" .-> D2
     D2 -.-> APP
     MYS --> MJ -.-> APP
-    CV --> CVX -.-> RM
+    CV --> CVX --> APP
 
     classDef live fill:#dff3e0,stroke:#2e7d32,color:#111
     classDef branch fill:#fff4d6,stroke:#b26a00,color:#111
     classDef planned fill:#f3e5f5,stroke:#6a1b9a,stroke-dasharray: 4 3,color:#111
-    class BF,RF,TAG,EXP,FC,SC,RM,PW,DS,APP,ST,JOB live
-    class TS,MJ,SDG,RK,RJ branch
-    class CVX,D2 planned
+    class TAG,EXP,FC,SC,RM,PW,SDG,APP,TS,RK,RJ,CVX live
+    class BF,RF,DS,ST,JOB,MJ branch
+    class D2 planned
 ```
 
-Solid arrows work today. Dotted arrows are branch or planned links.
+Green nodes are in the Varity app. Yellow nodes are built but not used by the app. Dotted arrows are planned or gated links.
 
 The shape of the system:
 
 - **The engine is plain Python.** It reads files in `data/` and writes files in `data/`. It has no server and no database.
-- **The app reads files.** `app.py` (Streamlit) is a four-step journey, 1 You, 2 Skills radar, 3 Future roles, 4 Your plan, plus an Evidence section (Skills, Skill detail, Method) [BRANCH: integrate]. It calls the engine and reads its output files. The sidebar has a Moderate or Fast scenario switch, an As-of month slider and a Refresh button.
-- **Sheng Kuan's AI-advancement layer is a separate package.** It runs on its own and writes one ranked file. It is not connected to the app yet. The planned link is a file, not a function call (section 3.17).
+- **One server, one app.** Varity is a FastAPI backend (`backend/signals`, started with `python -m trendsignal serve`) that serves the static frontend in `frontend/` at `/` and the JSON APIs under `/api`. The frontend is plain HTML, CSS and JavaScript with no build step. The Streamlit app (`app.py`) is retired.
+- **The backend reads files.** It imports the engine for role match and pathway, and reads the engine's output files in `data/` at request time. The Varity screens are Flow map, CV & routes, Today, Pathway, Signals, Job forecast, Skills radar and Method (section 3.16). A Moderate or Fast scenario toggle sits on the routes.
+- **Sheng Kuan's AI-advancement layer runs in the same server.** It re-ranks every 15 minutes when the server starts with `--scheduler`, and it serves the Signals screen (`GET /api/signals`). A link from its ranked file to the skill forecast is still a design (section 3.17).
 - **Collectors write counts, not text.** Raw post text stays in the gitignored folder `data/raw/`. Only aggregates and thread links are committed.
 
 ---
 
 ## 3. Components
 
-### 3.1 Skill taxonomy and tagger [LIVE]
+### 3.1 Skill taxonomy and tagger [IN APP]
 
 - **What it does.** Finds which of the 40 tech skills a job post mentions.
 - **Inputs.** `data/taxonomy.json` (40 skills; each has `skill`, `category`, `synonyms`, `pattern`, `case_sensitive`, `sdg`, `sdg_reason`). Post text, as HTML.
@@ -133,9 +133,9 @@ The shape of the system:
 - **Key functions.** `engine/tagging.py`: `load_taxonomy`, `clean_text`, `tag_text(text, taxonomy)`.
 - **Why built this way.** Regular expressions give the same result on every run. They cost nothing and a judge can read them. Counting rules are plain: a post that says "PostgreSQL" counts as PostgreSQL only, not as SQL. "React Native" is not React. A bare "AI" in a company blurb is not a skill, so Machine Learning needs real skill words (docs/build-plan.md, P1). "JavaScript / TypeScript" is one combined row, and TypeScript also keeps its own row.
 - **How tested.** `tests/test_tagging.py` covers the hard names, for example Go, R, C, C++, C#, Swift.
-- **Status.** [LIVE]
+- **Status.** [IN APP]
 
-### 3.2 Hacker News backfill and live refresh [LIVE]
+### 3.2 Hacker News backfill and refresh [BUILT]
 
 - **What it does.** Downloads every monthly "Ask HN: Who is hiring?" thread from Jan 2019. Updates the current month on demand.
 - **Inputs.** The public Algolia HN API. One request at a time, with pauses and retries.
@@ -144,9 +144,9 @@ The shape of the system:
 - **Why built this way.** The source is free, dated, monthly and tech-specific. Each thread has a URL to cite. `refresh()` never writes into the committed `data/` folder. It copies the files to a runtime folder, fetches the newest thread, recomputes only that month, and rebuilds the scores there. If the network fails, it keeps the last good data and returns an error dict instead of raising.
 - **How tested.** `tests/test_refresh.py`, `tests/test_demand.py`.
 - **Limit.** The source is US- and startup-heavy (docs/build-plan.md, risks).
-- **Status.** [LIVE]. The Refresh button is in the app sidebar.
+- **Status.** [BUILT]. The Varity app has no Refresh button and no stored-snapshot banner. The demand data in the app is the committed snapshot (as of 2026-10). It changes only when someone re-runs the engine or the scheduled job (section 3.13).
 
-### 3.3 Demand series and AI-context series [LIVE]
+### 3.3 Demand series and AI-context series [IN APP]
 
 - **What it does.** For each skill and month, computes the share of posts that mention the skill. A second series holds the share of posts that mention AI at all.
 - **Inputs.** `data/hn_threads.csv`, raw posts, `data/taxonomy.json`.
@@ -154,9 +154,9 @@ The shape of the system:
 - **Key functions.** `engine/demand.py`: `build_demand`, `build_all`, `update_months`.
 - **Why built this way.** Share, not count: posts per month fell over the years, so raw counts would make every skill look like it is dying. A post counts once per skill. The smoothed share is trailing, so no future month changes a past value. The AI-context series measures company context ("we are an AI startup"), not a skill, so it stays separate.
 - **How tested.** `tests/test_demand.py`.
-- **Status.** [LIVE]
+- **Status.** [IN APP]
 
-### 3.4 AI exposure, cross-check indices and the k estimate [LIVE]
+### 3.4 AI exposure, cross-check indices and the k estimate [IN APP]
 
 - **What it does.** Gives each skill an AI exposure value and a stance: AI-complement, neutral or AI-substitutable. It then checks that stance against other indices and asks what the job data say about the scenario strength `k`.
 - **Inputs.** Anthropic Economic Index (AEI) release 2026-06-26 (CC BY), O*NET occupations, plus the GPTs-are-GPTs, AIOE and Microsoft "Working with AI" indices. Raw files are local only (data/SOURCES.md).
@@ -166,9 +166,9 @@ The shape of the system:
 - **What the checks found.** Only the `language` category (14 skills) is robust. The other five categories are contested (data/exposure_agreement.json). The data cannot pin `k` down. The cluster-bootstrap 95% interval for k per 12 months runs from -1.04 to 2.91, so the assumed k = 2 is inside it, and so is k = 0 (data/k_estimate.json). `k = 2` stays a labelled assumption.
 - **How tested.** `tests/test_exposure.py`, `tests/test_exposure_indices.py`. The k test checks the linearisation formula.
 - **Limit.** `exposure.csv` is from the 2026-06 release. It is not cut by date, so past views use today's exposure.
-- **Status.** [LIVE]. Merged in PR #6. The cloud_devops stance is an open decision (section 9).
+- **Status.** [IN APP]. Merged in PR #6. The Method screen shows the cross-check and the k estimate. The cloud_devops stance is an open decision (section 9).
 
-### 3.5 Forecast (naive3) and the rolling backtest with conformal bands [LIVE]
+### 3.5 Forecast (naive3) and the rolling backtest with conformal bands [IN APP]
 
 ```mermaid
 flowchart LR
@@ -188,37 +188,37 @@ flowchart LR
 - **Outputs.** The forecast fields inside `data/skill_scores.json`. All backtest numbers in `data/backtest.json`.
 - **Key functions.** `engine/forecast.py`: `forecast_skill`, `choose_model`, `band_offsets`, `build_residual_tables`. `engine/backtest.py`: `run_backtest`, `evaluate_bands`. `engine/scores.py`: `build_scores(as_of, ...)`.
 - **Why built this way.** The test chose the simplest model. On held-out origins (2023-11 to 2025-10) the 12-month mean error is 1.661 pp for naive3, 1.806 for naive, 2.128 for drift and 2.266 for damped (data/backtest.json). Job demand 12 months ahead is close to "no change", so the trend models lose. The band comes from the errors of the last 24 forecasts whose outcome is known, scaled by how noisy the skill is. On held-out origins the 80% band covered 93.8% of real values at 12 months (data/backtest.json). That is above target, so the band is wide, not tight. We say so in the app.
-- **No look-ahead.** `build_scores(as_of)` uses only data with a known outcome by `as_of`. The earliest supported `as_of` is 2023-11 (data/skill_scores.json). The As-of slider uses this.
+- **No look-ahead.** `build_scores(as_of)` uses only data with a known outcome by `as_of`. The earliest supported `as_of` is 2023-11 (data/skill_scores.json). The Varity app has no as-of slider and always shows the latest scores; the `as_of` argument is used by the backtest and the tests.
 - **How tested.** `tests/test_forecast.py`, `tests/test_backtest.py` (including tests that a changed future leaves the past unchanged), `tests/test_scores.py`.
-- **Status.** [LIVE]
+- **Status.** [IN APP]. The Skills radar screen shows the skill forecast from `data/skill_scores.json`; the Method screen shows `data/backtest.json`.
 
-### 3.6 Trend label (Welch test) [LIVE]
+### 3.6 Trend label (Welch test) [IN APP]
 
 - **What it does.** Labels each skill Rising, Falling or No clear change. The label describes what already happened. It is not a forecast.
 - **How.** A Welch t-test on the monthly logit share compares the last 12 months with the 12 before. p below 0.05 gives Rising or Falling. A skill needs at least 30 mentions in the 24 months (`TREND_MIN_MENTIONS` in `engine/forecast.py`).
 - **Key function.** `engine/forecast.py`: `trend_label(y_last24, mentions_last24)`.
 - **Why built this way.** The brief asks which skills emerge or decline. The best forecast is "about the same". So the app shows an observed, tested label next to the forecast level and band.
 - **How tested.** In the backtest, a Rising or Falling label pointed the right way over the next 12 months in 67.2% of 720 labelled cases (data/backtest.json). The hit rate for Rising is 60.5% and for Falling 71.9%. The same file warns that nearby origins overlap. `tests/test_forecast.py`.
-- **Status.** [LIVE]
+- **Status.** [IN APP]
 
-### 3.7 Data-volume statuses [LIVE]
+### 3.7 Data-volume statuses [IN APP]
 
 - **What it does.** Stops the app from showing unreliable forecasts for skills with few posts.
 - **Rules.** `ok`: mean of 5 or more mentions per month over the last 12 months. Forecast, band and scenarios are shown. `low_volume`: below that, but 30 or more mentions in 24 months. Counts and label only. `rare`: under 30 mentions in 24 months. Counts only.
 - **Result today.** 27 `ok`, 8 `low_volume`, 5 `rare` (data/skill_scores.json).
 - **Key function.** `engine/forecast.py`: `skill_status`.
 - **Why built this way.** An earlier version hid emerging skills. Now they appear with honest counts.
-- **Status.** [LIVE]
+- **Status.** [IN APP]
 
-### 3.8 Scenarios (Moderate and Fast AI disruption) [LIVE]
+### 3.8 Scenarios (Moderate and Fast AI disruption) [IN APP]
 
 - **What it does.** Shows two futures per skill. Moderate is the forecast. Fast is `moderate * (1 - k * e_s)`, where `e_s` is the skill's exposure minus the mean over the 40 skills. `k = 2` is shown as an assumption (data/skill_scores.json, `scenario_params`).
 - **Key function.** `engine/scores.py`: `fast_scenario`.
-- **Why built this way.** The brief asks for more than one scenario, labelled as estimates. One stated formula is easy to explain and to challenge. The app shows the shift next to the band width, and says "inside the band" when the shift is small. The Fast band is never graded (`engine/outcome.py`).
+- **Why built this way.** The brief asks for more than one scenario, labelled as estimates. One stated formula is easy to explain and to challenge. The app labels both scenarios as estimates. The Fast band is never graded: only the Moderate band is backtested (`engine/backtest.py`).
 - **How tested.** `tests/test_scores.py`.
-- **Status.** [LIVE]
+- **Status.** [IN APP]
 
-### 3.9 Role match [LIVE]
+### 3.9 Role match [IN APP]
 
 ```mermaid
 flowchart LR
@@ -226,7 +226,7 @@ flowchart LR
     T --> M["mask the title,<br/>keep single-role posts"]
     M --> L["learned profile per role<br/>top 10 skills with weights"]
     L --> R["match_roles"]
-    U["user skills<br/>persona today, CV later"] --> R
+    U["user skills<br/>CV or example profile"] --> R
     S["skill_scores.json"] --> R
     RT["role_trends.json"] --> R
     R --> O["ranked roles<br/>match, gap, outlook, reason"]
@@ -242,36 +242,36 @@ flowchart LR
   - Profiles use only posts that name exactly one role.
   - A skill needs at least 10 single-role posts, `p_role` of at least 0.08 and lift of at least 1.1. The top 10 by `p_role` stay, and their weights sum to 1.
   - Confidence tiers: `solid`, `rough` or `not_ranked`. Today four roles are solid, four are rough and one (Analytics Engineer) is not ranked (data/role_profiles.json).
-  - `rank_score = 0.7 * match_score + 0.3 * future_score`. `future_score` is 1.0 for Rising, 0.5 for No clear change or unknown, and 0.0 for Falling. The 0.7 and 0.3 are team judgement, not fitted to data. A role with match below 0.20 is not ranked.
-  - One profile exists per as-of point (2023-12, 2024-06, 2024-12, 2025-06, 2025-12, 2026-10). `profile_for` picks the latest point at or before the chosen month, so the As-of slider never uses a profile that saw later posts.
+  - `rank_score = 0.7 * match_score + 0.3 * future_score`. `future_score` is 1.0 for Rising, 0.5 for No clear change or unknown, and 0.0 for Falling. The 0.7 and 0.3 are team judgement, not fitted to data. A role with match below 0.20 is not ranked. The routes on the CV & routes screen use this formula. An optional language-model advisor (section 3.19) may re-order the roles by at most 2 places; the fit label always comes from code.
+  - One profile exists per as-of point (2023-12, 2024-06, 2024-12, 2025-06, 2025-12, 2026-10). `profile_for` picks the latest point at or before the chosen month, so a profile never saw later posts. The Varity app has no as-of slider and uses the latest profile.
 - **Why built this way.** Weights learned from real posts can be cited. Weights we invented could not.
 - **How tested.** `tests/test_roles.py`.
 - **Limit.** The daily scheduled job does not rebuild the role files. They are rebuilt by hand from the raw posts (`python -m engine.roles --raw-dir ...`).
-- **Status.** [LIVE]
+- **Status.** [IN APP]
 
-### 3.10 Reskilling pathway [LIVE]
+### 3.10 Reskilling pathway [IN APP]
 
-- **What it does.** Turns the skill gap for a target role into an ordered plan, then into dated daily tasks. It tracks progress and exports Markdown and an `.ics` calendar.
+- **What it does.** Turns the skill gap for a target role into an ordered plan, then into dated daily tasks. The Pathway and Today screens are built from it for the saved profile and the chosen route. The browser builds the `.md` and `.ics` downloads.
 - **Inputs.** The gap from role match, `data/skill_scores.json`, `data/resources.json`, scenario, hours per week, start date.
-- **Outputs.** A plan object. Exports in the app.
+- **Outputs.** A plan object (`GET /api/pathway`). The `.md` and `.ics` exports are built in the browser.
 - **Key functions.** `engine/pathway.py`: `build_pathway`, `classify`, `schedule_tasks`, `progress`, `to_markdown`, `to_ics`, `sdg_headline`.
 - **How it works.** Each gap skill goes to the first stage it fits. Stage 1, `no_regret`: needed by 2 or more of the counted roles, not Falling, not AI-substitutable. Stage 2, `near_term`: in the top half of the gap skills by share now. Stage 3, `future_bet`: Rising or AI-complement. The Fast scenario moves stage 3 to second place. Tasks last at most 45 minutes on Monday to Friday, with dates in Malaysia time.
-- **Why built this way.** Code sets the order and the dates. A language model never changes them. A resource can come only from `data/resources.json`, and only if its link returned HTTP 200 (77 resources for the 40 skills, checked on 2026-10-22, docs/pathway.md). A skill without a verified resource gets no task. The engine never invents a course. HRD Corp claim status is not verified, so no claim is made.
+- **Why built this way.** Code sets the dates and builds the order. The optional pathway coach may re-order steps within a stage, pick among the listed resources and write one checked "why" line; it never changes a date, a minute count or a stage. A resource can come only from `data/resources.json`, and only if its link returned HTTP 200 (77 resources for the 40 skills, checked on 2026-10-22, docs/pathway.md). A skill without a verified resource gets no task. The engine never invents a course. HRD Corp claim status is not verified, so no claim is made.
 - **How tested.** `tests/test_pathway.py`, including a test that every chosen link exists in the resource list.
-- **Status.** [LIVE]. "What changed and why" (a full diff view between two runs, `data/diff.json` in the contract) is [PLANNED]. Today the Refresh result lists the changed skills.
+- **Status.** [IN APP]. "What changed and why" (a full diff view between two runs, `data/diff.json` in the contract) is [PLANNED]. Google sign-in and Google Tasks are not built; the Flow map says so.
 
-### 3.11 New-skill discovery radar [LIVE]
+### 3.11 New-skill discovery radar [BUILT]
 
 - **What it does.** Lists terms that are not in the 40-skill taxonomy but look like tech names, with evidence. A person decides whether to add one.
 - **Inputs.** The raw posts. `data/discover_stoplist.txt`.
-- **Outputs.** `data/skill_candidates.json`. The app shows the top 15 in the Method tab.
+- **Outputs.** `data/skill_candidates.json`. The Varity app does not show it (the Streamlit candidate radar was removed).
 - **Key functions.** `engine/discover.py`: `extract_terms`, `discover(as_of, ...)`, `history`, `backtest`.
 - **How it works.** Four plain rules find terms: camel case, tech style (dots, digits, `++`, `#`), all caps, and a single word inside a list that already holds 2 taxonomy skills. A term needs 30 or more posts in the last 12 months. Score is growth times a weight for list-style use.
 - **Why built this way.** The taxonomy is fixed, and a new tool can become popular unseen. The tool never edits the taxonomy.
 - **How tested.** The backtest is weak, and the file says so. At 2023-06, 3 of the top 15 terms kept growing (precision 0.20, base rate 0.30 over 47 candidates) (data/skill_candidates.json). The tool also sees a new tool 1 to 3 years after its first mention (docs/skill-discovery.md). So it surfaces candidates and does not forecast. `tests/test_discover.py` checks that the output holds no post text.
-- **Status.** [LIVE]
+- **Status.** [BUILT]. Not used by the Varity app.
 
-### 3.12 ML forecaster experiment (lost, kept as evidence) [LIVE]
+### 3.12 ML forecaster experiment (lost, kept as evidence) [BUILT]
 
 - **What it does.** Tests whether one pooled gradient-boosting model beats "about the same". It predicts a correction on top of naive3.
 - **Inputs.** The demand series, the AI-context series, `exposure.csv`. A placeholder column `ext_momentum` is empty.
@@ -281,61 +281,67 @@ flowchart LR
 - **Why we keep it.** It answers the judge question "why not machine learning?" with a fair test. The rule was fixed in advance: promote only if the lower end of the 95% interval of the gain is above 0. The code is ready to take Sheng Kuan's ranker momentum through `ext_momentum` (sections 3.17 and 4.3).
 - **How tested.** `tests/test_ml_forecast.py`: no leak, determinism, `naive3 + correction`.
 - **Dependency.** `scikit-learn` sits in `requirements-dev.txt`, not on Replit.
-- **Status.** [LIVE] as evidence. Not used in production.
+- **Status.** [BUILT] as evidence. Not used in production.
 
-### 3.13 Scheduled refresh and store [LIVE code, Replit setup pending]
+### 3.13 Scheduled refresh and store [BUILT, Replit setup pending]
 
 ```mermaid
 flowchart LR
     J["Scheduled deployment<br/>python -m engine.scheduled<br/>daily 09:00 MYT"] --> R["engine.refresh<br/>runtime folder only"]
     R --> S["save_snapshot<br/>App Storage"]
     S --> L["latest.json<br/>written last"]
-    L --> A["app instances<br/>read at most every 10 min"]
-    A --> B["banner: refreshed on ..."]
-    N["Refresh button"] --> R
-    F["committed data/"] -. "fallback if store empty or older" .-> A
+    L -. "engine.live can read it;<br/>the Varity app does not" .-> A["Varity app<br/>reads committed data/"]
 ```
 
-- **What it does.** Re-downloads the newest HN thread each day, rebuilds the scores, and saves the result where every app instance can read it.
+- **What it does.** Re-downloads the newest HN thread each day, rebuilds the scores, and saves the result in App Storage.
 - **Inputs.** The public HN API. No secret is needed.
 - **Outputs.** Snapshots under `snapshots/<UTC time>/` in the bucket (`skill_scores.json`, `demand_monthly.csv`, `hn_threads.csv`, `ai_context_monthly.csv`, `meta.json`). `latest.json` points to the newest and is written last. The newest 14 snapshots are kept.
-- **Key functions.** `engine/scheduled.py`: `run`. `engine/store.py`: `LocalStore`, `ReplitStore`, `get_store`. `engine/live.py`: `start_dir`, `publish`, `banner`.
-- **Why built this way.** On Replit Autoscale each instance has a short-lived disk. A refresh on one instance would vanish on restart and the others would never see it. A failed run never changes `latest.json`, so visitors keep the last good data. If the store is empty, broken or older than the committed data, the app shows the committed data.
+- **Key functions.** `engine/scheduled.py`: `run`. `engine/store.py`: `LocalStore`, `ReplitStore`, `get_store`. `engine/live.py`: `start_dir`, `publish`, `banner`. `engine/live.py` is unused by the Varity app.
+- **Why built this way.** On Replit a redeploy replaces the disk. A failed run never changes `latest.json`, so a reader keeps the last good data.
+- **Limit.** The Varity app reads the committed `data/` files. It does not read the stored snapshots, and it has no Refresh button or banner. The demand data is the committed snapshot (as of 2026-10).
 - **How tested.** `tests/test_store.py`, `tests/test_scheduled.py`, `tests/test_refresh.py`.
-- **Status.** [LIVE] in `main`. The Replit UI steps (create the bucket, create the Scheduled deployment) are not done yet (docs/replit-schedule.md).
+- **Status.** [BUILT]. The Replit UI steps (create the bucket, create the Scheduled deployment) are not done yet (docs/replit-schedule.md).
 
-### 3.14 SDG sector links [BRANCH]
+### 3.14 SDG sector links [IN APP: role and skill tags; goal re-rank BUILT, not used]
 
-- **What it does.** Links roles and skills to Sustainable Development Goals through the sectors that hire for them. A user who picks a goal, such as climate, sees which roles hire for it.
+- **What it does.** Links roles and skills to Sustainable Development Goals through the sectors that hire for them.
 - **Inputs.** The raw posts (employer descriptions), `data/roles.json`, `data/sdg_sectors.json` (sector patterns).
 - **Outputs.** `data/role_sdg.json` and `data/skill_sdg.json`. Counts, shares and thread URLs only.
 - **Key functions.** `engine/sdg.py`: `rerank_for_goal(match_roles_output, role_sdg, goal_sector)` and `plan_sdg_summary(plan, role, role_sdg, goal_sector)`.
-- **Why built this way.** Today the SDG tag is one fixed tag per skill and role, written by the team. This branch measures it from what employers say. Perk and legal lines are removed first, so a benefits line does not tag a post as health.
-- **In the app.** Step 3 has an optional goal selector ("What do you want your work to help with?") and an "Order roles by" radio: Best fit (default) or Fit for my goal. Each role card shows one goal sentence from `rerank_for_goal`, called rough, with the reason, when the cell is not reliable (at least 30 role posts, 10 posts in the sector and 3 employers; the 10 is team judgement, `engine/sdg.py`). On the committed data no example profile changes order for any sector. Step 4 takes its SDG lines from `plan_sdg_summary`, with the goal from step 3. Evidence > Method has a subsection "SDG sector links" (method, precision table from `docs/sdg-links.md`, limits). If `data/role_sdg.json` is missing or unusable, these parts are hidden and the app still runs.
-- **Limit.** The sector shares are one build (HN only, a US-heavy sample). They do not move with the As-of slider, and the app says so.
-- **Status.** [BRANCH: integrate] (`feat/sdg-sectors`, wired into the journey UI). Not in `main`.
+- **Why built this way.** The SDG tag is measured from what employers say, not written by hand. Perk and legal lines are removed first, so a benefits line does not tag a post as health.
+- **In the app.** Each route carries SDG tags from these files, and the pathway API builds its SDG lines with `plan_sdg_summary` (no goal). The goal picker and the "re-rank by goal" option of the Streamlit app were removed.
+- **Limit.** The sector shares are one build (HN only, a US-heavy sample).
+- **Status.** [IN APP] for the tags. `rerank_for_goal` is [BUILT] and is not called by the app.
 
-### 3.15 Malaysian data [BRANCH]
+### 3.15 Malaysian data [IN APP: MyCOL badges; job-site collectors BUILT, gated]
 
 - **What it does.** Adds a small Malaysian cross-check: how often skills appear in Malaysian job-site result pages on one day, and whether a role or skill is on the MyCOL critical occupations list.
 - **Key code.** `engine/my_jobs.py` (collector). It checks `robots.txt` for every URL, sends at most 1 request per 3 seconds per host, uses one honest User-Agent, keeps no login or cookies, and stops that site for the run on any challenge page. It strips emails, phone numbers and contact lines. Only aggregates are committed.
 - **Why built this way.** The HN series is US-heavy. This data is local evidence. It is not a time series: each run is one dated snapshot with no history, so it cannot feed the forecast.
 - **JobStreet.** Stopped. The site answers a plain request with a Cloudflare challenge (HTTP 403), and passing it from a script would bypass bot protection. No scraper was built (`docs/jobstreet.md` on branch `feat/jobstreet-my`). The route needs a data partnership or a file the site sends us (section 9).
-- **MyCOL.** `data/mycol.json` holds 10 tech-relevant occupations from the MyMahir MyCOL 2024/2025 list (TalentCorp). `data/mycol_role_map.json` maps them to our roles, with a strength (direct or partial) and a reason for each link. It is team judgement and says so. The role cards in step 3 show a badge for each mapped occupation ("MyCOL shortage occupation: ... our direct or partial match (team judgement)"), with its MASCO code and the source link. Occupation names and MASCO codes were read by eye from the PDF's page images. A role with no mapping shows nothing. MyCOL is a shortage list, not a vacancy count (docs/malaysia-data.md).
-- **Job-site snapshots (gated).** The collectors for Hiredly and Jobstore are built and tested, but no snapshot has been collected: `data/my_jobs_snapshots.csv` and `data/my_roles_snapshots.csv` hold only their header row. A run needs `--permission-confirmed`, which means written permission from the site is on file. Evidence > Method > Malaysia data says this when the file has no rows.
-- **Status.** MyCOL [BRANCH: integrate] (`feat/my-jobs`, shown in the journey UI). Job-site collectors [BRANCH], gated: built, not run. The JobStreet finding is a document only.
+- **MyCOL.** `data/mycol.json` holds 10 tech-relevant occupations from the MyMahir MyCOL 2024/2025 list (TalentCorp). `data/mycol_role_map.json` maps them to our roles, with a strength (direct or partial) and a reason for each link. It is team judgement and says so. The route cards on the CV & routes screen show a badge for each mapped occupation ("MyCOL shortage occupation: ... our direct or partial match (team judgement)"), with its MASCO code and the source link. Occupation names and MASCO codes were read by eye from the PDF's page images. A role with no mapping shows nothing. MyCOL is a shortage list, not a vacancy count (docs/malaysia-data.md).
+- **Job-site snapshots (gated).** The collectors for Hiredly and Jobstore are built and tested, but no snapshot has been collected: `data/my_jobs_snapshots.csv` and `data/my_roles_snapshots.csv` hold only their header row. A run needs `--permission-confirmed`, which means written permission from the site is on file. The Method screen does not show job-site snapshots.
+- **Status.** MyCOL badges [IN APP]. Job-site collectors [BUILT], gated: built, not run; the Varity app does not show the Malaysia jobs snapshot table (removed with Streamlit). The JobStreet finding is a document only.
 
-### 3.16 Journey UI [BRANCH]
+### 3.16 Varity web app [IN APP]
 
-- **What it does.** Rebuilds the app as a 4-step journey: You, Future Skills Radar, Future roles, Your plan. An Evidence section holds the method and backtest detail.
-- **Key code.** `engine/radar.py` holds the radar's chart data and sentences as pure functions. A skill gets a colour only if its Welch label is Rising or Falling. Every other skill is grey, so the chart never claims a change the test did not find. `app.py` changes on the branch.
-- **Why built this way.** The five-tab layout shows the method first. The journey follows the user's question: who am I, what is moving, which roles fit, what do I do next.
-- **What is wired.** Step 3 also carries the role forecast line, the SDG goal controls and the MyCOL badges (sections 3.14 and 3.15); the step 3 summary line adds the target role's 12-month estimate and its band. Step 4 uses `plan_sdg_summary`. Evidence > Method has the subsections SDG sector links and Malaysia data.
-- **Status.** [BRANCH: integrate] (`feat/journey-ui` with the other feature branches). Not in `main`.
+- **What it does.** The only user interface. A static page in `frontend/` (HTML, CSS, JavaScript, no build step) served by the FastAPI backend at `/`. It has eight screens:
+  - **Flow map**: the planned user flow as a transit map. It says that Google sign-in and Google Tasks are not built.
+  - **CV & routes**: CV upload (section 3.18), or "Try an example" with 3 synthetic profiles (`data/example_profiles.json`), which needs no LLM. Routes are ranked by `0.7 * match + 0.3 * outlook` (section 3.9). Reasons are typed chips with a source and a date (section 3.19). Each route has SDG tags and MyCOL badges. A Moderate or Fast scenario toggle is labelled as an estimate.
+  - **Today**: the next stops, taken from the pathway.
+  - **Pathway**: the ordered stops from the saved profile to the chosen route (`engine/pathway.py`). `.md` and `.ics` downloads are built in the browser.
+  - **Signals**: the AI-trend ranker output (section 3.17), dated and updated.
+  - **Job forecast**: `data/role_forecast.json` (section 4.2).
+  - **Skills radar**: `engine.radar` and `data/skill_scores.json`, with the skill forecast.
+  - **Method**: backtests, the AI exposure cross-check, k as an assumption, and sources. `trendsignal/web/evidence_api.py` reads these from `data/` at request time.
+- **Offline behaviour.** `frontend/data.js` keeps only dated real snapshots, labelled "offline snapshot". If the server cannot be reached, the page says so. No synthetic data is shown as real.
+- **Key code.** `frontend/app.js`, `frontend/screens*.js`, `backend/signals/trendsignal/web/` (`app.py`, `cv_api.py`, `roles_api.py`, `evidence_api.py`). In `engine/radar.py`, a skill gets a colour only if its Welch label is Rising or Falling. Every other skill is grey, so the chart never claims a change the test did not find.
+- **Removed from the Streamlit version.** The in-app Refresh and Reload buttons and the stored-snapshot banner; the as-of slider (past view); the Evidence skills table with filters, the skill detail tab, the Malaysia jobs snapshot table, the AI-in-posts chart and the candidate new-skills radar; the SDG goal picker and re-rank.
+- **Status.** [IN APP]. Not yet republished on Replit.
 
-### 3.17 AI-advancement ranker (Sheng Kuan) [MERGED, not deployed] and its integration [PLANNED]
+### 3.17 AI-advancement ranker (Sheng Kuan) [IN APP] and its integration [PLANNED]
 
-This is a separate package, now merged as `backend/signals/trendsignal/` (pull request 16). Its design is in `backend/signals/ARCHITECTURE_JEV_RANKER.md`. The principle is: code extracts, Jev decides, code ranks. Jev may rank signals through OpenRouter, but `TRENDSIGNAL_RANKER` defaults to the formula. Optional Claude use (category fallback, prose brief) is off by default.
+This is a package inside the same server, `backend/signals/trendsignal/` (pull request 16). Its design is in `backend/signals/ARCHITECTURE_JEV_RANKER.md`. The principle is: code extracts, Jev decides, code ranks. Jev may rank signals through OpenRouter, but `TRENDSIGNAL_RANKER` defaults to the formula. Optional Claude use (category fallback, prose brief) is off by default. With `--scheduler` the server re-ranks every 15 minutes. On a fresh deploy with no ranked run, one pipeline pass starts in the background (`bootstrap_if_empty` in `trendsignal/jobs.py`). This is the live, dated, updatable AI-trend source of the app.
 
 ```mermaid
 flowchart LR
@@ -356,13 +362,13 @@ flowchart LR
 - **Outputs.** `data/ranked/latest.json` (rank, title, link, sources, tier probabilities, expected impact, confidence, final score, top features).
 - **Why built this way.** The feature vector is code only, so every rank can be reproduced. A formula always runs, so if Jev fails, times out or is not configured, the formula ranks and the row says so. The promotion rule says Jev ranks by default only if it beats the formula on a hand-labelled gold set.
 - **How tested.** The package has its own test suite and runs without network. A branch review found 211 tests passing.
-- **Status.** Merged in `backend/signals/`. It serves the Signals page of the Varity web app (`GET /api/signals`). The Streamlit app does not use it.
+- **Status.** [IN APP]. It serves the Signals screen of the Varity web app (`GET /api/signals`). Not yet republished on Replit.
 
 **Integration. [PLANNED]**
 
 ```mermaid
 flowchart LR
-    RJ["data/ranked/latest.json<br/>[LIVE]"] --> AN["engine/ai_news.py<br/>tag_text on title + excerpt<br/>with our 40 skills [PLANNED]"]
+    RJ["data/ranked/latest.json<br/>[IN APP]"] --> AN["engine/ai_news.py<br/>tag_text on title + excerpt<br/>with our 40 skills [PLANNED]"]
     AN --> W["data/ai_news_weekly.csv<br/>week, skill, n_stories, impact_sum,<br/>momentum, example_story_ids"]
     AN --> ST["data/ai_news_stories.json"]
     W --> UI["App block<br/>This week in AI for your skills"]
@@ -377,7 +383,7 @@ flowchart LR
 - Feeding `ext_momentum` into the forecaster happens only after a historical backfill and only if the backtest improves (section 4.3 and 4.4).
 - **Status.** [PLANNED]
 
-### 3.18 CV intake with Claude Haiku 4.5 [MERGED, not deployed]
+### 3.18 CV intake with Claude Haiku 4.5 [IN APP]
 
 ```mermaid
 flowchart LR
@@ -393,13 +399,20 @@ flowchart LR
 
 - **What it does.** Reads a CV and returns skills, each with an exact quote from the CV. Code reads the years of experience. The design is in `docs/skill-profile-intake-architecture.md`. The code is in `backend/signals/intake/`.
 - **Contract.** One Claude call returns `{skill, evidence_quote, years}` as schema-constrained JSON. The LLM points. Code proves: it drops any skill whose quote is not in the CV text, word for word. Skill names must match the skill graph.
-- **Model and credentials.** When the backend runs on Replit, it uses Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). With no credentials, a keyword pass takes over. This is the design. The live Streamlit app has no CV intake; the backend is not deployed yet.
+- **Model and credentials.** When the backend runs on Replit, it uses Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). With no credentials, a keyword pass takes over. This is the design; we have not verified it on the live Replit app, which is not yet republished. "Try an example" on the CV & routes screen skips the LLM: it loads one of 3 synthetic profiles from `data/example_profiles.json`.
 - **Cost cap.** A daily spend counter caps intake at $1 per day (`VERITY_INTAKE_DAILY_BUDGET_USD`, default 1.0).
 - **Why built this way.** The check stops the LLM from inventing a skill. The LLM does not score or rank.
 - **Human control.** The user can remove or add skills and sets the target role.
 - **Data.** Synthetic CVs only. No real CVs. CV text goes to Anthropic through Replit. A PDPA assessment and a retention rule are needed before real uploads (docs/submission/qa-prep.md).
 - **Owner.** Sheng Kuan.
-- **Status.** Merged (pull request 16). The Streamlit app still uses three synthetic example profiles (`PERSONAS` in `app.py`). The CV page belongs to the Varity web app.
+- **Status.** [IN APP] (pull request 16). The CV page is the CV & routes screen.
+
+### 3.19 Role advisor and reason chips [IN APP]
+
+- **What it does.** Adds a reason to each ranked route. Reasons are typed chips, each with a source and a date. Code writes every chip (`backend/signals/advisor/chips.py`).
+- **Optional LLM step.** `backend/signals/advisor/llm.py` may re-order the roles by at most 2 places from the formula rank, and it only picks among chips that code wrote. Code checks the answer. The fit label is always code's. Without credentials, the formula order stands. A second optional step, the pathway coach, may re-order steps inside one stage and pick among resource links that code listed; code checks it the same way.
+- **Why built this way.** The LLM never produces a score, a rank outside the 2-place limit, a number or a date (section 1, principle 2).
+- **Status.** [IN APP]. Not yet republished on Replit.
 
 ---
 
@@ -413,17 +426,17 @@ Verity does not predict the number of jobs. It predicts a role's **share of job 
 - **The outlook** is the same machinery as for skills: a persistence level (naive3, the mean of the last 3 months on the logit scale), a rolling conformal band and a Welch trend label. Persistence won the skill backtest, so we tested it for roles instead of assuming it (section 4.4).
 - **The role's skills** are learned from single-role posts, at as-of points, so a profile never saw posts from after its date.
 
-The trend label and the learned profile are [LIVE]. The role level, band and backtest are built on a branch **[BRANCH: integrate]**. Emerging-role discovery is [PLANNED] (section 4.3).
+The trend label and the learned profile are [IN APP]. The role level, band and backtest are also [IN APP]: the Job forecast screen reads `data/role_forecast.json`. Emerging-role discovery is [PLANNED] (section 4.3).
 
-### 4.2 Pipeline [LIVE] plus role forecast [BRANCH: integrate]
+### 4.2 Pipeline and role forecast [IN APP]
 
 ```mermaid
 flowchart TB
     RAW["Raw HN posts, 2019-01 to now<br/>local only, data/raw/hn/"] --> A["1 Title match<br/>roles.json title_pattern, 9 roles"]
     A --> B["2 Monthly role share<br/>role_demand_monthly.csv"]
     B --> C["3 Role trend label<br/>Welch test, role_trends.json"]
-    B --> R["3b Role forecast [BRANCH: integrate]<br/>engine/role_forecast.py<br/>naive3 level + rolling conformal band<br/>role_forecast.json"]
-    B --> RB["3c Role backtest [BRANCH: integrate]<br/>engine/role_backtest.py<br/>role_backtest.json"]
+    B --> R["3b Role forecast [IN APP]<br/>engine/role_forecast.py<br/>naive3 level + rolling conformal band<br/>role_forecast.json"]
+    B --> RB["3c Role backtest [IN APP]<br/>engine/role_backtest.py<br/>role_backtest.json"]
     RB -. "source date" .-> R
     A --> D["4 Mask title, keep single-role posts<br/>learn skill weights per as-of point"]
     D --> E["role_profiles.json<br/>6 as-of points, tiers"]
@@ -443,14 +456,14 @@ Steps:
 2. **Monthly share.** `role_demand` writes `data/role_demand_monthly.csv` (month, role_id, mentions, n_posts, share). It uses the same counting rules as the skill series. A post counts once per role.
 3. **Role trend label.** `build_role_trends` calls the same `engine.forecast.trend_label` as skills. It writes `data/role_trends.json`. With `as_of`, it cuts the rows at that month, so later data is never used. Today, for example, AI/LLM Application Engineer is Rising (235 mentions in the last 12 months against 194 in the 12 before) (data/role_trends.json). It is still the only input to `future_score`, so the rank is unchanged.
 
-3b. **Role forecast [BRANCH: integrate].** `engine/role_forecast.py` renames `role_id` to `skill` in `role_demand_monthly.csv` and calls the same functions that score skills: `logit_series`, `forecast_skill` (naive and naive3), `build_residual_tables`, `choose_model`, `band_offsets` (W = 24, one pooled quantile `q`), `volatility`, `has_enough_data` and `trend_label`. No maths is copied; `tests/test_role_forecast.py` checks that the function objects are the same. It forecasts the 8 ranked roles 12 months ahead and writes `data/role_forecast.json`: `share_now` (3 pooled months, m/n), `level_now`, the 12-month value with its 80% target band, `band_width_pp`, the trend label with shares and p, sources and `partial_month`. A role with a mean below 5 mentions a month over the last 12 months is `low_volume`: counts, no band. `role_forecast_for(as_of)` cuts the rows at `as_of`, so the As-of slider never sees a later month. The role card in the app shows one line from these files. Today the chosen model is naive3, q at h=12 is 1.55 on the logit scale, and all 8 roles are `ok` (data/role_forecast.json).
+3b. **Role forecast [IN APP].** `engine/role_forecast.py` renames `role_id` to `skill` in `role_demand_monthly.csv` and calls the same functions that score skills: `logit_series`, `forecast_skill` (naive and naive3), `build_residual_tables`, `choose_model`, `band_offsets` (W = 24, one pooled quantile `q`), `volatility`, `has_enough_data` and `trend_label`. No maths is copied; `tests/test_role_forecast.py` checks that the function objects are the same. It forecasts the 8 ranked roles 12 months ahead and writes `data/role_forecast.json`: `share_now` (3 pooled months, m/n), `level_now`, the 12-month value with its 80% target band, `band_width_pp`, the trend label with shares and p, sources and `partial_month`. A role with a mean below 5 mentions a month over the last 12 months is `low_volume`: counts, no band. `role_forecast_for(as_of)` cuts the rows at `as_of`, so a past view never sees a later month. The Job forecast screen and the route cards read `data/role_forecast.json`. Today the chosen model is naive3, q at h=12 is 1.55 on the logit scale, and all 8 roles are `ok` (data/role_forecast.json).
 
-3c. **Role backtest [BRANCH: integrate].** `engine/role_backtest.py` runs `engine.backtest.run_backtest` on the same table and writes `data/role_backtest.json` (section 4.4).
+3c. **Role backtest [IN APP].** `engine/role_backtest.py` runs `engine.backtest.run_backtest` on the same table and writes `data/role_backtest.json` (section 4.4).
 
 4. **Learned profiles.** `learn_profile_set` builds one profile per as-of point from the 24 months before that point. It masks the title and uses single-role posts only. Section 3.9 gives the filters.
 5. **Rank.** `match_roles` computes `rank_score = 0.7 * match_score + 0.3 * future_score`. The outlook is only 30% of the rank, and it comes from the label, not from a forecast.
 6. **Fast shift.** `fast_shift = -k * sum(weight * e_s)` applies the skill scenario rule to the role's skill weights. It is a labelled estimate for display. The Fast scenario never changes the rank.
-7. **No leakage.** `profile_for(as_of)` picks a profile that saw no later post. `build_role_trends(..., as_of=...)` cuts the rows. The app passes the As-of month to both.
+7. **No leakage.** `profile_for(as_of)` picks a profile that saw no later post. `build_role_trends(..., as_of=...)` cuts the rows. The Varity app has no as-of slider; the tests and backtests pass `as_of`.
 
 What is not built:
 
@@ -490,13 +503,13 @@ flowchart TB
 
 **(c) The AI-advancement lead signal.** Take `data/ai_news_weekly.csv` (section 3.17). For each role, aggregate the weekly momentum of its profile skills: `sum(weight * momentum(skill))`. Test it as a lead indicator: does the signal at month `t` explain the change in role share at `t + 12` beyond persistence? Two blockers. The ranker has only live data, so a historical backfill of the news sources is needed before any test. And the test must pass the promotion rule (section 4.4). Until then the signal is shown as evidence ("this week in AI for your skills") and carries weight 0.
 
-**(d) The Malaysian signal.** Two sources, with different meaning. MyCOL (section 3.15) is a 2024/2025 shortage list: it says which occupations TalentCorp found in short supply, not how many jobs are open today. Job-site snapshots would show which skills appear in Malaysian listings on one day. Neither has a history, so neither can enter the forecast. The app shows them next to the role as local evidence, labelled with the list year or the snapshot date. Today the MyCOL badges on the role cards are built [BRANCH: integrate]; each says "MyCOL shortage occupation" and gives our own mapping as a team judgement, so a badge never says the role itself is on the list. The job-site snapshots are not collected (section 3.15).
+**(d) The Malaysian signal.** Two sources, with different meaning. MyCOL (section 3.15) is a 2024/2025 shortage list: it says which occupations TalentCorp found in short supply, not how many jobs are open today. Job-site snapshots would show which skills appear in Malaysian listings on one day. Neither has a history, so neither can enter the forecast. The app shows them next to the role as local evidence, labelled with the list year or the snapshot date. Today the MyCOL badges on the route cards are in the Varity app; each says "MyCOL shortage occupation" and gives our own mapping as a team judgement, so a badge never says the role itself is on the list. The job-site snapshots are not collected (section 3.15).
 
 **(e) Declining roles.** Flag a role when its trend label is Falling and a large share of its profile weight sits on skills that are Falling. The share limit is fixed before looking at results. Both inputs already exist in `data/role_trends.json` and `data/skill_scores.json`, so this is the cheapest part to build. The app says "declining in this sample", not "dying".
 
 ### 4.4 How each part is evaluated
 
-**Role backtest [BRANCH: integrate].** Same design as skills, run on `data/role_demand_monthly.csv` for the 8 ranked roles. Rolling origins 2021-12 to 2025-10; early 2021-12..2023-10 (23 origins), test 2023-11..2025-10 (24 origins). At every origin only earlier data is used. Nothing was tuned on the test origins.
+**Role backtest [IN APP].** Same design as skills, run on `data/role_demand_monthly.csv` for the 8 ranked roles. Rolling origins 2021-12 to 2025-10; early 2021-12..2023-10 (23 origins), test 2023-11..2025-10 (24 origins). At every origin only earlier data is used. Nothing was tuned on the test origins.
 
 | Measure (test origins) | Roles (data/role_backtest.json) | Skills (data/backtest.json) |
 |---|---|---|
@@ -540,33 +553,34 @@ Schemas are in `docs/data-contract.md`. Raw files are local only. They are liste
 
 | File | Producer | Consumer | Where |
 |---|---|---|---|
-| `data/taxonomy.json` | Team (by hand) | tagging, demand, roles, discover, pathway, exposure | Committed |
-| `data/roles.json` | Team (by hand) | roles, app | Committed |
-| `data/resources.json` | Team, links checked by HTTP GET | pathway, app | Committed |
+| `data/taxonomy.json` | Team (by hand) | tagging, demand, roles, discover, pathway, exposure, CV intake | Committed |
+| `data/roles.json` | Team (by hand) | roles, backend | Committed |
+| `data/resources.json` | Team, links checked by HTTP GET | pathway, backend | Committed |
 | `data/hn_threads.csv` | `backfill_hn.py`, `refresh.py` | demand, roles, scores | Committed |
-| `data/demand_monthly.csv` | `demand.py` | forecast, scores, backtest, k_estimate, ML, app | Committed |
-| `data/ai_context_monthly.csv` | `demand.py` | ML experiment, app (Method tab), store snapshot | Committed |
+| `data/demand_monthly.csv` | `demand.py` | forecast, scores, backtest, k_estimate, ML, Skills radar | Committed |
+| `data/ai_context_monthly.csv` | `demand.py` | ML experiment, store snapshot | Committed |
 | `data/exposure_occupations.csv`, `data/exposure.csv` | `exposure.py` | scores, roles, exposure_indices, k_estimate | Committed |
 | `data/exposure_map.csv` | Version 1, superseded | Nothing | Committed, unused |
-| `data/exposure_indices.csv`, `exposure_agreement.json`, `exposure_robustness.csv` | `exposure_indices.py` | app (Method tab, skill detail) | Committed |
-| `data/k_estimate.json` | `k_estimate.py` | app (Method tab) | Committed |
-| `data/backtest.json` | `backtest.py` | scores (source date), app (Method tab) | Committed |
+| `data/exposure_indices.csv`, `exposure_agreement.json`, `exposure_robustness.csv` | `exposure_indices.py` | Method screen | Committed |
+| `data/k_estimate.json` | `k_estimate.py` | Method screen | Committed |
+| `data/backtest.json` | `backtest.py` | scores (source date), Method screen | Committed |
 | `data/ml_backtest.json` | `ml_backtest.py` | Docs only. The app does not read it. | Committed |
-| `data/skill_scores.json` | `scores.py`, `refresh.py` | app, roles, pathway | Committed. A fresher copy lives in App Storage. |
-| `data/fixtures/skill_scores.json` | Hand-made sample | app fallback, tests | Committed |
-| `data/role_profiles.json`, `data/role_demand_monthly.csv`, `data/role_trends.json` | `roles.py` | app (Roles tab), `match_roles` | Committed. Rebuilt by hand. |
-| `data/skill_candidates.json`, `data/discover_stoplist.txt` | `discover.py`, team | app (Method tab), discover | Committed |
+| `data/skill_scores.json` | `scores.py`, `refresh.py` | Skills radar, roles, pathway | Committed. A scheduled job can save a fresher copy to App Storage; the Varity app does not read it. |
+| `data/fixtures/skill_scores.json` | Hand-made sample | tests | Committed |
+| `data/role_profiles.json`, `data/role_demand_monthly.csv`, `data/role_trends.json` | `roles.py` | routes (`match_roles`), Job forecast | Committed. Rebuilt by hand. |
+| `data/skill_candidates.json`, `data/discover_stoplist.txt` | `discover.py`, team | discover (not used by the app) | Committed |
 | `data/SOURCES.md` | Team | Judges, README | Committed |
 | `data/raw/hn/<id>.json` | `backfill_hn.py` | demand, roles, discover | Local only (gitignored) |
 | `data/raw/ext/*` (AEI, GPTs, AIOE, Microsoft, O*NET crosswalks) | Downloaded by hand | exposure, exposure_indices | Local only (gitignored) |
-| `data/role_forecast.json`, `data/role_backtest.json` | `role_forecast.py`, `role_backtest.py` | Journey UI (role cards, step 3 summary line) | [BRANCH: integrate]. Rebuilt by hand. |
-| `data/role_sdg.json`, `data/skill_sdg.json`, `data/sdg_sectors.json` | `sdg.py` | Journey UI (step 3 goal, step 4 SDG lines, Method) | [BRANCH: integrate]. Optional: the app runs without them. |
-| `data/mycol.json`, `data/mycol_role_map.json` | By hand from the TalentCorp PDF (team judgement for the map) | Journey UI (role badges, Method) | [BRANCH: integrate]. Optional. |
-| `data/my_jobs_snapshots.csv`, `data/my_roles_snapshots.csv`, raw pages in `data/raw/my_jobs/` | `my_jobs.py` | Method (Malaysia data) | [BRANCH]. Header row only: no snapshot is collected until each site's written permission is on file. Aggregates only. |
-| `data/ranked/latest.json` | trendsignal ranker | `ai_news.py` | [LIVE]. Inside Sheng Kuan's package, `backend/signals/`. |
+| `data/role_forecast.json`, `data/role_backtest.json` | `role_forecast.py`, `role_backtest.py` | Job forecast screen, route cards | [IN APP]. Rebuilt by hand. |
+| `data/role_sdg.json`, `data/skill_sdg.json`, `data/sdg_sectors.json` | `sdg.py` | Route SDG tags | [IN APP]. Optional: the app runs without them. |
+| `data/mycol.json`, `data/mycol_role_map.json` | By hand from the TalentCorp PDF (team judgement for the map) | Route MyCOL badges | [IN APP]. Optional. |
+| `data/my_jobs_snapshots.csv`, `data/my_roles_snapshots.csv`, raw pages in `data/raw/my_jobs/` | `my_jobs.py` | Nothing (the app does not show them) | [BUILT]. Header row only: no snapshot is collected until each site's written permission is on file. Aggregates only. |
+| `data/ranked/latest.json` | trendsignal ranker | Signals screen, `ai_news.py` (planned) | [IN APP]. Inside Sheng Kuan's package, `backend/signals/`. |
 | `data/ai_news_weekly.csv`, `data/ai_news_stories.json` | `ai_news.py` | App block "This week in AI" | [PLANNED] |
-| `data/profile.json` | CV extractor | `match_roles` | [PLANNED]. The merged intake keeps its own profile store (`backend/signals/intake/`). |
-| `data/diff.json` | "What changed" step | App | [PLANNED] |
+| `data/profile.json` | CV extractor | `match_roles` | [PLANNED]. The intake keeps its own profile store (`backend/signals/intake/`). |
+| `data/example_profiles.json` | Team (3 synthetic profiles) | "Try an example" | [IN APP] |
+| `data/diff.json` | "What changed" step | Varity app | [PLANNED] |
 
 Rules that hold for every committed file: counts, shares, skill names and thread links only. No post text, no author names, no emails. A test checks that no committed data file holds an email address.
 
@@ -574,12 +588,12 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 
 ## 6. Deployment and operations
 
-- **App.** Streamlit on Replit, deployed as Autoscale (`deploymentTarget = "cloudrun"` in `.replit`). The run command starts `streamlit run app.py` on port 8080. The build command is `pip install -r requirements.txt`. The live URL is https://verity--eezhan0805.replit.app (README.md).
-- **Why Streamlit.** One Python program reads the engine directly. No separate server is needed, and Replit is compulsory for the hackathon.
-- **App Storage.** Holds the snapshots from section 3.13. The code is merged. The bucket is not created yet.
-- **Scheduled job.** `python -m engine.scheduled`, daily at 09:00 Malaysia time, as a Replit Scheduled deployment. The code is merged. The Replit UI setup is pending (docs/replit-schedule.md). Until then the Refresh button in the app does the same job by hand, and saves for every visitor.
+- **App.** Varity (FastAPI with uvicorn, static HTML/CSS/JS) on Replit, deployed as a Reserved VM (`deploymentTarget = "gce"` in `.replit`), so one always-on server keeps saved profiles, the signals database and the scheduler. The run command is `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. The build command is `pip install -r requirements.txt`. One install covers everything. The live URL is https://verity--eezhan0805.replit.app (README.md). It has not been republished with the Varity-only app yet, so it may still show the older version.
+- **Why this stack.** One Python server serves the static frontend and the JSON APIs, and it reuses the engine. Replit is compulsory for the hackathon.
+- **App Storage.** Holds the snapshots from section 3.13. The code is built. The bucket is not created yet. The Varity app does not read it.
+- **Scheduled job.** `python -m engine.scheduled`, daily at 09:00 Malaysia time, as a Replit Scheduled deployment. The code is built. The Replit UI setup is pending (docs/replit-schedule.md). The app has no Refresh button; the committed HN snapshot (as of 2026-10) changes only when someone re-runs the engine or this job. The Signals ranker is separate: `--scheduler` re-ranks every 15 minutes inside the server.
 - **Secrets.** The refresh job needs none, because HN data is public. Two optional secrets exist: `VERITY_STORE=replit` and `VERITY_BUCKET`. The CV intake needs no secret on Replit, because Replit AI Integrations supplies the credentials. A direct `ANTHROPIC_API_KEY`, and the ranker's Jev or Claude keys, stay in Replit Secrets, never in git.
-- **Pinned requirements.** `requirements.txt` pins every package, for example `streamlit==1.66.1`, `pillow==13.0.0` and `replit-object-storage==1.0.2`. Replit's package firewall blocks Pillow versions with known advisories, so each version was checked against the OSV database (docs/build-plan.md, P11).
+- **Pinned requirements.** The root `requirements.txt` pins the engine packages (pandas 3.0.6, numpy 2.5.4, scipy 1.18.1, statsmodels 0.15.0, requests 2.34.2, replit-object-storage 1.0.2, typesafe-sdk 0.7.5) and includes `backend/signals/requirements.txt` (fastapi, uvicorn, jinja2, apscheduler, feedparser, pypdf, httpx, pydantic, anthropic and others, with `>=` lower bounds). Streamlit and Pillow are no longer installed.
 - **Dev requirements.** `requirements-dev.txt` adds scikit-learn, joblib and threadpoolctl for the ML experiment only. Replit does not install them.
 - **Tests.** Over 700 automated tests pass (docs/build-plan.md). The test files are in `tests/`.
 
@@ -587,10 +601,10 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 
 ## 7. Trust and safety
 
-- **Privacy.** The app collects no personal data and has no sign-in. Raw HN posts can hold names and contact details. They stay in gitignored folders on team machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored (docs/submission/tech-declaration.md). The CV intake sends CV text to Anthropic through Replit. We use synthetic CVs only. Real CVs need a PDPA assessment and a retention rule first.
+- **Privacy.** The app has no sign-in. An uploaded CV is read by the CV intake, and the backend keeps the resulting skill profile under an anonymous profile token (`X-Profile-Token`). Raw HN posts can hold names and contact details. They stay in gitignored folders on team machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored (docs/submission/tech-declaration.md). The CV intake sends CV text to Anthropic through Replit. We use synthetic CVs only. Real CVs need a PDPA assessment and a retention rule first.
 - **No bot-protection bypass.** We fetch only from public APIs and from pages that `robots.txt` allows. When a site answers with a challenge, we stop. This is why JobStreet has no scraper (docs/jobstreet.md on branch `feat/jobstreet-my`). `docs/data-contract.md` also excludes LinkedIn and X from the engine's sources.
 - **Sources and licences.** `data/SOURCES.md` lists every dataset with URL, date and licence. AEI is CC BY. O*NET is CC BY 4.0 and is credited in the README. The AIOE data has no licence file, so we cite it and do not redistribute it (docs/exposure-crosscheck.md, section 5).
-- **AI disclosure.** Claude Code is the major development tool (code, tests, data pipeline and documents, from the team's prompts and plans). Replit Agent is a minor tool: environment setup, with two commits that change only `.replit` (docs/submission/tech-declaration.md). Claude Haiku 4.5 in the CV intake is declared as an AI model (tech declaration, section 4.1). Jev is declared if it is turned on. The forecast, role match, pathway and SDG views of the Streamlit app run no LLM ("No LLM is used in this view" in `app.py`).
+- **AI disclosure.** Claude Code is the major development tool (code, tests, data pipeline and documents, from the team's prompts and plans). Replit Agent is a minor tool: environment setup, with two commits that change only `.replit` (docs/submission/tech-declaration.md). Claude Haiku 4.5 in the CV intake is declared as an AI model (tech declaration, section 4.1). Jev is declared if it is turned on. The forecast, role match and SDG parts run no LLM. The optional route advisor (section 3.19) re-orders routes by at most 2 places and writes one checked summary line. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Both fall back to code.
 - **The LLM boundary.** An LLM may point (CV skill mentions with exact quotes, optional category fallback in the ranker) or word things. Code checks the output. No LLM sets a number, a rank, a forecast or a date.
 
 ---
@@ -618,5 +632,5 @@ Every major part gets a review by a stronger model before it is called done (doc
 5. **Gmail history.** Commits in `main` show a personal Gmail address as author. The repo goes public at submission. Options: switch future commits to the GitHub noreply address, or also rewrite history (docs/build-plan.md, docs/submission/README.md).
 6. **LLM naming.** The CV intake uses Claude Haiku 4.5 (`claude-haiku-4-5`) on Replit. Verify it on the deployed app. Decide whether the Jev route is used in the demo or shown as a second opinion only.
 7. **Scheduled job setup.** Create the App Storage bucket and the Scheduled deployment on Replit.
-8. **Role outlook scope.** The role level, band and backtest are built [BRANCH: integrate] (sections 4.2 and 4.4). Decide whether `feat/integrate` is merged into `main` before submission. Emerging-role discovery (section 4.3) stays a design.
+8. **Role outlook scope.** The role level, band and backtest are in the Varity app (sections 4.2 and 4.4). Decide when `feat/varity-only` is merged into `main` and the Replit site is republished. Emerging-role discovery (section 4.3) stays a design.
 9. **Job-site snapshots.** Hiredly and Jobstore collectors are ready. Run them only when written permission from each site is on file (docs/malaysia-data.md).

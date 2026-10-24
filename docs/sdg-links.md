@@ -50,7 +50,7 @@ Build: `python -m engine.sdg --raw-dir <folder with the raw HN thread JSON files
 
 ## How it changes a user's choices
 
-Two hooks. The journey UI calls them; this module does not touch `app.py`.
+Two hooks. They were written for the Streamlit journey UI, which was retired on 24 Oct; the Varity API calls `plan_sdg_summary` for the pathway (with no goal), and nothing calls `rerank_for_goal`. This module does not touch the UI.
 
 - `rerank_for_goal(match_roles_output, role_sdg, goal_sector)`
   Keeps the match order. Adds to each role "X% of its posts are in <sector> (baseline Y%), Zx the baseline".

@@ -1,9 +1,8 @@
-/* Varity prototype data.
- * REAL: SIGNAL_RUN, STORIES and SKILLS are a snapshot of the signals backend (run 20261022T050908-ab9c76).
- *   app.js replaces them with live data from GET /api/signals on load; this copy is the offline fallback.
- * SYNTHETIC: PROFILE, ROUTES, PATHWAY and TODAY are demo data for the prototype.
- * REAL: FORECAST is a saved copy of the role forecast (see below).
- *   Resource links point at real, free material; every number in them is illustrative.
+/* Varity data.
+ * Offline snapshots (real, dated output of the backend; app.js replaces them with the live API on load):
+ *   SIGNAL_RUN, STORIES, SKILLS: signals run 20261022T050908-ab9c76 (GET /api/signals).
+ *   FORECAST: data/role_forecast.json as of 2026-10 (GET /api/roles/forecast).
+ * Nothing about the user (profile, routes, match scores, pathway, tasks) is stored here: it all comes from the API.
  */
 
 const SIGNAL_RUN = {
@@ -80,97 +79,11 @@ const SKILLS = [
   { skill: "Data engineering", weekly: [0, 1, 0, 2, 5], avgBefore: 0.75, momentum: 4.25 },
 ];
 
-/* The route the pathway leads to. app.js replaces it (and ROUTES, PATHWAY, TODAY, LINES) from
-   GET /api/roles/suggestions and GET /api/pathway once a profile is saved. */
-const TARGET = { role: "LLM application engineer", match: "62% match", live: false };
-/* Pathway lines. Colours follow the transit-line roles in styles.css. */
+/* Pathway map lines. Colours follow the transit-line roles in styles.css; the names come from the pathway stages. */
 const LINES = {
-  apps: { id: "apps", letter: "A", name: "Apps line", skill: "LLM application development", y: 180 },
-  guard: { id: "guard", letter: "G", name: "Guard line", skill: "AI security", y: 80 },
-  serve: { id: "serve", letter: "S", name: "Serving line", skill: "LLM serving and inference", y: 280 },
-};
-
-const PROFILE = {
-  name: "Junior backend developer",
-  file: "sample-cv-backend-junior.pdf",
-  years: "1.5 years",
-  model: "Planned: Claude Sonnet 5.5 extracts skills and quotes; a fixed formula scores the match",
-  skills: [
-    { name: "Python / Django", level: "Working", evidence: "Built and maintained 14 REST endpoints in Django for an internal booking system." },
-    { name: "PostgreSQL", level: "Working", evidence: "Wrote migrations and tuned slow queries; cut report load time from 9 s to 2 s." },
-    { name: "REST API design", level: "Working", evidence: "Designed versioned endpoints consumed by the mobile team." },
-    { name: "Docker", level: "Basic", evidence: "Containerised the booking API for the staging environment." },
-    { name: "React", level: "Basic", evidence: "Fixed UI bugs in the admin dashboard (React, TypeScript)." },
-    { name: "Prompting LLM APIs", level: "Basic", evidence: "Prototyped a ticket-summary script with an LLM API during a hack week." },
-  ],
-};
-
-const ROUTES = [
-  { id: "llm-app", role: "LLM application engineer", match: 62, stops: 9, weeks: "≈ 7 weeks", hours: "≈ 5 h a week",
-    lines: ["apps", "guard", "serve"], outlook: "Rising",
-    have: ["Python / Django", "PostgreSQL", "REST API design", "Prompting LLM APIs"],
-    gap: ["Embeddings & vector search", "RAG pipelines", "RAG evaluation", "Prompt-injection defence", "Caching & latency"] },
-  { id: "mlops", role: "ML platform / MLOps engineer", match: 48, stops: 14, weeks: "≈ 11 weeks", hours: "≈ 5 h a week",
-    lines: ["serve", "apps"], outlook: "Rising",
-    have: ["Python / Django", "Docker", "PostgreSQL"],
-    gap: ["Kubernetes basics", "Model serving with vLLM", "Experiment tracking", "GPU cost monitoring", "CI for models"] },
-  { id: "ai-sec", role: "AI security engineer", match: 35, stops: 17, weeks: "≈ 14 weeks", hours: "≈ 5 h a week",
-    lines: ["guard", "apps"], outlook: "Rising",
-    have: ["Python / Django", "REST API design"],
-    gap: ["Threat modelling", "OWASP LLM Top 10", "Red-teaming LLMs", "Secure SDLC", "Incident response"] },
-];
-
-/* Station x positions are on a 1280-wide diagram; y comes from the line. */
-const PATHWAY = [
-  { id: "p1", line: "apps", x: 80, week: 1, status: "done", title: "Prompting fundamentals", mins: 90,
-    resource: "Anthropic interactive prompt engineering tutorial", url: "https://github.com/anthropics/prompt-eng-interactive-tutorial", cost: "Free", sdg: "4.4" },
-  { id: "p2", line: "apps", x: 190, week: 1, status: "done", title: "LLM APIs from Python", mins: 120,
-    resource: "Hugging Face LLM Course, chapter 1", url: "https://huggingface.co/learn/llm-course", cost: "Free", sdg: "4.4" },
-  { id: "p3", line: "apps", x: 300, week: 2, status: "current", title: "Embeddings & pgvector", mins: 150,
-    resource: "pgvector README (you already know Postgres)", url: "https://github.com/pgvector/pgvector", cost: "Free", sdg: "4.4" },
-  { id: "g1", line: "guard", x: 330, week: 2, status: "next", title: "OWASP LLM Top 10", mins: 60,
-    resource: "OWASP Top 10 for LLM Applications", url: "https://genai.owasp.org/", cost: "Free", sdg: "8.2" },
-  { id: "p4", line: "apps", x: 410, week: 3, status: "next", title: "Build a RAG pipeline", mins: 240,
-    resource: "LangChain RAG tutorial", url: "https://python.langchain.com/docs/tutorials/rag/", cost: "Free", sdg: "4.4" },
-  { id: "p5", line: "apps", x: 520, week: 3, status: "next", title: "Prompt-injection defence", mins: 120, interchange: "guard",
-    resource: "OWASP LLM01: Prompt Injection", url: "https://genai.owasp.org/llmrisk/llm01-prompt-injection/", cost: "Free", sdg: "8.2" },
-  { id: "s1", line: "serve", x: 600, week: 4, status: "next", title: "Serve a model with vLLM", mins: 180,
-    resource: "vLLM quickstart", url: "https://docs.vllm.ai/en/latest/getting_started/quickstart.html", cost: "Free", sdg: "8.2" },
-  { id: "p6", line: "apps", x: 630, week: 4, status: "next", title: "Evaluate RAG with Ragas", mins: 150,
-    resource: "Ragas documentation", url: "https://docs.ragas.io/", cost: "Free", sdg: "4.4" },
-  { id: "p7", line: "apps", x: 750, week: 5, status: "next", title: "Caching & latency", mins: 120, interchange: "serve",
-    resource: "Paper: Cache Engineering for Agents (signal #9)", url: "https://arxiv.org/abs/2610.28577", cost: "Free", sdg: "8.2" },
-  { id: "g2", line: "guard", x: 790, week: 5, status: "next", title: "Red-team your RAG app", mins: 150,
-    resource: "OWASP GenAI Security Project guides", url: "https://genai.owasp.org/", cost: "Free", sdg: "8.5" },
-  { id: "p8", line: "apps", x: 870, week: 6, status: "next", title: "Agents & tool calling", mins: 180,
-    resource: "Hugging Face Agents Course", url: "https://huggingface.co/learn/agents-course", cost: "Free", sdg: "4.4" },
-  { id: "s2", line: "serve", x: 930, week: 6, status: "next", title: "Observability & cost", mins: 90,
-    resource: "OpenTelemetry GenAI semantic conventions", url: "https://opentelemetry.io/docs/specs/semconv/gen-ai/", cost: "Free", sdg: "8.2" },
-  { id: "p9", line: "apps", x: 990, week: 7, status: "next", title: "Capstone: ship a RAG app", mins: 360,
-    resource: "Deploy it on Replit (your own project)", url: "https://replit.com/", cost: "Free tier", sdg: "8.5" },
-];
-
-const TODAY = {
-  date: "Thursday 23 October",
-  replan: {
-    when: "Re-planned overnight at 03:10",
-    text: "GitHub retired several Copilot models on 19 Oct, so yesterday's “Compare Copilot models” stop is cancelled. The OWASP stop moved up because AI security rose to 16 mentions this week (it averaged 0.75 a week before).",
-  },
-  tasks: [
-    { id: "t1", station: "p3", line: "apps", mins: 40, title: "Store 100 embeddings in your local Postgres with pgvector",
-      resource: "pgvector README", url: "https://github.com/pgvector/pgvector",
-      why: "LLM application development: 57 mentions this week vs 6.0 a week before", source: "Skill momentum, 22 Oct" },
-    { id: "t2", station: "g1", line: "guard", mins: 20, title: "Read LLM01 Prompt Injection and list two attacks your booking API could face",
-      resource: "OWASP Top 10 for LLM Applications", url: "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
-      why: "Signal #1, “Patch the Planet” (OpenAI News + Hacker News, 21 Oct)", source: "Score 73.0" },
-    { id: "t3", station: "p7", line: "serve", mins: 15, title: "Skim the abstract and figures of “Cache Engineering for Agents”",
-      resource: "arXiv 2610.28577", url: "https://arxiv.org/abs/2610.28577",
-      why: "Signal #9 (Hugging Face Daily Papers + arXiv, 19 Oct) feeds your Caching & latency stop", source: "Score 62.0" },
-  ],
-  cancelled: [
-    { id: "x1", line: "apps", mins: 25, title: "Compare Copilot models for code review",
-      reason: "“GitHub Copilot models deprecated on October 19, 2026” (GitHub Changelog, signal #4)" },
-  ],
+  apps: { id: "apps", letter: "N", name: "No-regret line", skill: "skills most of your best-fit roles need", y: 180 },
+  serve: { id: "serve", letter: "D", name: "Demand line", skill: "skills job posts ask for now", y: 280 },
+  guard: { id: "guard", letter: "F", name: "Future line", skill: "rising or AI-complement skills", y: 80 },
 };
 
 /* Role forecast: offline copy of data/role_forecast.json (engine/role_forecast.py, as of 2026-10).
@@ -182,7 +95,7 @@ const FLOW = {
   stations: [
     { id: "f1", n: 1, line: "ride", x: 80, y: 120, label: "Landing", screen: null,
       does: "Reads the one-line promise and a live sample of today's top signals.", sees: "“Learn what's next, before it's late.” and one button: Start with your CV." },
-    { id: "f2", n: 2, line: "ride", x: 210, y: 120, label: "Sign in with Google", screen: null,
+    { id: "f2", n: 2, line: "ride", x: 210, y: 120, label: "Sign in with Google", screen: null, built: false,
       does: "Signs in once. The same Google account later receives the daily tasks.", sees: "Google consent for basic profile and Google Tasks." },
     { id: "f3", n: 3, line: "ride", x: 340, y: 120, label: "Upload CV", screen: "profile",
       does: "Drops a PDF CV, or picks the synthetic sample.", sees: "Parsing progress, then extracted skills." },
@@ -190,20 +103,20 @@ const FLOW = {
       does: "Checks each extracted skill against the quote it came from and fixes mistakes.", sees: "Origin station: role, years, skills with evidence." },
     { id: "f5", n: 5, line: "ride", x: 600, y: 120, label: "Choose a route", screen: "profile", interchange: true,
       does: "Compares target roles by match, stops left and outlook, then picks one.", sees: "Journey planner: three routes with skills you have and the gap." },
-    { id: "f6", n: 6, line: "ride", x: 730, y: 120, label: "Pathway built", screen: "pathway",
-      does: "Reviews the ordered stops; can reorder or skip any of them.", sees: "The route map with weeks, minutes, free resources and SDG tags." },
+    { id: "f6", n: 6, line: "ride", x: 730, y: 120, label: "Pathway built", screen: "pathway", built: false,
+      does: "Reviews the ordered stops. Reordering or skipping a stop is not built.", sees: "The route map with weeks, minutes, resources and SDG tags." },
     { id: "f7", n: 7, line: "loop", x: 860, y: 250, label: "Today", screen: "today", interchange: true,
-      does: "Opens Varity, or just Google Tasks, each morning.", sees: "3 to 5 next stops, each with minutes and the signal behind it." },
-    { id: "f8", n: 8, line: "loop", x: 1040, y: 250, label: "Push to Google Tasks", screen: "today",
+      does: "Opens Varity, or just Google Tasks, each morning.", sees: "The next stops that fit your weekly hours, each with minutes and the signal behind it." },
+    { id: "f8", n: 8, line: "loop", x: 1040, y: 250, label: "Push to Google Tasks", screen: "today", built: false,
       does: "Sends today's stops to a dated Google Tasks list in one click.", sees: "Confirmation with the list name, and an undo." },
     { id: "f9", n: 9, line: "loop", x: 1120, y: 340, label: "Learn", screen: "today",
-      does: "Works through the stops on phone or laptop.", sees: "Free resources open in a new tab." },
-    { id: "f10", n: 10, line: "loop", x: 1000, y: 430, label: "Tick off", screen: "today",
-      does: "Ticks stops in Varity or in Google Tasks; both stay in sync.", sees: "The station fills in on the line and the route progress moves." },
+      does: "Works through the stops on phone or laptop.", sees: "Free or free-trial resources open in a new tab." },
+    { id: "f10", n: 10, line: "loop", x: 1000, y: 430, label: "Tick off", screen: "today", built: false,
+      does: "Ticks stops in Varity. Sync with Google Tasks is not built.", sees: "The station fills in on the line and the route progress moves." },
     { id: "f11", n: 11, line: "loop", x: 760, y: 430, label: "Signals refresh", screen: "signals", interchange: true,
       does: "Nothing: the trend layer re-ranks AI updates overnight.", sees: "New service notices and skill momentum." },
-    { id: "f12", n: 12, line: "loop", x: 560, y: 340, label: "Re-plan", screen: "today",
-      does: "Reads the yellow service-change band, then keeps or reverts the change.", sees: "What changed and why; cancelled stops stay visible." },
+    { id: "f12", n: 12, line: "loop", x: 560, y: 340, label: "Re-plan", screen: "today", built: false,
+      does: "Would read a yellow service-change band and keep or revert the change. Not built.", sees: "What changed and why; cancelled stops stay visible." },
     { id: "f13", n: 13, line: "explore", x: 600, y: 30, label: "Job forecast", screen: "forecast",
       does: "Checks which roles are rising or falling before picking a route.", sees: "Share of hiring posts now, a 12-month range and a trend label." },
     { id: "f14", n: 14, line: "explore", x: 330, y: 340, label: "Signals board", screen: "signals",

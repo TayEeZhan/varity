@@ -5,7 +5,6 @@ from __future__ import annotations
 import hmac
 import html
 import json
-import json
 import re
 import threading
 import time
@@ -307,6 +306,8 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
     add_cv_routes(app, ctx.settings)
     from trendsignal.web.roles_api import add_role_routes  # same reason as cv_api
     add_role_routes(app, ctx)
+    from trendsignal.web.evidence_api import add_evidence_routes  # same reason as cv_api
+    add_evidence_routes(app, ctx.settings)
 
     # Mounted last so every route above wins over the static files.
     frontend = ctx.settings.frontend_dir

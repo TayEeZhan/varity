@@ -35,6 +35,13 @@ MODEL = os.environ.get("VERITY_INTAKE_MODEL", "claude-haiku-4-5" if REPLIT else 
 # USD per million tokens, prompts up to 100K tokens. An unknown model gets the higher price.
 PRICES_PER_M = {"claude-haiku-5-5": (0.10, 0.50), "claude-haiku-4-5": (1.00, 5.00)}
 PRICE_IN_PER_M, PRICE_OUT_PER_M = PRICES_PER_M.get(MODEL, PRICES_PER_M["claude-haiku-4-5"])
+
+
+def output_config(model: str, effort: str, **extra) -> dict:
+    """`effort` only for the claude-*-5-5 models this code targeted; claude-haiku-4-5 (Replit) and others may reject it."""
+    return {**({"effort": effort} if model.endswith("-5-5") else {}), **extra}
+
+
 _NAMES = {"claude-haiku-5-5": "Claude Haiku 5.5", "claude-haiku-4-5": "Claude Haiku 4.5"}
 MODEL_LABEL = f"{_NAMES.get(MODEL, MODEL)} (Anthropic{' via Replit AI Integrations' if REPLIT else ''})"
 MAX_TOKENS = 8000
@@ -149,7 +156,7 @@ def extract_mentions(
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": build_user_prompt(cv_text, retry_codes)}],
             output_format=Extraction,
-            output_config={"effort": "low"},
+            output_config=output_config(MODEL, "low"),
         )
     except anthropic.APITimeoutError:
         gate.settle(reserved, reserved)  # it may still have been billed

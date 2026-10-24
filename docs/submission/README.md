@@ -1,6 +1,6 @@
 # Submission documents: what is left for the team
 
-Drafted on 22 Oct 2026. Every number comes from a file in this repository, or from the Domain 1 brief figures that Ee Zhan supplied (see "Check before you sign").
+Drafted on 22 Oct 2026; updated 24 Oct 2026 for the Varity-only app (Streamlit retired, FastAPI plus a static web app). Every number comes from a file in this repository, or from the Domain 1 brief figures that Ee Zhan supplied (see "Check before you sign").
 
 ## Files to export
 
@@ -23,7 +23,7 @@ Confirm the file-name spacing rule in the organisers' submission video. The merm
 - Section 7: declaration wording, signature and date.
 
 ### Tech declaration
-- Section 3.2: Replit plan, region. Create the App Storage bucket and the Scheduled Deployment (code is merged; setup is pending), run it once, then remove "pending" from the proposal (3.1, 3.2, diagram) and from this declaration (2.1, 3.2, 5).
+- Section 3.2: Replit plan, region. Create the App Storage bucket and the Scheduled Deployment (code is built; setup is pending; the Varity app does not read the snapshots yet), run it once, then remove "pending" from the proposal (3.1, 3.2, diagram) and from this declaration (2.1, 3.2, 5).
 - Section 4.1 and 3.2: Claude Haiku 4.5 through Replit AI Integrations is written as the design. Verify it on the deployed app, then remove "not yet verified" (also in the proposal, `qa-prep.md` #18 and #26, the root `README.md` and `docs/architecture.md` 3.18). Declare Jev's exact model id if you enable the ranker.
 - Section 4.3: Replit Agent model (if shown), and any other AI tool either member used.
 - Section 5: confirm the Replit plan; attach any extra proof of use.
@@ -35,17 +35,19 @@ Confirm the file-name spacing rule in the organisers' submission video. The merm
 2. **SDG sub-target wording** (4.4, 8.5, 8.2) is the official UN text from memory. Check it at https://sdgs.un.org/goals.
 3. **Phase 2 targets** (50%, 80%, 60% of test users) are placeholders for the team to confirm or change. They are targets, not results.
 4. **The four readiness boxes and the compliance checklist** follow `BRIEF.md`, because the official template text is not in the sources. Match them to the template.
-5. **Prototype data.** The root `README.md` and `docs/build-plan.md` no longer say the app shows sample data. Open the live URL while logged out and check that it shows real data (no "Prototype: showing sample data" banner). If it does, redeploy `main`.
-6. **Replit setup.** `docs/replit-schedule.md` lists the App Storage bucket and the Scheduled Deployment as steps still to do. The documents say "code merged; Replit setup pending". After you finish the setup, change those lines.
+5. **Prototype data and live version.** The live Replit site has not been republished with the Varity-only app. Republish, open the live URL in a private window, and check that it shows the eight Varity screens with real data (no "offline snapshot" label on Job forecast or Skills radar). If it still shows the Streamlit app, the deployment is old.
+6. **Replit setup.** `docs/replit-schedule.md` lists the App Storage bucket and the Scheduled Deployment as steps still to do. The documents say "code built; Replit setup pending". After you finish the setup, change those lines.
 7. **Git author name and email.** 20 commits show `greenrobot8888 <eezhan0805@gmail.com>`. The leader is named Tay Ee Zhan. The repository goes public at submission, so the personal email becomes public. `docs/build-plan.md` lists this as an open decision.
 8. **AIOE licence.** The AIOE data has no licence file. `data/SOURCES.md` lists the fallback (remove the two AIOE indices).
-9. **Word limits.** Counts are in the documents. Re-count after any edit. Word counters differ by a few words.
-10. **Leader's university.** Sheng Kuan's commit email is a University of Malaya student address. Ee Zhan's university is not in any file.
+9. **Word limits.** Counts are in the documents (updated 24 Oct for the proposal 2.2 and 3.2 and the tech declaration 2.1). Re-count after any edit. Word counters differ by a few words.
+10. **Test count.** "Over 700 tests" dates from 22 Oct, before the Streamlit tests were removed. Re-run `pytest` and update the proposal 3.2, the tech declaration (2.2 and 4.3), `qa-prep.md` and the architecture if the count changed.
+11. **Library licences marked (PyPI) or [TEAM TO FILL].** jinja2, apscheduler and feedparser were not installed locally, so their licences come from memory of their PyPI pages. The `typesafe-sdk` licence is not known. Check them before you sign.
+12. **Leader's university.** Sheng Kuan's commit email is a University of Malaya student address. Ee Zhan's university is not in any file.
 
 ## If Sheng Kuan's AI-trend-signal-layer branch is merged
 
 - [ ] Declare Jev (TypeSafe AI, via Replit AI Integrations / OpenRouter) and any Claude models (Haiku, Sonnet) in the tech declaration, sections 4.1 and 5. Done for Claude Haiku 4.5 in the CV intake. Still open for Jev and the ranker's Sonnet use: they are off by default, and 4.1 says so.
 - [ ] Declare the new data sources (RSS, arXiv, HF papers, HN, Bluesky, X API, Threads) in section 4.2 with their terms and personal-data flags.
-- [x] Change every "no LLM" line: tech declaration 3.1 and 4.1, pitch row 10, qa-prep #1, #18 and #19, deck slide 7, `docs/architecture.md`, `docs/build-plan.md`, root `README.md`. The wording now says that only the CV intake uses an LLM. Still open: the `app.py` header and the "No LLM is used in this view" text. Code was out of scope here. Check that they still read true.
+- [x] Change every "no LLM" line: tech declaration 3.1 and 4.1, pitch row 10, qa-prep #1, #18 and #19, deck slide 7, `docs/architecture.md`, `docs/build-plan.md`, root `README.md`. The wording now says that the CV intake, an optional route advisor and an optional pathway coach use an LLM (the Streamlit `app.py` text is gone). Check that the Varity screens still read true.
 - [ ] Resolve the conflict with the "we did not use X" statements (for example the X and Bluesky lines in the proposal 3.2, `docs/data-contract.md` and `docs/build-plan.md`).
 - [ ] Be ready to explain the six commits that share one timestamp (22 Oct 13:13).

@@ -477,28 +477,3 @@ def test_main_writes_the_json_file(data, tmp_path, capsys):
     assert doc["candidates"] and doc["candidates"][0]["draft_pattern"]["status"] == DRAFT_STATUS
     assert doc["backfill_demo"]["months"] == MONTHS
     assert "Runtime" in capsys.readouterr().out
-
-
-# --------------------------------------------------------------------------------------
-# App: the radar table at the bottom of the Method tab
-# --------------------------------------------------------------------------------------
-
-ROOT = Path(__file__).resolve().parent.parent
-
-
-@pytest.mark.skipif(not (ROOT / "data" / "skill_candidates.json").exists()
-                    or not (ROOT / "data" / "skill_scores.json").exists(),
-                    reason="data/skill_candidates.json or data/skill_scores.json not generated yet")
-def test_method_tab_shows_the_candidate_radar():
-    from streamlit.testing.v1 import AppTest
-
-    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
-    assert not at.exception
-    headers = [h.value for h in at.header]
-    assert headers[-1] == "Candidate new skills (not yet in Verity; need human review)" or \
-        "Candidate new skills (not yet in Verity; need human review)" in headers
-    doc = json.loads((ROOT / "data" / "skill_candidates.json").read_text(encoding="utf-8"))
-    radar = next(df for df in at.dataframe if "Term" in df.value.columns and "Source 1" in df.value.columns)
-    assert list(radar.value["Term"]) == [c["term"] for c in doc["candidates"][:15]]
-    assert len(radar.value) <= 15
-    assert all(str(u).startswith("https://news.ycombinator.com/item?id=") for u in radar.value["Source 1"].dropna())

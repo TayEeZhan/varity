@@ -74,12 +74,6 @@
       "line": 100,
       "title": "The Fast scenario",
       "description": "fast_scenario computes moderate times (1 minus k times e_s), then clips the result to 0 to 1. e_s is how far the skill's AI exposure sits from the average. k is 2, and the app shows it as an assumption. Judge asks: Is k equal to 2 proven? Short answer: No, it is a labelled assumption."
-    },
-    {
-      "file": "engine/outcome.py",
-      "line": 16,
-      "title": "Grading a past forecast",
-      "description": "band_verdict checks an old forecast against what happened. It reports whether the target month's smoothed share was below, inside or above the Moderate band. Only the Moderate band is graded, because the Fast band is an assumption with no observed outcome. Judge asks: Why not grade the Fast band? Short answer: There is no observed outcome to test an assumption against."
     }
   ]
 }

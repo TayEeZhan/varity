@@ -60,9 +60,9 @@ def test_save_load_remove_delete_round_trip(client, settings):
     review = extract(client, sample="aina").json()["data"]
     kept = [row["skill_id"] for row in review["rows"] if row["default_keep"]]
     saved = client.post("/api/profile/apply", json={"review_id": review["review_id"], "kept_ids": kept,
-                                                     "target_role": "Data Engineer"}).json()["data"]
+                                                     "target_role": "data_engineer"}).json()["data"]
     token = saved["token"]
-    assert saved["profile"]["target_role"] == "Data Engineer"
+    assert saved["profile"]["target_role"] == "data_engineer"
     assert len(saved["profile"]["skills"]) == len(kept)
 
     headers = {"X-Profile-Token": token}

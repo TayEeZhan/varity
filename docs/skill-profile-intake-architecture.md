@@ -1,5 +1,7 @@
 # Skill Profile Intake: Architecture
 
+Retired 24 Oct: the Streamlit UI (`app.py`) was replaced by Varity. Mentions of Streamlit or `app.py` below are historical.
+
 Status: design, reviewed 23 Oct 2026. Owner: Sheng Kuan (build-plan item **S1**). Reader of the output: Ee Zhan (E7 role match, E8 pathway).
 Diagram: [`.archify/architecture-skill-profile-intake-20261023-011631/skill-profile-intake.html`](../../.archify/architecture-skill-profile-intake-20261023-011631/skill-profile-intake.html) (open in a browser).
 
@@ -93,7 +95,7 @@ review on a second model. Their main findings are in this version.
         ▼                       ▼                           ▼
  [7] Reconciler: join by skill id → review rows (stated / implied / suggested / self-reported)
         ▼
- [8] Review screen (Streamlit): keep, remove, tick suggestions, add, set target role   ← nothing saved before Save
+ [8] Review screen (planned in Streamlit; built as the Varity CV & routes screen): keep, remove, tick suggestions, add, set target role   ← nothing saved before Save
         ▼
  [9] Ledger: add_evidence / remove_skill → profile v2 in session_state ──► E7 role match, E8 pathway
         ▲                                               └──► JSON download

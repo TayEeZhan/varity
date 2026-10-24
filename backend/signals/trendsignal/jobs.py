@@ -98,6 +98,22 @@ def run_pipeline_if_idle(ctx: AppContext) -> None:
     write_ranking_outputs(ctx)
 
 
+def bootstrap_if_empty(ctx: AppContext) -> threading.Thread | None:
+    """Fresh deploy (no ranked run yet): fill the database in a background thread. Never blocks startup."""
+    if latest_run_id(ctx.settings) is not None:
+        return None
+
+    def work() -> None:
+        try:
+            run_pipeline_if_idle(ctx)
+        except Exception:  # noqa: BLE001 - a failed first run must not take the server down
+            log.exception("first pipeline run failed; the page keeps its offline snapshot")
+
+    thread = threading.Thread(target=work, name="first-run", daemon=True)
+    thread.start()
+    return thread
+
+
 @dataclass(frozen=True)
 class DigestResult:
     kind: str

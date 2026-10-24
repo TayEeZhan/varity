@@ -8,6 +8,7 @@ from datetime import datetime
 
 import anthropic
 
+from intake.llm_extract import output_config
 from trendsignal.llm import LlmGate, usage_cost
 from trendsignal.models import AUDIENCES, CATEGORIES, Enrichment
 from trendsignal.pipeline.heuristics import heuristic_enrichment
@@ -141,7 +142,7 @@ def _call_claude(client: anthropic.Anthropic, model: str, document: str, retry_n
             max_tokens=MAX_TOKENS,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": prompt}],
-            output_config={"effort": "low", "format": {"type": "json_schema", "schema": OUTPUT_SCHEMA}},
+            output_config=output_config(model, "low", format={"type": "json_schema", "schema": OUTPUT_SCHEMA}),
         )
     except (anthropic.AuthenticationError, anthropic.PermissionDeniedError, anthropic.NotFoundError) as exc:
         raise _StopLlm(f"Claude API rejected the request ({exc.__class__.__name__})") from exc

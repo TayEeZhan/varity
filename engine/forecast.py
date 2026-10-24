@@ -50,7 +50,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy import stats  # installed together with statsmodels
-from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DEMAND_CSV = DATA_DIR / "demand_monthly.csv"
@@ -167,6 +166,8 @@ def forecast_skill(y_series, model: str, horizon: int = HORIZON) -> np.ndarray:
         slope = np.polyfit(np.arange(recent.size), recent, 1)[0] if recent.size >= 2 else 0.0
         return y[-1] + DRIFT_SHRINK * slope * steps
     if model == "damped":
+        # Imported here: only the backtest uses the damped model, so the app starts without statsmodels.
+        from statsmodels.tsa.holtwinters import ExponentialSmoothing
         recent = y[-DAMPED_WINDOW:]
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # statsmodels warns on flat or short series
