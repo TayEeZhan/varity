@@ -150,3 +150,18 @@ def test_coach_stays_within_stages_and_verified_resources(settings, token):
     assert by_stage == [s["stage"] for s in base["steps"]]  # stages never reorder
     assert all(s["resource"] is None or s["resource"]["url"] != "https://evil.example/" for s in out["steps"])
     assert [t["minutes"] for t in out["tasks"]] and out["totals"]["minutes"] == base["totals"]["minutes"]
+
+
+def test_cut_off_json_is_truncated_not_invalid():
+    from advisor.llm import call_model
+    from intake.llm_extract import SpendGate
+
+    class Cut:
+        def __init__(self):
+            self.messages = self
+
+        def parse(self, **_kw):
+            Advice.model_validate_json('{"order":["a"],"roles":[{"role_id":"a","summary":"Python is')  # raises
+
+    with pytest.raises(LlmUnavailable, match="TRUNCATED"):
+        call_model("m", "s", "u", Advice, 10, client=Cut(), gate=SpendGate(1.0))
