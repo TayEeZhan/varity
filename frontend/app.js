@@ -14,6 +14,7 @@ const STATE = {
   profileError: "",
   routeId: null,
   scenario: "moderate",   // moderate | fast: both are engine scenarios, shown as estimates
+  destination: "",        // role id picked on the CV screen; "" = Not sure yet
   suggest: null,          // GET /api/roles/suggestions for the saved profile
   suggestError: "",
   plan: null,             // GET /api/pathway for the chosen route

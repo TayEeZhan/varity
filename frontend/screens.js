@@ -153,6 +153,7 @@ function cvPanel() {
       <p>${esc(llmLine(STATE.review.llm_status))}</p>
       ${STATE.review.injection_hint ? `<p class="err" role="alert">Some lines look like instructions to an AI. They were read as CV text only, and skills on them are not ticked.</p>` : ""}
       <p>Untick anything that is wrong, then save. Nothing is stored until you do.</p>
+      ${destinationField()}
       <button class="btn btn--primary" data-act="cv-save">Save ${STATE.keep.size} skills</button>
       <button class="btn btn--quiet" data-act="cv-replace">Cancel</button>
     </div>`;
@@ -183,6 +184,16 @@ function cvPanel() {
     ${exampleButtons()}`;
 }
 
+/* The roles the forecast knows (live or snapshot): the only destinations that can get a route. */
+function destinationField() {
+  const roles = Object.entries(FORECAST.roles || {}).sort((a, b) => a[1].name.localeCompare(b[1].name));
+  if (!roles.length) return "";
+  const opts = roles.map(([id, r]) => `<option value="${esc(id)}"${STATE.destination === id ? " selected" : ""}>${esc(r.name)}</option>`).join("");
+  return `<label class="dest"><span class="dest__label">Destination (optional)</span>
+      <select class="dest__select" data-dest><option value="">Not sure yet</option>${opts}</select>
+      <span class="dest__hint">Pick the role you want. We'll still show other routes.</span></label>`;
+}
+
 function reviewTable() {
   const r = STATE.review;
   const rows = r.rows.map((row) => `<tr>
@@ -200,7 +211,7 @@ function savedTable() {
   const why = (s) => (s.evidence_quote ? `“${esc(s.evidence_quote)}”`
     : esc((s.evidence.find((e) => e.rule) || s.evidence.find((e) => e.note) || {}).rule || (s.evidence.find((e) => e.note) || {}).note || "Added by you"));
   const basis = (s) => (isExample(s) ? "Synthetic example" : BASIS[s.basis]);
-  return `<table class="skills"><thead><tr><th scope="col">Skill</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th><th scope="col">Edit</th></tr></thead>
+  return `<table class="skills"><thead><tr><th scope="col">Skill and Experience</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th><th scope="col">Edit</th></tr></thead>
     <tbody>${STATE.saved.skills.map((s) => `<tr><td>${esc(s.name)}</td><td><span class="lvl">${esc(basis(s))}</span></td><td class="q">${why(s)}</td><td>${esc(yearsText(s.years))}</td>
       <td><button class="btn btn--quiet" data-act="skill-remove" data-id="${esc(s.skill_id)}" aria-label="Remove ${esc(s.name)}">Remove</button></td></tr>`).join("")}</tbody></table>`;
 }
@@ -228,8 +239,9 @@ function roleSdgHTML(sdg) {
   return (sdg.tags.length ? `<p class="route__sdg">${sdg.tags.map(sdgTag).join(" ")}</p>` : "") + sectors;
 }
 
-function liveRouteRow(r) {
+function liveRouteRow(r, pinned = false) {
   const cur = STATE.routeId === r.roleId;
+  const low = r.rank == null;  // a low-match destination: pinned for the user, never ranked
   const action = cur
     ? `<span class="current-tag"><i></i>Your current route</span>`
     : `<button class="btn" data-act="route" data-id="${esc(r.roleId)}">Switch to this route</button>`;
@@ -238,10 +250,11 @@ function liveRouteRow(r) {
     ? `<p class="route-note">Fast AI scenario (estimate): about ${r.fastShift >= 0 ? "+" : ""}${(r.fastShift * 100).toFixed(1)}% role demand vs moderate. Does not change the ranking.</p>` : "";
   return `<div class="route${cur ? " is-current" : ""}">
     <div class="route__row">
-      <div class="route__match">${Number(r.matchPct)}%<small>match now</small></div>
-      <div><div class="route__role">#${Number(r.rank)} ${esc(r.name)}</div>
+      <div class="route__match${low ? " route__match--low" : ""}">${Number(r.matchPct)}%<small>match now</small></div>
+      <div><div class="route__role">${low ? "" : `#${Number(r.rank)} `}${esc(r.name)}${pinned ? ` <span class="plate">Destination</span>` : ""}</div>
         <div class="route__role-sub"><b>${esc(r.fitLabel)}</b> · ${outlook}</div>
-        ${r.summary ? `<p class="route__summary">${esc(r.summary)}</p>` : ""}</div>
+        ${r.summary ? `<p class="route__summary">${esc(r.summary)}</p>` : ""}
+        ${low ? `<p class="route-note">Long ride: this role needs most of its skills still. Other routes below are closer.</p>` : ""}</div>
       <div class="route__fact"><b>${r.gap.length} skills</b><span>to learn</span></div>
       <div class="route__fact"><b>${r.have.length} of ${r.have.length + r.gap.length}</b><span>core skills held (match is weighted)</span></div>
       ${action}
@@ -261,10 +274,17 @@ function liveRoutes() {
   const w = s.formulaWeights;
   const formula = `match ${Math.round(w.match * 100)}% + demand ${Math.round(w.future * 100)}%`;
   const by = s.rankedBy === "llm" ? "Ranked by AI within limits, checked against the data" : `Ranked by the formula (${formula})`;
-  const low = s.lowMatch.length ? `<p class="empty"><b>Low match, not ranked:</b> ${s.lowMatch.map((r) => `${esc(r.name)} (${Number(r.matchPct)}%)`).join(", ")}</p>` : "";
+  // The destination is pinned first; this changes display order only, the ranks shown stay the formula's.
+  const goal = s.targetRoleId;
+  const dest = s.roles.find((r) => r.roleId === goal) || (s.lowMatchTarget && s.lowMatchTarget.roleId === goal ? s.lowMatchTarget : null);
+  const others = s.roles.filter((r) => r.roleId !== goal);
+  const lowOthers = s.lowMatch.filter((r) => r.roleId !== goal);
+  const low = lowOthers.length ? `<p class="empty"><b>Low match, not ranked:</b> ${lowOthers.map((r) => `${esc(r.name)} (${Number(r.matchPct)}%)`).join(", ")}</p>` : "";
   const unmapped = s.unmappedSkills.length ? `<p class="empty"><b>Not in the job data yet, so not counted:</b> ${s.unmappedSkills.map(esc).join(", ")}</p>` : "";
+  const list = others.length ? others.map((r) => liveRouteRow(r)).join("")
+    : dest ? "" : `<p class="empty">No role matches your saved skills well yet. Add skills from another CV.</p>`;
   return `<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>
-    ${s.roles.length ? s.roles.map(liveRouteRow).join("") : `<p class="empty">No role matches your saved skills well yet. Add skills from another CV.</p>`}${low}${unmapped}`;
+    ${dest ? `${liveRouteRow(dest, true)}${others.length ? `<h3 class="routes-sub">Other routes</h3>` : ""}` : ""}${list}${low}${unmapped}`;
 }
 
 function plannerHTML() {
@@ -340,6 +360,8 @@ function renderProfile() {
       }
     };
     root.addEventListener("change", (e) => {
+      const dest = e.target.closest("[data-dest]");
+      if (dest) { STATE.destination = dest.value; return; }
       const box = e.target.closest("[data-keep]");
       if (!box) return;
       if (box.checked) STATE.keep.add(box.dataset.keep);
@@ -365,13 +387,24 @@ function renderProfile() {
       else if (act === "cv-choose") fileInput.click();
       else if (act === "cv-sample") read("aina.txt (synthetic sample)", { sample: "aina" });
       else if (act === "cv-save") {
-        call("/api/profile/apply", { method: "POST", body: JSON.stringify({ review_id: STATE.review.review_id, kept_ids: [...STATE.keep] }) }, (data) => {
+        call("/api/profile/apply", { method: "POST", body: JSON.stringify({ review_id: STATE.review.review_id, kept_ids: [...STATE.keep] }) }, async (data) => {
           setProfileToken(data.token);
           STATE.saved = data.profile;
           STATE.review = null;
           STATE.cv = "parsed";
+          let note = `Saved ${data.profile.skills.length} skills to your profile.`;
+          // Set separately: apply uses up the review, so a refused destination there would lose the user's ticks.
+          const dest = STATE.destination && FORECAST.roles[STATE.destination];
+          if (dest) {
+            try {
+              STATE.saved = (await api("/api/profile/target-role", { method: "POST", body: JSON.stringify({ roleId: STATE.destination }) })).profile;
+              note = `Destination set: ${dest.name}. Your pathway leads there.`;
+            } catch (err) {
+              note = `Saved your skills, but ${dest.name} has no route for them yet.`;
+            }
+          }
           rerender();
-          toast(`Saved ${data.profile.skills.length} skills to your profile.`);
+          toast(note);
           refreshRoutes();
         });
       }
