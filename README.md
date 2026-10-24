@@ -21,7 +21,7 @@ Verity reads a tech developer's CV, forecasts which skills are rising or falling
 
 Varity is the only app. It has eight screens:
 
-- **Flow map**: the planned user flow as a transit map. It says that Google sign-in and Google Tasks are not built. Replit sign-in is built (see Optional sign-in).
+- **Flow map**: the planned user flow as a transit map. It says that Google sign-in and two-way Google Tasks sync are not built. Replit sign-in is built (see Optional sign-in).
 - **CV & routes**: upload a CV, or press "Try an example" (3 synthetic profiles). Shows ranked routes to roles.
 - **Today**: your next stops, taken from your pathway.
 - **Pathway**: the ordered stops from your skills to your route. You can download it as `.md` or `.ics`.
@@ -32,11 +32,12 @@ Varity is the only app. It has eight screens:
 
 ## Optional sign-in
 
-Press "Sign in" to use Replit Auth (OpenID Connect). It is optional: the whole app works without it. A signed-in user keeps the skill ledger, target role and pathway ticks in an account. We store the Replit user id, email, display name and profile image URL, never the raw CV text or tokens. `DELETE /api/me` deletes the account and the profile. Google sign-in and Google Tasks are not built. Not yet tested on the live Replit app.
+Press "Sign in" to use Replit Auth (OpenID Connect). It is optional: the whole app works without it. A signed-in user keeps the skill ledger, target role and pathway ticks in an account. We store the Replit user id, email, display name and profile image URL, never the raw CV text or tokens. `DELETE /api/me` deletes the account and the profile. Google sign-in is not built. Not yet tested on the live Replit app.
 
 Environment variables:
 
 - `SESSION_SECRET`: signs the 30-day session cookie. Sign-in is on only when this and `REPL_ID` (set by Replit) exist.
+- `GOOGLE_CLIENT_ID`: a Google OAuth web client id (Google Cloud console, Tasks API enabled, your site's origin under Authorized JavaScript origins). With it, Today shows "Send today to Google Tasks": the browser gets a Tasks-only token from Google and writes a dated list itself, so the server never sees the token or the tasks. Without it, the button is hidden.
 - `DATABASE_URL`: Replit PostgreSQL for accounts and profiles. With no value, the server uses SQLite.
 
 ## Run Varity locally
