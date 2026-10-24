@@ -42,3 +42,8 @@ Transitions run 150–300ms with `cubic-bezier(0.16,1,0.3,1)`. The signature int
 ## Layout
 
 Max width 1280px. Gutters are 32px, 20px at ≤960px and 16px at ≤640px. Diagrams scroll sideways on narrow screens and show a swipe hint, and the Today strip auto-scrolls to the current station. Two-column screens collapse to one column at 960px.
+
+## Landing and train (landing.js, landing.css)
+
+- **Train:** one `<symbol id="lp-train">` (landing.js `TRAIN_SYMBOL`), side view, nose right: sloped wedge nose, yellow headlight, dark windshield, window row, doors, three cars, pantograph on the middle car, wheels, `--apps` blue stripe. Fixed colours because it is a drawing. It is never rotated and never drawn large (about 100 units on a 1040-unit map); no big platform train. It rides the line on `offset-path` with `offset-rotate: 0deg`, parks on the flat run just before each station (nose about 14 units short of the dot, so it never covers it) and moves with transform/opacity only. Under `prefers-reduced-motion` it is parked at "See your match".
+- **Landing line map:** the five stops sit on the `--apps` blue staircase: white stations with a 3px ink stroke, a tall-capsule terminus ("Hired"), and a grey dotted "Other roles" branch from the third stop. It is the same at every width. At 960px and below only the map box scrolls sideways (min width 760px) with the hint "Swipe to follow the line."; the page never does. The SVG is `aria-hidden`; the five captions below it are the real station list. The current stop gets the `--signal` halo and a bold label (two stacked labels cross-faded by opacity, so no reflow). The 15s loop is five 3s stops; the halo, label and train pause share one clock. Distances in `@keyframes lp-ride` must follow `LINE_PATH` in landing.js.
