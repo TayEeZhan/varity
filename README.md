@@ -28,8 +28,8 @@
 | GitHub Repository | https://github.com/TayEeZhan/varity |
 | Live Demo         | https://verity--eezhan0805.replit.app |
 | RunPod Endpoint   | Not used (no GPU workload) |
-| Slide Deck        | Coming soon |
-| Demo Video        | Coming soon |
+| Slide Deck        | https://claude.ai/artifact/S2wLJMTcXwLLqC78ESTqTM |
+| Demo Video        | https://youtu.be/EIXXsKRXtlU |
 
 ---
 
@@ -235,8 +235,8 @@ The repo has guided tours for the VS Code CodeTour extension, in the `.tours/` f
 ## Submission Checklist
 
 - [x] Team name, domain (Domain 1 / Domain 2) and SDG track filled in
-- [ ] Slide deck link added
-- [ ] Demo video link added
+- [x] Slide deck link added
+- [x] Demo video link added
 - [x] Replit used, with proof of use in `submission/`
 - [x] RunPod: not used (no GPU workload)
 - [x] Preliminary submission completed (`SDC2026_HokkienMeeIsPurple_Preliminary.pdf`)
