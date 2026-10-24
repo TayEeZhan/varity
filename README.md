@@ -2,7 +2,7 @@
 
 Verity reads a tech developer's CV, forecasts which skills are rising or falling from dated public data, and gives ranked future roles and a learning plan. Every claim shows its source and date, and the plan changes when the data changes. The app shows real forecasts built from public data.
 
-**Live prototype:** https://verity--eezhan0805.replit.app (not yet republished with the Varity-only app; until it is, the live site may show the older version)
+**Live prototype:** https://verity--eezhan0805.replit.app (live, published 24 Oct 2026)
 
 **Architecture:** [docs/architecture.md](docs/architecture.md) covers every feature, its status, and how future job roles are predicted.
 
@@ -21,7 +21,7 @@ Verity reads a tech developer's CV, forecasts which skills are rising or falling
 
 Varity is the only app. It has eight screens:
 
-- **Flow map**: the planned user flow as a transit map. It says that Google sign-in and Google Tasks are not built.
+- **Flow map**: the planned user flow as a transit map. It says that Google sign-in and Google Tasks are not built. Replit sign-in is built (see Optional sign-in).
 - **CV & routes**: upload a CV, or press "Try an example" (3 synthetic profiles). Shows ranked routes to roles.
 - **Today**: your next stops, taken from your pathway.
 - **Pathway**: the ordered stops from your skills to your route. You can download it as `.md` or `.ics`.
@@ -29,6 +29,15 @@ Varity is the only app. It has eight screens:
 - **Job forecast**: 12-month outlook for tech roles, from Hacker News hiring posts.
 - **Skills radar**: skill demand and change, with a forecast per skill.
 - **Method**: backtests, AI exposure cross-check, and data sources.
+
+## Optional sign-in
+
+Press "Sign in" to use Replit Auth (OpenID Connect). It is optional: the whole app works without it. A signed-in user keeps the skill ledger, target role and pathway ticks in an account. We store the Replit user id, email, display name and profile image URL, never the raw CV text or tokens. `DELETE /api/me` deletes the account and the profile. Google sign-in and Google Tasks are not built. Not yet tested on the live Replit app.
+
+Environment variables:
+
+- `SESSION_SECRET`: signs the 30-day session cookie. Sign-in is on only when this and `REPL_ID` (set by Replit) exist.
+- `DATABASE_URL`: Replit PostgreSQL for accounts and profiles. With no value, the server uses SQLite.
 
 ## Run Varity locally
 
@@ -60,7 +69,7 @@ This product includes information from O*NET OnLine by the U.S. Department of La
 
 AI models in the running app:
 
-- CV intake: Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). With no credentials, a keyword pass takes over. The model only points at skill mentions. Code checks every quote word for word. A daily cap of $1 applies (`VERITY_INTAKE_DAILY_BUDGET_USD`). This is the design; we have not yet verified it on the live Replit app. Use synthetic CVs only: CV text goes to Anthropic through Replit.
+- CV intake: Claude Haiku 5.5 (`claude-haiku-5-5`) through the Anthropic API. The key (`ANTHROPIC_API_KEY`) is a team member's, set in Replit Secrets and Production app secrets, and Anthropic bills that account. With no key, a keyword pass takes over. The model only points at skill mentions. Code checks every quote word for word. A daily cap of $1 applies (`VERITY_INTAKE_DAILY_BUDGET_USD`). The CV-intake call is not yet confirmed on the live app (the route advisor is). Use synthetic CVs only: CV text goes to Anthropic directly.
 - The skill forecast, role match, pathway steps, dates and SDG parts are code. Only the CV intake and two optional steps use an LLM. The optional route advisor re-orders roles by at most 2 places, picks reason chips that code wrote and writes one checked summary line; the fit label always comes from code. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. All of it runs within code's limits and falls back to code.
 - "Try an example" needs no LLM.
 - The signal ranker (`backend/signals/`) can use Claude and Jev (TypeSafe AI), but both are off by default.
