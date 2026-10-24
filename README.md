@@ -2,7 +2,7 @@
 
 Verity reads a tech developer's CV, forecasts which skills are rising or falling from dated public data, and gives ranked future roles and a learning plan. Every claim shows its source and date, and the plan changes when the data changes. The app shows real forecasts built from public data.
 
-**Live prototype:** https://verity--eezhan0805.replit.app (not yet republished with the Varity-only app; until it is, the live site may show the older version)
+**Live prototype:** https://verity--eezhan0805.replit.app (live, published 24 Oct 2026)
 
 **Architecture:** [docs/architecture.md](docs/architecture.md) covers every feature, its status, and how future job roles are predicted.
 
@@ -60,7 +60,7 @@ This product includes information from O*NET OnLine by the U.S. Department of La
 
 AI models in the running app:
 
-- CV intake: Claude Haiku 4.5 (`claude-haiku-4-5`) through Replit AI Integrations. Replit manages the credentials and bills Replit credits. A direct `ANTHROPIC_API_KEY` also works (default model `claude-haiku-5-5`). With no credentials, a keyword pass takes over. The model only points at skill mentions. Code checks every quote word for word. A daily cap of $1 applies (`VERITY_INTAKE_DAILY_BUDGET_USD`). This is the design; we have not yet verified it on the live Replit app. Use synthetic CVs only: CV text goes to Anthropic through Replit.
+- CV intake: Claude Haiku 5.5 (`claude-haiku-5-5`) through the Anthropic API. The key (`ANTHROPIC_API_KEY`) is a team member's, set in Replit Secrets and Production app secrets, and Anthropic bills that account. With no key, a keyword pass takes over. The model only points at skill mentions. Code checks every quote word for word. A daily cap of $1 applies (`VERITY_INTAKE_DAILY_BUDGET_USD`). The CV-intake call is not yet confirmed on the live app (the route advisor is). Use synthetic CVs only: CV text goes to Anthropic directly.
 - The skill forecast, role match, pathway steps, dates and SDG parts are code. Only the CV intake and two optional steps use an LLM. The optional route advisor re-orders roles by at most 2 places, picks reason chips that code wrote and writes one checked summary line; the fit label always comes from code. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. All of it runs within code's limits and falls back to code.
 - "Try an example" needs no LLM.
 - The signal ranker (`backend/signals/`) can use Claude and Jev (TypeSafe AI), but both are off by default.
