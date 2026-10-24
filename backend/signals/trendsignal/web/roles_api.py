@@ -11,13 +11,14 @@ from typing import Literal
 from fastapi import FastAPI, Header, Query, Request
 from pydantic import BaseModel, Field
 
-from advisor import planner, service
+from advisor import cv_writer, planner, service
 from advisor.llm import LlmUnavailable, call_model
 from intake import ledger
 from intake.models import Evidence
 from trendsignal.jobs import AppContext
 from trendsignal.output import latest_run_id
 from trendsignal.queries import skill_momentum
+from trendsignal.web import accounts_store
 from trendsignal.web.app import RateLimiter, envelope
 from trendsignal.web.auth_api import owner_of
 from trendsignal.web.cv_api import client_ip, load_profile, profile_out, save_profile
@@ -178,3 +179,18 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
             return envelope(error=str(exc), status=422)
         save_profile(settings, owner_of(request, x_profile_token), profile)
         return envelope(profile_out(profile, owner_of(request, x_profile_token)))
+
+    @app.post("/api/cv/generate")
+    def api_cv_generate(request: Request, x_profile_token: str | None = Header(default=None)):
+        """A new CV for the target role: the saved CV text plus the current skills. Saves nothing."""
+        profile, data, error = checks(request, x_profile_token)
+        if error:
+            return error
+        if not profile.target_role:
+            return envelope(error="pick a target role first", status=422, meta={"code": "NO_TARGET_ROLE"})
+        cv_text = accounts_store.get_cv_text(settings, owner_of(request, x_profile_token))
+        try:
+            return envelope(cv_writer.generate(profile, profile.target_role, cv_text, data, model_call(request)))
+        except service.RoleNotFound:
+            return envelope(error="no pathway for this role: unknown, or too few job posts to learn it", status=422,
+                            meta={"code": "VALIDATION_ERROR"})
