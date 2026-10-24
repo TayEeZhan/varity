@@ -13,15 +13,22 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Literal
+from http import HTTPStatus
 from xml.sax.saxutils import escape
 from zoneinfo import ZoneInfo
 
 import markdown as md
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Query, Request
+from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.routing import Match
+
+from intake.readers import MESSAGES
 
 from trendsignal.agents.template import CATEGORY_LABELS
 from trendsignal.jobs import AppContext, load_context, make_digest, run_pipeline_if_idle
@@ -32,6 +39,7 @@ from trendsignal.queries import (feed, get_story, last_run, latest_digest, recor
 from trendsignal.timeutil import parse_iso
 
 WEB_DIR = Path(__file__).parent
+BODY_PARTS = {"body", "query", "path", "header", "cookie"}  # leading entries of a pydantic error "loc"
 TIER_ORDER = ("must_know", "worth_a_look", "emerging", "minor")
 TIER_LABELS = {"must_know": "Must-know", "worth_a_look": "Worth a look", "emerging": "Emerging", "minor": "Minor"}
 MINOR_SHOWN = 60
@@ -101,9 +109,9 @@ def render_brief_html(body_md: str) -> str:
 def _check_admin(ctx: AppContext, token: str | None) -> None:
     expected = ctx.settings.admin_token
     if not expected:
-        raise HTTPException(status_code=404, detail="admin endpoints are disabled (set ADMIN_TOKEN)")
+        raise HTTPException(status_code=404, detail="Not found.")  # generic: don't reveal the admin routes exist
     if not token or not hmac.compare_digest(token.encode("utf-8"), expected.encode("utf-8")):
-        raise HTTPException(status_code=403, detail="invalid admin token")
+        raise HTTPException(status_code=401, detail="Not allowed.")
 
 
 def _local(iso: str, tz: ZoneInfo) -> datetime:
@@ -153,6 +161,30 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
 
     app = FastAPI(title="AI Trend Signal Layer", version="0.1.0", lifespan=lifespan)
     app.mount("/static", StaticFiles(directory=WEB_DIR / "static"), name="static")
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(request: Request, exc: RequestValidationError):
+        if not request.url.path.startswith("/api/"):
+            return await request_validation_exception_handler(request, exc)
+        err = exc.errors()[0]
+        field = next((str(p) for p in reversed(err["loc"]) if isinstance(p, str) and p not in BODY_PARTS), None)
+        if err["type"] == "string_too_long" and field == "file_b64":
+            return envelope(error=MESSAGES["TOO_LARGE"], status=422, meta={"code": "TOO_LARGE"})
+        if err["type"] == "missing":
+            message = f"Missing field: {field}" if field else "Missing request body."
+        else:
+            message = f"Invalid value for {field}" if field else "Invalid request."
+        return envelope(error=message, status=422, meta={"code": "INVALID_REQUEST"})
+
+    @app.exception_handler(StarletteHTTPException)
+    async def http_error(request: Request, exc: StarletteHTTPException):
+        if not request.url.path.startswith("/api/"):
+            return await http_exception_handler(request, exc)
+        message = exc.detail if isinstance(exc.detail, str) else "Request failed."
+        if message == HTTPStatus(exc.status_code).phrase:  # Starlette's default text, e.g. "Method Not Allowed"
+            message = message.capitalize() + "."
+        return envelope(error=message, status=exc.status_code, meta={"code": HTTPStatus(exc.status_code).name})
+
     templates = Jinja2Templates(directory=WEB_DIR / "templates")
     templates.env.globals.update(category_labels=CATEGORY_LABELS, tier_labels=TIER_LABELS,
                                  categories=CATEGORIES, audiences=AUDIENCES)
@@ -310,6 +342,13 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
     add_role_routes(app, ctx)
     from trendsignal.web.evidence_api import add_evidence_routes  # same reason as cv_api
     add_evidence_routes(app, ctx.settings)
+
+    @app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"], include_in_schema=False)
+    def api_unknown(request: Request, path: str):
+        # Only reached when no real route matched fully; without this the "/" static mount would turn a 405 into a 404.
+        if any(r.matches(request.scope)[0] == Match.PARTIAL for r in app.routes if r.path != "/api/{path:path}"):
+            raise HTTPException(status_code=405)
+        raise HTTPException(status_code=404)
 
     # Mounted last so every route above wins over the static files.
     frontend = ctx.settings.frontend_dir
