@@ -9,6 +9,7 @@ from __future__ import annotations
 import csv
 import json
 import sys
+import time
 from datetime import date
 from functools import lru_cache
 from pathlib import Path
@@ -25,6 +26,7 @@ VERITY_ROOT = Path(__file__).resolve().parents[3]
 if str(VERITY_ROOT) not in sys.path:
     sys.path.insert(0, str(VERITY_ROOT))  # engine/ lives at the verity root, as app.py does it
 
+from engine import live as live_mod  # noqa: E402
 from engine import pathway as pathway_mod  # noqa: E402
 from engine import roles as roles_mod  # noqa: E402
 from engine import sdg as sdg_mod  # noqa: E402
@@ -65,8 +67,24 @@ def _read(path: str, mtime: float) -> Any:
         return json.load(fh)
 
 
-def load_data(data_dir: Path = DATA_DIR) -> dict[str, Any]:
+LIVE_CHECK_SECONDS = 600
+_live = {"checked": float("-inf"), "dir": None}
+
+
+def current_data_dir() -> Path:
+    """The newest stored snapshot (engine.live, written by the daily refresh), else the committed data/.
+
+    The store is asked at most every 10 minutes; any store problem means the committed data.
+    """
+    now = time.monotonic()
+    if now - _live["checked"] > LIVE_CHECK_SECONDS:
+        _live.update(checked=now, dir=live_mod.start_dir(DATA_DIR))
+    return Path(_live["dir"]) if _live["dir"] else DATA_DIR
+
+
+def load_data(data_dir: Path | None = None) -> dict[str, Any]:
     """The engine files. Raises FileNotFoundError when one is missing."""
+    data_dir = data_dir or current_data_dir()
     data = {key: _read(str(data_dir / name), (data_dir / name).stat().st_mtime) for key, name in FILES.items()}
     for key, name in OPTIONAL_FILES.items():
         try:

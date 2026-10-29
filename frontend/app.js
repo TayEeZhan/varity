@@ -140,6 +140,7 @@ async function loadForecast() {
     Object.keys(FORECAST).forEach((k) => delete FORECAST[k]);
     Object.assign(FORECAST, body.data);
     STATE.forecastLive = true;
+    STATE.forecastMeta = body.meta || {};
   } catch (e) {
     return;
   }

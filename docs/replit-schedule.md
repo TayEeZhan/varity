@@ -26,15 +26,16 @@ snapshots/<UTC time>/skill_scores.json
                      demand_monthly.csv
                      hn_threads.csv
                      ai_context_monthly.csv
-                     meta.json    <- fetched_at, posts before/after, thread id, generated_at, code commit
+                     role_demand_monthly.csv, role_trends.json,
+                     role_backtest.json, role_forecast.json   <- role forecast (Phase 1)
+                     meta.json    <- fetched_at, posts before/after, thread id, roles_updated, generated_at, code commit
 ```
 
 The newest 14 snapshots are kept. Older ones are deleted. If a job fails half way, `latest.json` is not changed, so visitors keep the last good data.
 
 ## Part 1. Merge and redeploy first
 
-1. Merge the branch `feat/scheduled-refresh` into `main` (after you review it).
-2. In Replit, pull the new code (Git tool, "Pull"; verify this label in your Replit UI).
+1. Get the new code to Replit. The Phase 1 role-refresh code is not on GitHub yet, so a Pull does not bring it. Either push it (your call) and Pull in Replit (Git tool, "Pull"; verify this label in your Replit UI), or copy the changed files listed in `HANDOFF.md` into the Replit workspace.
 3. Publish the app again, so it installs the new package from `requirements.txt` (the build command is `pip install -r requirements.txt`).
 
 ## Part 2. Create the App Storage bucket
@@ -106,8 +107,11 @@ Note: I could not check whether the workspace and the published app share one bu
 
 ## Part 6. Check that it worked
 
-1. Check the job log (Part 7) shows `"ok": true`. The Varity web app does not read these snapshots yet (only `engine.live` can, and nothing in `backend/` calls it), so there is no banner to look for.
-2. Optional: open the App Storage page. You should see `latest.json` and a `snapshots/` folder.
+1. Check the job log (Part 7) shows `"ok": true` and `"roles_updated": true`.
+2. Wait up to 10 minutes (the web app checks the store every 10 minutes), then open the role forecast screen. The header should end with `· updated YYYY-MM-DD · N posts so far this month`. Without that text, the app still shows the committed data: `GET /api/roles/forecast` returns `"source": "committed"` in `meta`.
+3. Optional: open the App Storage page. You should see `latest.json` and a `snapshots/` folder.
+
+The web app also runs the same job itself every day at 06:30 (scheduler job `forecast_refresh`). On Autoscale it only runs when an instance is awake, so the Scheduled Deployment is the reliable path. Two runs a day are harmless: each one switches `latest.json` only after a full upload.
 
 ## Part 7. Look at the logs
 

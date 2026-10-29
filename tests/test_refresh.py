@@ -363,6 +363,42 @@ def test_refresh_adds_a_new_month_in_a_temp_dir_and_scores_follow(tmp_path):
     assert new["skills"][0]["sources"][2]["date"] == "2026-11-01"
 
 
+def test_refresh_rebuilds_role_demand_trends_and_forecast_for_the_new_month_only(tmp_path):
+    work = tmp_path / "work"
+    created = datetime(2026, 11, 1, 15, 0, 0, tzinfo=timezone.utc)
+    posts = [f"Co{i} | Backend Engineer | Python" for i in range(10)] + _fake_posts(30)
+    session = LatestThreadSession(777, "Ask HN: Who is hiring? (November 2026)", created, posts)
+    old_rows = read_rows(REAL_DATA / "role_demand_monthly.csv")
+
+    result = refresh_mod.refresh(work, source_dir=REAL_DATA, session=session)
+
+    assert result["ok"] is True, result
+    assert result["roles_updated"] is True and result["roles_error"] is None
+    rows = read_rows(work / "role_demand_monthly.csv")
+    assert [r for r in rows if r["month"] != "2026-11"] == old_rows  # older months untouched
+    new = {r["role_id"]: r for r in rows if r["month"] == "2026-11"}
+    assert int(new["backend_engineer"]["mentions"]) >= 10 and int(new["backend_engineer"]["n_posts"]) == 40
+    forecast = json.loads((work / "role_forecast.json").read_text(encoding="utf-8"))
+    trends = json.loads((work / "role_trends.json").read_text(encoding="utf-8"))
+    assert forecast["as_of"] == trends["as_of"] == "2026-11"
+
+
+def test_a_role_failure_keeps_the_old_role_files_and_the_new_skill_scores(tmp_path, monkeypatch):
+    from engine import role_forecast
+
+    work = tmp_path / "work"
+    created = datetime(2026, 11, 1, 15, 0, 0, tzinfo=timezone.utc)
+    session = LatestThreadSession(777, "Ask HN: Who is hiring? (November 2026)", created, _fake_posts(40))
+    monkeypatch.setattr(role_forecast, "main", lambda data_dir=None: (_ for _ in ()).throw(RuntimeError("boom")))
+
+    result = refresh_mod.refresh(work, source_dir=REAL_DATA, session=session)
+
+    assert result["ok"] is True and result["scores_updated"] is True
+    assert result["roles_updated"] is False and result["roles_error"] == "RuntimeError: boom"
+    for name in refresh_mod.ROLE_FILES:
+        assert (work / name).read_bytes() == (REAL_DATA / name).read_bytes(), name
+
+
 # --- the default work folder is never the committed data folder ------------------------
 
 def test_default_work_dir_is_a_runtime_folder_not_the_source(tmp_path, stub_scores):

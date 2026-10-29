@@ -17,6 +17,9 @@ Steps
 4. Call engine.scores.build_scores(data_dir=<working directory>) and write
    skill_scores.json into the same directory. Every input of build_scores
    (demand, taxonomy, exposure, backtest, thread titles) is read from there.
+5. Roles, in the same directory: recompute that month in role_demand_monthly.csv,
+   then role_trends.json, role_backtest.json and role_forecast.json. A failure here
+   puts the old role files back and is reported as roles_error; skills are kept.
 
 The app must read skill_scores.json from result["data_dir"], not always from
 the repo data/ folder.
@@ -28,6 +31,8 @@ HN post text is never written to a committed file. Raw JSON stays in
 """
 from __future__ import annotations
 
+import contextlib
+import csv
 import inspect
 import json
 import os
@@ -50,6 +55,7 @@ SCORES_NAME = "skill_scores.json"
 # Argument names that would mean build_scores takes a data directory.
 # build_scores has had "data_dir" since step A1; the other names are older guesses.
 DIR_PARAM_NAMES = ("data_dir", "work_dir", "base_dir", "root", "data_path")
+ROLE_FILES = ("role_demand_monthly.csv", "role_trends.json", "role_backtest.json", "role_forecast.json")
 
 _LOCK = threading.Lock()
 
@@ -152,6 +158,36 @@ def _atomic_write_text(path: Path, text: str) -> None:
     os.replace(tmp, path)
 
 
+def _restore(backups: dict[Path, bytes | None]) -> None:
+    for p, data in backups.items():
+        if data is None:
+            p.unlink(missing_ok=True)
+        else:
+            p.write_bytes(data)
+
+
+def _update_roles(data_dir: Path, raw_dir: Path, threads_csv: Path, month: str) -> None:
+    """Recompute role demand for `month` only, then role trends, backtest and forecast, all in data_dir."""
+    from engine import role_backtest, role_forecast
+    from engine import roles as roles_mod
+
+    roles = roles_mod.load_roles(data_dir / "roles.json")
+    threads = [t for t in roles_mod._read_threads(threads_csv) if t["month"] == month]
+    fresh = roles_mod.role_demand(raw_dir, threads_csv, roles, scan=roles_mod.scan_threads(raw_dir, threads, roles))
+    demand_csv = data_dir / ROLE_FILES[0]
+    rows = [r for r in roles_mod.read_demand_rows(demand_csv) if r["month"] != month] + fresh
+    rows.sort(key=lambda r: r["month"])  # stable sort keeps the roles.json order inside a month
+    with demand_csv.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=roles_mod.DEMAND_COLUMNS)
+        writer.writeheader()
+        writer.writerows({**r, "share": f"{r['share']:.6f}"} for r in rows)
+    trends = roles_mod.build_role_trends(rows, roles)
+    _atomic_write_text(data_dir / ROLE_FILES[1], json.dumps(trends, indent=2) + "\n")
+    with contextlib.redirect_stdout(sys.stderr):  # engine.scheduled prints one JSON line on stdout
+        role_backtest.main(data_dir)  # before role_forecast: it dates the forecast's band
+        role_forecast.main(data_dir)
+
+
 def refresh(
     work_dir: str | Path | None = None,
     *,
@@ -189,7 +225,7 @@ def refresh(
         posts_by_thread = demand._read_threads(threads_csv) if threads_csv.exists() else []
         posts_by_thread = {int(r["thread_id"]): int(r["n_top_level"]) for r in posts_by_thread}
 
-        for p in (threads_csv, demand_csv, ai_csv, scores_json):
+        for p in (threads_csv, demand_csv, ai_csv, scores_json, *(data_dir / n for n in ROLE_FILES)):
             backups[p] = p.read_bytes() if p.exists() else None
 
         try:
@@ -214,12 +250,17 @@ def refresh(
             except Exception as exc:  # scores are another module; keep demand data, report it
                 new_scores = old_scores
                 scores_error = f"{type(exc).__name__}: {exc}"
+            roles_error = None
+            roles_updated = False
+            if (data_dir / "roles.json").is_file() and (data_dir / ROLE_FILES[0]).is_file():
+                try:
+                    _update_roles(data_dir, raw_dir, threads_csv, month)
+                    roles_updated = True
+                except Exception as exc:  # roles are another module; keep skills, put the old role files back
+                    _restore({data_dir / n: backups[data_dir / n] for n in ROLE_FILES})
+                    roles_error = f"{type(exc).__name__}: {exc}"
         except BaseException:
-            for p, data in backups.items():  # keep the last good data
-                if data is None:
-                    p.unlink(missing_ok=True)
-                else:
-                    p.write_bytes(data)
+            _restore(backups)  # keep the last good data
             raise
 
         before = posts_by_thread.get(thread_id)
@@ -242,6 +283,8 @@ def refresh(
             "scores_error": scores_error,
             "scores_json": str(scores_json),
             "build_scores_accepts_data_dir": dir_accepted,
+            "roles_updated": roles_updated,
+            "roles_error": roles_error,
             "duration_s": round(time.monotonic() - started, 2),
         }
     except Exception as exc:
