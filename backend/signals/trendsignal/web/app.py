@@ -20,6 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.routing import Match
 
+from advisor import service
 from intake.readers import MESSAGES
 
 from trendsignal.jobs import AppContext, load_context, run_pipeline_if_idle
@@ -165,12 +166,20 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
 
     @app.get("/api/roles/forecast")
     def api_role_forecast():
-        """Varity's Job forecast page: data/role_forecast.json as the engine wrote it (read only, never recomputed)."""
-        path = ctx.settings.role_forecast_path
+        """Varity's Job forecast page: role_forecast.json as the engine wrote it (read only, never recomputed).
+
+        From the newest daily-refresh snapshot when there is one, else the configured (committed) file.
+        meta says which, with the fetch date and post count of the snapshot."""
+        folder = service.current_data_dir()
+        live = folder / "role_forecast.json"
+        path = live if folder != service.DATA_DIR and live.is_file() else ctx.settings.role_forecast_path
         if not path or not path.is_file():
             return envelope(error="no role forecast yet: run engine/role_forecast.py", status=404)
+        snap = service.live_mod.folder_meta(folder) if path == live else None
+        meta = ({"source": "daily refresh", **{k: snap.get(k) for k in ("fetched_at", "posts_after", "month")}}
+                if snap else {"source": "committed"})
         try:
-            return envelope(json.loads(path.read_text(encoding="utf-8")))
+            return envelope(json.loads(path.read_text(encoding="utf-8")), meta=meta)
         except (OSError, ValueError):
             return envelope(error="role forecast file could not be read", status=500)
 

@@ -27,7 +27,7 @@ from engine import store as store_mod  # noqa: E402
 
 log = logging.getLogger("verity.scheduled")
 
-META_KEYS = ("fetched_at", "posts_before", "posts_after", "thread_id", "month")
+META_KEYS = ("fetched_at", "posts_before", "posts_after", "thread_id", "month", "roles_updated")
 
 
 def run(store: store_mod.SnapshotStore | None = None, **refresh_kwargs) -> dict:

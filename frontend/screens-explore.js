@@ -71,6 +71,12 @@ function renderSignals() {
 const TREND_ORDER = { Rising: 0, "No clear change": 1, Falling: 2 };
 const TREND_CLASS = { Rising: "up", Falling: "down" };
 const pct = (v) => `${(v * 100).toFixed(1)}%`;
+// " · updated <date> · <n> posts so far" when the backend served the daily-refresh snapshot.
+const refreshedText = () => {
+  const m = STATE.forecastMeta || {};
+  if (m.source !== "daily refresh" || !m.fetched_at) return "";
+  return ` · updated ${String(m.fetched_at).slice(0, 10)}${m.posts_after ? ` · ${m.posts_after} posts so far this month` : ""}`;
+};
 
 function renderForecast() {
   const roles = Object.values(FORECAST.roles || {});
@@ -105,7 +111,7 @@ function renderForecast() {
   const html = `
     ${head("Job forecast", "How demand for tech roles may change over the next 12 months, from the share of Hacker News “Who is hiring?” posts that name each role. Ranges are estimates, not counts. Two scenarios exist for routes: the forecast here is the moderate one; the fast AI scenario is shown on CV &amp; routes, also as an estimate.")}
     <div class="fc-bar-head">
-      ${(STATE.forecastLive ? real : snapshot)(`${STATE.forecastLive ? "Real data" : "Offline snapshot"} · HN hiring posts · as of ${(FORECAST.as_of || "?") + (FORECAST.partial_month ? " (month in progress)" : "")}`)}
+      ${(STATE.forecastLive ? real : snapshot)(`${STATE.forecastLive ? "Real data" : "Offline snapshot"} · HN hiring posts · as of ${(FORECAST.as_of || "?") + (FORECAST.partial_month ? " (month in progress)" : "")}${refreshedText()}`)}
       <div class="fc-key">
         <span><i class="k-tick"></i>Share now</span>
         <span><i class="k-bar"></i>In 12 months</span>
