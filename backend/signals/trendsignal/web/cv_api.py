@@ -2,7 +2,8 @@
 
 Anonymous use: the browser holds a random profile token and sends it as X-Profile-Token. Only the
 token's SHA-256 is stored, so a copied database does not give access to anyone's profile. A signed-in
-account (auth_api.py) needs no token. The raw CV is never stored; only the skills, their quotes and the rules behind them.
+account (auth_api.py) needs no token. The uploaded file is never stored. On Save, the cleaned CV text (contacts
+replaced by [email], [phone], [link]) is kept in owner_cvs for Generate CV; it is deleted with the profile.
 """
 
 from __future__ import annotations

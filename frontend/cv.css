@@ -1,0 +1,103 @@
+/* My CV: the CV builder. The CV itself uses Jake's resume layout (one column, centred header, small-caps headings
+   with a rule, dates right-aligned) and is the only thing printed by Download PDF. */
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.cv-top { display: grid; gap: 12px; margin-bottom: 18px; }
+.cv-top select, .cv-top textarea, .cv-send textarea {
+  font: inherit; font-size: var(--t-md); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; background: var(--paper); color: var(--ink);
+}
+.cv-top select { margin-left: 8px; max-width: 100%; }
+.cv-top textarea, .cv-send textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+.cv-top summary { cursor: pointer; font-weight: 600; }
+.cv-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.cv-note { font-size: var(--t-sm); margin: 0; opacity: 0.8; }
+.cv-note--warn { border-left: 4px solid var(--signal); padding: 6px 10px; margin-bottom: 14px; opacity: 1; }
+
+.cv-tabs { display: none; gap: 6px; margin-bottom: 12px; }
+.cv-tabs button { font: inherit; padding: 8px 14px; border: 1px solid var(--ink); border-radius: 18px; background: var(--paper); color: var(--ink); }
+.cv-tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+
+.cv-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 24px; align-items: start; }
+.cv-preview { background: #e9e9e9; padding: 18px; border-radius: 8px; overflow-x: auto; }
+
+/* ── Jake's layout ── */
+.cvdoc {
+  background: #fff; color: #000; max-width: 210mm; margin: 0 auto; padding: 12mm 14mm; box-sizing: border-box;
+  font: 10.5pt/1.35 "Latin Modern Roman", "CMU Serif", Georgia, "Times New Roman", serif; box-shadow: 0 1px 6px rgba(0,0,0,.2);
+}
+.cv-head { text-align: center; margin-bottom: 4px; }
+.cv-head h2 { font-size: 22pt; font-variant: small-caps; margin: 0 0 2px; letter-spacing: .5px; }
+.cv-head p { font-size: 9.5pt; margin: 0; }
+.cvdoc h3 { font-variant: small-caps; font-weight: normal; font-size: 12pt; border-bottom: .8px solid #000; margin: 10px 0 4px; padding-bottom: 1px;
+  display: flex; justify-content: space-between; align-items: end; gap: 8px; }
+.cv-entry { margin: 0 0 6px 8px; position: relative; }
+.cv-row { display: flex; justify-content: space-between; gap: 12px; }
+.cv-row i { font-size: 9.5pt; }
+.cvdoc ul { margin: 2px 0 0; padding-left: 20px; font-size: 9.8pt; }
+.cvdoc li { margin: 1px 0; }
+.cv-summary, .cv-skills { margin: 0 8px; font-size: 9.8pt; }
+.cv-skills p { margin: 1px 0; }
+.cv-learned { font-style: italic; }
+.cv-foot { font-size: 8.5pt; opacity: .75; }
+.cv-mine, .cv-mine .cv-ed { font-style: italic; }
+.cvdoc--plain pre { white-space: pre-wrap; font: inherit; margin: 0; }
+
+.cv-ed { border-radius: 2px; outline: 1px dashed transparent; }
+.cv-ed:hover { outline-color: #9aa; }
+.cv-ed:focus { outline: 2px solid var(--focus); background: #f3f6ff; }
+.cv-pick {
+  font: 600 11px/1 var(--font); font-variant: normal; letter-spacing: 0; padding: 4px 8px; border: 1px solid #888; border-radius: 12px;
+  background: #fff; color: #333; cursor: pointer; margin-top: 2px;
+}
+.cv-entry > .cv-pick { position: absolute; right: -12mm; top: 0; opacity: 0; }  /* in the page margin, never over text */
+.cv-entry:hover > .cv-pick, .cv-entry > .cv-pick:focus, .cv-pick.is-on { opacity: 1; }
+.cv-pick.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ── Chat ── */
+.cv-chat { border-top: 3px solid var(--ink); padding-top: 14px; position: sticky; top: 12px; }
+.cv-chat h2 { margin: 0 0 4px; font-size: var(--t-lg); }
+.cv-hint { font-size: var(--t-sm); opacity: .8; margin: 0 0 10px; }
+.cv-log { max-height: 52vh; overflow-y: auto; display: grid; gap: 8px; padding: 4px 2px 8px; }
+.cv-msg { margin: 0; padding: 8px 12px; border-radius: 10px; font-size: var(--t-md); white-space: pre-wrap; max-width: 90%; }
+.cv-msg--user { background: var(--ink); color: var(--paper); justify-self: end; }
+.cv-msg--assistant { background: #f1f1ef; justify-self: start; }
+.cv-card { border: 1px solid var(--rule); border-left: 4px solid var(--apps); border-radius: 8px; padding: 10px 12px; font-size: var(--t-md); }
+.cv-card p { margin: 0 0 6px; }
+.cv-card--off { border-left-color: var(--signal); }
+.cv-card fieldset { border: 0; padding: 0; margin: 0 0 10px; }
+.cv-card legend { font-weight: 600; margin-bottom: 4px; }
+.cv-opt { display: block; padding: 3px 0; }
+.cv-opt--other input { font: inherit; border: 1px solid var(--rule); border-radius: 4px; padding: 4px 6px; width: 60%; }
+.cv-diff { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cv-diff > div { border-radius: 6px; padding: 6px 8px; font-size: var(--t-sm); }
+.cv-diff span { font-weight: 700; font-size: var(--t-xs); text-transform: uppercase; }
+.cv-diff ul { margin: 4px 0 0; padding-left: 18px; }
+.cv-before { background: #fdecec; }
+.cv-after { background: #e8f5ec; }
+.cv-done { font-size: var(--t-sm); font-weight: 600; opacity: .7; }
+.cv-sel { font-size: var(--t-sm); margin: 6px 0; }
+.cv-send { margin-top: 6px; }
+
+@media (max-width: 960px) {
+  .cv-tabs { display: flex; }
+  .cv-grid { grid-template-columns: 1fr; }
+  .cv-grid[data-pane="preview"] .cv-chat, .cv-grid[data-pane="chat"] .cv-preview { display: none; }
+  .cv-chat { position: static; }
+  .cv-preview { padding: 0; background: none; }
+  .cvdoc { padding: 16px; box-shadow: none; border: 1px solid var(--rule); }
+  .cv-row { flex-wrap: wrap; gap: 0 12px; }
+  .cv-diff { grid-template-columns: 1fr; }
+  .cv-entry > .cv-pick { position: static; opacity: 1; }
+}
+
+/* Download PDF prints only the CV. */
+@media print {
+  @page { size: A4; margin: 12mm 14mm; }
+  body * { visibility: hidden; }
+  .cvdoc, .cvdoc * { visibility: visible; }
+  .cvdoc { position: absolute; left: 0; top: 0; width: 100%; max-width: none; padding: 0; box-shadow: none; border: 0; }
+  .cv-pick { display: none; }
+  .cv-ed, .cv-ed:focus { outline: none; background: none; }
+  .cv-grid[data-pane] .cv-preview { display: block; }
+}
