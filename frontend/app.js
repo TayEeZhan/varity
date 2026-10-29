@@ -42,8 +42,9 @@ const SCREENS = {
   forecast: renderForecast,
   radar: renderRadar,
   method: renderMethod,
+  cv: renderCv,
 };
-const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method" };
+const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method", cv: "My CV" };
 const DEFAULT_SCREEN = "today";
 
 /* An explicit hash wins ("#/" is the landing). With none, a visitor with a saved profile (account or this
@@ -469,23 +470,6 @@ function download(name, mime, text) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/* A CV for the target role from the saved CV and current skills. The server checks every claim; nothing is saved. */
-const CV_NOTES = { no_cv: "No saved CV: upload it again for a full version.", llm: "" };
-async function generateCv(button) {
-  button.disabled = true;
-  try {
-    const cv = await api("/api/cv/generate", { method: "POST" });
-    download("verity_cv.md", "text/markdown", cv.markdown);
-    const note = CV_NOTES[cv.mode] ?? "AI is off, so your CV is kept as it was with an updated skills list.";
-    const dropped = cv.dropped.length ? ` ${cv.dropped.length} unsupported line(s) removed.` : "";
-    toast(`CV for ${cv.role} downloaded. ${note}${dropped}`.trim());
-  } catch (e) {
-    toast(errText(e));
-  } finally {
-    button.disabled = false;
-  }
-}
-
 /* ── Google Tasks (shown only when the server has GOOGLE_CLIENT_ID) ───────────────
    The browser asks Google for a Tasks-only token and writes the list itself. The token stays in this
    page's memory; Varity's server never sees it or the tasks. */
@@ -568,8 +552,6 @@ document.addEventListener("click", async (e) => {
     download("verity_plan.md", "text/markdown", planMarkdown(STATE.plan));
   } else if (act === "download-ics" && STATE.plan) {
     download("verity_plan.ics", "text/calendar", planIcs(STATE.plan));
-  } else if (act === "generate-cv") {
-    generateCv(b);
   } else if (act === "gtasks" && TODAY.tasks.length && !GTASKS.busy) {
     GTASKS.busy = true;
     rerender();
@@ -590,6 +572,7 @@ document.addEventListener("click", async (e) => {
       STATE.profileError = "";
       STATE.review = null;
       STATE.cv = "parsed";
+      resetCvBuilder();
       rerender();
       toast("Example profile saved. It is synthetic: no CV was read.");
       refreshRoutes();
