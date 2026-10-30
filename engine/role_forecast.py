@@ -61,13 +61,17 @@ from engine.forecast import (  # noqa: E402
     has_enough_data,
     inv_logit,
     load_demand,
+    days_open,
+    load_nowcast_k,
     logit_series,
+    nowcast_y,
     trend_label,
     volatility,
     wide_tables,
 )
-from engine.roles import ROLE_DEMAND_CSV, ROLES_JSON, load_roles  # noqa: E402
-from engine.scores import EVIDENCE_MONTHS, LATEST_WINDOW, _thread_sources, moderate_band  # noqa: E402
+from engine.roles import (  # noqa: E402
+    EXPOSURE_CSV, PROFILES_JSON, ROLE_DEMAND_CSV, ROLES_JSON, load_exposure, load_roles, profile_for)
+from engine.scores import K, EVIDENCE_MONTHS, LATEST_WINDOW, _thread_sources, fast_scenario, moderate_band  # noqa: E402
 
 ROLE_FORECAST_JSON = DATA_DIR / "role_forecast.json"
 ROLE_BACKTEST_JSON = DATA_DIR / "role_backtest.json"
@@ -120,6 +124,40 @@ def _read_backtest(data_dir: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+DECLINING_WEIGHT = 0.5  # share of the role's skill weight in Falling skills (team judgement)
+
+
+def _role_context(data_dir: Path, as_of: str) -> dict[str, dict]:
+    """role id -> {"e_r", "falling_weight"} from the role profile at as_of. Empty if a file is missing.
+
+    e_r = weighted mean of the role's skills' e_s (weights from role_profiles.json).
+    falling_weight = share of that weight in skills whose trend label is Falling (skill_scores.json).
+    """
+    try:
+        profile = profile_for(as_of, json.loads((data_dir / PROFILES_JSON.name).read_text(encoding="utf-8")))
+        exposure = load_exposure(data_dir / EXPOSURE_CSV.name)
+        skills = json.loads((data_dir / "skill_scores.json").read_text(encoding="utf-8"))["skills"]
+    except (OSError, ValueError, KeyError):
+        return {}
+    falling = {s["skill"] for s in skills if s.get("trend_label") == "Falling"}
+    out = {}
+    for role in profile["roles"]:
+        weights = {s["skill"]: float(s["weight"]) for s in role["skills"]}
+        total = sum(weights.values())
+        if total:
+            out[role["role_id"]] = {
+                "e_r": sum(w * exposure.get(s, 0.0) for s, w in weights.items()) / total,
+                "falling_weight": sum(w for s, w in weights.items() if s in falling) / total,
+            }
+    return out
+
+
+def _nowcast_block(n_last: float, k: float, partial: bool) -> dict:
+    """How much the open month counts: weight n / (n + k) against the month before."""
+    return {"k": k, "posts_this_month": int(n_last) if partial else None,
+            "weight": n_last / (n_last + k) if k else None}
+
+
 def role_forecast_for(as_of: str | None = None, backtest: dict | None = None,
                       demand: pd.DataFrame | None = None, today: datetime | None = None,
                       data_dir: Path | str | None = None) -> dict:
@@ -170,12 +208,14 @@ def role_forecast_for(as_of: str | None = None, backtest: dict | None = None,
     sources = ([dict(s) for s in _thread_sources(threads, latest_months)]
                + [backtest_source(backtest["generated_at"])])
     partial = months[-1] == today.strftime("%Y-%m")
+    k_now = load_nowcast_k(data_dir, "roles", days_open(threads, months[-1], today)) if partial else 0.0
+    context = _role_context(data_dir, as_of)
 
     roles_out: dict[str, dict] = {}
     for rid in mentions.columns:
         m = mentions[rid].to_numpy(dtype=float)
         p = n_posts[rid].to_numpy(dtype=float)
-        ys = y[rid].to_numpy()
+        ys = nowcast_y(m, p, k_now) if k_now else y[rid].to_numpy()
         status = "ok" if has_enough_data(m) else "low_volume"
         label, trend_p = trend_label(ys, m)
         m3, p3 = int(m[-LATEST_WINDOW:].sum()), int(p[-LATEST_WINDOW:].sum())
@@ -192,10 +232,16 @@ def role_forecast_for(as_of: str | None = None, backtest: dict | None = None,
             width_pp = None
             note = LOW_VOLUME_NOTE
 
+        ctx = context.get(rid)
         roles_out[rid] = {
             "name": names.get(rid, rid),
             "status": status,
             "note": note,
+            "ai_exposure_e_r": None if ctx is None else ctx["e_r"],
+            "forecast_fast": ({key: fast_scenario(v, ctx["e_r"], K) for key, v in moderate.items()}
+                              if ctx is not None else {"value_12m": None, "low": None, "high": None}),
+            "declining": bool(ctx is not None and label == "Falling" and ctx["falling_weight"] > DECLINING_WEIGHT),
+            "falling_skill_weight": None if ctx is None else ctx["falling_weight"],
             "share_now": {"value": m3 / p3, "mentions": m3, "posts": p3, "months": list(latest_months)},
             "level_now": float(inv_logit(ys[-LATEST_WINDOW:].mean())),
             "forecast_moderate": moderate,
@@ -223,11 +269,16 @@ def role_forecast_for(as_of: str | None = None, backtest: dict | None = None,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "as_of": as_of,
         "partial_month": partial,
+        "nowcast": _nowcast_block(float(n_posts.iloc[-1].iloc[0]), k_now, partial),
         "interval": {"label": BAND_LABEL, "level": INTERVAL_LEVEL, "model": model,
                      "window_origins": INTERVAL_WINDOW, "q_h12": q12,
                      "model_scores_h12_pp": {k: round(v * 100, 4) for k, v in scores.items()},
                      "n_roles_pooled": len(roles_out), "earliest_supported_as_of": earliest},
         "notes": list(OUTPUT_NOTES),
+        "scenario_params": {"k": K, "fast": "fast = moderate * (1 - k * e_r), e_r = weighted mean e_s of the "
+                                            "role's profile skills (same rule as skills)",
+                            "declining": f"trend Falling AND more than {DECLINING_WEIGHT:.0%} of the role's "
+                                         "skill weight in Falling skills"},
         "data_window": {"from": months[0], "to": months[-1]},
         "excluded_roles": excluded,
         "roles": roles_out,

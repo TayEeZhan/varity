@@ -40,6 +40,7 @@ import shutil
 import sys
 import tempfile
 import threading
+from datetime import datetime, timezone
 import time
 from pathlib import Path
 
@@ -55,7 +56,9 @@ SCORES_NAME = "skill_scores.json"
 # Argument names that would mean build_scores takes a data directory.
 # build_scores has had "data_dir" since step A1; the other names are older guesses.
 DIR_PARAM_NAMES = ("data_dir", "work_dir", "base_dir", "root", "data_path")
-ROLE_FILES = ("role_demand_monthly.csv", "role_trends.json", "role_backtest.json", "role_forecast.json")
+ROLE_FILES = ("role_demand_monthly.csv", "role_trends.json", "role_backtest.json", "role_forecast.json",
+              "forecast_ledger.csv", "llm_role_labels.csv", "roles.json", "title_counts_monthly.csv",
+              "role_reviews.json", "role_candidates.json")
 
 _LOCK = threading.Lock()
 
@@ -167,13 +170,32 @@ def _restore(backups: dict[Path, bytes | None]) -> None:
 
 
 def _update_roles(data_dir: Path, raw_dir: Path, threads_csv: Path, month: str) -> None:
-    """Recompute role demand for `month` only, then role trends, backtest and forecast, all in data_dir."""
-    from engine import role_backtest, role_forecast
+    """Recompute role demand for `month` only, then role trends, backtest and forecast, all in data_dir.
+
+    With the AI labeller switched on (role_labeller.json), the month's new posts are labelled by
+    Claude first; without it, the title regex counts. Then the forecast is written to the ledger,
+    and the ledger summary (track record, change since the last run) goes into role_forecast.json.
+    """
+    from engine import ledger, llm_labels, role_backtest, role_discover, role_forecast
     from engine import roles as roles_mod
 
-    roles = roles_mod.load_roles(data_dir / "roles.json")
     threads = [t for t in roles_mod._read_threads(threads_csv) if t["month"] == month]
-    fresh = roles_mod.role_demand(raw_dir, threads_csv, roles, scan=roles_mod.scan_threads(raw_dir, threads, roles))
+    discovered = role_discover.daily(data_dir, raw_dir, threads[0]) if threads else None  # may add a role
+    roles = roles_mod.load_roles(data_dir / "roles.json")
+    labels, label_check, labeller = None, None, "title regex"
+    if llm_labels.uses_llm(data_dir) and threads:
+        config = llm_labels.read_config(data_dir)
+        result = llm_labels.label_thread(data_dir, raw_dir, threads[0], roles)  # one thread per month
+        label_check = {k: result[k] for k in ("claude_posts", "regex_posts", "dropped_quotes", "disagree", "error")}
+        label_check["baseline_disagree"] = config.get("baseline_disagree")
+        if llm_labels.drifted(result, config):
+            labeller = "title regex (Claude's labels drifted from the usual today)"
+        else:
+            labels = result["labels"]
+            labeller = "claude" + (f", title regex for {result['regex_posts']} posts Claude did not label"
+                                   if result["regex_posts"] else "")
+    scan = roles_mod.scan_threads(raw_dir, threads, roles, labels=labels)
+    fresh = roles_mod.role_demand(raw_dir, threads_csv, roles, scan=scan)
     demand_csv = data_dir / ROLE_FILES[0]
     rows = [r for r in roles_mod.read_demand_rows(demand_csv) if r["month"] != month] + fresh
     rows.sort(key=lambda r: r["month"])  # stable sort keeps the roles.json order inside a month
@@ -186,6 +208,16 @@ def _update_roles(data_dir: Path, raw_dir: Path, threads_csv: Path, month: str) 
     with contextlib.redirect_stdout(sys.stderr):  # engine.scheduled prints one JSON line on stdout
         role_backtest.main(data_dir)  # before role_forecast: it dates the forecast's band
         role_forecast.main(data_dir)
+    forecast_path = data_dir / ROLE_FILES[3]
+    doc = json.loads(forecast_path.read_text(encoding="utf-8"))
+    now = datetime.now(timezone.utc)
+    rows_ledger = ledger.record(data_dir, doc, rows, now.strftime("%Y-%m-%d"), now.strftime("%Y-%m"))
+    doc["track_record"] = ledger.summary(rows_ledger)
+    doc["labeller"] = labeller
+    doc["label_check"] = label_check
+    doc["new_roles"] = None if discovered is None else {
+        "added": discovered["added"], "waiting_for_review": len(discovered["waiting_for_review"]), "error": discovered["error"]}
+    _atomic_write_text(forecast_path, json.dumps(doc, indent=2) + "\n")
 
 
 def refresh(

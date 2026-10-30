@@ -180,8 +180,12 @@ def scan_threads(
     threads: list[dict],
     roles: list[dict[str, Any]],
     taxonomy: list[dict[str, Any]] | None = None,
+    labels: Mapping[str, set[str]] | None = None,
 ) -> list[dict]:
     """Count posts per thread. One entry per thread, in the order given.
+
+    labels (post id -> role ids, from engine.llm_labels) replaces the title regex for role counts.
+    Every post must have a label, so one series never mixes two labellers. Only with taxonomy=None.
 
     {"thread_id", "month", "n_posts", "all": {skill: posts}, "roles": {role_id: {"n", "single",
     "skills": {skill: single-role posts}}}}.
@@ -191,6 +195,10 @@ def scan_threads(
     """
     raw_dir = Path(raw_dir)
     patterns = compile_patterns(roles)
+    if labels is not None:
+        if taxonomy is not None:
+            raise ValueError("labels count roles only; profiles are learned with the title regex")
+        return [_scan_labelled(raw_dir, t, patterns, labels) for t in threads]
     out = []
     for thread in threads:
         all_counts: Counter = Counter()
@@ -225,6 +233,26 @@ def scan_threads(
             }
         )
     return out
+
+
+def _scan_labelled(raw_dir: Path, thread: dict, patterns: Mapping[str, Any], labels: Mapping[str, set[str]]) -> dict:
+    """scan_threads entry for one thread, with role ids from the labels instead of the regex."""
+    role_n: Counter = Counter()
+    role_single: Counter = Counter()
+    n_posts = 0
+    for child in _read_item(raw_dir, thread["thread_id"]).get("children") or []:
+        if child.get("deleted") or not (child.get("text") or "").strip():
+            continue
+        n_posts += 1
+        pid = str(child["id"])
+        if pid not in labels:
+            raise ValueError(f"post {pid} of thread {thread['thread_id']} has no label")
+        rids = labels[pid] & set(patterns)
+        role_n.update(rids)
+        if len(rids) == 1:
+            role_single.update(rids)
+    return {"thread_id": thread["thread_id"], "month": thread["month"], "n_posts": n_posts, "all": {},
+            "roles": {rid: {"n": role_n[rid], "single": role_single[rid], "skills": {}} for rid in patterns}}
 
 
 # ---------------------------------------------------------------- 1. role profiles

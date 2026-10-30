@@ -42,6 +42,7 @@ because the forecast date is the last month in the data.
 """
 from __future__ import annotations
 
+import json
 import re
 import warnings
 from dataclasses import dataclass
@@ -87,6 +88,50 @@ def inv_logit(y):
 def smoothed_share(mentions, n_posts):
     """p = (mentions + 0.5) / (n_posts + 1). Never 0 or 1, so logit is finite."""
     return (np.asarray(mentions, dtype=float) + 0.5) / (np.asarray(n_posts, dtype=float) + 1.0)
+
+
+NOWCAST_JSON = DATA_DIR / "nowcast_backtest.json"
+
+
+def nowcast_y(mentions, n_posts, k: float) -> np.ndarray:
+    """Logit series with the last (still open) month blended toward the month before.
+
+    share_last = (m_last + k * s_prev) / (n_last + k), s_prev = smoothed share of the month before.
+    A month with n posts so far gets weight n / (n + k), so a thread with 40 posts barely moves the
+    series and a full thread nearly replaces the old month. k = 0 leaves the series unchanged.
+    k is chosen per day open by engine.nowcast_backtest on past threads cut at day 1, 3, 7 and 14.
+    """
+    m = np.asarray(mentions, dtype=float).copy()
+    n = np.asarray(n_posts, dtype=float).copy()
+    if k > 0 and m.size >= 2:
+        m[-1] += k * float(smoothed_share(m[-2], n[-2]))
+        n[-1] += k
+    return logit(smoothed_share(m, n))
+
+
+def load_nowcast_k(data_dir: Path | str, kind: str, days_open: float | None) -> float:
+    """k for "roles" or "skills" at the cut day nearest to days_open (nowcast_backtest.json).
+
+    0 (no blending) when the file is missing or days_open is unknown.
+    """
+    path = Path(data_dir) / NOWCAST_JSON.name
+    try:
+        by_day = {float(d): float(k) for d, k in json.loads(path.read_text(encoding="utf-8"))[kind]["k_by_day"].items()}
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return 0.0
+    if days_open is None or not by_day:
+        return 0.0
+    return by_day[min(by_day, key=lambda d: abs(d - days_open))]
+
+
+def days_open(threads: pd.DataFrame, month: str, today) -> float | None:
+    """Days since the HN thread of `month` was posted (created_at in hn_threads.csv), or None."""
+    row = threads[threads["month"] == month]
+    if row.empty or "created_at" not in row:
+        return None
+    created = pd.Timestamp(row["created_at"].iloc[0])
+    created = created.tz_localize("UTC") if created.tzinfo is None else created
+    return max((pd.Timestamp(today) - created).total_seconds() / 86400, 0.0)
 
 
 def _check_month(name: str, value: str) -> None:

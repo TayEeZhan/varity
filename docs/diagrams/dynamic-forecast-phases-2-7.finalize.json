@@ -1,0 +1,808 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "startedAt": "2026-10-29T15:50:52.280Z",
+  "specification": {
+    "path": "C:\\Users\\eezha\\AppData\\Local\\Temp\\claude\\C--Users-eezha-verity\\01157d41-e4ab-415f-9ce0-7bfd5d97c512\\scratchpad\\dyn-forecast\\candidate.archify.md",
+    "sha256": "a94befa9dfcd234c5bc66aa8edb4297b6e073332a25fd5cb2b417cff8803b21d",
+    "bytes": 9387
+  },
+  "artifact": {
+    "path": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.html",
+    "sha256": "f8644d86909ab741326d9c454bdf3658abd9565b49c414240bf7b21b0fdf5a63",
+    "bytes": 1746686
+  },
+  "stages": {
+    "browser-check": {
+      "status": "not-run",
+      "execution": "not-requested"
+    },
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "C:\\Users\\eezha\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\\node-v24.16.0-win-x64\\node.exe",
+        "C:\\Users\\eezha\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "explainer",
+        "C:\\Users\\eezha\\AppData\\Local\\Temp\\claude\\C--Users-eezha-verity\\01157d41-e4ab-415f-9ce0-7bfd5d97c512\\scratchpad\\dyn-forecast\\candidate.archify.md",
+        "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "a94befa9dfcd234c5bc66aa8edb4297b6e073332a25fd5cb2b417cff8803b21d",
+          "bytes": 9387
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 3717,
+      "command": [
+        "C:\\Users\\eezha\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\\node-v24.16.0-win-x64\\node.exe",
+        "C:\\Users\\eezha\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "explainer",
+        "C:\\Users\\eezha\\AppData\\Local\\Temp\\claude\\C--Users-eezha-verity\\01157d41-e4ab-415f-9ce0-7bfd5d97c512\\scratchpad\\dyn-forecast\\candidate.archify.md",
+        "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "f72fb9b6-0ec5-4e67-89a9-3b0430bbc840",
+        "ok": true,
+        "command": "deliver",
+        "type": "explainer",
+        "input": "C:\\Users\\eezha\\AppData\\Local\\Temp\\claude\\C--Users-eezha-verity\\01157d41-e4ab-415f-9ce0-7bfd5d97c512\\scratchpad\\dyn-forecast\\candidate.archify.md",
+        "output": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.html",
+        "explainer": {
+          "preparedSha256": "3ab12ab438eccf6a4465aa99c25f73260a076cba1a57fba811dbcb63463b8d77",
+          "dependencies": [
+            {
+              "kind": "diagram-spec",
+              "id": "system-map",
+              "inline": true,
+              "sha256": "aac37d89d6a335e85f23d3b96766ac72e7f5fd32c44fa4aeea0096f6aff44d43",
+              "bytes": 1932
+            },
+            {
+              "kind": "diagram-spec",
+              "id": "daily-run-sequence",
+              "inline": true,
+              "sha256": "cd594947d83d315fe554c350f988b5634059ce03c9dbde4899356ca13884c119",
+              "bytes": 2664
+            },
+            {
+              "kind": "diagram-spec",
+              "id": "ledger-row",
+              "path": "C:\\Users\\eezha\\AppData\\Local\\Temp\\claude\\C--Users-eezha-verity\\01157d41-e4ab-415f-9ce0-7bfd5d97c512\\scratchpad\\dyn-forecast\\ledger-row.lifecycle.json",
+              "relativePath": "ledger-row.lifecycle.json",
+              "sha256": "9a81ca8f51fbfbbd357b881b39c9a565ba0a9cebc95ad5056ffb1b07be0d6dfc",
+              "bytes": 1594
+            },
+            {
+              "kind": "diagram-spec",
+              "id": "nowcast-flow",
+              "inline": true,
+              "sha256": "f40372fe0cdc2470e890cb1954056ee24f6bd0d07db5b8dfabe12184f46dfbaa",
+              "bytes": 1304
+            }
+          ]
+        },
+        "specification": {
+          "sha256": "a94befa9dfcd234c5bc66aa8edb4297b6e073332a25fd5cb2b417cff8803b21d",
+          "bytes": 9387
+        },
+        "artifact": {
+          "sha256": "f8644d86909ab741326d9c454bdf3658abd9565b49c414240bf7b21b0fdf5a63",
+          "bytes": 1746686
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 1666,
+      "command": [
+        "C:\\Users\\eezha\\AppData\\Local\\Microsoft\\WinGet\\Packages\\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\\node-v24.16.0-win-x64\\node.exe",
+        "C:\\Users\\eezha\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "check",
+        "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.html",
+        "family": "explainer",
+        "artifact": {
+          "sha256": "f8644d86909ab741326d9c454bdf3658abd9565b49c414240bf7b21b0fdf5a63",
+          "bytes": 1746686
+        },
+        "checks": [
+          {
+            "name": "explainer_structure",
+            "ok": true,
+            "details": [
+              "108 unique DOM IDs"
+            ]
+          },
+          {
+            "name": "explainer_payload_identity",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "explainer_dependencies",
+            "ok": true,
+            "details": [
+              "4 frozen dependencies"
+            ]
+          },
+          {
+            "name": "explainer_native_diagrams",
+            "ok": true,
+            "details": [
+              "system-map: pass",
+              "daily-run-sequence: pass",
+              "ledger-row: pass",
+              "nowcast-flow: pass"
+            ]
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "issues": [],
+          "nativeDiagrams": [
+            {
+              "id": "system-map",
+              "receipt": {
+                "ok": true,
+                "file": "C:\\Users\\eezha\\AppData\\Local\\Temp\\archify-explainer-check-PRiRMf\\child.html",
+                "artifact": {
+                  "sha256": "02ac2008e10858ad5bc64d66ad7140ea7d125d56f7e6852fce8f9caa01a185bb",
+                  "bytes": 822600
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 1,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 13,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 6.390504451038575,
+                    "maxBends": 3,
+                    "routesOverSuggestedBends": 1,
+                    "maxStretch": 1.076,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 24,
+                    "minInteriorSegmentPx": 40,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [
+                      {
+                        "left": {
+                          "id": "human-to-offline-1",
+                          "from": "human",
+                          "to": "offline",
+                          "label": "gold labels",
+                          "collectionIndex": 0,
+                          "artifactIndex": 1
+                        },
+                        "right": {
+                          "id": "hn-to-refresh-1",
+                          "from": "hn",
+                          "to": "refresh",
+                          "label": "newest thread",
+                          "collectionIndex": 2,
+                          "artifactIndex": 3
+                        },
+                        "point": [
+                          452,
+                          242
+                        ]
+                      }
+                    ],
+                    "detours": [
+                      {
+                        "relationship": {
+                          "id": "hn-to-refresh-1",
+                          "from": "hn",
+                          "to": "refresh",
+                          "label": "newest thread",
+                          "collectionIndex": 2,
+                          "artifactIndex": 3
+                        },
+                        "bends": 3,
+                        "stretch": 1.076,
+                        "directCorridorBlockers": [
+                          {
+                            "id": "offline",
+                            "label": "Offline tools (NEW)",
+                            "box": [
+                              381,
+                              266,
+                              142,
+                              60
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "leadingSpace": {
+                    "measured": true,
+                    "emptyTopPx": 80,
+                    "emptyTopRatio": 0.138,
+                    "occupiedTop": 80,
+                    "viewBoxTop": 0,
+                    "canvasHeight": 580,
+                    "typicalNodeHeight": 60,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "recognized-declared-wide",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 1346,
+                    "actualBudgetPx": 1346,
+                    "actualReaderWidth": 1376,
+                    "desiredReaderWidth": 1609.6875,
+                    "viewportCap": 1376,
+                    "limit": "viewport-cap",
+                    "requestedTargetPx": 7.5,
+                    "requestedTargetMet": false,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "edge",
+                      "id": "human-to-offline-1",
+                      "from": "human",
+                      "to": "offline"
+                    },
+                    "minimumSourceTextPx": 8,
+                    "minimumProjectedTextPx": 6.390504451038575,
+                    "semanticTextCount": 18
+                  },
+                  "issues": []
+                }
+              }
+            },
+            {
+              "id": "daily-run-sequence",
+              "receipt": {
+                "ok": true,
+                "file": "C:\\Users\\eezha\\AppData\\Local\\Temp\\archify-explainer-check-i8a1VL\\child.html",
+                "artifact": {
+                  "sha256": "cd9b807cb5b3587f50f8cac65bc8f1965b9733ee38edf09c01a0c53d519d017c",
+                  "bytes": 819520
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 28,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 8.742857142857142,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 155.2,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "sequenceColumnSpace": {
+                    "measured": true,
+                    "columnFit": "spread",
+                    "participantCount": 6,
+                    "occupiedRight": 1045,
+                    "viewBoxLeft": 0,
+                    "canvasWidth": 1085,
+                    "emptyRightPx": 40,
+                    "emptyRightRatio": 0.037,
+                    "typicalParticipantWidth": 137,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "node",
+                      "id": "roles"
+                    },
+                    "minimumSourceTextPx": 10.2,
+                    "minimumProjectedTextPx": 8.742857142857142,
+                    "semanticTextCount": 21
+                  },
+                  "issues": []
+                }
+              }
+            },
+            {
+              "id": "ledger-row",
+              "receipt": {
+                "ok": true,
+                "file": "C:\\Users\\eezha\\AppData\\Local\\Temp\\archify-explainer-check-AcMFEj\\child.html",
+                "artifact": {
+                  "sha256": "735b00a3dfcd401e4d7996cc0acaf57a431987c5dfdde811508f5ae3f1655fa5",
+                  "bytes": 814328
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 72.4,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 7.087214225232853,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 72,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "node",
+                      "id": "written"
+                    },
+                    "minimumSourceTextPx": 9,
+                    "minimumProjectedTextPx": 7.087214225232853,
+                    "semanticTextCount": 17
+                  },
+                  "issues": []
+                }
+              }
+            },
+            {
+              "id": "nowcast-flow",
+              "receipt": {
+                "ok": true,
+                "file": "C:\\Users\\eezha\\AppData\\Local\\Temp\\archify-explainer-check-DhRYCv\\child.html",
+                "artifact": {
+                  "sha256": "746c49ffa481081dfc4567a2be6be1cfb74151f6ccb85e020dca3b108671e91c",
+                  "bytes": 812585
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 51,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 6.589902568644819,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 8,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 2,
+                    "shortEndpointSegmentCount": 2,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "edge",
+                      "id": "blend-to-fc-1",
+                      "from": "blend",
+                      "to": "fc"
+                    },
+                    "minimumSourceTextPx": 8,
+                    "minimumProjectedTextPx": 6.589902568644819,
+                    "semanticTextCount": 10
+                  },
+                  "issues": []
+                }
+              }
+            }
+          ]
+        },
+        "diagnostics": [],
+        "provenance": "current",
+        "deliveryReceiptId": "f72fb9b6-0ec5-4e67-89a9-3b0430bbc840"
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.finalize.json",
+    "summaryReceipt": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-10-29T15:51:00.762Z",
+  "durationMs": 8481,
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "timeout"
+  }
+}

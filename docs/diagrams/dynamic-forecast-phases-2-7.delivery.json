@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "f72fb9b6-0ec5-4e67-89a9-3b0430bbc840",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "C:\\Users\\eezha\\AppData\\Local\\Temp\\claude\\C--Users-eezha-verity\\01157d41-e4ab-415f-9ce0-7bfd5d97c512\\scratchpad\\dyn-forecast\\candidate.archify.md",
+  "output": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.html",
+  "specification": {
+    "sha256": "a94befa9dfcd234c5bc66aa8edb4297b6e073332a25fd5cb2b417cff8803b21d",
+    "bytes": 9387
+  },
+  "artifact": {
+    "sha256": "f8644d86909ab741326d9c454bdf3658abd9565b49c414240bf7b21b0fdf5a63",
+    "bytes": 1746686
+  },
+  "explainer": {
+    "preparedSha256": "3ab12ab438eccf6a4465aa99c25f73260a076cba1a57fba811dbcb63463b8d77",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "system-map",
+        "inline": true,
+        "sha256": "aac37d89d6a335e85f23d3b96766ac72e7f5fd32c44fa4aeea0096f6aff44d43",
+        "bytes": 1932
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "daily-run-sequence",
+        "inline": true,
+        "sha256": "cd594947d83d315fe554c350f988b5634059ce03c9dbde4899356ca13884c119",
+        "bytes": 2664
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "ledger-row",
+        "path": "C:\\Users\\eezha\\AppData\\Local\\Temp\\claude\\C--Users-eezha-verity\\01157d41-e4ab-415f-9ce0-7bfd5d97c512\\scratchpad\\dyn-forecast\\ledger-row.lifecycle.json",
+        "relativePath": "ledger-row.lifecycle.json",
+        "sha256": "9a81ca8f51fbfbbd357b881b39c9a565ba0a9cebc95ad5056ffb1b07be0d6dfc",
+        "bytes": 1594
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "nowcast-flow",
+        "inline": true,
+        "sha256": "f40372fe0cdc2470e890cb1954056ee24f6bd0d07db5b8dfabe12184f46dfbaa",
+        "bytes": 1304
+      }
+    ]
+  }
+}

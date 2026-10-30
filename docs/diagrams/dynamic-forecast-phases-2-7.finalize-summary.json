@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\eezha\\AppData\\Local\\Temp\\claude\\C--Users-eezha-verity\\01157d41-e4ab-415f-9ce0-7bfd5d97c512\\scratchpad\\dyn-forecast\\candidate.archify.md",
+    "sha256": "a94befa9dfcd234c5bc66aa8edb4297b6e073332a25fd5cb2b417cff8803b21d",
+    "bytes": 9387
+  },
+  "artifact": {
+    "path": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.html",
+    "sha256": "f8644d86909ab741326d9c454bdf3658abd9565b49c414240bf7b21b0fdf5a63",
+    "bytes": 1746686
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.finalize.json",
+    "summaryReceipt": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast-phases-2-7.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 8481,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}
