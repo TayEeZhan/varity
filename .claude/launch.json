@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "varity",
+      "runtimeExecutable": "C:\\Users\\eezha\\verity\\.venv\\Scripts\\python.exe",
+      "runtimeArgs": ["-m", "trendsignal", "serve", "--host", "127.0.0.1", "--port", "8091"],
+      "cwd": "backend/signals",
+      "port": 8091
+    }
+  ]
+}

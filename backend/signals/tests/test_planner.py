@@ -154,3 +154,26 @@ def test_offer_answers_need_a_live_offer(client, token):
     assert plan["offer"] is None  # the test database has no trend stories
     body = {"roleId": plan["roleId"], "action": "add", "skill": "Rust"}
     assert client.post("/api/pathway/decision", json=body, headers=headers).json()["meta"]["code"] == "NO_OFFER"
+
+
+# ── outlook change since the plan was accepted (forecast ledger) ─────
+
+def ledger_row(run_date, label, share, role="r"):
+    return {"run_date": run_date, "role_id": role, "label": label, "share_now": str(share)}
+
+
+def test_outlook_change_compares_the_day_of_acceptance_with_the_latest_run():
+    accepted = state()
+    rows = [ledger_row("2000-01-01", "Rising", 0.10), ledger_row(TODAY, "Rising", 0.10),
+            ledger_row("2999-01-01", "No clear change", 0.095), ledger_row("2999-01-01", "Falling", 0.02, role="other")]
+    change = planner.outlook_change(accepted, "r", rows)
+    assert change["since"] == TODAY and change["labelThen"] == "Rising" and change["labelNow"] == "No clear change"
+    assert change["movedPp"] == -0.5
+
+
+def test_outlook_change_stays_quiet_without_a_plan_a_baseline_or_a_real_move():
+    rows = [ledger_row(TODAY, "Rising", 0.10), ledger_row("2999-01-01", "Rising", 0.105)]
+    assert planner.outlook_change(None, "r", rows) is None
+    assert planner.outlook_change(state(), "r", rows) is None  # same label, 0.5 pp < MOVE_PP
+    assert planner.outlook_change(state(), "r", [ledger_row("2999-01-01", "Falling", 0.05)]) is None  # no row from then
+    assert planner.outlook_change(state(), "r", rows + [ledger_row("2999-02-01", "Rising", 0.125)])["movedPp"] == 2.5

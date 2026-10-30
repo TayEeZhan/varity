@@ -112,8 +112,13 @@ function allTasksHTML() {
 
 /* What changed since the user accepted the plan, or one new skill the trend layer and job posts both rate as rising. */
 function planBand() {
-  const { change, offer } = STATE.plan;
+  const { change, offer, outlookChange: oc } = STATE.plan;
   const band = (sign, body, acts) => `<div class="service" role="status"><span class="service__sign">${sign}</span><div>${body}</div><div class="service__acts">${acts}</div></div>`;
+  // The target role's forecast moved since the plan was accepted (forecast ledger); shown above any other band.
+  const outlook = oc ? band("Outlook changed", `<p>${esc(STATE.plan.targetRole)}: ${esc(oc.labelThen || "no label")} on ${esc(oc.since)}, now ${esc(oc.labelNow || "no label")}. Share of hiring posts ${(oc.shareThen * 100).toFixed(1)}% → ${(oc.shareNow * 100).toFixed(1)}%.</p><p><small>Source: ${esc(oc.source)}, ${esc(oc.date)}. Your plan is rebuilt from the new data; check the steps below.</small></p>`, "") : "";
+  return outlook + planBandInner(change, offer, band);
+}
+function planBandInner(change, offer, band) {
   if (change) {
     const rows = [...change.added.map((a) => `<li><b>+ ${esc(a.skill)}</b> ${esc(a.reason)}</li>`),
       ...change.removed.map((r) => `<li><b>− ${esc(r.skill)}</b> ${esc(r.reason)}</li>`)].join("");

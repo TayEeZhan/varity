@@ -51,7 +51,10 @@ from engine.forecast import (  # noqa: E402
     forecast_skill,
     inv_logit,
     load_demand,
+    days_open,
+    load_nowcast_k,
     logit_series,
+    nowcast_y,
     skill_status,
     trend_label,
     volatility,
@@ -211,12 +214,14 @@ def build_scores(as_of: str | None = None, backtest: dict | None = None, k: floa
                + [backtest_source(model, backtest["generated_at"])])
     evidence = [f"hn:{thread_ids[m]}" for m in latest_months]
 
+    partial = months[-1] == today.strftime("%Y-%m")
+    k_now = load_nowcast_k(data_dir, "skills", days_open(threads, months[-1], today)) if partial else 0.0
     skills_out = []
     for skill in taxonomy:
         e_s = float(exposure.loc[skill, "e_s"])
         m = mentions[skill].to_numpy(dtype=float)
         p = n_posts[skill].to_numpy(dtype=float)
-        ys = y[skill].to_numpy()
+        ys = nowcast_y(m, p, k_now) if k_now else y[skill].to_numpy()
         status = skill_status(m)
         label, trend_p = trend_label(ys, m)
 
@@ -263,7 +268,8 @@ def build_scores(as_of: str | None = None, backtest: dict | None = None, k: floa
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "as_of": as_of,
-        "partial_month": months[-1] == today.strftime("%Y-%m"),
+        "partial_month": partial,
+        "nowcast": {"k": k_now, "posts_this_month": int(n_posts.iloc[-1].iloc[0]) if partial else None},
         "scenario_params": {"k": k},
         "interval": {"label": "80% target band", "level": INTERVAL_LEVEL, "model": model,
                      "window_origins": INTERVAL_WINDOW, "q_h12": q12,

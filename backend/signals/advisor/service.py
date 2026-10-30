@@ -26,6 +26,7 @@ VERITY_ROOT = Path(__file__).resolve().parents[3]
 if str(VERITY_ROOT) not in sys.path:
     sys.path.insert(0, str(VERITY_ROOT))  # engine/ lives at the verity root, as app.py does it
 
+from engine import ledger as ledger_mod
 from engine import live as live_mod  # noqa: E402
 from engine import pathway as pathway_mod  # noqa: E402
 from engine import roles as roles_mod  # noqa: E402
@@ -344,6 +345,7 @@ def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], ru
     pushed = set(state.pushed) if state else set()
     return {
         "planId": role_id, "change": change, "offer": offer,
+        "outlookChange": planner.outlook_change(state, role_id, ledger_mod.read(current_data_dir())),
         "planState": planner.accept(profile.plan, role_id, planned, today, ledger_now()) if silent else None,
         "roleId": role_id, "targetRole": role["name"], "matchPct": round(role["match_score"] * 100),
         "scenario": scenario, "scenarioLabel": plan["scenario_label"], "hoursPerWeek": hours_per_week,
