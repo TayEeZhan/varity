@@ -6,12 +6,14 @@ says rankedBy / personalisedBy "formula" and why in llmStatus.
 
 from __future__ import annotations
 
-from typing import Literal
+import json
+from typing import Annotated, Literal
 
 from fastapi import FastAPI, Header, Query, Request
 from pydantic import BaseModel, Field
 
-from advisor import cv_writer, planner, service
+from advisor import cv_agent, cv_writer, planner, service
+from advisor.cv_writer import CvDraft
 from advisor.llm import LlmUnavailable, call_model
 from intake import ledger
 from intake.models import Evidence
@@ -42,6 +44,32 @@ class DecisionIn(BaseModel):
 
 class LearnedIn(BaseModel):
     skill: str = Field(min_length=1, max_length=60)  # a taxonomy skill name, as the pathway shows it
+
+
+MAX_FACTS = 40
+
+
+class GenerateIn(BaseModel):
+    roleId: str | None = Field(default=None, max_length=60)  # None: the saved target role
+    jobAd: str = Field(default="", max_length=8000)
+
+
+class DraftIn(BaseModel):
+    draft: CvDraft
+    facts: list[Annotated[str, Field(max_length=2000)]] = Field(default_factory=list, max_length=200)
+    addedByYou: list[Annotated[str, Field(max_length=40)]] = Field(default_factory=list, max_length=100)
+
+
+class Turn(BaseModel):
+    role: Literal["user", "assistant"]
+    text: str = Field(max_length=4000)
+
+
+class AgentIn(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+    history: list[Turn] = Field(default_factory=list, max_length=40)
+    selection: str = Field(default="", max_length=40)
+    justDoIt: bool = False
 
 
 def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
@@ -180,17 +208,108 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
         save_profile(settings, owner_of(request, x_profile_token), profile)
         return envelope(profile_out(profile, owner_of(request, x_profile_token)))
 
+    def saved_draft(owner: str | None) -> dict | None:
+        raw = accounts_store.get_cv_draft(settings, owner) if owner else None
+        return json.loads(raw) if raw else None
+
+    def draft_out(saved: dict, profile) -> dict:
+        draft = CvDraft.model_validate(saved["draft"])
+        return {**saved, "markdown": cv_writer.render(draft, saved["role"], cv_writer.learned(profile))}
+
+    def notes_of(owner: str | None) -> list[str]:
+        raw = accounts_store.get_cv_notes(settings, owner) if owner else None
+        return json.loads(raw) if raw else []
+
     @app.post("/api/cv/generate")
-    def api_cv_generate(request: Request, x_profile_token: str | None = Header(default=None)):
-        """A new CV for the target role: the saved CV text plus the current skills. Saves nothing."""
+    def api_cv_generate(request: Request, payload: GenerateIn | None = None,
+                        x_profile_token: str | None = Header(default=None)):
+        """A new CV for roleId (default: the saved target role), from the saved CV text and every current skill.
+
+        Choosing another role here changes only this CV, never the pathway. A structured draft is saved for the
+        CV builder; the .md is in the answer either way.
+        """
+        payload = payload or GenerateIn()
         profile, data, error = checks(request, x_profile_token)
         if error:
             return error
-        if not profile.target_role:
-            return envelope(error="pick a target role first", status=422, meta={"code": "NO_TARGET_ROLE"})
-        cv_text = accounts_store.get_cv_text(settings, owner_of(request, x_profile_token))
+        role_id = payload.roleId or profile.target_role
+        if not role_id:
+            return envelope(error="pick a role for this CV", status=422, meta={"code": "NO_TARGET_ROLE"})
+        if role_id not in service.pathway_role_ids(profile, data):
+            return envelope(error="no pathway for this role: unknown, or too few job posts to learn it", status=422,
+                            meta={"code": "VALIDATION_ERROR"})
+        owner = owner_of(request, x_profile_token)
+        cv_text = accounts_store.get_cv_text(settings, owner)
+        momentum, _ = signals()
         try:
-            return envelope(cv_writer.generate(profile, profile.target_role, cv_text, data, model_call(request)))
+            out = cv_writer.generate(profile, role_id, cv_text, data, model_call(request), job_ad=payload.jobAd,
+                                     momentum=momentum)
         except service.RoleNotFound:
             return envelope(error="no pathway for this role: unknown, or too few job posts to learn it", status=422,
                             meta={"code": "VALIDATION_ERROR"})
+        if out["draft"] and owner:
+            saved = {"roleId": role_id, "role": out["role"], "jobAd": payload.jobAd, "draft": out["draft"],
+                     "facts": [], "addedByYou": []}
+            accounts_store.put_cv_draft(settings, owner, json.dumps(saved), ledger.now_iso())
+        return envelope(out)
+
+    @app.get("/api/cv/draft")
+    def api_cv_draft(request: Request, x_profile_token: str | None = Header(default=None)):
+        """The saved CV builder draft and the user's CV notes."""
+        profile, _, error = checks(request, x_profile_token)
+        if error:
+            return error
+        owner = owner_of(request, x_profile_token)
+        saved = saved_draft(owner)
+        if saved is None:
+            return envelope(error="no CV draft yet: generate one", status=404, meta={"code": "NO_DRAFT"})
+        return envelope({**draft_out(saved, profile), "notes": notes_of(owner)})
+
+    @app.put("/api/cv/draft")
+    def api_cv_draft_put(payload: DraftIn, request: Request, x_profile_token: str | None = Header(default=None)):
+        """Save the draft after a direct edit or an accepted agent edit. The user's own words need no checker."""
+        profile, _, error = checks(request, x_profile_token)
+        if error:
+            return error
+        owner = owner_of(request, x_profile_token)
+        saved = saved_draft(owner)
+        if saved is None:
+            return envelope(error="no CV draft yet: generate one", status=404, meta={"code": "NO_DRAFT"})
+        saved = {**saved, "draft": payload.draft.model_dump(), "facts": payload.facts[-MAX_FACTS:],
+                 "addedByYou": payload.addedByYou}
+        accounts_store.put_cv_draft(settings, owner, json.dumps(saved), ledger.now_iso())
+        return envelope(draft_out(saved, profile))
+
+    @app.post("/api/cv/agent")
+    def api_cv_agent(payload: AgentIn, request: Request, x_profile_token: str | None = Header(default=None)):
+        """One message to the CV agent → ask / plan / edit / say. An edit is only a proposal until the user accepts."""
+        profile, data, error = checks(request, x_profile_token)
+        if error:
+            return error
+        owner = owner_of(request, x_profile_token)
+        saved, cv_text = saved_draft(owner), accounts_store.get_cv_text(settings, owner)
+        if saved is None or not cv_text:
+            return envelope(error="generate the CV first", status=409, meta={"code": "NO_DRAFT"})
+        momentum, _ = signals()
+        try:
+            role_row = cv_writer._role(profile, saved["roleId"], data)
+            _, skills = cv_writer.role_skills(profile, saved["roleId"], data,
+                                              [r["skill"] for r in momentum if r["momentum"] > 0])
+        except service.RoleNotFound:
+            return envelope(error="this CV's role has no pathway any more: generate it again", status=409,
+                            meta={"code": "NO_DRAFT"})
+        said = [h.text for h in payload.history if h.role == "user"] + [payload.message]
+        ctx = cv_agent.Context(
+            role=saved["role"], role_row=role_row, skills=skills, learned=cv_writer.learned(profile), cv_text=cv_text,
+            draft=saved["draft"], job_ad=saved.get("jobAd", ""), notes=notes_of(owner),
+            trends=cv_writer.trend_rows(momentum, skills, [s["skill"] for s in role_row["have"] + role_row["gap"]]),
+            facts=[*saved.get("facts", []), *said], selection=payload.selection,
+            save_note=lambda notes: accounts_store.put_cv_notes(settings, owner, json.dumps(notes), ledger.now_iso()))
+        if not model_limiter.allow(client_ip(request)):
+            return envelope({"type": "off", "code": "RATE_LIMITED"})
+        try:
+            out = cv_agent.run(ctx, [h.model_dump() for h in payload.history], payload.message,
+                               just_do_it=payload.justDoIt)
+        except LlmUnavailable as exc:
+            return envelope({"type": "off", "code": exc.code})
+        return envelope({**out, "facts": said if out["type"] == "edit" and out.get("addedByYou") else []})
