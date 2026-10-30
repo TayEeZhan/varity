@@ -173,7 +173,7 @@ function renderToday() {
           <p>Download the plan or add its tasks to your calendar.${gtasksOn ? " Google Tasks gets today's stops only when you press its button, straight from your browser." : " Nothing is sent anywhere."}</p>
           <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
           <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
-      <p><button class="btn btn--primary" type="button" data-global="generate-cv">Generate CV for this role (.md)</button></p>
+      <p><a class="btn btn--primary" href="#/cv">Open CV builder</a></p>
           ${gtasksOn ? `<p><button class="btn" type="button" data-global="gtasks"${GTASKS.busy ? " disabled" : ""}>${GTASKS.busy ? "Sending to Google Tasks…" : "Send today to Google Tasks"}</button></p>` : ""}</section>
         <section class="panel"><h2>Coming up</h2>
           <ul class="next-list">${coming.map((p) => `<li>${bullet(p.line, true)}<span>${esc(p.title)}</span><span>Wk ${esc(p.week)}</span></li>`).join("")}</ul>
@@ -489,6 +489,7 @@ function renderProfile() {
           STATE.saved = data.profile;
           STATE.review = null;
           STATE.cv = "parsed";
+          resetCvBuilder();  // a new CV was read: the builder loads the draft again
           const added = data.profile.skills.filter((s) => !before.has(s.skill_id)).length;
           let note = before.size ? `Added ${added} new skills to your profile (${data.profile.skills.length - added} already there).` : `Saved ${data.profile.skills.length} skills to your profile.`;
           // Set separately: apply uses up the review, so a refused destination there would lose the user's ticks.
@@ -523,6 +524,7 @@ function renderProfile() {
           STATE.routeId = null;
           applyPlan(null);
           STATE.cv = "empty";
+          resetCvBuilder();  // the server deleted the draft and notes with the profile
           rerender();
           toast("Your profile was deleted.");
         });
@@ -606,7 +608,7 @@ function renderPathway() {
       <p>The files are built in your browser from this pathway. Nothing is sent anywhere.</p>
       <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
       <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
-      <p><button class="btn btn--primary" type="button" data-global="generate-cv">Generate CV for this role (.md)</button></p></section>
+      <p><a class="btn btn--primary" href="#/cv">Open CV builder</a></p></section>
     <div class="weeks">${weeks.map(weekHTML).join("")}</div>
     <section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why this job matters: SDG and Malaysia links</h2>
       ${sdg.lines.map((l) => `<p class="route-note">${esc(l)}</p>`).join("")}
