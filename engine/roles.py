@@ -579,6 +579,17 @@ def future_score(trend: str | None) -> float:
     return FUTURE_BY_TREND.get(trend, FUTURE_UNKNOWN) if trend else FUTURE_UNKNOWN
 
 
+def score_breakdown(r: Mapping, top: int = 3) -> dict:
+    """The parts of one match_roles result, and what each of the top gap skills would add. Pure arithmetic."""
+    total = sum(s["weight"] for s in r["have"]) + sum(s["weight"] for s in r["gap"])  # merge_synonyms already applied
+    fut = r["future_score"]
+    gaps = sorted(r["gap"], key=lambda s: (-s["weight"], s["skill"]))[:top]
+    raise_ = [{"skill": s["skill"], "addMatch": add, "newRank": MATCH_WEIGHT * (r["match_score"] + add) + FUTURE_WEIGHT * fut}
+              for s in gaps for add in [s["weight"] / total if total > 0 else 0.0]]
+    return {"match": r["match_score"], "outlook": fut, "matchWeight": MATCH_WEIGHT, "outlookWeight": FUTURE_WEIGHT,
+            "rank": r["rank_score"], "raise": raise_}
+
+
 def _share(mentions: Any, posts: Any) -> float | None:
     if isinstance(mentions, (int, float)) and isinstance(posts, (int, float)) and posts:
         return mentions / posts

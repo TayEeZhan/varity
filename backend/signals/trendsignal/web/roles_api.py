@@ -23,7 +23,7 @@ from trendsignal.queries import skill_momentum
 from trendsignal.web import accounts_store
 from trendsignal.web.app import RateLimiter, envelope
 from trendsignal.web.auth_api import owner_of
-from trendsignal.web.cv_api import client_ip, load_profile, profile_out, save_profile
+from trendsignal.web.cv_api import client_ip, example_profile, load_profile, profile_out, save_profile
 
 ROLES_LIMIT_PER_MINUTE = 30
 MIN_HOURS, MAX_HOURS = 1, 40
@@ -40,6 +40,17 @@ class DecisionIn(BaseModel):
     skill: str | None = Field(default=None, max_length=60)  # for add / later
     scenario: Literal["moderate", "fast"] = "moderate"
     hoursPerWeek: int = Field(default=5, ge=MIN_HOURS, le=MAX_HOURS)
+
+
+class TeamPerson(BaseModel):
+    label: str = Field(min_length=1, max_length=60)
+    skills: list[Annotated[str, Field(min_length=1, max_length=60)]] = Field(max_length=40)
+
+
+class TeamIn(BaseModel):
+    profiles: list[TeamPerson] = Field(min_length=2, max_length=50)
+    roleId: str = Field(min_length=1, max_length=60)
+    scenario: Literal["moderate", "fast"] = "moderate"
 
 
 class LearnedIn(BaseModel):
@@ -112,15 +123,45 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
     @app.get("/api/roles/suggestions")
     def api_role_suggestions(request: Request, scenario: Literal["moderate", "fast"] = "moderate",
                              hoursPerWeek: int = Query(default=5, ge=MIN_HOURS, le=MAX_HOURS),
+                             goal: str | None = Query(default=None, max_length=40),
                              x_profile_token: str | None = Header(default=None)):
         """Roles ranked for the saved profile, each with reason chips built from the profile, forecast and signals."""
         profile, data, error = checks(request, x_profile_token)
         if error:
             return error
+        if bad_goal(goal, data):
+            return envelope(error="unknown goal sector", status=422, meta={"code": "VALIDATION_ERROR"})
         rows, run_id = signals()
         return envelope(service.suggestions(profile, rows, run_id, settings.db_path, scenario=scenario,
                                             hours_per_week=hoursPerWeek, use_llm=settings.llm_mode != "off",
-                                            call=model_call(request), data=data))
+                                            call=model_call(request), data=data, goal=goal),
+                        meta=service.data_meta())
+
+    @app.post("/api/team")
+    def api_team(payload: TeamIn, request: Request):
+        """G2: match each synthetic profile to one role; count who misses each skill. Nothing is stored."""
+        if not limiter.allow(client_ip(request)):
+            return envelope(error="too many requests, try again in a minute", status=429, meta={"code": "RATE_LIMITED"})
+        data, error = engine_data()
+        if error:
+            return error
+        rows, unmapped, role, gaps = [], {}, None, {}
+        for person in payload.profiles:
+            profile = example_profile({"name": person.label, "skills": person.skills})
+            out, _, miss = service._match(profile, data, payload.scenario)
+            role = next((r for r in out["roles"] + out["low_match"] if r["role_id"] == payload.roleId), None)
+            if role is None:
+                return envelope(error="unknown role", status=422, meta={"code": "VALIDATION_ERROR"})
+            rows.append({"label": person.label, "matchPct": round(role["match_score"] * 100),
+                         "have": [s["skill"] for s in role["have"]], "gap": [s["skill"] for s in role["gap"]]})
+            unmapped[person.label] = miss
+            for s in role["gap"]:
+                g = gaps.setdefault(s["skill"], {"skill": s["skill"], "missing": 0, "trendLabel": s["trend_label"], "weight": s["weight"]})
+                g["missing"] += 1
+        skills = sorted(role["have"] + role["gap"], key=lambda s: (-s["weight"], s["skill"]))
+        team_gaps = sorted(gaps.values(), key=lambda g: (-g["missing"], -g["weight"], g["skill"]))
+        return envelope({"role": role["name"], "skills": [s["skill"] for s in skills], "rows": rows,
+                         "teamGaps": team_gaps, "unmapped": unmapped}, meta=service.data_meta())
 
     @app.post("/api/profile/target-role")
     def api_target_role(payload: TargetRoleIn, request: Request, x_profile_token: str | None = Header(default=None)):
@@ -139,24 +180,31 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
     def api_pathway(request: Request, roleId: str | None = Query(default=None, max_length=60),
                     hoursPerWeek: int = Query(default=5, ge=MIN_HOURS, le=MAX_HOURS),
                     scenario: Literal["moderate", "fast"] = "moderate",
+                    goal: str | None = Query(default=None, max_length=40),
                     x_profile_token: str | None = Header(default=None)):
         """The pathway to roleId, or to the saved route. Its dated tasks feed the Today page."""
         profile, data, error = checks(request, x_profile_token)
         if error:
             return error
+        if bad_goal(goal, data):
+            return envelope(error="unknown goal sector", status=422, meta={"code": "VALIDATION_ERROR"})
         role_id = roleId or profile.target_role
         if not role_id:
             return envelope(error="pick a route first", status=409, meta={"code": "NO_TARGET_ROLE"})
-        plan, error = build_plan(request, x_profile_token, profile, data, role_id, scenario, hoursPerWeek)
-        return error or envelope(plan)
+        plan, error = build_plan(request, x_profile_token, profile, data, role_id, scenario, hoursPerWeek, goal)
+        return error or envelope(plan, meta=service.data_meta())
 
-    def build_plan(request: Request, token: str | None, profile, data, role_id: str, scenario: str, hours: int):
+    def bad_goal(goal: str | None, data) -> bool:
+        return goal is not None and goal not in {x["id"] for x in (data.get("role_sdg") or {}).get("sectors", [])}
+
+    def build_plan(request: Request, token: str | None, profile, data, role_id: str, scenario: str, hours: int,
+                   goal: str | None = None):
         """(pathway, error). Saves the plan state when the service says it changed without needing a question."""
         rows, run_id = signals()
         try:
             plan = service.pathway(profile, role_id, rows, run_id, settings.db_path, scenario=scenario,
                                    hours_per_week=hours, use_llm=settings.llm_mode != "off",
-                                   call=model_call(request), data=data)
+                                   call=model_call(request), data=data, goal=goal)
         except service.RoleNotFound:
             return None, envelope(error="no pathway for this role: unknown, or too few job posts to learn it", status=422,
                                   meta={"code": "VALIDATION_ERROR"})

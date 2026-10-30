@@ -75,7 +75,8 @@ def held_skills(settings: Settings, owner: str | None, data_dir: Path) -> tuple[
 
 
 def radar_payload(settings: Settings, owner: str | None, data_dir: Path = DATA_DIR) -> dict:
-    scores = load("skill_scores.json", data_dir)
+    as_of = service.replay_as_of()  # a replay shows the scores cut at that month
+    scores = service._replayed(as_of)["scores"] if as_of else load("skill_scores.json", data_dir)
     backtest = load("backtest.json", data_dir, required=False)
     contested = contested_skills(data_dir)
     held, unmapped = held_skills(settings, owner, data_dir)

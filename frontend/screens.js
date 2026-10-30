@@ -32,6 +32,11 @@ function gate(kind) {
   return "";
 }
 
+const GOALS = [["climate_energy", "Climate and clean energy"], ["health", "Health and life sciences"], ["education", "Education"],
+  ["financial_inclusion", "Financial inclusion"], ["agriculture_food", "Agriculture and food"], ["government_civic", "Government and civic tech"],
+  ["accessibility", "Accessibility and disability inclusion"], ["cities_mobility", "Sustainable cities and mobility"]];
+const goalPicker = () => `<p class="route-note"><label>I care about: <select data-goal aria-label="SDG goal">
+  <option value="">Any goal</option>${GOALS.map(([id, n]) => `<option value="${id}"${STATE.goal === id ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></label></p>`;
 const scenarioToggle = () => `<div class="filters" role="group" aria-label="AI scenario">
     ${[["moderate", "Moderate (estimate)"], ["fast", "Fast AI disruption (estimate)"]].map(([v, label]) =>
       `<button class="filter" type="button" data-global="scenario" data-value="${v}" aria-pressed="${STATE.scenario === v}">${label}</button>`).join("")}
@@ -270,6 +275,7 @@ function cvPanel() {
       <strong>Drop your CV here</strong>
       <p>PDF, Word (.docx), OpenDocument (.odt), RTF, HTML or text, up to 5 MB and 4 pages. Use a public or synthetic CV. The file is read, not stored; only the skills you save are kept.</p>
       ${err}
+      <label class="consent"><input type="checkbox" data-consent> I use a sample CV, not a real person's. The text goes to Anthropic for reading. <a href="privacy.html" target="_blank" rel="noopener">Privacy notice</a></label>
       <input type="file" accept=".pdf,.docx,.odt,.rtf,.html,.htm,.txt,.md" hidden data-file>
       <button class="btn" type="button" data-act="cv-choose">Choose a file</button>
       <button class="btn btn--quiet" type="button" data-act="cv-sample">Use the synthetic sample CV</button>
@@ -327,6 +333,27 @@ const SOURCE_TEXT = { profile: "your saved profile", role_forecast: "job forecas
   role_profiles: "role profiles", skill_scores: "skill scores" };
 const reasonChip = (c, cls = "") => `<span class="chip reason${cls}" title="Source: ${esc(SOURCE_TEXT[c.source] || c.source)}${c.asOf ? `, ${esc(c.asOf)}` : ""}"><span aria-hidden="true">${CHIP_ICON[c.type] || "•"}</span> ${esc(c.text)}</span>`;
 
+/* "Why NN%?": the score's parts and what each top gap skill would add. Numbers come from engine/roles.score_breakdown. */
+function whyPanel(r) {
+  const b = r.breakdown;
+  if (!b) return "";
+  const pct = (x) => `${(Number(x) * 100).toFixed(1)}%`;
+  const raise = b.raise.map((x) => `<li>${esc(x.skill)} → ${Number(x.newRank).toFixed(3)}${x.resource && /^https?:\/\//.test(x.resource.url) ? ` (<a href="${esc(x.resource.url)}" target="_blank" rel="noopener">${esc(x.resource.title)}</a>)` : ""}</li>`).join("");
+  return `<details class="route__calc"><summary>Why ${Number(r.matchPct)}%?</summary>
+    <p>${Number(b.matchWeight)} × match ${pct(b.match)} + ${Number(b.outlookWeight)} × outlook ${Number(b.outlook).toFixed(1)} (${esc(r.trendLabel || "unknown")}) = ${Number(b.rank).toFixed(3)}</p>
+    ${raise ? `<p>What would raise it:</p><ul>${raise}</ul>` : ""}
+    <p class="route-note">The ${Number(b.matchWeight)} / ${Number(b.outlookWeight)} weights are team judgement, not fitted.</p></details>`;
+}
+
+/* The goal line of a route card: counts from the API; it says so when the sample is too small to re-rank. */
+function goalLine(r) {
+  const g = r.goal;
+  if (!g) return "";
+  if (g.share == null) return `<p class="route-note">Goal: too few posts to measure this sector for this role.</p>`;
+  const rank = g.goalRank ? ` Goal fit rank: #${Number(g.goalRank)}.` : "";
+  return `<p class="route-note">Goal: ${Number(g.count)} of ${Number(g.n)} posts (${(g.share * 100).toFixed(1)}%) came from this sector, against ${(g.baselineShare * 100).toFixed(1)}% of all posts.${g.reliable ? "" : ` Too few posts to re-rank (n = ${Number(g.count)}).`}${rank}</p>`;
+}
+
 function liveRouteRow(r, pinned = false) {
   const cur = STATE.routeId === r.roleId;
   const low = r.rank == null;  // a low-match destination: pinned for the user, never ranked
@@ -347,8 +374,10 @@ function liveRouteRow(r, pinned = false) {
       <div class="route__fact"><b>${r.have.length} of ${r.have.length + r.gap.length}</b><span>core skills held (match is weighted)</span></div>
       ${action}
     </div>
+    ${r.sdgReason ? `<p class="route-note">${esc(r.sdgReason)}</p>` : ""}${goalLine(r)}
     <div class="route__why"><div class="chips">${r.reasons.map((c) => reasonChip(c)).join("")}${r.watchOut ? reasonChip(r.watchOut, " reason--watch") : ""}</div>
       ${fast}${marksHTML(r.sdg.tags, r.mycol.length > 0)}</div>
+    ${whyPanel(r)}
     <div class="route__gap">
       <div><h3>You already have</h3><div class="chips">${r.have.map((h) => `<span class="chip">${esc(h)}</span>`).join("") || "<span>None yet</span>"}</div></div>
       <div><h3>Skills gap</h3><div class="chips">${r.gap.map((g) => `<span class="chip chip--gap">${esc(g)}</span>`).join("") || "<span>No gap</span>"}</div></div>
@@ -364,14 +393,16 @@ function liveRoutes() {
   // The destination is pinned first; this changes display order only, the ranks shown stay the formula's.
   const goal = s.targetRoleId;
   const dest = s.roles.find((r) => r.roleId === goal) || (s.lowMatchTarget && s.lowMatchTarget.roleId === goal ? s.lowMatchTarget : null);
-  const others = s.roles.filter((r) => r.roleId !== goal);
+  const pos = (r) => (s.goalOrder ? s.goalOrder.indexOf(r.roleId) : 0);
+  const others = s.roles.filter((r) => r.roleId !== goal).sort((a, b) => pos(a) - pos(b));
   const lowOthers = s.lowMatch.filter((r) => r.roleId !== goal);
   const low = lowOthers.length ? `<p class="empty"><b>Low match, not ranked:</b> ${lowOthers.map((r) => `${esc(r.name)} (${Number(r.matchPct)}%)`).join(", ")}</p>` : "";
   const ranked = [dest, ...others].filter(Boolean);
+  const goalNote = s.goalNote ? `<p class="route-note">${esc(s.goalNote)}</p>` : "";
   const unmapped = s.unmappedSkills.length ? `<p class="empty"><b>Not in the job data yet, so not counted:</b> ${s.unmappedSkills.map(esc).join(", ")}</p>` : "";
   const list = others.length ? others.map((r) => liveRouteRow(r)).join("")
     : dest ? "" : `<p class="empty">No role matches your saved skills well yet. Add skills from another CV.</p>`;
-  return `<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>
+  return `${goalPicker()}${goalNote}<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>
     ${dest ? `${liveRouteRow(dest, true)}${others.length ? `<h3 class="routes-sub">Other routes</h3>` : ""}` : ""}${list}${low}${unmapped}
     ${ranked.length ? `<section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why these jobs matter: SDG and Malaysia links</h2>
       <p class="route-note">Each role is tied to the UN Sustainable Development Goals (SDG) and to Malaysia's list of occupations in short supply (MyCOL). Hover a target to see its source.</p>
@@ -399,6 +430,7 @@ function renderProfile() {
   const [station, stationSub] = stationText();
   const html = `
     ${head("Your CV and routes", "Varity reads your CV, shows the sentence behind every skill it finds, then plans routes to roles, with each role's demand trend.", STATE.suggest ? real("Match scores computed from your skills") : "")}
+    ${typeof replayLabel === "function" && replayLabel() ? `<p class="method" role="status"><b>${esc(replayLabel())}</b></p>` : ""}
     <div class="origin">
       <div>${cvPanel()}</div>
       <section aria-labelledby="org-h">
@@ -433,7 +465,13 @@ function renderProfile() {
       rerender();
       toast("CV read. Check each skill against its quote.");
     };
+    const consented = () => {
+      const ok = !root.querySelector("[data-consent]") || root.querySelector("[data-consent]").checked;
+      if (!ok) toast("Tick the box first: use a sample CV, not a real person's.");
+      return ok;
+    };
     const accept = (file) => {
+      if (!consented()) return;
       if (!/\.(pdf|docx|odt|rtf|html?|txt|md)$/i.test(file.name)) return fail(`“${file.name}” is not a supported file type. Export your CV as a PDF and try again.`);
       if (file.size > 5 * 1024 * 1024) return fail(`“${file.name}” is larger than 5 MB.`);
       const reader = new FileReader();
@@ -478,7 +516,7 @@ function renderProfile() {
       if (!b) return;
       const act = b.dataset.act;
       if (act === "cv-replace") { STATE.cv = "empty"; STATE.review = null; STATE.confirmSave = false; rerender(); }
-      else if (act === "cv-choose") fileInput.click();
+      else if (act === "cv-choose") { if (consented()) fileInput.click(); }
       else if (act === "cv-sample") read("aina.txt (synthetic sample)", { sample: "aina" });
       else if (act === "cv-save") {
         if (STATE.saved && !b.dataset.mode) { STATE.confirmSave = true; rerender('[data-mode="add"]'); return; }
@@ -572,7 +610,7 @@ function renderPathway() {
       ${bullet(p.line, true)}
       <div><div class="pstop__t">${esc(p.title)}<span>${Number(p.mins)} min</span></div>
         <div class="pstop__r">${p.url ? ext(p.url, p.resource) : esc(p.resource)}</div>
-        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}${p.progress > 0 && p.progress < 1 ? `<span class="tag">${Math.round(p.progress * 100)}% done</span>` : ""}<span class="tag">${esc(p.cost)}</span>${p.sdgTags.length ? `<span class="tag" title="${esc(p.sdgTags.length > 1 ? sdgAll(p.sdgTags) : `Source: ${p.sdgTags[0].source}`)}">SDG ${esc(p.sdgTags[0].target)}${p.sdgTags.length > 1 ? ` +${p.sdgTags.length - 1}` : ""}</span>` : ""}</div>
+        <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}${p.progress > 0 && p.progress < 1 ? `<span class="tag">${Math.round(p.progress * 100)}% done</span>` : ""}<span class="tag">${esc(p.cost)}</span>${p.goalLinked ? `<span class="tag">SDG goal</span>` : ""}${p.sdgTags.length ? `<span class="tag" title="${esc(p.sdgTags.length > 1 ? sdgAll(p.sdgTags) : `Source: ${p.sdgTags[0].source}`)}">SDG ${esc(p.sdgTags[0].target)}${p.sdgTags.length > 1 ? ` +${p.sdgTags.length - 1}` : ""}</span>` : ""}</div>
         ${p.sdgReason ? `<p class="pstop__why">${esc(p.sdgReason)}</p>` : ""}
         ${p.why ? `<p class="pstop__why">${esc(p.why)}</p>` : ""}
         ${p.reasons ? `<div class="chips">${p.reasons.map((c) => reasonChip(c)).join("")}</div>` : ""}</div>
@@ -598,7 +636,7 @@ function renderPathway() {
   const html = `
     ${head(`Pathway to ${esc(TARGET.role)}`, lede, badge)}
     <p class="route-note">${esc(plan.scenarioLabel)}: ${Number(plan.hoursPerWeek)} h a week from ${esc(plan.startDate)}${plan.finishDate ? ` to ${esc(plan.finishDate)}` : ""}. Skills as of ${esc(plan.skillsAsOf || "–")}. ${esc(plan.notes[0] || "")} <a href="#/profile">Change route</a></p>
-    ${scenarioToggle()}
+    ${scenarioToggle()}${goalPicker()}
     <section class="pathmap" aria-label="Route map">
       <div class="diagram">${pathwaySVG()}</div>
       <p class="swipe-hint" style="padding:0 12px">Swipe the map sideways to see every station.</p>

@@ -3,7 +3,49 @@
 Read this first in any new chat. Then read `C:\Users\eezha\sdc-hackathon\BRIEF.md` (rules, rubric, deadlines) and `C:\Users\eezha\verity\docs\architecture.md` (every feature, with its status).
 The "Update 29 Oct" section is the newest. The sections after it are the 24 Oct state, kept for history.
 
-## Update 30 Oct 2026 (newest; supersedes the AI-labeller notes in 29 Oct)
+## Update 31 Oct 2026 (newest): final-round gaps built (`tasks/plan-final-round.md`)
+
+**Git state:** pushed to main. The Replit republish is the user's job.
+
+### Built (tests pass, checked in the browser on localhost)
+- **WP1 "change the trend data now":** Skills radar → "Trend data" bar.
+  - Replay a real past month (2023-12 … 2026-10), Back to latest, Fetch latest HN now.
+  - The write routes need the header `X-Admin-Token` = Secret `VERITY_ADMIN_TOKEN`. Without the Secret they return 403.
+  - Aina's #2 route goes from AI/LLM App Engineer (39%) to Data Engineer (48%) in the 2025-06 replay.
+  - Limit: the replay cuts only the scores and the role trends. The forecast chips stay at latest.
+- **WP2 "Why NN%?":** a panel on each route card. It shows 0.7 × match + 0.3 × outlook and the top 3 skills that would raise the score (Aina → Backend Engineer: 0.759; with Go, 0.843).
+- **WP4 SDG:**
+  - A goal picker on CV & routes, a reason line per role ("Most over-represented sector" or "Main SDG-linked sector"), the goal line and a "too few posts to re-rank" note.
+  - On the pathway, goal-linked skills move first inside each stage.
+  - The thresholds are not lowered, so with today's data the route order does not change.
+- **Privacy:**
+  - `frontend/privacy.html` (PDPA, 7 principles).
+  - A consent tick before a CV upload.
+  - Evidence quotes are cut to the sentence around each skill.
+  - Accounts with no login for 365 days are deleted (at start-up and by a daily job at 06:45).
+  - Fact found: the cleaned CV text is stored for the CV builder and deleted with the profile.
+- **Fairness:** `backend/signals/tests/test_fairness.py`. The same skills give the same routes, whatever the name, age or gender.
+- **Team (HR) view:** `#/team` and `POST /api/team`. A heatmap (have/gap) and a team plan. Nothing is stored.
+
+### Not built, on purpose
+- **HRD Corp list (WP3):** a person must check each programme. No entry is safer than an invented one.
+- **Impact counters and pilot:** no real users before the final. The pitch presents them as the next step: a pilot with the XMUM career centre that measures the 3 Phase 1 KPIs.
+- Bahasa Malaysia labels, skill badges.
+
+### After the user pulls on Replit (no credits needed)
+1. Git pane → Pull. Then Republish.
+2. Secrets: add `VERITY_ADMIN_TOKEN` (any long random string). The team types it once when they first press Replay.
+3. Check: CV & routes (Why, goal), Skills radar (Replay 2025-06, then Back to latest), Team, Privacy notice.
+
+### After the Replit AI credits arrive (on hold; the user will say when)
+1. Tools → Integrations → Anthropic → enable. Check that Secrets has `AI_INTEGRATIONS_ANTHROPIC_API_KEY` and `AI_INTEGRATIONS_ANTHROPIC_BASE_URL`.
+2. Shell: `python -m engine.backfill_hn` (downloads 94 raw threads, about 80 MB).
+3. Shell: `python -m engine.llm_labels backfill`. Read the printed post count and the cost estimate. Then run `python -m engine.llm_labels backfill --yes`.
+4. Tell Claude to commit `data/llm_role_labels.csv`, `data/role_labeller.json` and the rebuilt role files. Then Pull and Republish.
+5. Set up App Storage and the Scheduled Deployment (`python -m engine.scheduled`), as in `docs/replit-schedule.md`. The daily job then labels new posts and reviews new titles.
+6. Check one synthetic CV upload with AI on (`claude-haiku-4-5` on Replit).
+
+## Update 30 Oct 2026 (supersedes the AI-labeller notes in 29 Oct)
 
 **Git state:**
 - Phase 1 is on main (8a867c8).

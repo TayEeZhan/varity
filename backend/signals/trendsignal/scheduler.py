@@ -40,6 +40,14 @@ def refresh_forecast() -> None:
     (log.info if summary["ok"] else log.warning)("forecast refresh: %s", summary)
 
 
+def purge_stale_accounts(ctx: AppContext) -> None:
+    from trendsignal.web import accounts_store
+
+    n = accounts_store.delete_stale_users(ctx.settings)
+    if n:
+        log.info("retention: deleted %d accounts with no login for %d days", n, accounts_store.RETENTION_DAYS)
+
+
 def build_scheduler(ctx: AppContext) -> BackgroundScheduler:
     scheduler = BackgroundScheduler(
         timezone=ctx.settings.timezone,
@@ -49,6 +57,8 @@ def build_scheduler(ctx: AppContext) -> BackgroundScheduler:
                       id="pipeline", next_run_time=datetime.now(scheduler.timezone) + timedelta(seconds=FIRST_RUN_DELAY_SECONDS))
     scheduler.add_job(_logged("forecast_refresh", refresh_forecast), "cron", hour=REFRESH_HOUR, minute=30,
                       id="forecast_refresh")
+    scheduler.add_job(_logged("retention", lambda: purge_stale_accounts(ctx)), "cron", hour=REFRESH_HOUR, minute=45,
+                      id="retention")
     if ctx.settings.write_briefs:
         scheduler.add_job(_logged("daily_digest", lambda: make_digest(ctx, "daily")), "cron", hour=8, minute=0,
                           id="daily_digest")
