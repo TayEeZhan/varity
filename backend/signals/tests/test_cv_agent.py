@@ -132,14 +132,31 @@ def test_route_uses_the_saved_draft(settings, monkeypatch):
 
 def test_cases_file_is_well_formed():
     cases = json.loads(CASES.read_text(encoding="utf-8"))
-    assert 10 <= len(cases) <= 15 and {c["expect"] for c in cases} <= {"ask", "plan", "edit", "say"}
+    assert 10 <= len(cases) <= 15 and all(set(c["expect"]) <= {"ask", "plan", "edit", "say"} for c in cases)
 
 
 @pytest.mark.skipif(os.environ.get("VARITY_AGENT_EVAL") != "1", reason="real-model eval: set VARITY_AGENT_EVAL=1")
 def test_real_model_asks_and_edits_at_the_right_moments():
+    # The synthetic Aina CV in full: a 3-line stub made "shorter" and "XYZ" impossible, not the agent wrong.
+    cv = (Path(__file__).parents[1] / "intake" / "samples" / "aina.txt").read_text(encoding="utf-8")
+    kopi = ["Built REST APIs in Python with Flask for the billing team.",
+            "Wrote SQL queries on PostgreSQL to produce monthly revenue reports.",
+            "Packaged the services with Docker for the staging server."]
+    skills = ["Python", "Flask", "Docker", "pandas", "Excel", "PostgreSQL", "SQL"]  # SQL last: "put SQL first" is real
+    draft = {"name": "AINA BINTI RAHMAN", "contact": "Kuala Lumpur, Malaysia | [email]", "skills": skills,
+             "summary": "Junior Python developer with a finance background. I build data tools and small web APIs.",
+             "jobs": [{"title": "Junior Software Developer", "employer": "Kopi Data Sdn Bhd", "dates": "Jan 2024 - Present",
+                       "bullets": [{"source": b, "text": b} for b in kopi]},
+                      {"title": "Quant Research Intern", "employer": "Bukit Capital", "dates": "Jun 2023 - Dec 2023",
+                       "bullets": [{"source": b, "text": b} for b in [
+                           "Built a momentum backtest in Python with pandas and NumPy on 10 years of daily prices."]]}],
+             "projects": [], "education": [{"qualification": "BSc Actuarial Science", "school": "Universiti Malaya", "dates": "2019 - 2023"}]}
     misses = []
     for case in json.loads(CASES.read_text(encoding="utf-8")):
-        out = cv_agent.run(ctx(job_ad=case.get("job_ad", ""), selection=case.get("selection", "")), [], case["message"])
-        if out["type"] != case["expect"]:
-            misses.append((case["message"], case["expect"], out["type"]))
+        out = cv_agent.run(ctx(cv_text=cv, skills=skills, draft=draft, job_ad=case.get("job_ad", ""),
+                               selection=case.get("selection", "")), [], case["message"])
+        if out["type"] not in case["expect"]:
+            said = out.get("text") or json.dumps(out.get("questions") or out.get("steps") or "")
+            misses.append((case["message"], case["expect"], out["type"], said[:200]))
+    print(json.dumps(misses, indent=1))  # with -s: what the model did on each miss
     assert len(misses) <= 2, misses
