@@ -176,3 +176,38 @@ def test_render_has_projects():
     md = cv_writer.render(draft(projects=[Project(name="Dashboard", tech="HTML", dates="2023",
                                                   bullets=[Bullet(source="x", text="Built it")])]), "Role", set())
     assert "## Projects" in md and "### Dashboard, HTML, 2023" in md
+
+
+LEAD_CV = CV + """
+CGPA 3.6; Dean's List 2019
+Treasurer, UM Data Club  2019 - 2020
+- Managed the club budget for 40 members
+Winner, Hack The Hustle 2020"""
+
+
+def test_leadership_achievements_and_education_details_kept_only_from_the_cv():
+    lead = [Job(title="Treasurer", employer="UM Data Club", dates="2019 - 2020",
+                bullets=[Bullet(source="Managed the club budget for 40 members", text="Managed the club budget for 40 members")])]
+    edu = [Education(qualification="BSc Computer Science", school="Universiti Malaya", dates="2017 - 2021",
+                     details=["CGPA 3.6; Dean's List 2019", "First class honours"])]
+    cleaned, dropped = cv_writer.check(
+        draft(leadership=lead + [Job(title="President", employer="IEEE", dates="2020", bullets=[])], education=edu,
+              achievements=["Winner, Hack The Hustle 2020", "Google Certified Engineer"]),
+        LEAD_CV, ["SQL", "Python"], copied_jobs=COPIED)
+    assert [r.title for r in cleaned.leadership] == ["Treasurer"] and cleaned.leadership[0].bullets
+    assert cleaned.achievements == ["Winner, Hack The Hustle 2020"]
+    assert cleaned.education[0].details == ["CGPA 3.6; Dean's List 2019"]
+    assert len(dropped) == 3  # IEEE role, invented certificate, invented honours
+    md = cv_writer.render(cleaned, "Role", set())
+    assert "## Leadership" in md and "## Achievements" in md and "  - CGPA 3.6" in md
+
+
+def test_old_drafts_without_new_sections_still_load():
+    old = draft().model_dump()
+    for k in ("leadership", "achievements"):
+        old.pop(k)
+    for e in old["education"]:
+        e.pop("details")
+    d = CvDraft.model_validate(old)
+    assert d.leadership == [] and d.achievements == [] and d.education[0].details == []
+    assert "## Leadership" not in cv_writer.render(d, "Role", set())

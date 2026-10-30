@@ -44,7 +44,11 @@ Rules:
   number is in the source bullet or the user facts; otherwise leave Y out.
 - Never use a stronger verb than the source bullet (helped < supported < built < led < owned).
 - Never invent a job, employer, date, degree, school, number, project or achievement.
-- Keep every education entry. Copy schools, degrees and dates exactly.
+- Keep every education entry. Copy schools, degrees and dates exactly. details: lines under that education in the
+  CV (coursework, grades, awards), copied word for word; empty if there are none.
+- leadership: leadership roles, clubs and volunteering from the CV (title = role, employer = organisation), same
+  bullet rules as jobs. achievements: awards, certifications and competition results from the CV, copied word for
+  word. Leave both empty when the CV has none; never create them.
 - summary: two or three sentences aimed at the target role (and the job ad, if given).
 - skills: exactly the skills given, in the order given. Trends and the job ad only change order and emphasis;
   never name a skill that is not in <skills_data>, and never mention trends, ranks or scores.
@@ -81,6 +85,7 @@ class Education(BaseModel):
     qualification: str = Field(max_length=160)
     school: str = Field(max_length=160)
     dates: str = Field(max_length=60)
+    details: list[str] = Field(default_factory=list, max_length=6)
 
 
 class CvDraft(BaseModel):
@@ -91,6 +96,8 @@ class CvDraft(BaseModel):
     projects: list[Project] = Field(default_factory=list, max_length=10)
     education: list[Education] = Field(max_length=10)
     skills: list[str] = Field(max_length=120)
+    leadership: list[Job] = Field(default_factory=list, max_length=8)
+    achievements: list[str] = Field(default_factory=list, max_length=12)
 
 
 class CvAnswer(CvDraft):
@@ -224,6 +231,11 @@ def check(draft: CvDraft, cv_text: str, skills: list[str], *, copied_jobs: Itera
     """
     chk = Checker(cv_text, skills, facts)
     dropped: list[str] = []
+
+    def cv_lines(items: list[str], kind: str) -> list[str]:
+        """Lines that must be in the CV as written: anything else is dropped."""
+        dropped.extend(f"{kind} not in the CV: {t}" for t in items if not chk.backed(t))
+        return [t for t in items if chk.backed(t)]
     cj = [c for c in (_copied_ok(c, chk) for c in (copied_jobs or [])) if c]
     cp = [c for c in (_copied_ok(c, chk) for c in copied_projects) if c]
     copied = {_norm(b) for c in cj + cp for b in c.bullets}
@@ -267,6 +279,19 @@ def check(draft: CvDraft, cv_text: str, skills: list[str], *, copied_jobs: Itera
 
     education = [e for e in draft.education if chk.backed(e.qualification, e.school) and chk.numbers_ok(e.dates)]
     dropped += [f"education: {e.qualification}" for e in draft.education if e not in education]
+    education = [e.model_copy(update={"details": cv_lines(e.details, "education detail")}) for e in education]
+
+    leadership = []  # copied only from the CV: each bullet's source must be in it
+    for role in draft.leadership:
+        if not chk.backed(role.title, role.employer) or not chk.numbers_ok(role.dates):
+            dropped.append(f"leadership: {role.title} at {role.employer}")
+            continue
+        kept = []
+        for b in role.bullets:
+            out, why = chk.bullet(b, {_norm(b.source)})
+            dropped += [why] if why else []
+            kept += [out] if out else []
+        leadership.append(role.model_copy(update={"bullets": kept}))
     summary = draft.summary if chk.numbers_ok(draft.summary) else ""
     if not summary and draft.summary:
         dropped.append("summary: it had a number not in the CV")
@@ -275,7 +300,8 @@ def check(draft: CvDraft, cv_text: str, skills: list[str], *, copied_jobs: Itera
     kept_skills = _dedupe([*kept_skills, *skills])  # never lose a skill the ledger holds
     name = draft.name if chk.backed(draft.name) else ""
     return CvDraft(name=name, contact=draft.contact, summary=summary, jobs=jobs, projects=projects,
-                   education=education, skills=kept_skills), dropped
+                   education=education, skills=kept_skills, leadership=leadership,
+                   achievements=cv_lines(draft.achievements, "achievement")), dropped
 
 
 # ---------------------------------------------------------------- output
@@ -301,9 +327,17 @@ def render(draft: CvDraft, role: str, done: set[str]) -> str:
         lines.append("")
     if draft.education:
         lines.append("## Education")
-        lines += [f"- {e.qualification}, {e.school} ({e.dates})" for e in draft.education]
+        for e in draft.education:
+            lines += [f"- {e.qualification}, {e.school} ({e.dates})", *[f"  - {d}" for d in e.details]]
+        lines.append("")
+    if draft.leadership:
+        lines.append("## Leadership")
+        for r in draft.leadership:
+            lines += ["", f"### {r.title}, {r.employer}", r.dates, *[f"- {b.text}" for b in r.bullets]]
         lines.append("")
     lines += ["## Skills", *_skill_lines(draft.skills, done)]
+    if draft.achievements:
+        lines += ["", "## Achievements", *[f"- {a}" for a in draft.achievements]]
     return "\n".join(lines).strip() + "\n"
 
 
