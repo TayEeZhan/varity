@@ -32,8 +32,8 @@ function resetCvBuilder() {
 
 const cvRole = () => CVB.roleId || STATE.routeId || "";
 const sectionLabel = (path) => {
-  const m = /^(jobs|projects)\[(\d+)\]/.exec(path);
-  if (!m || !CVB.data) return path === "skills" ? "Skills" : path === "summary" ? "Summary" : path;
+  const m = /^(jobs|projects|leadership)\[(\d+)\]/.exec(path);
+  if (!m || !CVB.data) return { skills: "Skills", summary: "Summary", achievements: "Achievements" }[path] || path;
   const item = CVB.data.draft[m[1]][Number(m[2])];
   return item ? `${item.title || item.name}${item.employer ? `, ${item.employer}` : ""}` : path;
 };
@@ -130,7 +130,7 @@ function agentTurn(out) {
 /* Apply an accepted agent edit to the draft, then save. */
 function applyEdit(card) {
   const d = JSON.parse(JSON.stringify(CVB.data.draft));
-  const m = /^(jobs|projects)\[(\d+)\]\.bullets$/.exec(card.section);
+  const m = /^(jobs|projects|leadership)\[(\d+)\]\.bullets$/.exec(card.section);
   if (m) d[m[1]][Number(m[2])].bullets = card.after;
   else d[card.section] = card.after;
   const added = new Set(CVB.data.addedByYou || []);
@@ -176,22 +176,36 @@ function cvDocHTML() {
   const learned = new Set(((STATE.saved && STATE.saved.skills) || [])
     .filter((s) => (s.evidence || []).some((e) => e.source === "pathway")).map((s) => s.name));
   const bullets = (kind, i, list) => `<ul>${list.map((b, j) => `<li>${ed(`${kind}.${i}.bullets.${j}.text`, b.text)}</li>`).join("")}</ul>`;
-  const entries = (kind) => d[kind].map((x, i) => `
+  // Organisation and dates on top, role in italics below (projects: name and dates, tech below).
+  const entries = (kind) => (d[kind] || []).map((x, i) => {
+    const job = kind !== "projects";
+    const top = job ? ed(`${kind}.${i}.employer`, x.employer) : ed(`projects.${i}.name`, x.name);
+    const sub = job ? ed(`${kind}.${i}.title`, x.title) : x.tech ? ed(`projects.${i}.tech`, x.tech) : "";
+    return `
     <div class="cv-entry${mine(`${kind}[${i}].bullets`)}">
-      <div class="cv-row">${kind === "jobs" ? `<b>${ed(`jobs.${i}.title`, x.title)}</b>`
-        : `<span><b>${ed(`projects.${i}.name`, x.name)}</b>${x.tech ? ` | <i>${ed(`projects.${i}.tech`, x.tech)}</i>` : ""}</span>`}<span>${ed(`${kind}.${i}.dates`, x.dates)}</span></div>
-      ${kind === "jobs" ? `<div class="cv-row"><i>${ed(`jobs.${i}.employer`, x.employer)}</i></div>` : ""}
+      <div class="cv-row"><b>${top}</b><span>${ed(`${kind}.${i}.dates`, x.dates)}</span></div>
+      ${sub ? `<div class="cv-sub">${sub}</div>` : ""}
       ${bullets(kind, i, x.bullets)}${pick(`${kind}[${i}].bullets`)}
+    </div>`;
+  }).join("");
+  const education = d.education.map((e, i) => `<div class="cv-entry">
+      <div class="cv-row"><b>${ed(`education.${i}.school`, e.school)}</b><span>${ed(`education.${i}.dates`, e.dates)}</span></div>
+      <div class="cv-sub">${ed(`education.${i}.qualification`, e.qualification)}</div>
+      ${(e.details || []).length ? `<ul>${e.details.map((t, j) => `<li>${ed(`education.${i}.details.${j}`, t)}</li>`).join("")}</ul>` : ""}
     </div>`).join("");
+  const achievements = d.achievements || [];
   return `<article class="cvdoc" aria-label="CV preview for ${esc(role)}">
     <header class="cv-head"><h2>${ed("name", d.name || "Your name")}</h2><p>${ed("contact", d.contact)}</p></header>
     <h3>Summary ${pick("summary")}</h3><p class="cv-summary${mine("summary")}">${ed("summary", d.summary)}</p>
+    ${d.education.length ? `<h3>Education</h3>${education}` : ""}
     ${d.jobs.length ? `<h3>Experience</h3>${entries("jobs")}` : ""}
     ${d.projects.length ? `<h3>Projects</h3>${entries("projects")}` : ""}
-    ${d.education.length ? `<h3>Education</h3>${d.education.map((e, i) => `<div class="cv-entry"><div class="cv-row"><b>${ed(`education.${i}.school`, e.school)}</b><span>${ed(`education.${i}.dates`, e.dates)}</span></div><div class="cv-row"><i>${ed(`education.${i}.qualification`, e.qualification)}</i></div></div>`).join("")}` : ""}
+    ${(d.leadership || []).length ? `<h3>Leadership</h3>${entries("leadership")}` : ""}
     <h3>Technical skills ${pick("skills")}</h3>
     <div class="cv-skills${mine("skills")}">${skillGroups(d.skills).map(([g, list]) => `<p><b>${g}</b>: ${list.map((s) => (learned.has(s) ? `<span class="cv-learned" title="Learned through Varity">${esc(s)}*</span>` : esc(s))).join(", ")}</p>`).join("")}
       ${d.skills.some((s) => learned.has(s)) ? `<p class="cv-foot">* learned through Varity</p>` : ""}</div>
+    ${achievements.length ? `<h3>Achievements &amp; certifications ${pick("achievements")}</h3>
+      <ul class="${mine("achievements").trim()}">${achievements.map((t, j) => `<li>${ed(`achievements.${j}`, t)}</li>`).join("")}</ul>` : ""}
   </article>`;
 }
 

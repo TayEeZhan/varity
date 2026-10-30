@@ -28,7 +28,7 @@ MAX_STEPS = 15  # tool calls per user message: a cost guard
 MAX_TOKENS = 2000
 MAX_HISTORY = 20
 MAX_NOTES, MAX_NOTE_CHARS = 20, 200
-SECTION = re.compile(r"^(summary|skills|(jobs|projects)\[(\d+)\]\.bullets)$")
+SECTION = re.compile(r"^(summary|skills|achievements|(jobs|projects|leadership)\[(\d+)\]\.bullets)$")
 
 SYSTEM = """You are the CV assistant in Varity. You help one person improve their CV for a job role.
 
@@ -73,7 +73,7 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {"steps": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 8}},
                       "required": ["steps"]}},
     {"name": "edit_section", "description": (
-        "Replace one section. section is 'summary', 'skills', 'jobs[i].bullets' or 'projects[i].bullets'. "
+        "Replace one section. section is 'summary', 'skills', 'achievements', 'jobs[i].bullets', 'projects[i].bullets' or 'leadership[i].bullets'. "
         "summary: value is a string. skills: a list of skill names. bullets: a list of {source, text}, where source is "
         "the original bullet word for word. The edit is checked and shown to the person to accept."),
      "input_schema": {"type": "object", "properties": {
@@ -129,7 +129,7 @@ def edit_section(ctx: Context, section: str, value: Any) -> tuple[dict | None, s
     """(proposal, rejection reason). The new draft must pass the checker with nothing dropped."""
     m = SECTION.match(section or "")
     if not m:
-        return None, "section must be summary, skills, jobs[i].bullets or projects[i].bullets"
+        return None, "section must be summary, skills, achievements, jobs[i].bullets, projects[i].bullets or leadership[i].bullets"
     new = json.loads(json.dumps(ctx.draft))
     try:
         if m.group(2):
@@ -141,7 +141,7 @@ def edit_section(ctx: Context, section: str, value: Any) -> tuple[dict | None, s
         elif section == "summary":
             new["summary"] = str(value)
         else:
-            new["skills"] = [str(s) for s in value]
+            new[section] = [str(s) for s in value]
         draft = CvDraft.model_validate(new)
     except (pydantic.ValidationError, TypeError, ValueError, KeyError):
         return None, "value has the wrong shape for this section"

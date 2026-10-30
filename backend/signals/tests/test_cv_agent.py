@@ -160,3 +160,17 @@ def test_real_model_asks_and_edits_at_the_right_moments():
             misses.append((case["message"], case["expect"], out["type"], said[:200]))
     print(json.dumps(misses, indent=1))  # with -s: what the model did on each miss
     assert len(misses) <= 2, misses
+
+
+def test_agent_can_edit_leadership_and_achievements():
+    cv = CV + "\nTreasurer, UM Data Club 2019\n- Ran the club budget\nWinner, Hack The Hustle 2020\nDean's List 2019"
+    d = json.loads(json.dumps(DRAFT)) | {
+        "leadership": [{"title": "Treasurer", "employer": "UM Data Club", "dates": "2019",
+                        "bullets": [{"source": "Ran the club budget", "text": "Ran the club budget"}]}],
+        "achievements": ["Winner, Hack The Hustle 2020"]}
+    c = ctx(cv_text=cv, draft=d)
+    out, why = cv_agent.edit_section(c, "achievements", ["Dean's List 2019", "Winner, Hack The Hustle 2020"])
+    assert why == "" and out["after"][0] == "Dean's List 2019"
+    assert "rejected" in cv_agent.edit_section(c, "achievements", ["Nobel Prize 2020"])[1]
+    out, why = cv_agent.edit_section(c, "leadership[0].bullets", [{"source": "Ran the club budget", "text": "Ran the club's budget"}])
+    assert why == "" and out["after"][0]["text"] == "Ran the club's budget"
