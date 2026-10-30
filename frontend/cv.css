@@ -21,22 +21,23 @@
 .cv-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 24px; align-items: start; }
 .cv-preview { background: #e9e9e9; padding: 18px; border-radius: 8px; overflow-x: auto; }
 
-/* ── Jake's layout ── */
+/* ── One-page resume layout ── */
 .cvdoc {
-  background: #fff; color: #000; max-width: 210mm; margin: 0 auto; padding: 12mm 14mm; box-sizing: border-box;
-  font: 10.5pt/1.35 "Latin Modern Roman", "CMU Serif", Georgia, "Times New Roman", serif; box-shadow: 0 1px 6px rgba(0,0,0,.2);
+  background: #fff; color: #111; max-width: 210mm; margin: 0 auto; padding: 12mm 14mm; box-sizing: border-box;
+  font: 10.5pt/1.35 Lato, Arial, sans-serif; box-shadow: 0 1px 6px rgba(0,0,0,.2);
 }
-.cv-head { text-align: center; margin-bottom: 4px; }
-.cv-head h2 { font-size: 22pt; font-variant: small-caps; margin: 0 0 2px; letter-spacing: .5px; }
+.cv-head { text-align: center; margin-bottom: 8px; }
+.cv-head h2 { font-size: 22pt; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 2px; }
 .cv-head p { font-size: 9.5pt; margin: 0; }
-.cvdoc h3 { font-variant: small-caps; font-weight: normal; font-size: 12pt; border-bottom: .8px solid #000; margin: 10px 0 4px; padding-bottom: 1px;
-  display: flex; justify-content: space-between; align-items: end; gap: 8px; }
-.cv-entry { margin: 0 0 6px 8px; position: relative; }
+.cvdoc h3 { font-size: 10.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .18em; border-bottom: 1px solid #111;
+  margin: 12px 0 5px; padding-bottom: 2px; display: flex; justify-content: space-between; align-items: end; gap: 8px; }
+.cv-entry { margin: 0 0 6px; position: relative; }
 .cv-row { display: flex; justify-content: space-between; gap: 12px; }
-.cv-row i { font-size: 9.5pt; }
-.cvdoc ul { margin: 2px 0 0; padding-left: 20px; font-size: 9.8pt; }
+.cv-row > b + span, .cv-row > span:last-child:not(:first-child) { font-style: italic; }
+.cv-sub { font-style: italic; }
+.cvdoc ul { margin: 2px 0 0; padding-left: 18px; }
 .cvdoc li { margin: 1px 0; }
-.cv-summary, .cv-skills { margin: 0 8px; font-size: 9.8pt; }
+.cv-summary, .cv-skills { margin: 0; }
 .cv-skills p { margin: 1px 0; }
 .cv-learned { font-style: italic; }
 .cv-foot { font-size: 8.5pt; opacity: .75; }
