@@ -83,8 +83,79 @@ def current_data_dir() -> Path:
     return Path(_live["dir"]) if _live["dir"] else DATA_DIR
 
 
+REPLAY_SECONDS = 1800
+_replay = {"as_of": None, "until": 0.0, "cache": {}}
+_refresh_state = {"running": False, "error": None, "fetched_at": None}
+
+
+def replay_months() -> list[str]:
+    """The months a replay may use: the as-of points of the role profiles."""
+    return sorted(_read(str(DATA_DIR / FILES["profiles"]), (DATA_DIR / FILES["profiles"]).stat().st_mtime)["profiles"])
+
+
+def set_replay(as_of: str | None) -> None:
+    """Show the data as of a past month (None = back to latest). In memory only; it expires after 30 minutes."""
+    if as_of is not None and as_of not in replay_months():
+        raise ValueError(f"as_of must be one of {replay_months()}")
+    _replay.update(as_of=as_of, until=time.monotonic() + REPLAY_SECONDS)
+
+
+def replay_as_of() -> str | None:
+    if _replay["as_of"] and time.monotonic() > _replay["until"]:
+        _replay["as_of"] = None
+    return _replay["as_of"]
+
+
+def _replayed(as_of: str) -> dict[str, Any]:
+    """Skill scores and role trends cut at as_of from the committed demand files (no look-ahead). Cached per month."""
+    if as_of not in _replay["cache"]:
+        from engine import scores as scores_mod
+        roles = roles_mod.load_roles(DATA_DIR / "roles.json")
+        rows = roles_mod.read_demand_rows(DATA_DIR / "role_demand_monthly.csv")
+        _replay["cache"][as_of] = {"scores": scores_mod.build_scores(as_of=as_of, data_dir=DATA_DIR),
+                                   "trends": roles_mod.build_role_trends(rows, roles, as_of=as_of)}
+    return _replay["cache"][as_of]
+
+
+def data_meta() -> dict[str, Any]:
+    """What the UI shows in the 'Trend data' banner."""
+    as_of, snap = replay_as_of(), live_mod.folder_meta(current_data_dir())
+    scores_as_of = as_of or _read(str(current_data_dir() / FILES["scores"]), (current_data_dir() / FILES["scores"]).stat().st_mtime).get("as_of")
+    mode = "refreshing" if _refresh_state["running"] else "replay" if as_of else "latest"
+    return {"mode": mode, "asOf": scores_as_of, "dataAsOf": scores_as_of, "dataMode": "replay" if as_of else "latest",
+            "fetchedAt": (snap or {}).get("fetched_at") or _refresh_state["fetched_at"],
+            "source": "HN Who is hiring", "error": _refresh_state["error"], "replayMonths": replay_months()}
+
+
+def refresh_in_background() -> bool:
+    """Start engine.refresh.refresh in a thread. False when one is already running. A failure keeps the last good data."""
+    import threading
+    if _refresh_state["running"]:
+        return False
+    _refresh_state.update(running=True, error=None)
+
+    def run() -> None:
+        try:
+            from engine import refresh as refresh_mod
+            result = refresh_mod.refresh()
+            if not result.get("ok"):
+                _refresh_state["error"] = result.get("error") or "refresh failed"
+                return
+            live_mod.publish(result)
+            _refresh_state["fetched_at"] = result.get("fetched_at")
+            _live.update(checked=float("-inf"), dir=None)  # ask the store again
+        except Exception as exc:  # noqa: BLE001 - the last good data stays in use
+            _refresh_state["error"] = f"{type(exc).__name__}: {exc}"
+        finally:
+            _refresh_state["running"] = False
+
+    threading.Thread(target=run, daemon=True).start()
+    return True
+
+
 def load_data(data_dir: Path | None = None) -> dict[str, Any]:
     """The engine files. Raises FileNotFoundError when one is missing."""
+    replay = data_dir is None and replay_as_of()
     data_dir = data_dir or current_data_dir()
     data = {key: _read(str(data_dir / name), (data_dir / name).stat().st_mtime) for key, name in FILES.items()}
     for key, name in OPTIONAL_FILES.items():
@@ -96,6 +167,8 @@ def load_data(data_dir: Path | None = None) -> dict[str, Any]:
     if doc is not None and not (isinstance(doc, dict) and isinstance(doc.get("roles"), dict)
                                 and isinstance(doc.get("sectors"), list)):
         data["role_sdg"] = None  # malformed: treat like a missing optional file
+    if replay:
+        data = {**data, **_replayed(replay)}
     return data
 
 
@@ -194,7 +267,7 @@ def _as_of(profile: Profile, data: Mapping[str, Any], run_id: str | None) -> dic
 
 def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str | None, db_path: Path, *,
                 scenario: str = "moderate", hours_per_week: float = 5, use_llm: bool = True,
-                call: Callable = call_model, data: Mapping[str, Any] | None = None) -> dict:
+                call: Callable = call_model, data: Mapping[str, Any] | None = None, goal: str | None = None) -> dict:
     """GET /api/roles/suggestions: ranked roles with reason chips (docs/role-suggestion-pathway-architecture.md §4.1)."""
     data = data or load_data()
     out, held, unmapped = _match(profile, data, scenario)
@@ -202,13 +275,25 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
     momentum, links = _momentum(momentum_rows), chip_mod.watch_map(data["taxonomy"], _watch_terms(momentum_rows))
     minutes, forecasts = _minutes_by_skill(data["resources"]), data["forecast"]["roles"]
     mycol = mycol_by_role(data)
+    options: dict[str, list[dict]] = {}
+    for res in data["resources"]["resources"]:
+        options.setdefault(res["skill"], []).append(res)
+
+    def breakdown(r: Mapping[str, Any]) -> dict:
+        b = roles_mod.score_breakdown(r)
+        for item in b["raise"]:
+            pick = pathway_mod._pick_resource(options.get(item["skill"], []))[0]
+            item["resource"] = {"title": pick["title"], "url": pick["url"]} if pick else None
+        return b
+
     def role_row(r: Mapping[str, Any]) -> dict:
         chips = chip_mod.role_chips(r, forecasts.get(r["role_id"]), momentum, links, minutes, hours_per_week, as_of)
         return {"roleId": r["role_id"], "name": r["name"], "formulaRank": r["rank"],
                 "matchPct": round(r["match_score"] * 100), "trendLabel": r["outlook"]["trend_label"],
                 "outlook": _outlook(forecasts.get(r["role_id"]), as_of["forecast"]), "tier": r["tier"],
                 "have": [s["skill"] for s in r["have"]], "gap": [s["skill"] for s in r["gap"]], "chips": chips,
-                "fastShift": r["fast_shift"], "sdg": _role_sdg(r, data), "mycol": mycol.get(r["role_id"], [])}
+                "breakdown": breakdown(r), "fastShift": r["fast_shift"], "sdg": _role_sdg(r, data), "mycol": mycol.get(r["role_id"], []),
+                "sdgReason": sdg_mod.role_reason(data.get("role_sdg") or {}, r["role_id"])}
 
     roles = [role_row(r) for r in out["roles"]]
 
@@ -242,7 +327,20 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
         destination = {**{k: v for k, v in row.items() if k != "chips"}, "rank": None,
                        "fitLabel": chip_mod.fit_label(row["matchPct"] / 100, row["trendLabel"]),
                        "summary": None, "reasons": reasons, "watchOut": watch, "salary": None}
+    goal_out = {}
+    if goal:
+        doc = data.get("role_sdg") or {}
+        rr = sdg_mod.rerank_for_goal(out, doc, goal)
+        fit = {x["role_id"]: x for x in rr["by_goal_fit"]}
+        for row in ranked + ([destination] if destination else []):
+            g = next((r for r in rr["roles"] + rr["low_match"] if r["role_id"] == row["roleId"]), None)["sdg_goal"]
+            row["goal"] = {"share": g["share"], "baselineShare": g["baseline_share"], "count": g["count"], "n": g["n"],
+                           "reliable": g["reliable"], "goalRank": fit.get(row["roleId"], {}).get("goal_rank")}
+        goal_out = {"goal": goal, "goalName": rr["sector_name"], "goalOrder": [x["role_id"] for x in rr["by_goal_fit"]]}
+        if not any(r["goal"]["reliable"] for r in ranked):
+            goal_out["goalNote"] = f"Too few posts from {rr['sector_name']} employers to re-rank; the order is unchanged."
     return {
+        **goal_out,
         "lowMatchTarget": destination,
         "rankedBy": "llm" if checked["order"] else "formula", "llmStatus": status, "scenario": scenario,
         "inputs": {"profileUpdatedAt": profile.updated_at, "signalsRunId": run_id,
@@ -295,7 +393,8 @@ def _step_out(s: Mapping[str, Any]) -> dict:
 
 def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], run_id: str | None, db_path: Path, *,
             scenario: str = "moderate", hours_per_week: float = 5, start_date: date | None = None,
-            use_llm: bool = True, call: Callable = call_model, data: Mapping[str, Any] | None = None) -> dict:
+            use_llm: bool = True, call: Callable = call_model, data: Mapping[str, Any] | None = None,
+            goal: str | None = None) -> dict:
     """GET /api/pathway: the reskilling pathway to one role, with dated tasks (§4.3). Raises RoleNotFound."""
     data = data or load_data()
     out, held, _ = _match(profile, data, scenario)
@@ -333,6 +432,9 @@ def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], ru
     personalised = status in ("llm", "cached") and bool(kept)  # only claim AI if the verifier kept something
     if personalised:
         steps = _apply_coaching(steps, checked)
+    linked = sdg_mod.goal_skills(data["taxonomy"], data.get("role_sdg") or {}, goal) if goal else set()
+    if goal:  # order inside a stage only; the scheduler below re-dates the steps
+        steps = sdg_mod.goal_first(steps, linked)
     tasks = pathway_mod.schedule_tasks(steps, hours_per_week, date.fromisoformat(plan["start_date"]))
     minutes = sum(t["minutes"] for t in tasks)
     planned = [s["skill"] for s in steps]
@@ -343,6 +445,10 @@ def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], ru
     # Saved by the API without asking: the first plan for a role, or a plan that only lost skills the user now holds.
     silent = state is None or (change is None and set(state.skills) != set(planned))
     pushed = set(state.pushed) if state else set()
+    sdg_lines = sdg_mod.plan_sdg_summary(plan, role, data.get("role_sdg") or {}, goal)["lines"]
+    if goal and not linked & set(planned):
+        meta = sdg_mod._sector_meta(data["role_sdg"], goal)
+        sdg_lines.append(f"None of your gap skills link to {meta['name']} (SDG {' / '.join(meta['sdg'])}).")
     return {
         "planId": role_id, "change": change, "offer": offer,
         "outlookChange": planner.outlook_change(state, role_id, ledger_mod.read(current_data_dir())),
@@ -354,10 +460,10 @@ def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], ru
         "personalisedBy": "llm" if personalised else "formula", "llmStatus": status,
         "stages": [{"name": st["name"], "label": st["label"],
                     "skills": [s["skill"] for s in steps if s["stage"] == st["name"]]} for st in plan["stages"]],
-        "steps": [{**_step_out(s), "pushed": s["skill"] in pushed} for s in steps], "tasks": [_task_out(t) for t in tasks],
+        "steps": [{**_step_out(s), "pushed": s["skill"] in pushed, "goalLinked": bool(s.get("goalLinked"))} for s in steps], "tasks": [_task_out(t) for t in tasks],
         "unresolved": [s["skill"] for s in steps if not s["resource"]],
         "totals": {"steps": len(steps), "tasks": len(tasks), "minutes": minutes, "hours": round(minutes / 60, 1)},
         "notes": plan["notes"],
-        "sdgSummary": {**plan["sdg_summary"], "lines": sdg_mod.plan_sdg_summary(plan, role, data.get("role_sdg") or {})["lines"]},
+        "sdgSummary": {**plan["sdg_summary"], "lines": sdg_lines},
         "roleSdg": _role_sdg(role, data), "mycol": mycol_by_role(data).get(role_id, []),
     }

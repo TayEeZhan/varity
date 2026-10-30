@@ -13,6 +13,7 @@ const STATE = {
   loading: "",            // "" | profile | routes | plan: which call is in flight
   profileError: "",
   routeId: null,
+  goal: "",               // an SDG sector id from the goal picker, or "" for any goal
   scenario: "moderate",   // moderate | fast: both are engine scenarios, shown as estimates
   destination: "",        // role id picked on the CV screen; "" = Not sure yet
   suggest: null,          // GET /api/roles/suggestions for the saved profile
@@ -43,8 +44,9 @@ const SCREENS = {
   radar: renderRadar,
   method: renderMethod,
   cv: renderCv,
+  team: renderTeam,
 };
-const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method", cv: "My CV" };
+const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method", cv: "My CV", team: "Team" };
 const DEFAULT_SCREEN = "today";
 
 /* An explicit hash wins ("#/" is the landing). With none, a visitor with a saved profile (account or this
@@ -193,6 +195,8 @@ async function loadProfile() {
 /* Pathway stages drawn as the three map lines (colours in styles.css). */
 const STAGE_LINE = { no_regret: "apps", near_term: "serve", other: "serve", future_bet: "guard" };
 
+const goalQ = () => (STATE.goal ? `&goal=${encodeURIComponent(STATE.goal)}` : "");
+
 async function loadRoutes() {
   STATE.suggest = null;
   STATE.suggestError = "";
@@ -200,7 +204,7 @@ async function loadRoutes() {
   if (!STATE.saved) return;
   STATE.loading = "routes";
   try {
-    const s = await api(`/api/roles/suggestions?scenario=${STATE.scenario}`);
+    const s = await api(`/api/roles/suggestions?scenario=${STATE.scenario}${goalQ()}`);
     STATE.suggest = s;
     // Only a role that has a pathway can be the route.
     const ids = new Set([...s.roles, ...s.lowMatch].map((r) => r.roleId));
@@ -215,7 +219,7 @@ async function loadPlan() {
   if (!STATE.saved || !STATE.routeId) return applyPlan(null);
   STATE.loading = "plan";
   try {
-    applyPlan(await api(`/api/pathway?roleId=${encodeURIComponent(STATE.routeId)}&scenario=${STATE.scenario}`));
+    applyPlan(await api(`/api/pathway?roleId=${encodeURIComponent(STATE.routeId)}&scenario=${STATE.scenario}${goalQ()}`));
   } catch (e) {
     applyPlan(null);
     STATE.planError = errText(e);
@@ -376,7 +380,7 @@ function applyPlan(plan) {
       id: `s${s.order}`, line: STAGE_LINE[s.stage] || "serve", x: Math.round(80 + i * gap),
       week: s.startDate ? Math.floor((new Date(s.startDate).getTime() - start) / DAY_MS / 7) + 1 : "–",
       status: "next", title: s.skill, mins: s.minutes, resource: res.title || s.resourceNote, url: res.url || "",
-      cost: res.cost === "free" ? "Free" : res.cost || "–", sdgTags: s.sdgTags, sdgReason: s.sdgReason,
+      cost: res.cost === "free" ? "Free" : res.cost || "–", sdgTags: s.sdgTags, sdgReason: s.sdgReason, goalLinked: s.goalLinked,
       why: s.whyForYou, reasons: s.reasons,
     };
     return stop;
@@ -537,6 +541,10 @@ async function undoGoogleTasks(list) {
 }
 
 /* Buttons that work on any screen. */
+document.addEventListener("change", (e) => {
+  if (e.target.matches("select[data-goal]")) { STATE.goal = e.target.value; refreshRoutes(); }
+});
+
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-global]");
   if (!b) return;
@@ -667,3 +675,4 @@ loadMine();
 loadSignals().then(() => rerender());
 loadForecast().then(() => rerender());
 loadExamples().then(() => rerender());
+loadDataStatus().then(() => rerender());

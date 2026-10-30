@@ -518,3 +518,13 @@ a.tag--mycol:hover { background: var(--paper-2); }
   .sdgt tbody th, .sdgt td { border: 0; padding: 4px 0; overflow-wrap: anywhere; }
   .sdgt tbody th::before, .sdgt td::before { content: attr(data-label); display: block; font-size: var(--t-xs); font-weight: 700; color: var(--ink-3); }
 }
+
+/* Team screen */
+.team__form { display: grid; gap: 8px; max-width: 720px; margin-bottom: 20px; }
+.team__scroll { overflow-x: auto; }
+.team { border-collapse: collapse; }
+.team th, .team td { border: 1px solid var(--ink); padding: 6px 10px; text-align: left; }
+.team__skill span { display: inline-block; max-width: 9em; }
+.team__have { background: #d9f0dc; color: #14451c; }
+.team__gap { background: #fbe0dc; color: #7a1a10; font-weight: 700; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

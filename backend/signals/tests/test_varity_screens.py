@@ -39,6 +39,9 @@ def test_suggestions_carry_sdg_and_mycol(client):
     assert data["roles"] and data["scenarioLabel"] == "Moderate (estimate)"
     assert data["formulaWeights"]["match"] + data["formulaWeights"]["future"] == pytest.approx(1.0)
     for role in data["roles"]:
+        b = role["breakdown"]
+        assert b["rank"] == pytest.approx(b["matchWeight"] * b["match"] + b["outlookWeight"] * b["outlook"])
+        assert len(b["raise"]) <= 3 and all(x["newRank"] > b["rank"] for x in b["raise"])
         for tag in role["sdg"]["tags"]:
             assert tag["target"] and tag["label"] and tag["source"] == "data/roles.json"
         for sector in role["sdg"]["sectors"]:
@@ -115,3 +118,18 @@ def test_malformed_role_sdg_is_treated_as_missing(tmp_path):
         shutil.copy(service.DATA_DIR / name, tmp_path / name)
     (tmp_path / "role_sdg.json").write_text('{"roles": [], "sectors": {}}', encoding="utf-8")
     assert service.load_data(tmp_path)["role_sdg"] is None
+
+
+def test_goal_adds_reason_and_keeps_pathway_shape(client):
+    token = use_example(client)["data"]["token"]
+    headers = {"X-Profile-Token": token}
+    data = client.get("/api/roles/suggestions?goal=health", headers=headers).json()["data"]
+    assert data["goalOrder"] and all("sdgReason" in r and "goalRank" in r["goal"] for r in data["roles"])
+    assert client.get("/api/roles/suggestions?goal=bogus", headers=headers).status_code == 422
+    assert client.get("/api/pathway?goal=bogus", headers=headers).status_code == 422
+    role = data["roles"][0]["roleId"]
+    plain = client.get(f"/api/pathway?roleId={role}", headers=headers).json()["data"]
+    goal = client.get(f"/api/pathway?roleId={role}&goal=health", headers=headers).json()["data"]
+    assert [s["name"] for s in goal["stages"]] == [s["name"] for s in plain["stages"]]
+    assert {s["skill"] for s in goal["steps"]} == {s["skill"] for s in plain["steps"]}
+    assert goal["totals"]["minutes"] == plain["totals"]["minutes"]
