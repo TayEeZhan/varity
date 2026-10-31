@@ -1,0 +1,51 @@
+# Daily data refresh for the published app (Replit Autoscale has no scheduler of its own).
+# It asks the app to fetch the newest HN "Who is hiring?" posts. The app labels them (KrackedDevs),
+# rebuilds the forecast and saves the snapshot to App Storage. Job forecast and Departures read it.
+# Polling the status keeps requests coming, so the instance stays awake until the refresh ends.
+name: Daily data refresh
+
+on:
+  schedule:
+    - cron: "0 1 * * *"  # 09:00 Malaysia time
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      APP: https://verity--eezhan0805.replit.app
+    steps:
+      - name: Wake the app
+        run: |
+          for i in 1 2 3 4 5; do
+            curl -fsS -o /dev/null --max-time 60 "$APP/api/data/status" && exit 0
+            sleep 20
+          done
+          echo "The app did not answer" && exit 1
+
+      - name: Start the refresh
+        run: |
+          code=$(curl -sS -o body.json -w '%{http_code}' --max-time 60 -X POST "$APP/api/data/refresh")
+          cat body.json; echo
+          # 429 = a refresh started under 10 minutes ago; the status check below still applies.
+          [ "$code" = "202" ] || [ "$code" = "429" ] || { echo "HTTP $code"; exit 1; }
+
+      - name: Wait until it ends
+        run: |
+          for i in $(seq 1 40); do
+            sleep 15
+            curl -fsS --max-time 30 "$APP/api/data/status" > status.json || continue
+            mode=$(python3 -c "import json; print(json.load(open('status.json'))['data']['mode'])")
+            [ "$mode" = "refreshing" ] && continue
+            python3 -c "
+          import json, sys
+          d = json.load(open('status.json'))['data']
+          print('data as of', d.get('dataAsOf'), '- fetched', d.get('fetchedAt'))
+          sys.exit('Refresh failed: ' + d['error'] if d.get('error') else 0)
+          "
+            exit $?
+          done
+          echo "Still refreshing after 10 minutes" && exit 1
