@@ -509,84 +509,7 @@ function applyPlan(plan) {
   TARGET.role = plan.targetRole;
 }
 
-/* ── Plan files, built here from the pathway payload (same fields as engine/pathway.py to_markdown / to_ics) ── */
 const LEARNING_NOTE = "Times are for the starter course only. Job-level skill needs practice on real projects after it.";
-function planMarkdown(p) {
-  const t = p.totals;
-  const lines = [
-    `# Reskilling pathway: ${p.targetRole}`, "",
-    `- Scenario: ${p.scenarioLabel}`,
-    `- Pace: ${p.hoursPerWeek} hours a week, Monday to Friday`,
-    `- Plan: ${t.steps} skills, ${t.tasks} daily tasks, about ${t.hours} hours (estimate)`,
-    `- Dates: ${p.startDate} to ${p.finishDate || "n/a"}`,
-    `- Skill data as of: ${p.skillsAsOf || "n/a"}`,
-    `- ${LEARNING_NOTE}`, "",
-    "## Order of skills", "",
-  ];
-  for (const stage of p.stages) {
-    lines.push(`### ${stage.label}`, "");
-    const steps = p.steps.filter((s) => s.stage === stage.name);
-    if (!steps.length) { lines.push("None.", ""); continue; }
-    for (const s of steps) {
-      const r = s.resource;
-      lines.push(`${s.order}. **${s.skill}** (about ${s.minutes} min, estimate)`, `   - Why: ${s.reason}`);
-      if (r) {
-        const cost = r.cost + (r.hrd_corp ? ", HRD Corp-claimable" : "");
-        lines.push(`   - Resource: [${r.title}](${r.url}) (${r.provider}, ${cost}, ${r.level}; link checked ${r.checked})`);
-      } else lines.push(`   - Resource: ${s.resourceNote}`);
-      if (s.sdg.length) lines.push(`   - SDG: ${s.sdg.join(", ")}. ${s.sdgReason || ""}`.trimEnd());
-      lines.push(`   - Source: ${s.source}`);
-    }
-    lines.push("");
-  }
-  lines.push("## Daily tasks", "", "| Id | Date | Min | Task | Link |", "|---|---|---|---|---|");
-  for (const k of p.tasks) lines.push(`| ${k.id} | ${k.date} | ${k.minutes} | ${k.title} | ${k.resourceUrl} |`);
-  lines.push("", "## SDG links", "");
-  for (const [target, n] of Object.entries(p.sdgSummary.counts)) {
-    lines.push(`- SDG ${target}: ${n} step${n !== 1 ? "s" : ""} (${p.sdgSummary.skills_by_target[target].join(", ")})`);
-  }
-  lines.push("", p.sdgSummary.line, "", "## Notes", "");
-  lines.push(...p.notes.map((n) => `- ${n}`));
-  if (p.unresolved.length) {
-    const note = (p.steps.find((s) => !s.resource) || {}).resourceNote;
-    lines.push(`- ${note}: ${p.unresolved.join(", ")}.`);
-  }
-  return lines.join("\n") + "\n";
-}
-
-const icsEscape = (s) => String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r\n|\r|\n/g, "\\n");
-/* Fold at 75 octets, never inside a UTF-8 character (RFC 5545 section 3.1). */
-function icsFold(line) {
-  const enc = new TextEncoder();
-  const out = [];
-  let cur = "", size = 0;
-  for (const ch of line) {
-    const n = enc.encode(ch).length;
-    if (size + n > 75) { out.push(cur); cur = " " + ch; size = 1 + n; } else { cur += ch; size += n; }
-  }
-  out.push(cur);
-  return out.join("\r\n");
-}
-const icsDay = (iso, add = 0) => {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + add);
-  return d.toISOString().slice(0, 10).replace(/-/g, "");
-};
-
-function planIcs(p) {
-  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Verity//Pathway E8//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
-    `X-WR-CALNAME:${icsEscape("Verity reskilling plan")}`];
-  for (const t of p.tasks) {
-    const desc = `${t.minutes} min (estimate). Resource: ${t.resourceTitle} ${t.resourceUrl} Why: ${t.reason} Finish by ${t.date}.`;
-    lines.push("BEGIN:VEVENT", `UID:${STATE.sig}-${t.id}-${t.date}@verity.pathway`, `DTSTAMP:${stamp}`,
-      `DTSTART;VALUE=DATE:${icsDay(t.date)}`, `DTEND;VALUE=DATE:${icsDay(t.date, 1)}`,
-      `SUMMARY:${icsEscape(t.title)}`, `DESCRIPTION:${icsEscape(desc)}`, `URL:${t.resourceUrl}`, "TRANSP:TRANSPARENT", "END:VEVENT");
-  }
-  lines.push("END:VCALENDAR");
-  return lines.map(icsFold).join("\r\n") + "\r\n";
-}
-
 function download(name, mime, text) {
   const url = URL.createObjectURL(new Blob([text], { type: `${mime};charset=utf-8` }));
   const a = Object.assign(document.createElement("a"), { href: url, download: name });
@@ -686,10 +609,6 @@ document.addEventListener("click", async (e) => {
   } else if (act === "scenario") {
     STATE.scenario = b.dataset.value;
     refreshRoutes();
-  } else if (act === "download-md" && STATE.plan) {
-    download("verity_plan.md", "text/markdown", planMarkdown(STATE.plan));
-  } else if (act === "download-ics" && STATE.plan) {
-    download("verity_plan.ics", "text/calendar", planIcs(STATE.plan));
   } else if (act === "gtasks" && TODAY.tasks.length && !GTASKS.busy) {
     GTASKS.busy = true;
     rerender();

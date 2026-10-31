@@ -2,7 +2,7 @@
    timetable rows, the yellow halo only for "you are here" and the service-change band. */
 
 .proof { margin-top: 40px; }
-.proof__line svg { min-width: 560px; width: 100%; height: auto; display: block; }
+.proof__line svg { min-width: 560px; width: 100%; max-width: 1120px; height: auto; display: block; margin: 0 auto; }
 .proof__track { stroke: var(--apps); stroke-width: 8; stroke-linecap: round; }
 .proof__cap { fill: var(--paper); stroke: var(--ink); stroke-width: 3; }
 .proof__cap--done { fill: var(--ink); }
@@ -40,9 +40,9 @@
 .review__head { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
 .review__head h3 { margin: 0; font-size: var(--t-lg); }
 
-.pstamp { display: inline-block; border: 3px solid var(--rise); color: var(--rise); font-weight: 800; font-size: var(--t-sm); padding: 2px 10px; letter-spacing: 0.08em; transform: rotate(-4deg); margin-right: 8px; }
+.pstamp { display: inline-block; border: 3px solid var(--rise); color: var(--rise); font-weight: 800; font-size: var(--t-lg); padding: 4px 14px; letter-spacing: 0.08em; line-height: 1.2; transform: rotate(-4deg); margin-right: 12px; }
 .pstamp--ink { border-color: var(--ink); color: var(--ink); }
-.proof-done { display: flex; align-items: center; gap: 6px; font-size: var(--t-sm); margin: 10px 0; }
+.proof-done { display: flex; align-items: center; gap: 8px; font-size: var(--t-md); margin: 14px 0; }
 
 /* Jury: three signal stations on a short track */
 .jury { margin-top: 6px; font-size: var(--t-sm); }
@@ -67,18 +67,20 @@
 /* Departures timetable */
 .deps { display: grid; }
 .dep { border-bottom: 1px solid var(--rule); }
-.dep > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 26px 64px 1fr; gap: 12px; align-items: start; padding: 12px 0; }
+.dep > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 32px 96px 1fr; gap: 14px; align-items: start; padding: 16px 0; }
+.dep .bullet { width: 32px; height: 32px; font-size: var(--t-md); }
 .dep > summary::-webkit-details-marker { display: none; }
 .dep > summary:hover { background: var(--paper-2); }
 .dep > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.dep__gain { font-weight: 800; font-size: var(--t-lg); font-variant-numeric: tabular-nums; line-height: 1.1; }
-.dep__gain--word { font-size: var(--t-md); overflow-wrap: anywhere; }  /* a word, not a number: must fit the 64px column */
-.dep__gain small { display: block; font-size: var(--t-xs); font-weight: 500; color: var(--ink-3); }
-.dep__main { display: grid; gap: 6px; }
+.dep__gain { font-weight: 800; font-size: 1.75rem; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+.dep__gain--word { font-size: var(--t-xl); letter-spacing: -0.01em; overflow-wrap: anywhere; }  /* a word, not a number: must fit the 96px column */
+.dep__gain small { display: block; font-size: var(--t-xs); font-weight: 600; color: var(--ink-3); letter-spacing: 0; margin-top: 4px; }
+.dep__main { display: grid; gap: 8px; }
+.dep__main > span:first-child > b, .dep--cert .dep__main > b { font-size: var(--t-lg); font-weight: 800; letter-spacing: -0.01em; line-height: 1.3; }
 .dep__main .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.dep__body { padding: 0 0 14px 102px; }
+.dep__body { padding: 0 0 16px 156px; }
 .dep__body .btn { margin-top: 12px; }
-.dep--cert { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: start; padding: 12px 0; }
+.dep--cert { display: grid; grid-template-columns: 96px 1fr auto; gap: 14px; align-items: start; padding: 16px 0; }
 .dep__act { display: grid; gap: 6px; justify-items: end; }
 .cert-pass { display: flex; gap: 6px; }
 .cert-pass input { min-width: 220px; }
@@ -90,9 +92,12 @@
 .proof-count { margin-top: 6px; }
 
 @media (max-width: 720px) {
-  .dep > summary { grid-template-columns: 22px 52px 1fr; gap: 8px; }
+  .dep > summary { grid-template-columns: 26px 72px 1fr; gap: 10px; }
+  .dep .bullet { width: 26px; height: 26px; font-size: var(--t-sm); }
+  .dep__gain { font-size: var(--t-xl); }
+  .dep__gain--word { font-size: var(--t-md); }
   .dep__body { padding-left: 0; }
-  .dep--cert { grid-template-columns: 52px 1fr; }
+  .dep--cert { grid-template-columns: 72px 1fr; }
   .dep__act { grid-column: 1 / -1; justify-items: start; }
   .cert-pass { flex-wrap: wrap; }
   .cert-pass input { min-width: 0; }

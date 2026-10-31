@@ -346,9 +346,19 @@ def fallback(cv_text: str | None, role: str, skills: list[str], done: set[str]) 
     return f"{cv_text.strip()}\n\n{skills_md}\n" if cv_text else f"{NO_CV_NOTE}\n\n{skills_md}\n"
 
 
+def add_proven(draft: CvDraft, projects: Iterable[Project] = (), certs: Iterable[str] = ()) -> CvDraft:
+    """Passed Varity projects and Credly-verified certs, added by code after the checker (they are proven, not written)."""
+    names = {_norm(p.name) for p in draft.projects}
+    have = {_norm(a) for a in draft.achievements}
+    return draft.model_copy(update={
+        "projects": [*draft.projects, *(p for p in projects if _norm(p.name) not in names)][:10],
+        "achievements": [*draft.achievements, *(c for c in certs if _norm(c) not in have)][:12]})
+
+
 def generate(profile: Profile, role_id: str, cv_text: str | None, data: Mapping[str, Any],
              call: Callable = call_model, *, job_ad: str = "", momentum: list[dict] | None = None,
-             facts: Iterable[str] = ()) -> dict:
+             facts: Iterable[str] = (), proven_projects: Iterable[Project] = (),
+             proven_certs: Iterable[str] = ()) -> dict:
     """{"markdown", "role", "roleId", "mode": "llm" | "off:<code>" | "no_cv", "dropped", "draft", "skills", "learned"}.
 
     Raises service.RoleNotFound. `draft` is the structured CV (None when the model was not used).
@@ -369,5 +379,6 @@ def generate(profile: Profile, role_id: str, cv_text: str | None, data: Mapping[
         return {**base, "markdown": fallback(cv_text, role, skills, done), "mode": f"off:{exc.code}"}
     cleaned, dropped = check(answer, cv_text, skills, copied_jobs=answer.copied_jobs,
                              copied_projects=answer.copied_projects, facts=facts)
+    cleaned = add_proven(cleaned, proven_projects, proven_certs)
     return {**base, "markdown": render(cleaned, role, done), "mode": "llm", "dropped": dropped,
             "draft": cleaned.model_dump()}

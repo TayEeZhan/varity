@@ -29,7 +29,7 @@ Every recommendation is traceable to a dated, cited signal. The ranking is a det
 
 - Hackathon: XMUM SDC Hackathon 2026, Domain 1 (Aiversecity Future-Ready Workforce). Judges see a live demo where the trend-signal layer feeds matching live.
 - Signal sources: official lab blogs and changelogs (RSS), arXiv, Hugging Face Daily Papers, Hacker News, Bluesky; X and Threads via official APIs only. Stories are tiered Must-know / Worth a look / Emerging (social-only, unconfirmed) / Minor.
-- Daily tasks sync to Google Tasks via Google sign-in; fallback is the in-app list plus `.ics` / Markdown export.
+- Daily tasks sync to Google Tasks via Google sign-in; fallback is the in-app list.
 
 ## Capabilities and Constraints
 

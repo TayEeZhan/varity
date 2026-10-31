@@ -251,9 +251,9 @@ flowchart LR
 
 ### 3.10 Reskilling pathway [IN APP]
 
-- **What it does.** Turns the skill gap for a target role into an ordered plan, then into dated daily tasks. The Pathway and Today screens are built from it for the saved profile and the chosen route. The browser builds the `.md` and `.ics` downloads.
+- **What it does.** Turns the skill gap for a target role into an ordered plan, then into dated daily tasks. The Pathway and Today screens are built from it for the saved profile and the chosen route.
 - **Inputs.** The gap from role match, `data/skill_scores.json`, `data/resources.json`, scenario, hours per week, start date.
-- **Outputs.** A plan object (`GET /api/pathway`). The `.md` and `.ics` exports are built in the browser.
+- **Outputs.** A plan object (`GET /api/pathway`).
 - **Key functions.** `engine/pathway.py`: `build_pathway`, `classify`, `schedule_tasks`, `progress`, `to_markdown`, `to_ics`, `sdg_headline`.
 - **How it works.** Each gap skill goes to the first stage it fits. Stage 1, `no_regret`: needed by 2 or more of the counted roles, not Falling, not AI-substitutable. Stage 2, `near_term`: in the top half of the gap skills by share now. Stage 3, `future_bet`: Rising or AI-complement. The "If AI speeds up" (`fast`) scenario moves stage 3 to second place. Tasks last at most 45 minutes on Monday to Friday, with dates in Malaysia time.
 - **Why built this way.** Code sets the dates and builds the order. The optional pathway coach may re-order steps within a stage, pick among the listed resources and write one checked "why" line; it never changes a date, a minute count or a stage. A resource can come only from `data/resources.json`, and only if its link returned HTTP 200 (77 resources for the 40 skills, checked on 2026-10-22, docs/pathway.md). A skill without a verified resource gets no task. The engine never invents a course. HRD Corp: only the programmes in `data/hrd_programmes.json` (3 entries, each with the provider's own claim statement and a check date) show an HRD Corp option. All other resources make no claim.
@@ -329,7 +329,7 @@ flowchart LR
   - **Flow map**: the planned user flow as a transit map. It says that Google sign-in and two-way Google Tasks sync are not built. Replit sign-in is built (section 3.20).
   - **CV & routes**: CV upload (section 3.18), or "Try an example" with 3 synthetic profiles (`data/example_profiles.json`), which needs no LLM. Routes are ranked by `0.7 * match + 0.3 * outlook` (section 3.9). Reasons are typed chips with a source and a date (section 3.19). Each route has SDG tags and MyCOL badges. An "Expected (estimate)" or "If AI speeds up (estimate)" scenario toggle sits on the routes (API values `moderate` and `fast`). A goal picker (SDG) and a reason line per role are built (section 3.14). The free resource under a stop can show an HRD Corp option from `data/hrd_programmes.json`.
   - **Today**: the next stops, taken from the pathway.
-  - **Pathway**: the ordered stops from the saved profile to the chosen route (`engine/pathway.py`). `.md` and `.ics` downloads are built in the browser.
+  - **Pathway**: the ordered stops from the saved profile to the chosen route (`engine/pathway.py`).
   - **Signals**: the AI-trend ranker output (section 3.17), dated and updated.
   - **Job forecast**: `data/role_forecast.json` (section 4.2).
   - **Skills radar**: `engine.radar` and `data/skill_scores.json`, with the skill forecast.
