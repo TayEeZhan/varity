@@ -10,7 +10,7 @@
       "skills": ["SQL", "PostgreSQL", "Python", "Docker"],
       "criteria": [
         {"text": "A SQL query joins 3 or more of the Olist tables", "skill": "SQL", "hints": [".sql", "join", "orders", "customers"]},
-        {"text": "The tables load into PostgreSQL with keys and at least one index", "skill": "PostgreSQL", "hints": ["create table", "create index", "primary key", "postgres"]},
+        {"text": "The tables load into PostgreSQL with keys and at least one index", "skill": "PostgreSQL", "hints": ["schema", ".sql", "ddl", "migrat", "postgres", "db", "load"]},
         {"text": "A Python script loads the CSV files and rejects bad rows", "skill": "Python", "hints": [".py", "csv", "load", "reject"]},
         {"text": "A Dockerfile or docker-compose file starts the database and the loader", "skill": "Docker", "hints": ["dockerfile", "docker-compose", "compose.y"]}
       ],
@@ -62,7 +62,7 @@
       "criteria": [
         {"text": "Python code cleans the data and splits train and test sets", "skill": "Python", "hints": [".py", ".ipynb", "train_test_split", "split"]},
         {"text": "A model is trained and compared with a simple baseline on the test set", "skill": "Machine Learning", "hints": ["fit(", "baseline", "roc_auc", "accuracy"]},
-        {"text": "A SQL query or notebook cell summarises churn by contract type", "skill": "SQL", "hints": ["select", "group by", "contract"]}
+        {"text": "A SQL query or notebook cell summarises churn by contract type", "skill": "SQL", "hints": [".sql", ".ipynb", "query", "notebook", "analysis"]}
       ],
       "twist": "Show one case where the model is wrong and say why."
     },
@@ -99,7 +99,7 @@
       "skills": ["Go", "PostgreSQL", "Docker"],
       "criteria": [
         {"text": "Go handlers create and resolve short links", "skill": "Go", "hints": [".go", "handler", "http"]},
-        {"text": "Links are stored in PostgreSQL with a unique index on the code", "skill": "PostgreSQL", "hints": ["create table", "unique", "postgres", "migration"]},
+        {"text": "Links are stored in PostgreSQL with a unique index on the code", "skill": "PostgreSQL", "hints": ["migrat", "schema", ".sql", "store", "postgres", "db", "repo"]},
         {"text": "A Dockerfile builds a small image of the service", "skill": "Docker", "hints": ["dockerfile"]}
       ],
       "twist": "Two requests for the same long URL return the same short code."
@@ -110,7 +110,7 @@
       "roles": ["platform_devops_engineer", "backend_engineer"],
       "skills": ["Kubernetes", "Terraform", "Docker", "AWS"],
       "criteria": [
-        {"text": "Kubernetes manifests or a Helm chart with a Deployment, a Service and readiness probes", "skill": "Kubernetes", "hints": ["deployment", "kind: service", "readinessprobe", "chart.yaml"]},
+        {"text": "Kubernetes manifests or a Helm chart with a Deployment, a Service and readiness probes", "skill": "Kubernetes", "hints": ["k8s", "kube", "helm", "chart.yaml", "deploy", "manifest", "service"]},
         {"text": "Terraform creates the cluster or its network", "skill": "Terraform", "hints": [".tf", "resource", "provider"]},
         {"text": "A Dockerfile builds the service image", "skill": "Docker", "hints": ["dockerfile"]},
         {"text": "The Terraform targets AWS (EKS or VPC resources)", "skill": "AWS", "hints": ["aws_", "eks", "vpc"]}
