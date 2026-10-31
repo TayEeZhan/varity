@@ -80,16 +80,11 @@
 
 /* ── Departures board ── */
 .lp-rows { margin-top: 4px; border: 2px solid var(--ink); border-top-width: 0; }
-.lp-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px 110px; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
+.lp-row { display: grid; grid-template-columns: minmax(0, 1fr) 110px 140px; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
 .lp-row:last-child { border-bottom: 0; }
 .lp-row--head { background: var(--ink); color: #fff; font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 14px; }
 .lp-role { font-weight: 700; }
-.lp-rows .bullet { background: var(--ink); }
-.lp-trend { font-weight: 700; }
-.lp-trend--Rising { color: var(--rise); }
-.lp-trend--Falling { color: var(--fall); }
-.lp-trend--flat { color: var(--ink-2); }
-.lp-when { color: var(--ink-2); }
+.lp-row .flap { min-width: 76px; }
 .lp-note { margin-top: 10px; font-size: var(--t-sm); color: var(--ink-3); }
 
 /* ── How Varity works links, footer line ── */
@@ -144,8 +139,8 @@
   .hw-journey li::before { left: 0; top: 2px; }
 }
 @media (max-width: 640px) {
-  .lp-row { grid-template-columns: 30px minmax(0, 1fr) auto; }
-  .lp-when { grid-column: 2 / -1; font-size: var(--t-sm); margin-top: -6px; }
+  .lp-row { grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
+  .lp-row .plate { min-width: 0; }
   .lp-row--head { display: none; }
   .lp-cta .btn { width: 100%; }
   .hw-lede { font-size: var(--t-md); }

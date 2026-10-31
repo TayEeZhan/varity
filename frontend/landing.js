@@ -98,11 +98,11 @@ function renderLanding() {
 
     <section id="lp-board" aria-labelledby="lp-board-h" hidden>
       <h2 class="sec" id="lp-board-h"><span>Departures: role demand <span class="synthetic real lp-chip">Real data</span></span> <small data-asof></small></h2>
-      <p class="lp-note">Demand trend, last 12 months vs the 12 before</p>
+      <p class="lp-note">Share of hiring posts, last 12 months vs the 12 before</p>
       <div class="lp-rows" role="table" aria-label="Role demand trend">
-        <div class="lp-row lp-row--head" role="row"><span role="columnheader"></span><span role="columnheader">Role</span><span role="columnheader">Demand</span><span role="columnheader">As of</span></div>
+        <div class="lp-row lp-row--head" role="row"><span role="columnheader">Role</span><span role="columnheader">Past year</span><span role="columnheader">Trend</span></div>
       </div>
-      <p class="lp-note">Share of Hacker News hiring posts; a sample of tech hiring, not a count of jobs.</p>
+      <p class="lp-note">Past year = change in share, in percentage points. Steady means the change could be noise. Share of Hacker News hiring posts; a sample of tech hiring, not a count of jobs.</p>
     </section>
 
     <section aria-labelledby="lp-more-h">
@@ -127,7 +127,10 @@ async function bindBoard(root) {
   try {
     const d = await api("/api/roles/forecast");
     if (!root.isConnected || !d || !d.roles) return;
-    const rows = Object.values(d.roles).filter((r) => r && r.name && r.trend && r.trend.label);
+    const pts = (r) => (r.trend.share_last12 - r.trend.share_prev12) * 100;
+    const rows = Object.values(d.roles).filter((r) => r && r.name && r.trend && r.trend.label && r.trend.share_last12 != null)
+      .sort((a, b) => pts(b) - pts(a));
+    const PLATE = { Rising: ["up", "Growing"], Falling: ["down", "Shrinking"] };  // same words as Job forecast
     if (!rows.length) return;
     const [y, mo] = String(d.as_of || "").split("-").map(Number);
     const asOf = y && mo ? new Date(Date.UTC(y, mo - 1, 1)).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }) : String(d.as_of || "");
@@ -136,20 +139,22 @@ async function bindBoard(root) {
       const row = document.createElement("div");
       row.className = "lp-row";
       row.setAttribute("role", "row");
-      const bullet = document.createElement("span");
-      bullet.className = "bullet bullet--sm";
-      bullet.setAttribute("aria-hidden", "true");
-      bullet.textContent = r.name.charAt(0);
       const name = document.createElement("span");
       name.className = "lp-role";
       name.textContent = r.name;
+      const p = pts(r), dir = p >= 0.05 ? "up" : p <= -0.05 ? "down" : "flat";
+      const change = document.createElement("span");
+      const flap = document.createElement("span");
+      flap.className = "flap flap--" + dir;
+      flap.textContent = (p > 0 ? "+" : p < 0 ? "−" : "") + Math.abs(p).toFixed(1) + " pt";
+      change.appendChild(flap);
+      const [cls, word] = PLATE[r.trend.label] || ["flat", "Steady"];
       const trend = document.createElement("span");
-      trend.className = "lp-trend " + (r.trend.label === "Rising" || r.trend.label === "Falling" ? "lp-trend--" + r.trend.label : "lp-trend--flat");
-      trend.textContent = r.trend.label;
-      const when = document.createElement("span");
-      when.className = "lp-when";
-      when.textContent = asOf;
-      for (const c of [bullet, name, trend, when]) { c.setAttribute("role", "cell"); row.appendChild(c); }
+      const plate = document.createElement("span");
+      plate.className = "plate plate--" + cls;
+      plate.textContent = word;
+      trend.appendChild(plate);
+      for (const c of [name, change, trend]) { c.setAttribute("role", "cell"); row.appendChild(c); }
       host.appendChild(row);
     }
     root.querySelector("[data-asof]").textContent = asOf ? "As of " + asOf : "";
