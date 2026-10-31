@@ -41,3 +41,6 @@ outputType = "console"
 [userenv]
 
 [userenv.shared]
+
+[objectStorage]
+defaultBucketID = "replit-objstore-1b3ec22c-4e72-48b0-aa90-f55388bea9a9"
