@@ -72,6 +72,7 @@
 .dep > summary:hover { background: var(--paper-2); }
 .dep > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .dep__gain { font-weight: 800; font-size: var(--t-lg); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.dep__gain--word { font-size: var(--t-md); overflow-wrap: anywhere; }  /* a word, not a number: must fit the 64px column */
 .dep__gain small { display: block; font-size: var(--t-xs); font-weight: 500; color: var(--ink-3); }
 .dep__main { display: grid; gap: 6px; }
 .dep__main .chips { display: flex; flex-wrap: wrap; gap: 6px; }
