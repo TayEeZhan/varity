@@ -3,7 +3,19 @@
 Read this first in any new chat. Then read `C:\Users\eezha\sdc-hackathon\BRIEF.md` (rules, rubric, deadlines) and `C:\Users\eezha\verity\docs\architecture.md` (every feature, with its status).
 The "Update 29 Oct" section is the newest. The sections after it are the 24 Oct state, kept for history.
 
-## Update 1 Nov 2026 (newest): KrackedDevs side built, not run (`tasks/plan-credits.md`)
+## Update 1 Nov 2026 (newest): Project and Cert stations built, not committed (`tasks/plan-projects-certs.md`)
+
+- **Built.** Evidence credit in the match score (Learned 0.5, Applied and Certified 1.0), the project catalog and review (hard checks, then a 3-model jury with checked citations), certs with Credly checks, re-plan bands, and the Pathway / Today / CV & routes UI. See `docs/architecture.md` 3.21.
+- **Scores change.** Users with ticked-only skills see a lower match %. Re-run the WP2 numbers below (Aina -> Backend Engineer 0.759) before quoting them.
+- **Tests.** `backend/signals/tests/test_proof.py` (21). Checked in the browser on localhost: board, consent, a real GitHub hard-check fail on a public repo, phone width.
+- **Not run live.** The jury against real models, the GitHub read with `GITHUB_TOKEN`, the why-line model, Credly against a real badge, `python -m engine.cert_demand` (needs the raw HN threads).
+- **User steps.** (1) Put a read-only `GITHUB_TOKEN` (fine-grained, public repos only) in Replit Secrets. (2) Put the teammate's `KD_API_KEY` in Replit Secrets; use `ANTHROPIC_API_KEY` only if Replit AI Integrations is empty. (3) Raise `KD_CAP_USD` for the `jury` job. (4) Run `python -m engine.cert_demand` after the HN backfill and commit `data/cert_demand.json`.
+- **GitHub connect removed, AI why line added (1 Nov).** Decision: URL only. The GitHub App connect, token refresh, webhook, `owner_github` and `github_events` are gone; every repo is "Unverified owner" and only public repos can be reviewed (R7 token encryption is no longer needed). The project "why" line is now written by a model (`proof/why.py`) and shown only when code checks its numbers and skills; else the template shows. User step: a teammate puts a read-only fine-grained `GITHUB_TOKEN` (public repos) in Replit Secrets. Tests: 24 in `test_proof.py`; full `backend/signals` suite passes.
+- **Review fixes done (1 Nov).** All bugs from the code review: dispute after a failed check, exact-line citations, token refresh and install-based ownership, no per-IP cap (a repeat review needs new commits), one shared service band, plain row buttons, cancel reasons, colour tokens, credit labels from the value. Also: database review lock, `GITHUB_TOKEN` for public reads, push-time commit spread, Claude + GPT option for private repos, Credly name flag, 30-day webhook clean-up, Method page credit row, Why panel levels, one-time credit note, synthetic sample review, Tech Declaration rows. Tests: 25 in `test_proof.py`; full `backend/signals` suite passes.
+- **User steps added.** Put a read-only `GITHUB_TOKEN` in Replit Secrets (public repo reads, 5,000 an hour). Turn on "expire user tokens" in the GitHub App so refresh tokens are sent.
+- **Not built.** Live GitHub/Kaggle/HN-brief collectors, the LLM "why" sentence, token encryption. Offline jury eval dropped.
+
+## Update 1 Nov 2026: KrackedDevs side built, not run (`tasks/plan-credits.md`)
 
 - `engine/llm_client.py` (stdlib only): `kd_call(model, job)`, usage log `data/llm_usage.csv` (no key, no text), budget guard per job (`KD_CAP_USD`, default 15), clear errors on 401/400. `llm_labels.py` and `role_discover.py` use it when `KD_API_KEY` is set (labels `deepseek-v4-flash`, title review `gpt-5.4-mini`; override with `KD_LABEL_MODEL`, `KD_REVIEW_MODEL`, `KD_BASE_URL`). The label CSV model column and the Method screen show `krackeddevs/<model>`.
 - Cost in the log is an assumed list price unless the gateway sends `x-litellm-response-cost`. The `cost_source` column says which.

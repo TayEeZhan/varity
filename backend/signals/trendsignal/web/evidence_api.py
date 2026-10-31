@@ -16,7 +16,7 @@ from typing import Any
 from fastapi import FastAPI, Header, Query, Request
 
 from advisor import service
-from advisor.mapping import map_profile, taxonomy_index
+from advisor.mapping import LEARNED_CREDIT, map_profile, taxonomy_index
 from trendsignal.config import Settings
 from trendsignal.web.app import RateLimiter, envelope
 from trendsignal.web.auth_api import owner_of
@@ -172,6 +172,10 @@ def evidence_payload(data_dir: Path = DATA_DIR) -> dict:
         "asOf": scores.get("as_of"),
         "backtests": {"skills": backtest_view(skills_bt), "roles": backtest_view(roles_bt) if roles_bt else None},
         "exposure": exposure, "k": k,
+        "learnedCredit": {"value": LEARNED_CREDIT, "label": "assumption",
+                          "line": f"A skill backed only by ticked pathway tasks counts {LEARNED_CREDIT} of its weight in the "
+                                  "match score. A passed project review (Applied) or a verified Credly badge (Certified) "
+                                  "counts 1.0. The value is a team judgement, not fitted."},
         "sources": source_links(sources_md) if sources_md else [],
         "sourcesChecked": checked.group(1).strip() if checked else None,
         "missing": missing,

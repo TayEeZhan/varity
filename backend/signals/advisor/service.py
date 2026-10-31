@@ -18,7 +18,7 @@ from typing import Any, Callable, Mapping, Sequence
 from advisor import chips as chip_mod
 from advisor import planner
 from advisor.llm import LlmUnavailable, advise, call_model, coach, verify_advice, verify_coaching
-from advisor.mapping import map_profile, taxonomy_index
+from advisor.mapping import map_profile, skill_credit, skill_levels, taxonomy_index
 from intake.ledger import now_iso as ledger_now
 from intake.models import Profile
 
@@ -240,10 +240,21 @@ def mycol_by_role(data: Mapping[str, Any]) -> dict[str, list[dict]]:
 
 
 def _match(profile: Profile, data: Mapping[str, Any], scenario: str) -> tuple[dict, dict, list[str]]:
-    held, unmapped = map_profile(profile, taxonomy_index(data["taxonomy"]))
+    index = taxonomy_index(data["taxonomy"])
+    held, unmapped = map_profile(profile, index)
     role_profile = roles_mod.profile_for(data["scores"]["as_of"], data["profiles"])
-    out = roles_mod.match_roles(held, role_profile, data["scores"], data["trends"], scenario, exposure=data["exposure"])
+    out = roles_mod.match_roles(held, role_profile, data["scores"], data["trends"], scenario, exposure=data["exposure"],
+                                credit=skill_credit(profile, index))
     return out, held, unmapped
+
+
+def match(profile: Profile, data: Mapping[str, Any], scenario: str) -> dict:
+    """match_roles for a saved profile (the proof API ranks projects and certs from it)."""
+    return _match(profile, data, scenario)[0]
+
+
+task_slug = pathway_mod.task_slug
+today_myt = pathway_mod.today_myt
 
 
 def _tag(as_of: Mapping[str, str | None], scenario: str | None = None) -> str:
@@ -286,6 +297,7 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
     """GET /api/roles/suggestions: ranked roles with reason chips (docs/role-suggestion-pathway-architecture.md §4.1)."""
     data = data or load_data()
     out, held, unmapped = _match(profile, data, scenario)
+    levels = skill_levels(profile, taxonomy_index(data["taxonomy"]))
     as_of = _as_of(profile, data, run_id)
     momentum, links = _momentum(momentum_rows), chip_mod.watch_map(data["taxonomy"], _watch_terms(momentum_rows))
     minutes, forecasts = _minutes_by_skill(data["resources"]), data["forecast"]["roles"]
@@ -296,6 +308,8 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
 
     def breakdown(r: Mapping[str, Any]) -> dict:
         b = roles_mod.score_breakdown(r)
+        b["levels"] = [{"skill": s["skill"], "level": levels.get(s["skill"], "CV"), "credit": s.get("credit", 1.0)}
+                       for s in r["have"]]
         for item in b["raise"]:
             pick = pathway_mod._pick_resource(options.get(item["skill"], []))[0]
             item["resource"] = {"title": pick["title"], "url": pick["url"]} if pick else None
@@ -306,7 +320,8 @@ def suggestions(profile: Profile, momentum_rows: Sequence[Mapping], run_id: str 
         return {"roleId": r["role_id"], "name": r["name"], "formulaRank": r["rank"],
                 "matchPct": round(r["match_score"] * 100), "trendLabel": r["outlook"]["trend_label"],
                 "outlook": _outlook(forecasts.get(r["role_id"]), as_of["forecast"]), "tier": r["tier"],
-                "have": [s["skill"] for s in r["have"]], "gap": [s["skill"] for s in r["gap"]], "chips": chips,
+                "have": [s["skill"] for s in r["have"]],
+                "learnedOnly": [s["skill"] for s in r["have"] if s.get("credit", 1.0) < 1.0], "gap": [s["skill"] for s in r["gap"]], "chips": chips,
                 "breakdown": breakdown(r), "fastShift": r["fast_shift"], "sdg": _role_sdg(r, data), "mycol": mycol.get(r["role_id"], []),
                 "sdgReason": sdg_mod.role_reason(data.get("role_sdg") or {}, r["role_id"])}
 

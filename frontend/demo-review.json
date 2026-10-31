@@ -1,0 +1,33 @@
+{
+  "note": "SYNTHETIC sample review for demos. No real repo, no real model calls. Shown with a 'Synthetic' label.",
+  "title": "Sales warehouse on the Olist e-commerce dataset",
+  "criteria": [],
+  "jurors": ["Claude Haiku", "GPT-5.4 mini", "DeepSeek V4 Flash"],
+  "review": {
+    "outcome": "not_yet",
+    "hard": [
+      {"check": "repo", "ok": true, "detail": "sample-user/olist-dw · public"},
+      {"check": "owner", "ok": true, "detail": "In your GitHub App install (@sample-user)"},
+      {"check": "commits", "ok": true, "detail": "27 commits, 9 days with a push"},
+      {"check": "ci", "ok": true, "detail": "Latest Actions run #31: success"}
+    ],
+    "items": [
+      {"criterion": "A SQL query joins 3 or more of the Olist tables", "result": "pass", "votes": [
+        {"model": "Claude Haiku", "vote": "pass", "reason": "Joins orders, customers and items.", "cite": "sql/sales.sql:12"},
+        {"model": "GPT-5.4 mini", "vote": "pass", "reason": "Three-table JOIN found.", "cite": "sql/sales.sql:12"},
+        {"model": "DeepSeek V4 Flash", "vote": "pass", "reason": "JOIN across 3 tables.", "cite": "sql/sales.sql:13"}]},
+      {"criterion": "The tables load into PostgreSQL with keys and at least one index", "result": "pass", "votes": [
+        {"model": "Claude Haiku", "vote": "pass", "reason": "Primary keys and an index on customer_id.", "cite": "schema.sql:18"},
+        {"model": "GPT-5.4 mini", "vote": "pass", "reason": "CREATE INDEX present.", "cite": "schema.sql:18"},
+        {"model": "DeepSeek V4 Flash", "vote": "fail", "reason": "Index found (pass dropped: cited line not found)", "cite": "schema.sql:40"}]},
+      {"criterion": "A Python script loads the CSV files and rejects bad rows", "result": "fail", "votes": [
+        {"model": "Claude Haiku", "vote": "fail", "reason": "Loader keeps rows with empty order ids.", "cite": null},
+        {"model": "GPT-5.4 mini", "vote": "fail", "reason": "No reject step for bad rows.", "cite": null},
+        {"model": "DeepSeek V4 Flash", "vote": "pass", "reason": "load.py reads the CSV files.", "cite": "load.py:4"}]},
+      {"criterion": "A Dockerfile or docker-compose file starts the database and the loader", "result": "fail", "votes": [
+        {"model": "Claude Haiku", "vote": "fail", "reason": "No Dockerfile or compose file.", "cite": null},
+        {"model": "GPT-5.4 mini", "vote": "fail", "reason": "No container config found.", "cite": null},
+        {"model": "DeepSeek V4 Flash", "vote": "fail", "reason": "No Dockerfile in the repo.", "cite": null}]}
+    ]
+  }
+}
