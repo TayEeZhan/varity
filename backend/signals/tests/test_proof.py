@@ -412,3 +412,20 @@ def test_why_template_first_then_checked_model_sentence():
     for _ in range(2):  # a failed sentence keeps the template and is not asked again this week
         out = why.apply([{**WHY_ROW, "id": "other"}], "Data Analyst", date(2026, 11, 2), lambda: bad, lambda f, *a: f(*a))
     assert out[0]["why"] == "template" and len(calls) == 2
+
+
+def test_claude_juror_asks_anthropic_for_a_claude_model_when_krackeddevs_is_set(monkeypatch):
+    from engine import llm_client, llm_labels
+    seen = {}
+
+    class FakeMessages:
+        def create(self, **kw):
+            seen["model"] = kw["model"]
+            return type("M", (), {"content": []})()
+
+    monkeypatch.setattr(llm_client, "kd_configured", lambda: True)
+    monkeypatch.setattr(llm_client, "kd_call", lambda model, job: lambda s, u: "")
+    monkeypatch.setattr(llm_labels, "make_client", lambda: type("C", (), {"messages": FakeMessages()})())
+    claude = next(j for j in jury.default_jurors() if j.name == "Claude Haiku")
+    claude.call("s", "u")
+    assert seen["model"].startswith("claude-")

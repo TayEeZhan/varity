@@ -152,11 +152,11 @@ def default_jurors(skip_deepseek: bool = False) -> list[Juror]:
     skip_deepseek: the user chose Claude + GPT only for a private repo; then both must pass an item."""
     from advisor import service  # noqa: F401  puts the verity root (engine/) on sys.path, as for the advisor
     from engine import llm_client
-    from engine.llm_labels import claude_call
+    from engine.llm_labels import claude_call, claude_model
 
     jurors = []
-    try:
-        jurors.append(Juror("Claude Haiku", claude_call()))
+    try:  # claude_model, not model_name: with KD_API_KEY set, model_name is a KrackedDevs model Anthropic refuses
+        jurors.append(Juror("Claude Haiku", claude_call(model=claude_model())))
     except Exception:  # noqa: BLE001 - no Replit key: that juror is missing, the majority rule handles it
         pass
     if llm_client.kd_configured():

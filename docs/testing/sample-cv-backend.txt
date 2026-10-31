@@ -1,0 +1,27 @@
+DANIEL LIM WEI JIE
+Kuala Lumpur, Malaysia | daniel.lim@example.com | github.com/example-daniel
+(Synthetic CV for testing Varity. Not a real person.)
+
+SUMMARY
+Junior backend developer with 2 years of experience building REST APIs in Python.
+Comfortable with PostgreSQL, Docker and AWS. Wants to move into backend engineering roles.
+
+EXPERIENCE
+Backend Developer, Kedai Pintar Sdn Bhd, Kuala Lumpur (Jan 2024 - Present)
+- Built REST APIs in Python with FastAPI for an online grocery shop with 20,000 users.
+- Designed PostgreSQL tables and wrote SQL queries for orders, stock and payments.
+- Packaged the services with Docker and deployed them to AWS EC2 and RDS.
+- Wrote unit tests with pytest and set up GitHub Actions to run them on each push.
+
+Software Engineering Intern, Data Rakyat Labs, Petaling Jaya (Jun 2023 - Dec 2023)
+- Wrote Python scripts to clean CSV files and load them into PostgreSQL.
+- Fixed bugs in a Flask web app and added logging with the Python logging module.
+
+EDUCATION
+Bachelor of Computer Science (Software Engineering), Universiti Malaya, 2019 - 2023
+
+SKILLS
+Python, FastAPI, Flask, SQL, PostgreSQL, Docker, AWS (EC2, RDS, S3), Git, GitHub Actions, Linux, REST APIs, pytest
+
+PROJECTS
+Grocery Stock Alerts: a Python service that sends a Telegram message when stock is low (FastAPI, PostgreSQL, Docker).
