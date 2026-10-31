@@ -243,7 +243,9 @@ function exposureSection(x, k) {
   const ccTable = cc.length ? `<table class="ev-table"><caption>Each source cell: the category's z-score (0 = average of the ${nSkills || "all"} skills) and the stance that source would give.</caption>
     <thead><tr>${cols.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>
     <tbody>${cc.map((r) => `<tr>${cols.map((c, i) => (i === 0 ? `<th scope="row">${esc(r[c])}</th>` : `<td>${esc(r[c])}</td>`)).join("")}</tr>`).join("")}</tbody></table>` : "";
-  const kHTML = k ? `<h3>The size of the AI effect (k)</h3><p><span class="ev-tag">assumption</span> ${esc(k.line)}</p><p class="method">${esc(k.caption)} Generated ${esc((k.generatedAt || "?").slice(0, 10))}.</p>` : "";
+  const lc = EV.evidence && EV.evidence.learnedCredit;
+  const kHTML = (k ? `<h3>The size of the AI effect (k)</h3><p><span class="ev-tag">assumption</span> ${esc(k.line)}</p><p class="method">${esc(k.caption)} Generated ${esc((k.generatedAt || "?").slice(0, 10))}.</p>` : "")
+    + (lc ? `<h3>Credit for self-reported learning (${esc(lc.value)})</h3><p><span class="ev-tag">${esc(lc.label)}</span> ${esc(lc.line)}</p>` : "");
   return `<section class="ev-sec" aria-labelledby="ex-h"><h2 class="sec" id="ex-h">AI exposure <small>Anthropic Economic Index${others ? ` and ${others} other sources` : ""}</small></h2>
     <p>The AI stance of a skill comes from the share of work in its occupations that people hand over to AI in Claude.ai usage (Anthropic Economic Index, automation share). The category-to-occupation map is a team judgement.</p>
     <table class="ev-table"><caption>Automation share by occupation</caption><thead><tr><th scope="col">Occupation</th><th scope="col">Skill category</th><th scope="col" class="num">Automation share</th></tr></thead><tbody>${occ}</tbody></table>

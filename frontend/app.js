@@ -54,7 +54,7 @@ function currentScreen() {
   if (r === "" && location.hash.startsWith("#/")) return "home";
   if (r === "flow") return "how";  // old Flow map links
   if (SCREENS[r]) return r;
-  return hasKey() ? DEFAULT_SCREEN : "home";
+  return hasKey() || ACCOUNT.signedIn ? DEFAULT_SCREEN : "home";  // signed in, no CV yet: the app, so the CV pop-up shows
 }
 let shownScreen = "";
 
@@ -271,6 +271,7 @@ async function loadPlan() {
     applyPlan(null);
     STATE.planError = errText(e);
   }
+  await loadProof();  // Project and Cert stations follow the route
 }
 
 /* Keep / Revert a changed plan, or Add / Not now a trend skill (POST /api/pathway/decision). */
@@ -726,6 +727,12 @@ STATE.loading = profileToken() ? "profile" : "";
 const waitForMe = !location.hash && !profileToken();
 if (!waitForMe) navigate();  // draw at once; the data arrives below
 if (loginFailed) toast("Sign-in did not finish. Try again.");
+/* GitHub connect returns with ?github=connected or ?github=failed in the hash. */
+const githubBack = (location.hash.match(/\?github=(connected|failed)/) || [])[1];
+if (githubBack) {
+  history.replaceState(null, "", location.pathname + location.search + location.hash.replace(/\?github=\w+/, ""));
+  toast(githubBack === "connected" ? "GitHub connected. Pick your repo on the Project stop." : "GitHub did not connect. Sign in first, then try again.");
+}
 loadMine();
 loadSignals().then(() => rerender());
 loadForecast().then(() => rerender());

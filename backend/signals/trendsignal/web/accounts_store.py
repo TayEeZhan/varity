@@ -23,9 +23,16 @@ TABLES = (
     # The CV builder: the accepted draft (CvDraft + facts the user added) and the user's saved CV notes.
     "CREATE TABLE IF NOT EXISTS owner_cv_drafts (owner_key TEXT PRIMARY KEY, draft_json TEXT NOT NULL, updated_at TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS owner_cv_notes (owner_key TEXT PRIMARY KEY, notes_json TEXT NOT NULL, updated_at TEXT NOT NULL)",
+    # Project and cert stations (proof/): boarded projects, reviews with jury votes, certs.
+    "CREATE TABLE IF NOT EXISTS owner_proof (owner_key TEXT PRIMARY KEY, proof_json TEXT NOT NULL, updated_at TEXT NOT NULL)",
+    # One running review per project, shared by every server copy. A lock older than REVIEW_LOCK_SECONDS is stale.
+    "CREATE TABLE IF NOT EXISTS proof_review_locks (owner_key TEXT NOT NULL, project_id TEXT NOT NULL, "
+    "started_at DOUBLE PRECISION NOT NULL, PRIMARY KEY (owner_key, project_id))",
 )
+REVIEW_LOCK_SECONDS = 600
 # Owner-keyed text tables that go with the profile: deleted and moved with it. (table, column)
-OWNED = (("owner_cvs", "cv_text"), ("owner_cv_drafts", "draft_json"), ("owner_cv_notes", "notes_json"))
+OWNED = (("owner_cvs", "cv_text"), ("owner_cv_drafts", "draft_json"), ("owner_cv_notes", "notes_json"),
+         ("owner_proof", "proof_json"))
 _ready: set[str] = set()
 
 
@@ -120,6 +127,32 @@ def get_cv_notes(settings: Settings, owner_key: str) -> str | None:
 
 def put_cv_notes(settings: Settings, owner_key: str, notes_json: str, updated_at: str) -> None:
     _put_owned(settings, "owner_cv_notes", "notes_json", owner_key, notes_json, updated_at)
+
+
+def get_proof(settings: Settings, owner_key: str) -> str | None:
+    return _get_owned(settings, "owner_proof", "proof_json", owner_key)
+
+
+def put_proof(settings: Settings, owner_key: str, proof_json: str, updated_at: str) -> None:
+    _put_owned(settings, "owner_proof", "proof_json", owner_key, proof_json, updated_at)
+
+
+def acquire_review(settings: Settings, owner_key: str, project_id: str, now: float) -> bool:
+    """Take the review lock in one statement: true only for the caller that inserted the row."""
+    _run(settings, "DELETE FROM proof_review_locks WHERE owner_key = ? AND project_id = ? AND started_at < ?",
+         (owner_key, project_id, now - REVIEW_LOCK_SECONDS))
+    return _run(settings, "INSERT INTO proof_review_locks (owner_key, project_id, started_at) VALUES (?, ?, ?) "
+                "ON CONFLICT (owner_key, project_id) DO NOTHING", (owner_key, project_id, now)) == 1
+
+
+def release_review(settings: Settings, owner_key: str, project_id: str) -> None:
+    _run(settings, "DELETE FROM proof_review_locks WHERE owner_key = ? AND project_id = ?", (owner_key, project_id))
+
+
+def review_running(settings: Settings, owner_key: str, project_id: str, now: float) -> bool:
+    row = _run(settings, "SELECT started_at FROM proof_review_locks WHERE owner_key = ? AND project_id = ?",
+               (owner_key, project_id), fetch=True)
+    return bool(row) and row[0] >= now - REVIEW_LOCK_SECONDS
 
 
 def delete_profile_row(settings: Settings, owner_key: str) -> bool:

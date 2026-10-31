@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-10-31",
+  "note": "Hand-curated project briefs on real public sources (GitHub, Kaggle, public data). Skills use taxonomy.json names. Each criterion tests one skill; the review jury checks each criterion against the repo. Nothing here is a score.",
+  "projects": [
+    {
+      "id": "olist-warehouse", "level": "medium", "title": "Sales warehouse on the Olist e-commerce dataset",
+      "source": {"kind": "kaggle", "label": "Kaggle · Brazilian E-Commerce (Olist)", "url": "https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce"},
+      "roles": ["data_engineer", "analytics_engineer", "backend_engineer"],
+      "skills": ["SQL", "PostgreSQL", "Python", "Docker"],
+      "criteria": [
+        {"text": "A SQL query joins 3 or more of the Olist tables", "skill": "SQL", "hints": [".sql", "join", "orders", "customers"]},
+        {"text": "The tables load into PostgreSQL with keys and at least one index", "skill": "PostgreSQL", "hints": ["create table", "create index", "primary key", "postgres"]},
+        {"text": "A Python script loads the CSV files and rejects bad rows", "skill": "Python", "hints": [".py", "csv", "load", "reject"]},
+        {"text": "A Dockerfile or docker-compose file starts the database and the loader", "skill": "Docker", "hints": ["dockerfile", "docker-compose", "compose.y"]}
+      ],
+      "twist": "Make the loader safe to run twice: a second run adds no duplicate rows."
+    },
+    {
+      "id": "taxi-airflow", "level": "hard", "title": "Daily NYC taxi pipeline with Airflow and dbt",
+      "source": {"kind": "brief", "label": "NYC TLC Trip Record Data (public)", "url": "https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page"},
+      "roles": ["data_engineer", "analytics_engineer"],
+      "skills": ["Airflow", "dbt", "SQL", "Python", "Docker"],
+      "criteria": [
+        {"text": "An Airflow DAG downloads one month of trip data and loads it", "skill": "Airflow", "hints": ["dag", "airflow", "operator", "schedule"]},
+        {"text": "dbt models build a daily trips table with tests on keys", "skill": "dbt", "hints": ["models/", "schema.yml", "dbt_project", "unique", "not_null"]},
+        {"text": "A SQL model counts trips and fares per zone and day", "skill": "SQL", "hints": [".sql", "group by", "zone", "fare"]},
+        {"text": "Python code checks row counts before and after the load", "skill": "Python", "hints": [".py", "count", "assert", "check"]},
+        {"text": "docker-compose starts Airflow and the database", "skill": "Docker", "hints": ["docker-compose", "compose.y", "dockerfile"]}
+      ],
+      "twist": "Re-running a past day replaces that day only and leaves other days as they were."
+    },
+    {
+      "id": "airflow-gfi", "level": "medium", "title": "Fix a good-first-issue in Apache Airflow",
+      "source": {"kind": "github_issue", "label": "GitHub · apache/airflow · good first issue", "url": "https://github.com/apache/airflow/issues?q=is%3Aopen+label%3A%22good+first+issue%22"},
+      "roles": ["data_engineer", "platform_devops_engineer", "backend_engineer"],
+      "skills": ["Python", "Airflow"],
+      "needsPr": true,
+      "criteria": [
+        {"text": "The pull request changes Python code for the issue and links the issue", "skill": "Python", "hints": [".py"]},
+        {"text": "The change adds or updates a test for the Airflow behaviour it fixes", "skill": "Airflow", "hints": ["tests/", "test_"]}
+      ],
+      "twist": "Explain in the pull request why your fix is better than the other option you tried."
+    },
+    {
+      "id": "dbt-jaffle", "level": "medium", "title": "Analytics models with tests on the jaffle shop data",
+      "source": {"kind": "github_repo", "label": "GitHub · dbt-labs/jaffle-shop", "url": "https://github.com/dbt-labs/jaffle-shop"},
+      "roles": ["analytics_engineer", "data_engineer", "data_scientist"],
+      "skills": ["dbt", "SQL", "Snowflake"],
+      "criteria": [
+        {"text": "dbt staging and mart models for orders and customers", "skill": "dbt", "hints": ["models/", "stg_", "dbt_project"]},
+        {"text": "A SQL mart computes customer lifetime value", "skill": "SQL", "hints": [".sql", "lifetime", "sum("]},
+        {"text": "A profile or README shows the models run on Snowflake", "skill": "Snowflake", "hints": ["profiles.yml", "snowflake", "readme"]}
+      ],
+      "twist": "Add a dbt test that fails on a real data problem you found, and explain it."
+    },
+    {
+      "id": "churn-model", "level": "medium", "title": "Customer churn model with a clear evaluation",
+      "source": {"kind": "kaggle", "label": "Kaggle · Telco Customer Churn", "url": "https://www.kaggle.com/datasets/blastchar/telco-customer-churn"},
+      "roles": ["data_scientist", "ml_engineer"],
+      "skills": ["Python", "Machine Learning", "SQL"],
+      "criteria": [
+        {"text": "Python code cleans the data and splits train and test sets", "skill": "Python", "hints": [".py", ".ipynb", "train_test_split", "split"]},
+        {"text": "A model is trained and compared with a simple baseline on the test set", "skill": "Machine Learning", "hints": ["fit(", "baseline", "roc_auc", "accuracy"]},
+        {"text": "A SQL query or notebook cell summarises churn by contract type", "skill": "SQL", "hints": ["select", "group by", "contract"]}
+      ],
+      "twist": "Show one case where the model is wrong and say why."
+    },
+    {
+      "id": "pytorch-classifier", "level": "hard", "title": "Train and serve a PyTorch image classifier",
+      "source": {"kind": "kaggle", "label": "Kaggle · Intel Image Classification", "url": "https://www.kaggle.com/datasets/puneet6060/intel-image-classification"},
+      "roles": ["ml_engineer", "data_scientist"],
+      "skills": ["PyTorch", "Machine Learning", "Python", "Docker"],
+      "criteria": [
+        {"text": "A PyTorch training loop with a validation step", "skill": "PyTorch", "hints": ["torch", "optimizer", "model.eval", "dataloader"]},
+        {"text": "Results report accuracy per class on held-out images", "skill": "Machine Learning", "hints": ["per class", "confusion", "accuracy", "readme"]},
+        {"text": "A Python API returns a prediction for an uploaded image", "skill": "Python", "hints": ["fastapi", "flask", "predict", "app.py"]},
+        {"text": "A Dockerfile builds and runs the API", "skill": "Docker", "hints": ["dockerfile"]}
+      ],
+      "twist": "Make the API reject files that are not images with a clear error."
+    },
+    {
+      "id": "rag-docs", "level": "medium", "title": "Question answering over a project's docs (RAG)",
+      "source": {"kind": "brief", "label": "Brief · any open-source project's documentation", "url": "https://github.com/topics/documentation"},
+      "roles": ["ai_app_engineer", "ml_engineer", "fullstack_developer"],
+      "skills": ["RAG", "LLM / GenAI", "Python", "Vector Databases"],
+      "criteria": [
+        {"text": "Docs are split into chunks and stored with embeddings", "skill": "Vector Databases", "hints": ["embedding", "chunk", "vector", "index"]},
+        {"text": "Answers retrieve chunks first and cite which chunk they used", "skill": "RAG", "hints": ["retriev", "top_k", "source", "cite"]},
+        {"text": "An LLM call builds the answer from the retrieved text only", "skill": "LLM / GenAI", "hints": ["prompt", "messages", "completion", "anthropic", "openai"]},
+        {"text": "A Python test checks one known question gets the right source", "skill": "Python", "hints": ["test_", "tests/", "assert"]}
+      ],
+      "twist": "When no chunk is relevant, the app says it does not know instead of guessing."
+    },
+    {
+      "id": "go-api", "level": "medium", "title": "REST API in Go with PostgreSQL and tests",
+      "source": {"kind": "brief", "label": "Brief · URL shortener service", "url": "https://go.dev/doc/tutorial/web-service-gin"},
+      "roles": ["backend_engineer", "platform_devops_engineer"],
+      "skills": ["Go", "PostgreSQL", "Docker"],
+      "criteria": [
+        {"text": "Go handlers create and resolve short links", "skill": "Go", "hints": [".go", "handler", "http"]},
+        {"text": "Links are stored in PostgreSQL with a unique index on the code", "skill": "PostgreSQL", "hints": ["create table", "unique", "postgres", "migration"]},
+        {"text": "A Dockerfile builds a small image of the service", "skill": "Docker", "hints": ["dockerfile"]}
+      ],
+      "twist": "Two requests for the same long URL return the same short code."
+    },
+    {
+      "id": "k8s-deploy", "level": "hard", "title": "Deploy a service to Kubernetes with Terraform",
+      "source": {"kind": "brief", "label": "Brief · deploy any small web service", "url": "https://kubernetes.io/docs/tutorials/"},
+      "roles": ["platform_devops_engineer", "backend_engineer"],
+      "skills": ["Kubernetes", "Terraform", "Docker", "AWS"],
+      "criteria": [
+        {"text": "Kubernetes manifests or a Helm chart with a Deployment, a Service and readiness probes", "skill": "Kubernetes", "hints": ["deployment", "kind: service", "readinessprobe", "chart.yaml"]},
+        {"text": "Terraform creates the cluster or its network", "skill": "Terraform", "hints": [".tf", "resource", "provider"]},
+        {"text": "A Dockerfile builds the service image", "skill": "Docker", "hints": ["dockerfile"]},
+        {"text": "The Terraform targets AWS (EKS or VPC resources)", "skill": "AWS", "hints": ["aws_", "eks", "vpc"]}
+      ],
+      "twist": "A rolling update replaces pods with no failed requests; show how you checked."
+    },
+    {
+      "id": "react-dashboard", "level": "medium", "title": "React dashboard over a public API",
+      "source": {"kind": "brief", "label": "Brief · any open public API (e.g. data.gov.my)", "url": "https://developer.data.gov.my/"},
+      "roles": ["fullstack_developer"],
+      "skills": ["React", "TypeScript", "Node.js"],
+      "criteria": [
+        {"text": "React components show a table and a chart from the API", "skill": "React", "hints": [".tsx", ".jsx", "usestate", "useeffect"]},
+        {"text": "TypeScript types describe the API response", "skill": "TypeScript", "hints": [".ts", "interface", "type "]},
+        {"text": "A small Node.js server caches the API calls", "skill": "Node.js", "hints": ["express", "server.", "cache", "node"]}
+      ],
+      "twist": "Show a clear message when the API is down, not a blank page."
+    },
+    {
+      "id": "mobile-habits", "level": "medium", "title": "Habit tracker app in React Native",
+      "source": {"kind": "brief", "label": "Brief · offline-first mobile app", "url": "https://reactnative.dev/docs/getting-started"},
+      "roles": ["mobile_developer"],
+      "skills": ["React Native", "TypeScript"],
+      "criteria": [
+        {"text": "React Native screens to add habits and tick them per day", "skill": "React Native", "hints": ["react-native", "screen", "flatlist", ".tsx"]},
+        {"text": "TypeScript types for habits and a test for the streak count", "skill": "TypeScript", "hints": [".ts", "streak", "test"]}
+      ],
+      "twist": "Ticks made offline are kept and shown after the app restarts."
+    }
+  ]
+}
