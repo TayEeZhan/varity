@@ -66,7 +66,7 @@ function proofLineSVG() {
       <text x="${x}" y="116" text-anchor="middle" class="stn__sub">${esc(sub)}</text></g>`;
   };
   const credit = creditText(PROOF.data.learnedCredit);
-  return `<svg viewBox="0 0 640 128" role="img" aria-label="Proof line: starter courses, project, cert, ${esc(TARGET.role)}">
+  return `<svg viewBox="0 0 690 128" role="img" aria-label="Proof line: starter courses, project, cert, ${esc(TARGET.role)}">
     <line class="proof__track" x1="60" y1="50" x2="580" y2="50"/>
     ${stop(70, "Starter courses", coursesDone ? `Learned · ${credit} credit` : "Learned", coursesDone ? "done" : "stop", false)}
     ${stop(250, "Project", passed ? "Applied" : active ? STATUS_SIGN[active.status].toLowerCase() : "Next stop", passed ? "done" : "stop", here === "project")}

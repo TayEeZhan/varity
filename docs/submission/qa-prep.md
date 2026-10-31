@@ -69,8 +69,12 @@ The user is a junior or mid-level tech developer in Malaysia, such as a fresh gr
 Relies on: `docs/build-plan.md` section 1; `data/example_profiles.json`; `BRIEF.md` (data rules).
 
 **10. How do you avoid inventing courses or jobs?**
-Courses come only from `data/resources.json`: 77 resources, link-checked (HTTP 200 on 22 Oct 2026): 76 free, 1 free trial. Only entries that returned HTTP 200 stay; a skill with no usable resource shows a placeholder note and gets no tasks. We list roles, not vacancies: 9 roles whose skill weights are counted from real Hacker News posts. A test checks that every chosen resource URL exists in the resource file.
+Courses come only from `data/resources.json`: 77 resources, link-checked (HTTP 200 on 22 Oct 2026): 76 free, 1 free trial. Only entries that returned HTTP 200 stay; a skill with no usable resource shows a placeholder note and gets no tasks. We list roles, not vacancies: 9 roles whose skill weights are counted from real Hacker News posts. 8 of them have enough posts to rank, so the Destination list shows 8; Analytics Engineer is left out with the reason "too few posts to learn a profile". A test checks that every chosen resource URL exists in the resource file.
 Relies on: `docs/pathway.md` (The "no invented courses" rule); `data/role_profiles.json`.
+
+**10b. Why only 8 destination roles? There are many more jobs.**
+The list shows only roles we can forecast and backtest: each needs enough Hacker News posts for a trend, a learned skill profile, and its own projects and certs. A role with a handful of posts would give numbers we cannot defend, so Analytics Engineer is excluded (`data/role_forecast.json`, `excluded_roles`). Adding a role is data work, not code: a title pattern in `data/roles.json`, a post-count check, then its projects and certs.
+Relies on: `data/roles.json`; `data/role_forecast.json`; `data/role_backtest.json`.
 
 **11. How would you scale beyond tech?**
 The engine needs three inputs: a dated public job-post source, a skill list with match patterns (`data/taxonomy.json`), and an exposure score per occupation. We started with tech because Hacker News gives the best free dated data, and we have not tested another field. A new field needs its own source and its own backtest before the app shows any forecast.
