@@ -7,6 +7,10 @@ from trendsignal.db import connect
 from trendsignal.jobs import load_context
 from trendsignal.web.app import create_app
 
+PAD = "Experience. Junior developer, Kopi Labs, 2023 - 2025. Fixed bugs and helped the team ship every week. Wrote notes for new staff and joined the weekly planning meeting. "
+MINI_CV = ("Experience\nBackend developer, Kopi Labs, 2023 - 2025. Built REST APIs in Python and kept the team's "
+           "services running. Wrote tests, fixed bugs and reviewed code for three other developers every week.")
+
 
 @pytest.fixture
 def client(settings):
@@ -33,13 +37,13 @@ def test_sample_cv_uses_the_cached_run_without_a_key(client):
 
 
 def test_pasted_text_without_ai_uses_the_keyword_pass(client):
-    body = extract(client, text="Built REST APIs in Python with Flask.", use_ai=False).json()
+    body = extract(client, text=PAD + "Built REST APIs in Python with Flask.", use_ai=False).json()
     assert body["data"]["llm_status"] == "off:SWITCHED_OFF"
     assert {"python", "flask", "rest-apis"} <= set(rows_by_id(body))
 
 
 def test_text_file_upload(client):
-    data = base64.b64encode(b"Wrote SQL queries on PostgreSQL.").decode()
+    data = base64.b64encode((PAD + "Wrote SQL queries on PostgreSQL.").encode()).decode()
     body = extract(client, file_name="cv.txt", file_b64=data).json()
     assert body["data"]["llm_status"] == "off:NO_KEY"
     assert {"sql", "postgresql"} <= set(rows_by_id(body))
@@ -84,9 +88,9 @@ def test_save_load_remove_delete_round_trip(client, settings):
 
 
 def test_second_apply_adds_to_the_same_profile(client):
-    first = extract(client, text="Built REST APIs in Python.", use_ai=False).json()["data"]
+    first = extract(client, text=PAD + "Built REST APIs in Python.", use_ai=False).json()["data"]
     token = client.post("/api/profile/apply", json={"review_id": first["review_id"], "kept_ids": ["python"]}).json()["data"]["token"]
-    second = extract(client, token=token, text="Wrote SQL queries.", use_ai=False).json()["data"]
+    second = extract(client, token=token, text=PAD + "Wrote SQL queries.", use_ai=False).json()["data"]
     saved = client.post("/api/profile/apply", json={"review_id": second["review_id"], "kept_ids": ["sql"]},
                         headers={"X-Profile-Token": token}).json()["data"]
     assert saved["token"] == token
@@ -94,7 +98,7 @@ def test_second_apply_adds_to_the_same_profile(client):
 
 
 def test_a_review_can_be_saved_once_and_cannot_be_forged(client):
-    review = extract(client, text="Python", use_ai=False).json()["data"]
+    review = extract(client, text=MINI_CV, use_ai=False).json()["data"]
     body = {"review_id": review["review_id"], "kept_ids": ["python"]}
     assert client.post("/api/profile/apply", json=body).status_code == 200
     assert client.post("/api/profile/apply", json=body).status_code == 410
@@ -103,25 +107,37 @@ def test_a_review_can_be_saved_once_and_cannot_be_forged(client):
 
 @pytest.mark.parametrize("years", [-1, 41, "NaN"])
 def test_typed_years_out_of_range_are_refused(client, years):
-    review = extract(client, text="Python", use_ai=False).json()["data"]
+    review = extract(client, text=MINI_CV, use_ai=False).json()["data"]
     body = {"review_id": review["review_id"], "kept_ids": ["python"], "edited_years": {"python": years}}
     assert client.post("/api/profile/apply", json=body).status_code == 422
 
 
 def test_rate_limit_uses_the_forwarded_address(client):
     for _ in range(6):
-        extract(client, text="Python", use_ai=False)
-    other = client.post("/api/cv/extract", json={"text": "Python", "use_ai": False},
+        extract(client, text=MINI_CV, use_ai=False)
+    other = client.post("/api/cv/extract", json={"text": MINI_CV, "use_ai": False},
                         headers={"X-Forwarded-For": "203.0.113.9"})
     assert other.status_code == 200
 
 
 def test_cv_reading_is_rate_limited(client):
-    statuses = [extract(client, text="Python", use_ai=False).status_code for _ in range(7)]
+    statuses = [extract(client, text=MINI_CV, use_ai=False).status_code for _ in range(7)]
     assert statuses[:6] == [200] * 6 and statuses[6] == 429
 
 
-def test_extract_rejects_text_that_is_not_a_cv(client):
-    response = client.post("/api/cv/extract", json={"text": "Mix the flour and sugar, then bake for 20 minutes.", "use_ai": False})
+RECIPE = ("Banana bread. Mash three ripe bananas in a bowl. Mix in melted butter, sugar, one egg and vanilla. "
+          "Stir in flour and baking soda, pour into a tin and bake for an hour until golden.")
+JOB_AD = ("About the role: we are looking for a backend engineer to join our team. Responsibilities: build REST APIs "
+          "in Python and Go, run services on AWS. Requirements: three years with PostgreSQL. Apply now.")
+NO_TECH = ("Experience\nShop assistant, Kedai Runcit Ali, 2021 - 2024. Served customers, packed shelves, counted "
+           "cash at closing and trained two new staff on the morning routine. Education: SPM, 2020.")
+
+
+@pytest.mark.parametrize("text, code", [
+    ("Python", "TOO_SHORT"), (RECIPE, "NOT_CV"), (JOB_AD, "JOB_AD"), (NO_TECH, "NO_SKILLS"),
+])
+def test_extract_rejects_text_that_is_not_a_cv(client, text, code):
+    response = client.post("/api/cv/extract", json={"text": text, "use_ai": False})
     assert response.status_code == 422
-    assert response.json()["meta"]["code"] == "NOT_CV"
+    assert response.json()["meta"]["code"] == code
+    assert response.json()["error"].endswith("try again.")

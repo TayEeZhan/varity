@@ -639,13 +639,23 @@ function renderPathway() {
         ${p.reasons ? `<div class="chips">${p.reasons.map((c) => reasonChip(c)).join("")}</div>` : ""}</div>
     </div>`;
   const fmtDay = (d) => new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  // The current week is the first one with an unticked task; later weeks are shown but locked until it is done.
+  const open = TODAY.all.find((t) => !STATE.done.has(t.id));
+  const nowWeek = open ? open.week : Infinity;
   const weekHTML = (w) => {
     const stops = PATHWAY.filter((p) => p.week === w);
     const tasks = TODAY.all.filter((t) => t.week === w);
     const hrs = Math.round((tasks.reduce((n, t) => n + t.mins, 0) / 60) * 10) / 10;
+    const done = tasks.filter((t) => STATE.done.has(t.id)).length;
+    const state = w < nowWeek ? "done" : w === nowWeek ? "now" : "locked";
+    const label = { done: "Done", now: "This week", locked: `Opens after week ${w - 1}` }[state];
+    const dates = tasks.length ? `${fmtDay(tasks[0].date)} – ${fmtDay(tasks[tasks.length - 1].date)}` : "";
     const list = tasks.map((t) => `<li class="${STATE.done.has(t.id) ? "is-done" : ""}"><span>${STATE.done.has(t.id) ? "✓" : "○"}</span>${esc(fmtDay(t.date))} · ${esc(t.title)} <small>${Number(t.mins)} min</small></li>`).join("");
-    return `<section class="week"><h3>Week ${esc(w)} <span>${hrs} h</span></h3>${stops.map(stopHTML).join("")}
-      ${list ? `<ul class="wtasks" aria-label="Tasks in week ${esc(w)}">${list}</ul><p><a href="#/today">Tick tasks on Today</a></p>` : ""}</section>`;
+    return `<section class="week is-${state}"${state === "locked" ? ` inert aria-label="Week ${esc(w)}, locked: ${esc(label)}"` : ""}>
+      <div class="week__head"><h3>Week ${esc(w)}</h3><span class="week__state">${state === "locked" ? "🔒 " : state === "done" ? "✓ " : ""}${esc(label)}</span>
+        <p>${esc(dates)}</p><p>${hrs} h · ${tasks.length} tasks${done ? ` · ${done} done` : ""}</p></div>
+      <div class="week__stops">${stops.map(stopHTML).join("") || `<p class="week__cont">Continues the courses from the week before.</p>`}</div>
+      ${list ? `<div class="week__tasks"><ul class="wtasks" aria-label="Tasks in week ${esc(w)}">${list}</ul>${state === "now" ? `<p><a href="#/today">Tick tasks on Today</a></p>` : ""}</div>` : ""}</section>`;
   };
 
   const plan = STATE.plan;
@@ -672,11 +682,7 @@ function renderPathway() {
       </div>
     </section>
     ${proofSection()}
-    <section class="panel" aria-labelledby="ex-h"><h2 id="ex-h">Take the plan with you</h2>
-      <p>The files are built in your browser from this pathway. Nothing is sent anywhere.</p>
-      <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
-      <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
-      <p><a class="btn btn--primary" href="#/cv">Open CV builder</a></p></section>
+    <div class="weeks-head"><h2 class="sec">Your weeks</h2><a class="btn btn--primary" href="#/cv">Open CV builder</a></div>
     <div class="weeks">${weeks.map(weekHTML).join("")}</div>
     <section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why this job matters: SDG and Malaysia links</h2>
       ${sdg.lines.map((l) => `<p class="route-note">${esc(l)}</p>`).join("")}

@@ -23,6 +23,7 @@ from fastapi import FastAPI, Header, Request
 from pydantic import BaseModel, Field
 
 from intake import ledger
+from intake.cv_check import MESSAGES as CV_MESSAGES, cv_problem
 from intake.keyword_pass import build_patterns
 from intake.llm_extract import MODEL_LABEL, LlmUnavailable, extract_mentions, load_cached_run
 from intake.models import MAX_YEARS, SKILL_ID_PATTERN, Evidence, Profile, Progress
@@ -66,10 +67,6 @@ class ApplyIn(BaseModel):
 
 class ExampleIn(BaseModel):
     id: str = Field(pattern=SKILL_ID_PATTERN)
-
-
-NOT_CV = ("This does not look like a CV: we found no tech skills in it. "
-          "Upload your CV (PDF, Word or text) and try again.")
 
 
 def load_examples() -> list[dict]:
@@ -230,9 +227,9 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
                                 llm_label=label, off_reason=off_reason, removed_ids=removed)
         except ReadError as exc:
             return envelope(error=exc.message, status=422, meta={"code": exc.code})
-        # shortcut: "not a CV" means no tech skill or interest found; a tech article still passes.
-        if not result.review.rows and not result.review.interests:
-            return envelope(error=NOT_CV, status=422, meta={"code": "NOT_CV"})
+        problem = cv_problem(result.cv_text, bool(result.review.rows or result.review.interests))
+        if problem:
+            return envelope(error=CV_MESSAGES[problem], status=422, meta={"code": problem})
         return envelope({
             "review_id": reviews.put((result.review, result.cv_text)),
             "llm_status": result.llm_status,

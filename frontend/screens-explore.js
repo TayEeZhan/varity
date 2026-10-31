@@ -139,17 +139,24 @@ function renderForecast() {
   const hnLinks = (r) => (r.sources || []).filter((s) => /^https?:\/\//i.test(s.url))
     .map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.date)}</a>`).join(" · ");
   const PLATE = { Rising: ["up", "Growing"], Falling: ["down", "Shrinking"] };
+  const target = (STATE.saved || {}).target_role || STATE.routeId;  // the route the plan is built for
+  const top = Math.max(...ok.map((r) => r.forecast_moderate.high), 0.01);  // one scale for every range bar
+  const at = (v) => `${Math.max(0, Math.min(100, (v / top) * 100)).toFixed(1)}%`;
 
   // One departure-board row per role: the evidence line under the name keeps every number the old chart showed.
   const rowHTML = (r) => {
     const f = r.forecast_moderate, t = r.trend, [cls, word] = PLATE[t.label] || ["flat", "Steady"];
     const fast = r.forecast_fast && r.forecast_fast.value_12m != null ? r.forecast_fast.value_12m : null;
     const ch = changes[r.id];
-    return `<div class="brow">
-      <div><div class="t">${esc(r.name)}</div>
+    const pts = (t.share_last12 - t.share_prev12) * 100;
+    const dir = pts >= 0.05 ? "up" : pts <= -0.05 ? "down" : "flat";
+    return `<div class="brow${r.id === target ? " brow--target" : ""}">
+      <div><div class="t">${esc(r.name)}${r.id === target ? ` <span class="you-tag">Your target</span>` : ""}</div>
         <div class="m"><b>${t.mentions_last12}</b> posts in the last 12 months vs <b>${t.mentions_prev12}</b> the 12 before (${pct(t.share_last12)} vs ${pct(t.share_prev12)} of posts).${r.declining ? " <b>Declining in this sample:</b> falling, and most of its skill weight is in falling skills." : ""}${fast != null ? ` If AI speeds up, in 12 months: ${pct(fast)} (estimate).` : ""}${ch ? ` Since ${esc(ch.since)}: ${pct(ch.share_now_from)} → ${pct(ch.share_now_to)}.` : ""} HN threads: ${hnLinks(r) || "none"}</div></div>
       <div class="num t">${pct(r.share_now.value)}</div>
-      <div class="num hide-sm"><span class="t">${pct(f.value_12m)}</span><div class="m">${pct(f.low)}–${pct(f.high)}</div></div>
+      <div class="num hide-sm"><span class="t">${pct(f.value_12m)}</span><div class="m">${pct(f.low)}–${pct(f.high)}</div>
+        <div class="span" aria-hidden="true"><i class="span__band span--${cls}" style="left:${at(f.low)};width:calc(${at(f.high)} - ${at(f.low)})"></i><i class="span__now" style="left:${at(r.share_now.value)}"></i><i class="span__mid" style="left:${at(f.value_12m)}"></i></div></div>
+      <div class="num hide-sm"><span class="flap flap--${dir}" title="Share of posts, last 12 months against the 12 before">${pts > 0 ? "+" : pts < 0 ? "−" : ""}${Math.abs(pts).toFixed(1)} pt</span></div>
       <div><span class="plate plate--${cls}" title="${esc(t.label)}: last 12 months against the 12 before">${word}</span></div>
     </div>`;
   };
@@ -161,10 +168,10 @@ function renderForecast() {
     </div>
     <section class="board board--roles" aria-labelledby="fc-h">
       <div class="board__title"><h2 id="fc-h">Jobs: the next 12 months</h2><small>share of hiring posts · estimate with an ${esc(band)}</small></div>
-      <div class="brow brow--head"><span>Job</span><span>Now</span><span class="hide-sm">In 12 months</span><span>Trend</span></div>
+      <div class="brow brow--head"><span>Job</span><span>Now</span><span class="hide-sm">In 12 months</span><span class="hide-sm">Past year</span><span>Trend</span></div>
       ${ok.map(rowHTML).join("") || `<p class="empty">No role forecast yet. Run engine/role_forecast.py.</p>`}
     </section>
-    <p class="board-foot">Now = share of the last 3 months of posts. In 12 months = the expected value, with the ${esc(band)} below it. Growing / Steady / Shrinking = the last 12 months against the 12 before; Steady means the difference could be noise.</p>
+    <p class="board-foot">Now = share of the last 3 months of posts. In 12 months = the expected value, with the ${esc(band)} below it; on the bar the dot is now, the line is in 12 months and the band is the range. Past year = change in share, last 12 months against the 12 before, in percentage points. Growing / Steady / Shrinking = the last 12 months against the 12 before; Steady means the difference could be noise.</p>
     ${skipped.length ? `<p class="method">Left out: ${skipped.map((s) => `${esc(s.name)} (${esc(s.reason)})`).join("; ")}.</p>` : ""}
     <div class="fc-note">
       <div><h3>What the numbers mean</h3><p>Share of monthly HN hiring posts that name the role (last 3 months), and where that share is expected to be in 12 months. HN is a sample of tech hiring, not a count of jobs.</p></div>
