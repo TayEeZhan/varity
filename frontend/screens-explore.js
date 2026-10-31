@@ -93,13 +93,14 @@ const nowcastText = (nc) => !nc || !nc.posts_this_month ? "This month is complet
 // Claude labels first; the title rules are the backup (engine/llm_labels.py). Every Claude label has a checked quote.
 const labellerText = (fc) => {
   const lab = String(fc.labeller || "title regex"), chk = fc.label_check || {};
-  if (!lab.startsWith("claude")) {
+  if (!/^(claude|krackeddevs\/)/.test(lab)) {
     const why = lab.includes("drifted") ? " Claude's labels drifted from the usual today, so the rules counted this month."
       : chk.error ? " Claude could not be reached today, so the rules counted this month." : "";
     return `Fixed title rules decide which roles a post names.${why} Code does every count and forecast.`;
   }
   const backup = chk.regex_posts ? ` The title rules covered ${chk.regex_posts} posts Claude did not label; Claude tries them again tomorrow.` : "";
-  return `Claude reads each post and names its roles, quoting the words that show it; code checks each quote is really in the post.${backup} Code does every count and forecast.`;
+  const who = lab.startsWith("krackeddevs/") ? `The AI model ${esc(lab.split(",")[0])}` : "Claude";
+  return `${who} reads each post and names its roles, quoting the words that show it; code checks each quote is really in the post.${backup} Code does every count and forecast.`;
 };
 const newRolesText = (nr, excluded) => {
   const auto = (excluded || []).filter((r) => /Found automatically/.test(r.reason || ""));

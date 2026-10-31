@@ -213,11 +213,11 @@ FastAPI, uvicorn, pydantic, httpx, requests, feedparser, apscheduler, jinja2, ma
 | Claude Code (Anthropic CLI coding agent) | Claude Opus, Sonnet and Haiku models, as listed in 4.3 | Major: code, tests, data pipeline and documents |
 | Replit Agent | [TEAM TO FILL: model] | Minor: environment setup |
 
-### 4.5 Planned, not yet used
+### 4.5 Built but not yet run, and planned
 
 | Item | Plan | Status |
 |---|---|---|
-| KrackedDevs LiteLLM gateway (OpenAI-compatible, base URL `https://litellm.rapidscreen.io/v1`), models `deepseek-v4-flash` and `gpt-5.4-mini` | Bulk and background jobs only: relabel the HN posts, label new posts daily, review new job titles. Public HN text only, never CVs. Code checks every output. See `tasks/plan-credits.md` | **Not in code.** Nothing calls it. Declare it again when it is used, and add it to the Method screen |
+| KrackedDevs LiteLLM gateway (OpenAI-compatible, base URL `https://litellm.rapidscreen.io/v1`), models `deepseek-v4-flash` and `gpt-5.4-mini` | Bulk and background jobs only: relabel the HN posts, label new posts daily, review new job titles. Public HN text only, never CVs. Code checks every output. See `tasks/plan-credits.md` | **Built (`engine/llm_client.py`), runs when `KD_API_KEY` is set; not run yet.** The Method screen shows the model name once it labels. Update this row after the first real run |
 | Runpod | None | **Not used.** No GPU work |
 
 ## 5. Sponsor resources

@@ -208,7 +208,7 @@ def daily(data_dir: Path, raw_dir: Path, thread: Mapping[str, str], call: Callab
     added, error = [], None
     if found and (call is not None or llm_labels.has_credentials()):
         try:
-            call = call or llm_labels.claude_call()
+            call = call or llm_labels.review_call()
             posts = llm_labels.thread_posts(raw_dir, thread["thread_id"])
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             for c in found:

@@ -443,13 +443,13 @@ Tagging skills in posts, demand shares, the Welch test, the forecast and band, b
 - Temperature 0 and a pinned model id for the labeller. A daily spend gate stops calls after the budget ($1 each by default).
 - The brief says "name the LLM": say "Claude Haiku (5.5 on our own key, 4.5 through Replit AI Integrations)". The README and tech docs say only 5.5. See section 9.
 
-### 5.3b Credits plan: which AI job runs where (`tasks/plan-credits.md`, **planned, not built**)
+### 5.3b Credits plan: which AI job runs where (`tasks/plan-credits.md`; KrackedDevs side **built, not run yet**)
 Two credit pools: Replit ($100, Claude through Replit AI Integrations, also pays hosting) and KrackedDevs ($20 per teammate key, GPT and DeepSeek models, **no Claude**, OpenAI-compatible gateway).
 - **Replit (Claude Haiku), live and user-facing:** CV reading, route advisor, pathway coach, CV builder and CV agent.
 - **KrackedDevs, bulk and background:** the one-off relabel of the 48,508 HN posts (`deepseek-v4-flash`, fall back `gpt-5.4-nano`), daily labelling of new posts, weekly new-title review (`gpt-5.4-mini`), and, as a proposal that needs Sheng Kuan's agreement, the Signals ranker steps.
 - **Stays as now:** Jev scoring through Replit OpenRouter.
 - **Safety:** code checks every quote, so a cheaper model can miss labels but cannot invent them. Only public HN text goes to KrackedDevs, never CVs.
-- **Status:** no code calls KrackedDevs. Build step 1 is a shared `engine/llm_client.py` plus a budget guard. The declaration lists it as planned (`tech-declaration.md` 4.5). Do not say it is running.
+- **Status:** built, runs only when `KD_API_KEY` is set. `engine/llm_client.py` (stdlib HTTP, usage log `data/llm_usage.csv`, budget guard `KD_CAP_USD`, default $15). `llm_labels.py` and `role_discover.py` pick it automatically. **Not run yet** (no key used, no relabel done). Prices in the log are assumed list prices unless the gateway returns a cost header. The Signals ranker is unchanged (needs Sheng Kuan's approval). Do not say it is running.
 
 ### 5.4 Guardrails (say these)
 1. **Quote check.** The model must give an exact quote. Code looks for it in the text. No quote, no skill.

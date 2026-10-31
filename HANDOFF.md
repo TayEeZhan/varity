@@ -3,7 +3,21 @@
 Read this first in any new chat. Then read `C:\Users\eezha\sdc-hackathon\BRIEF.md` (rules, rubric, deadlines) and `C:\Users\eezha\verity\docs\architecture.md` (every feature, with its status).
 The "Update 29 Oct" section is the newest. The sections after it are the 24 Oct state, kept for history.
 
-## Update 31 Oct 2026 (newest): final-round gaps built (`tasks/plan-final-round.md`)
+## Update 1 Nov 2026 (newest): KrackedDevs side built, not run (`tasks/plan-credits.md`)
+
+- `engine/llm_client.py` (stdlib only): `kd_call(model, job)`, usage log `data/llm_usage.csv` (no key, no text), budget guard per job (`KD_CAP_USD`, default 15), clear errors on 401/400. `llm_labels.py` and `role_discover.py` use it when `KD_API_KEY` is set (labels `deepseek-v4-flash`, title review `gpt-5.4-mini`; override with `KD_LABEL_MODEL`, `KD_REVIEW_MODEL`, `KD_BASE_URL`). The label CSV model column and the Method screen show `krackeddevs/<model>`.
+- Cost in the log is an assumed list price unless the gateway sends `x-litellm-response-cost`. The `cost_source` column says which.
+- Not changed: Sheng Kuan's `backend/signals/trendsignal/llm.py` (needs his approval). Tests: `tests/test_llm_client.py`.
+
+### KrackedDevs setup (user steps)
+1. Put `KD_API_KEY` in Replit Secrets. Locally set it as an environment variable. Never write it in a file in the repo.
+2. `python -m engine.backfill_hn` (fetch all threads).
+3. Dry run: `python -m engine.llm_labels backfill --limit 200`. Read the tokens, the cost and the projected full cost. It writes no label file.
+4. If the projection fits: `python -m engine.llm_labels backfill --yes`. Each key stops at $20. The guard stops at `KD_CAP_USD` (default $15). If it stops, run again with the second key; cached labels are kept.
+5. Commit the label files (`data/llm_role_labels.csv`, `data/role_labeller.json`, role files). Ask Claude.
+6. After that the daily job uses KrackedDevs by itself.
+
+## Update 31 Oct 2026: final-round gaps built (`tasks/plan-final-round.md`)
 
 **Git state:** pushed to main. The Replit republish is the user's job.
 
