@@ -34,7 +34,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any, Iterable, Mapping, Sequence
 
 if __package__ in (None, ""):  # allow "python engine/sdg.py"
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -664,6 +664,42 @@ def rerank_for_goal(match_roles_output: Mapping[str, Any], role_sdg: Mapping[str
         "low_match": low,
         "by_goal_fit": by_fit,
     }
+
+
+def role_reason(role_sdg: Mapping[str, Any], role_id: str) -> str | None:
+    """One sentence on the role's most-linked sector, from role_sdg numbers only. None when there is no data."""
+    entry = (role_sdg.get("roles") or {}).get(role_id)
+    base = (role_sdg.get("baseline") or {}).get("sectors")
+    if not entry or not base:
+        return None
+    names = {x["id"]: x for x in role_sdg.get("sectors", [])}
+    cells = [(sid, c) for sid, c in entry["sectors"].items() if c.get("share_recent") is not None and sid in names]
+    pool = [x for x in cells if x[1]["reliable"] and x[1]["count_recent"] >= MIN_SECTOR_POSTS] or cells
+    if not pool:
+        return None
+    # Rank by share against all posts, so a sector that is big everywhere (health) does not win every role.
+    sid, c = max(pool, key=lambda x: x[1]["share_recent"] / (base[x[0]]["share_recent"] or 1))
+    rough = "" if c["reliable"] and c["count_recent"] >= MIN_SECTOR_POSTS else f" (few posts, n={c['count_recent']})"
+    goals = " / ".join(names[sid]["sdg"])
+    label = "Most over-represented sector" if c["share_recent"] > base[sid]["share_recent"] else "Main SDG-linked sector"
+    return (f"{label}: {names[sid]['name']}, {_pct(c['share_recent'])} of posts in the last "
+            f"{role_sdg.get('months', WINDOW_MONTHS)} months (SDG {goals}), against "
+            f"{_pct(base[sid]['share_recent'])} of all posts{rough}.")
+
+
+def goal_skills(taxonomy: Sequence[Mapping[str, Any]], role_sdg: Mapping[str, Any], goal_sector: str) -> set[str]:
+    """Skills whose taxonomy SDG targets share a goal number (the part before the dot) with the sector."""
+    goals = {t.split(".")[0] for t in _sector_meta(role_sdg, goal_sector)["sdg"]}
+    return {t["skill"] for t in taxonomy if goals & {x.split(".")[0] for x in t.get("sdg", [])}}
+
+
+def goal_first(steps: Sequence[Mapping[str, Any]], linked: set[str]) -> list[dict]:
+    """Marks goalLinked and moves linked steps first inside each stage. Stages and their order stay as they are."""
+    rank = {}
+    for s in steps:
+        rank.setdefault(s["stage"], len(rank))
+    out = [{**s, "goalLinked": s["skill"] in linked} for s in steps]
+    return sorted(out, key=lambda s: (rank[s["stage"]], not s["goalLinked"]))
 
 
 def plan_sdg_summary(

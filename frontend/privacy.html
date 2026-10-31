@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy notice · Varity</title>
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=18">
+  <link rel="stylesheet" href="evidence.css?v=2">
+</head>
+<body>
+  <main id="main" style="max-width:760px;margin:0 auto;padding:24px 16px">
+    <p><a href="index.html">Back to Varity</a></p>
+    <h1>Privacy notice</h1>
+    <p>This notice follows Malaysia's Personal Data Protection Act 2010 (PDPA) and its 7 principles. The demo uses synthetic CVs only. Please do not upload a real person's CV.</p>
+
+    <h2>1. General principle</h2>
+    <p>Sign-in is optional. Without it, Varity works with a token that stays in your browser. With it (Replit sign-in), Varity stores, per account: your Replit user id, email, display name, profile image link, and the times you created the account and last signed in. Per profile it stores your skill list, your target role and your pathway ticks. It also keeps the cleaned CV text (emails, phone numbers and ID numbers already replaced) so the CV builder can use it. It does not keep the CV file. We use this only to show your own routes and pathway.</p>
+
+    <h2>2. Notice and Choice principle</h2>
+    <p>You choose whether to sign in. Before you upload a CV, you tick a box to confirm it is a sample CV. The "Try an example" button needs no CV. When AI is on, the CV text goes to Anthropic (Claude) for reading.</p>
+
+    <h2>3. Disclosure principle</h2>
+    <p>The only outside party that sees CV text is Anthropic (Claude), and only for reading the CV when AI is on. Code first redacts email addresses, phone numbers and ID numbers. A name can still remain in the text. We do not sell or share your data with anyone else.</p>
+
+    <h2>4. Security principle</h2>
+    <p>Data sits in Replit PostgreSQL (a SQLite file if no PostgreSQL is set). The session cookie is signed, HttpOnly, and lasts 30 days.</p>
+
+    <h2>5. Retention principle</h2>
+    <p>The CV file is not stored, and the cleaned CV text is deleted when you delete your profile. Evidence quotes are cut to the sentence around each skill, but a name in the same sentence can remain. Accounts with no sign-in for 12 months are deleted, with their profiles.</p>
+
+    <h2>6. Data Integrity principle</h2>
+    <p>You check every skill against its quote before you save, and you can untick or remove any skill. Varity never keeps a skill you did not keep.</p>
+
+    <h2>7. Access principle</h2>
+    <p>You can see your saved profile on the CV and routes screen. To delete it, use "Delete my profile". To delete your account and profile, send <code>DELETE /api/me</code> (the account chip offers this when you are signed in).</p>
+  </main>
+</body>
+</html>

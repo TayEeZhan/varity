@@ -13,7 +13,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Header, Request
+from fastapi import FastAPI, Header, Query, Request
 
 from advisor import service
 from advisor.mapping import map_profile, taxonomy_index
@@ -74,8 +74,9 @@ def held_skills(settings: Settings, owner: str | None, data_dir: Path) -> tuple[
     return sorted(held), unmapped
 
 
-def radar_payload(settings: Settings, owner: str | None, data_dir: Path = DATA_DIR) -> dict:
-    scores = load("skill_scores.json", data_dir)
+def radar_payload(settings: Settings, owner: str | None, data_dir: Path = DATA_DIR, as_of: str | None = None) -> dict:
+    # a replay shows the scores cut at that month
+    scores = service._replayed(as_of)["scores"] if as_of else load("skill_scores.json", data_dir)
     backtest = load("backtest.json", data_dir, required=False)
     contested = contested_skills(data_dir)
     held, unmapped = held_skills(settings, owner, data_dir)
@@ -92,7 +93,7 @@ def radar_payload(settings: Settings, owner: str | None, data_dir: Path = DATA_D
         "asOf": scores.get("as_of"), "partialMonth": bool(scores.get("partial_month")),
         "generatedAt": scores.get("generated_at"), "dataWindow": scores.get("data_window"),
         "band": {"label": interval.get("label"), "level": interval.get("level"), "model": interval.get("model")},
-        "contestedKnown": contested is not None,
+        "contestedKnown": contested is not None, "malaysia": service.malaysia_meta(),
         "source": {"file": "data/skill_scores.json", "robustness": "data/exposure_robustness.csv",
                    "text": "Hacker News 'Who is hiring?' posts; AI stance from the Anthropic Economic Index"},
     }
@@ -190,9 +191,14 @@ def add_evidence_routes(app: FastAPI, settings: Settings, data_dir: Path = DATA_
                             status=500, meta={"code": "EVIDENCE_DATA_MISSING", "file": exc.name})
 
     @app.get("/api/skills/radar")
-    def api_skills_radar(request: Request, x_profile_token: str | None = Header(default=None)):
-        """Every skill by demand share and tested change; the saved profile's skills are marked."""
-        return guarded(request, lambda: radar_payload(settings, owner_of(request, x_profile_token), data_dir))
+    def api_skills_radar(request: Request, asOf: str | None = Query(default=None, max_length=7),
+                         x_profile_token: str | None = Header(default=None)):
+        """Every skill by demand share and tested change; the saved profile's skills are marked. asOf replays a past month."""
+        try:
+            service.check_as_of(asOf)
+        except ValueError as exc:
+            return envelope(error=str(exc), status=422, meta={"code": "INVALID_REQUEST"})
+        return guarded(request, lambda: radar_payload(settings, owner_of(request, x_profile_token), data_dir, asOf))
 
     @app.get("/api/evidence")
     def api_evidence(request: Request):

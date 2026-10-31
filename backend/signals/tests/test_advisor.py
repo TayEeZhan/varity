@@ -180,3 +180,14 @@ def test_cut_off_json_is_truncated_not_invalid():
 
     with pytest.raises(LlmUnavailable, match="TRUNCATED"):
         call_model("m", "s", "u", Advice, 10, client=Cut(), gate=SpendGate(1.0))
+
+
+def test_suggestions_meta_carries_the_dosm_check(client, token):
+    meta = client.get("/api/roles/suggestions", headers={"X-Profile-Token": token}).json()["meta"]
+    m = meta["malaysia"]
+    assert m["note"].startswith("DOSM does not split by job title") and m["sourceUrl"].startswith("https://www.dosm.gov.my/")
+    ict = m["ict"]
+    assert ict["label"] == "Information and communication" and ict["quarter"] == m["latestQuarter"]
+    if ict["previous"]:
+        assert ict["vsPreviousQuarterPct"] == round((ict["vacancies"] / ict["previous"] - 1) * 100, 1)
+    assert "malaysia" in client.get("/api/skills/radar").json()["data"]

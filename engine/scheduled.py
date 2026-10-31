@@ -17,17 +17,19 @@ import json
 import logging
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from engine import live  # noqa: E402
 from engine import refresh as refresh_mod  # noqa: E402
 from engine import store as store_mod  # noqa: E402
 
 log = logging.getLogger("verity.scheduled")
 
-META_KEYS = ("fetched_at", "posts_before", "posts_after", "thread_id", "month", "roles_updated")
+META_KEYS = ("fetched_at", "posts_before", "posts_after", "thread_id", "month", "roles_updated", "roles_error")
 
 
 def run(store: store_mod.SnapshotStore | None = None, **refresh_kwargs) -> dict:
@@ -46,6 +48,13 @@ def run(store: store_mod.SnapshotStore | None = None, **refresh_kwargs) -> dict:
         log.warning("the snapshot will be saved to a folder on THIS machine, not to Replit App Storage. "
                     "On Replit this is lost when the job ends: set the secret VERITY_STORE=replit.")
 
+    if "source_dir" not in refresh_kwargs:
+        # Start from the last stored snapshot, not the committed data: a fresh container would
+        # otherwise lose every month and every ledger row added since the last commit.
+        try:
+            refresh_kwargs["source_dir"] = live.load_newer_snapshot(refresh_mod.DATA_DIR, store=store)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("could not read the last snapshot, starting from the committed data: %s", exc)
     try:
         result = refresh_mod.refresh(**refresh_kwargs)
     except Exception as exc:  # noqa: BLE001 - refresh() should not raise, but a job must not crash silently
@@ -71,6 +80,9 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, stream=sys.stderr,
                         format="%(asctime)s %(name)s %(levelname)s %(message)s")
     summary = run()
+    if datetime.now(timezone.utc).weekday() == 0:  # weekly: a new DOSM quarter? my_dosm.update never raises and keeps the old CSV on failure
+        from engine import my_dosm
+        log.info("DOSM check: %s", my_dosm.update())
     if not summary["ok"]:
         log.error("scheduled refresh failed at %s: %s", summary.get("stage"), summary.get("error"))
     print(json.dumps(summary, sort_keys=True))

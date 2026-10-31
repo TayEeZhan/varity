@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import os
 import sqlite3
+from datetime import datetime, timedelta, timezone
 
 from trendsignal.config import Settings
 from trendsignal.db import connect
@@ -167,3 +168,17 @@ def get_user(settings: Settings, sub: str) -> dict | None:
 def delete_user(settings: Settings, sub: str) -> None:
     _run(settings, "DELETE FROM users WHERE sub = ?", (sub,))
     delete_profile_row(settings, "u:" + sub)
+
+
+RETENTION_DAYS = 365
+
+
+def delete_stale_users(settings: Settings, now: datetime | None = None) -> int:
+    """PDPA retention: delete accounts (and their profiles) with no login for 365 days. Returns how many."""
+    cutoff = ((now or datetime.now(timezone.utc)) - timedelta(days=RETENTION_DAYS)).replace(microsecond=0)
+    cutoff_iso = cutoff.isoformat().replace("+00:00", "Z")  # same format as last_login_at, so text order is time order
+    count = 0
+    while row := _run(settings, "SELECT sub FROM users WHERE last_login_at < ? LIMIT 1", (cutoff_iso,), fetch=True):
+        delete_user(settings, row[0])
+        count += 1
+    return count

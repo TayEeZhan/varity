@@ -39,7 +39,15 @@ def test_refresh_arguments_are_passed_on(monkeypatch, local, data_folder):
     seen = {}
     monkeypatch.setattr(engine.refresh, "refresh", lambda **kw: seen.update(kw) or _good_result(data_folder))
     scheduled.run(store=local, work_dir="somewhere")
-    assert seen == {"work_dir": "somewhere"}
+    assert seen == {"work_dir": "somewhere", "source_dir": None}  # empty store: start from the committed data
+
+
+def test_the_job_starts_from_the_last_stored_snapshot(monkeypatch, local, data_folder):
+    seen = {}
+    monkeypatch.setattr(engine.refresh, "refresh", lambda **kw: seen.update(kw) or _good_result(data_folder))
+    monkeypatch.setattr(scheduled.live, "load_newer_snapshot", lambda committed, store: "/live/snap-1")
+    scheduled.run(store=local)
+    assert seen["source_dir"] == "/live/snap-1"  # months and ledger rows since the last commit are kept
 
 
 @pytest.mark.parametrize("bad, stage, text", [

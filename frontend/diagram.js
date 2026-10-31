@@ -130,14 +130,6 @@ function flowSVG() {
   return `<svg viewBox="0 0 1200 480" role="img" aria-labelledby="fm-title"><title id="fm-title">User flow drawn as a transit map: first ride, daily loop and explore lines</title>${lines}${stns}</svg>`;
 }
 
-/* ── Ridership band: thickness = weekly mentions, one shared scale for every skill ── */
-function ridershipSVG(weekly, max, color) {
-  const xs = [6, 33, 60, 87, 114];
-  const half = (v) => Math.max(0.75, (v / max) * 15);
-  const top = xs.map((x, i) => `${x},${17 - half(weekly[i])}`).join(" ");
-  const bot = xs.map((x, i) => `${x},${17 + half(weekly[i])}`).reverse().join(" ");
-  return `<svg viewBox="0 0 120 34" preserveAspectRatio="none" aria-hidden="true"><polygon points="${top} ${bot}" fill="${color}"/></svg>`;
-}
 
 /* Hovering or focusing a station lights its line(s) and dims the rest. */
 function bindLineLighting(root, onStop) {

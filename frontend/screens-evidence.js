@@ -82,7 +82,7 @@ function detailHTML(d) {
       <dt>Change in share</dt><dd>${evSigned(p.change)} (last 12 months vs the 12 before)</dd>
       <dt>Trend label</dt><dd>${esc(p.trend_label)}${p.trend_p === null ? "" : `, p = ${evN(p.trend_p, 3)}`}</dd>
       <dt>AI stance</dt><dd>${esc(p.stance)}${p.contested ? " (contested across indices)" : ""}</dd>
-      ${scen("moderate", "12-month forecast, estimate")}${scen("fast", "Fast scenario, estimate")}
+      ${scen("moderate", "Expected, 12 months (estimate)")}${scen("fast", "If AI speeds up (estimate)")}
     </dl>
     <p class="ev-note">Estimate for ${esc(d.asOf || "?")} plus 12 months. The ${esc(band)} is a target, not a promise.</p></div>`;
 }
@@ -100,6 +100,19 @@ function radarTable(d) {
     <tbody>${rows}</tbody></table>`;
 }
 
+/* DOSM quarterly online vacancies in the Information and communication sector: a check on the HN sample, not a per-role number. */
+function malaysiaSeries(m) {
+  if (!m || !m.ict) return "";
+  const pts = m.ict.series, max = Math.max(...pts.map((p) => p.vacancies)), w = 240, h = 48;
+  const xy = pts.map((p, i) => `${(i / Math.max(pts.length - 1, 1) * w).toFixed(1)},${(h - p.vacancies / max * h).toFixed(1)}`).join(" ");
+  const rows = pts.slice(-8).map((p) => `<tr><td>${esc(p.quarter.replace(/^(\d{4})-(Q\d)$/, "$2 $1"))}</td><td>${Number(p.vacancies).toLocaleString("en-GB")}</td></tr>`).join("");
+  return `<section aria-labelledby="ev-my-h"><h2 class="sec" id="ev-my-h">Malaysia check <small>DOSM official online vacancies</small></h2>
+    <p class="method">${esc(m.ict.label)} sector, ${esc(pts[0].quarter)} to ${esc(m.ict.quarter)}. ${esc(m.note)} HN is a global tech hiring sample; this is the Malaysian check.</p>
+    <svg viewBox="0 0 ${w} ${h}" width="240" height="48" role="img" aria-label="Quarterly online vacancies, Information and communication sector"><polyline points="${xy}" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    <table class="ev-table"><thead><tr><th>Quarter</th><th>Vacancies</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="method"><a href="${esc(m.sourceUrl)}" target="_blank" rel="noopener">Source: DOSM Job Market Insights data file</a>, published ${esc(m.published)}.</p></section>`;
+}
+
 function radarBody(d) {
   if (!d.points.length) return `<p class="empty">No skill has enough job posts to place on the radar.</p>`;
   const miss = d.unmapped.length ? `<p class="method">Not on the chart (no matching skill in the data): ${d.unmapped.map(esc).join(", ")}.</p>` : "";
@@ -111,15 +124,61 @@ function radarBody(d) {
     <div class="ev-sentences">${d.sentences.map((s) => `<p>${esc(s)}</p>`).join("")}</div>${noHeld}${miss}
     <p class="method">${esc(d.howToRead)}</p>
     ${d.contestedKnown ? "" : `<p class="method" role="note">The AI-stance cross-check file is missing, so no mark is hollow.</p>`}
+    ${malaysiaSeries(d.malaysia)}
     <h2 class="sec">All skills <small>Same data as the chart</small></h2>${radarTable(d)}
     <p class="method">Source: ${esc(d.source.file)} (${esc(d.source.text)}); stance cross-check: ${esc(d.source.robustness)}. As of ${esc(evAsOf(d))}, generated ${esc(d.generatedAt || "?")}.</p>`;
 }
 
+/* "Trend data" bar: replay an older real month (this tab only), go back to latest, or fetch the newest HN thread. */
+async function loadDataStatus() { try { STATE.dataStatus = await api("/api/data/status"); } catch (e) { STATE.dataStatus = null; } }
+const replayLabel = () => STATE.dataStatus && STATE.dataStatus.mode === "replay" ? `Replay of real data as of ${STATE.dataStatus.asOf}` : "";
+function dataBar() {
+  const d = STATE.dataStatus;
+  if (!d) return "";
+  const months = (d.replayMonths || []).map((m) => `<option value="${esc(m)}"${m === d.asOf ? " selected" : ""}>${esc(m)}</option>`).join("");
+  return `<section class="method" aria-label="Trend data"><p><b>Source: HN Who is hiring &middot; as of ${esc(d.asOf || "?")} &middot; fetched ${esc(d.fetchedAt || "n/a")}</b>
+    ${d.mode === "replay" ? ` &middot; <b>${esc(replayLabel())}</b>` : ""}${d.mode === "refreshing" ? " &middot; refreshing&hellip;" : ""}${d.error ? ` &middot; last refresh failed: ${esc(d.error)}` : ""}</p>
+    <p><label>Replay <select data-replay><option value="">Pick a month</option>${months}</select></label>
+    <button class="btn" data-latest>Back to latest</button> <button class="btn" data-fetch>Fetch latest HN now</button></p>
+    <p class="ev-note">Replay changes only what you see in this tab.</p></section>`;
+}
+async function reloadData() {
+  EV.radar = null;
+  await Promise.all([loadDataStatus(), loadSignals(), loadForecast(), loadRoutes()]);
+  if (STATE.saved) await loadPlan();
+  rerender();
+}
+
+async function fetchLatest() {
+  try {
+    await api("/api/data/refresh", { method: "POST" });
+  } catch (e) {
+    toast(e.status === 429 ? "Data was fetched a moment ago. Please try again in a few minutes." : errText(e));
+    return;
+  }
+  await loadDataStatus();
+  rerender();
+  for (let i = 0; i < 100 && STATE.dataStatus && STATE.dataStatus.mode === "refreshing"; i++) {
+    await new Promise((r) => setTimeout(r, 3000));
+    await loadDataStatus();
+    if (STATE.dataStatus && STATE.dataStatus.mode !== "refreshing") await reloadData();
+    else rerender();
+  }
+}
+
 function renderRadar() {
   const html = `${head("Skills radar", "Which skills employers ask for, and which are moving. Only a tested change gets a colour.", `<span id="ev-badge"></span>`)}
+    <div id="ev-bar">${dataBar()}</div>
     <div id="ev-body" class="ev">${evState(EV.radar ? "" : "Loading the radar…", {})}</div>`;
   const bind = (root) => {
     const body = root.querySelector("#ev-body");
+    const bar = root.querySelector("#ev-bar");
+    loadDataStatus().then(() => { bar.innerHTML = dataBar(); });
+    bar.addEventListener("change", (e) => { if (e.target.dataset.replay !== undefined && e.target.value) { setAsOf(e.target.value); reloadData(); } });
+    bar.addEventListener("click", (e) => {
+      if (e.target.closest("[data-latest]")) { setAsOf(""); reloadData(); }
+      if (e.target.closest("[data-fetch]")) fetchLatest();
+    });
     const draw = (d) => {
       root.querySelector("#ev-badge").innerHTML = real(`Real data · HN hiring posts · as of ${esc(evAsOf(d))}`);
       body.innerHTML = radarBody(d);
@@ -204,6 +263,14 @@ function methodBody(d) {
       <p class="method">Full list with dates and licences: data/SOURCES.md.</p></section>` : ""}${miss}`;
 }
 
+/* Fairness check: states what backend/signals/tests/test_fairness.py proves, and its limit. */
+function fairnessBlock() {
+  return `<section class="ev-sec" aria-labelledby="ev-fair"><h2 class="sec" id="ev-fair">Fairness check</h2>
+    <p><strong>Same skills, same result:</strong> a test gives three CVs with the same skills but different names, ages, genders and schools. They get the same routes and match scores (<code>backend/signals/tests/test_fairness.py</code>).</p>
+    <p><strong>Limit:</strong> the job-post data itself may carry hiring bias; we do not correct it.</p>
+    <p><a href="privacy.html">Privacy notice</a></p></section>`;
+}
+
 function renderMethod() {
   const html = `${head("Method", "How the forecast and the AI stance were tested, and where every number comes from. Each figure is read from a file in data/.", `<span id="ev-badge"></span>`)}
     <div id="ev-body" class="ev">${evState("Loading the evidence…", {})}</div>`;
@@ -212,7 +279,7 @@ function renderMethod() {
     api("/api/evidence").then((d) => {
       EV.evidence = d;
       root.querySelector("#ev-badge").innerHTML = real(`Real data · backtests · as of ${esc(d.asOf || "?")}`);
-      body.innerHTML = methodBody(d);
+      body.innerHTML = methodBody(d) + fairnessBlock();
     }).catch((e) => { body.innerHTML = evState("", { error: e instanceof TypeError ? "The server cannot be reached." : e.message }); });
   };
   return { html, bind };

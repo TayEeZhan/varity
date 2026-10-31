@@ -1050,6 +1050,16 @@ def test_low_match_roles_are_split_off_and_not_ranked():
     assert next(r for r in out["roles"] if r["role_id"] == "c")["match_score"] == pytest.approx(0.2)  # inclusive
 
 
+def test_score_breakdown_new_rank_is_exact_and_top_three_by_weight():
+    role = _role("a", "Alpha", [("Python", 0.4), ("dbt", 0.3), ("Airflow", 0.2), ("Spark", 0.06), ("Kafka", 0.04)])
+    r = R.match_roles({"Python"}, _profiles(role), SCORES, _trends(a=("Rising", 1, 1)), low_match_below=0)["roles"][0]
+    b = R.score_breakdown(r)
+    assert [x["skill"] for x in b["raise"]] == ["dbt", "Airflow", "Spark"]
+    assert b["rank"] == pytest.approx(r["rank_score"])
+    assert b["raise"][0]["addMatch"] == pytest.approx(0.3)
+    assert b["raise"][0]["newRank"] == pytest.approx(R.MATCH_WEIGHT * (0.4 + 0.3) + R.FUTURE_WEIGHT * 1.0)
+
+
 def test_a_rising_role_with_a_tiny_match_cannot_outrank_a_better_fit():
     good = _role("good", "Good", [("Python", 0.5), ("SQL", 0.5)])   # match 0.5, Falling -> rank 0.35
     tiny = _role("tiny", "Tiny", [("Python", 0.05), ("dbt", 0.95)])  # match 0.05, Rising -> would be 0.335

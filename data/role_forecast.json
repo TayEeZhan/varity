@@ -1,8 +1,13 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-22T18:46:30Z",
+  "generated_at": "2026-10-29T10:25:39Z",
   "as_of": "2026-10",
   "partial_month": true,
+  "nowcast": {
+    "k": 0.0,
+    "posts_this_month": 266,
+    "weight": null
+  },
   "interval": {
     "label": "80% target band",
     "level": 0.8,
@@ -21,6 +26,11 @@
     "The band is pooled over the ranked roles, so it rests on few roles; see data/role_backtest.json for how often it covered held-out outcomes.",
     "Share of HN hiring posts is a sample of tech hiring, not a count of jobs."
   ],
+  "scenario_params": {
+    "k": 2,
+    "fast": "fast = moderate * (1 - k * e_r), e_r = weighted mean e_s of the role's profile skills (same rule as skills)",
+    "declining": "trend Falling AND more than 50% of the role's skill weight in Falling skills"
+  },
   "data_window": {
     "from": "2019-01",
     "to": "2026-10"
@@ -37,6 +47,14 @@
       "name": "AI/LLM Application Engineer",
       "status": "ok",
       "note": null,
+      "ai_exposure_e_r": -0.066502092,
+      "forecast_fast": {
+        "value_12m": 0.07419590914101833,
+        "low": 0.05022536817266331,
+        "high": 0.1084606733182664
+      },
+      "declining": false,
+      "falling_skill_weight": 0.0,
       "share_now": {
         "value": 0.06460296096904442,
         "mentions": 48,
@@ -93,6 +111,14 @@
       "name": "Backend Engineer",
       "status": "ok",
       "note": null,
+      "ai_exposure_e_r": 0.030294872653127344,
+      "forecast_fast": {
+        "value_12m": 0.09748306870391596,
+        "low": 0.07777622056509437,
+        "high": 0.12147922476743939
+      },
+      "declining": false,
+      "falling_skill_weight": 0.0,
       "share_now": {
         "value": 0.10228802153432032,
         "mentions": 76,
@@ -149,6 +175,14 @@
       "name": "Data Engineer",
       "status": "ok",
       "note": null,
+      "ai_exposure_e_r": 0.002593498625,
+      "forecast_fast": {
+        "value_12m": 0.029498715609002468,
+        "low": 0.015436681303696855,
+        "high": 0.05564276816278467
+      },
+      "declining": false,
+      "falling_skill_weight": 0.0,
       "share_now": {
         "value": 0.02826379542395693,
         "mentions": 21,
@@ -205,6 +239,14 @@
       "name": "Data Scientist",
       "status": "ok",
       "note": null,
+      "ai_exposure_e_r": -0.061997296820296824,
+      "forecast_fast": {
+        "value_12m": 0.03239255697993353,
+        "low": 0.017679365210636757,
+        "high": 0.05870072162198523
+      },
+      "declining": false,
+      "falling_skill_weight": 0.0,
       "share_now": {
         "value": 0.026917900403768506,
         "mentions": 20,
@@ -261,6 +303,14 @@
       "name": "Full-stack Web Developer",
       "status": "ok",
       "note": null,
+      "ai_exposure_e_r": -0.0010433298913298911,
+      "forecast_fast": {
+        "value_12m": 0.11744625420237446,
+        "low": 0.08857441777122708,
+        "high": 0.15414121371549194
+      },
+      "declining": false,
+      "falling_skill_weight": 0.04550404550404551,
       "share_now": {
         "value": 0.11709286675639301,
         "mentions": 87,
@@ -317,6 +367,14 @@
       "name": "ML Engineer",
       "status": "ok",
       "note": null,
+      "ai_exposure_e_r": -0.08782111829999999,
+      "forecast_fast": {
+        "value_12m": 0.04810842842952907,
+        "low": 0.032934251718739344,
+        "high": 0.06984663896666722
+      },
+      "declining": false,
+      "falling_skill_weight": 0.0,
       "share_now": {
         "value": 0.039030955585464336,
         "mentions": 29,
@@ -373,6 +431,14 @@
       "name": "Mobile Developer",
       "status": "ok",
       "note": null,
+      "ai_exposure_e_r": -0.000636167,
+      "forecast_fast": {
+        "value_12m": 0.024923766965044305,
+        "low": 0.009239467655470438,
+        "high": 0.0654754206409328
+      },
+      "declining": false,
+      "falling_skill_weight": 0.0,
       "share_now": {
         "value": 0.024226110363391656,
         "mentions": 18,
@@ -429,6 +495,14 @@
       "name": "Platform/DevOps Engineer",
       "status": "ok",
       "note": null,
+      "ai_exposure_e_r": 0.042222609125,
+      "forecast_fast": {
+        "value_12m": 0.08374142175597896,
+        "low": 0.060631762284760624,
+        "high": 0.11447980078278315
+      },
+      "declining": false,
+      "falling_skill_weight": 0.0,
       "share_now": {
         "value": 0.0901749663526245,
         "mentions": 67,

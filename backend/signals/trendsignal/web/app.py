@@ -12,7 +12,7 @@ from datetime import datetime
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
-from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -110,6 +110,9 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        from trendsignal.scheduler import _logged, purge_stale_accounts
+
+        _logged("retention", lambda: purge_stale_accounts(ctx))()  # once at start-up
         scheduler = None
         if ctx.settings.scheduler_enabled:
             from trendsignal.scheduler import build_scheduler
@@ -192,6 +195,24 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
         guard_admin(request, x_admin_token)
         background.add_task(run_pipeline_if_idle, ctx)
         return envelope({"started": "pipeline"}, status=202)
+
+    @app.get("/api/data/status")
+    def api_data_status(asOf: str | None = Query(default=None, max_length=7)):
+        """Which trend data this viewer sees: latest, or a replay of the month in asOf. Also refresh state."""
+        try:
+            service.check_as_of(asOf)
+        except ValueError as exc:
+            return envelope(error=str(exc), status=422, meta={"code": "INVALID_REQUEST"})
+        return envelope(service.data_meta(asOf))
+
+    @app.post("/api/data/refresh", status_code=202)
+    def api_data_refresh():
+        """Fetch the newest HN thread now and rebuild the data in a background thread. One start per 10 minutes, server-wide."""
+        started, wait = service.refresh_in_background()
+        if not started:
+            return JSONResponse({"success": False, "data": {"retryAfter": wait}, "error": "Data was fetched a moment ago. Try again later.",
+                                 "meta": {"code": "RATE_LIMITED", "retryAfter": wait}}, status_code=429, headers={"Retry-After": str(wait)})
+        return envelope({**service.data_meta(), "started": True}, status=202)
 
     from trendsignal.web.cv_api import add_cv_routes  # imported here: cv_api uses envelope and RateLimiter from this module
     add_cv_routes(app, ctx.settings)

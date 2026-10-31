@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-10-31",
+  "note": "Employer-funded option for staff of HRD Corp-registered employers. The claim status is the provider's own statement on its course page. The employer must apply through HRD Corp (e-TRiS) before the training starts. Fees are the provider's list price on the check date.",
+  "scheme_url": "https://hrdcorp.gov.my/hrdcorp-claimable-courses",
+  "programmes": [
+    {
+      "skill": "Python",
+      "title": "PCAP: Certified Associate in Python Programming Certification",
+      "provider": "Trainocate Malaysia (HRD Corp Registered Training Provider, per its site)",
+      "url": "https://trainocate.com.my/courses/certified-associate-in-python-programming-certification/",
+      "days": 3,
+      "fee_myr": 3500,
+      "hrd_status": "Provider page states: \"All courses are HRD Claimable.\""
+    },
+    {
+      "skill": "AWS",
+      "title": "AWS-DEV: Developing on AWS",
+      "provider": "Trainocate Malaysia (HRD Corp Registered Training Provider, per its site)",
+      "url": "https://trainocate.com.my/courses/aws-dev-developing-on-aws/",
+      "days": 3,
+      "fee_myr": 5400,
+      "hrd_status": "Provider page states: \"All courses are HRD Claimable.\""
+    },
+    {
+      "skill": "GCP",
+      "title": "GCPDE: Data Engineering on Google Cloud",
+      "provider": "Trainocate Malaysia (HRD Corp Registered Training Provider, per its site)",
+      "url": "https://trainocate.com.my/courses/gcpde-data-engineering-on-google-cloud-platform/",
+      "days": 4,
+      "fee_myr": 9600,
+      "hrd_status": "Provider page states: \"HRD Corp Claimable.\""
+    }
+  ]
+}

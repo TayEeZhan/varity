@@ -1,8 +1,12 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-21T21:09:03Z",
+  "generated_at": "2026-10-29T10:25:36Z",
   "as_of": "2026-10",
   "partial_month": true,
+  "nowcast": {
+    "k": 0.0,
+    "posts_this_month": 266
+  },
   "scenario_params": {
     "k": 2
   },
