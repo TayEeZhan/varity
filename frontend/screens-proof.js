@@ -175,7 +175,7 @@ function departureRow(p) {
   const mine = PROOF.data.mine.find((m) => m.id === p.id);
   const passed = mine && mine.status === "passed";
   return `<details class="dep"${PROOF.open === p.id ? " open" : ""} data-dep="${esc(p.id)}"><summary>
-      ${bullet(LEVEL_LINE[p.level] || "apps", true)}<span class="dep__gain">${passed ? "Done" : Math.round(p.gain * 100) >= 1 ? `${matchGain(p.gain)}<small>match</small>` : `Practice<small>no new skill</small>`}</span>
+      ${bullet(LEVEL_LINE[p.level] || "apps", true)}${passed || Math.round(p.gain * 100) >= 1 ? `<span class="dep__gain">${passed ? "Done" : `${matchGain(p.gain)}<small>match</small>`}</span>` : `<span class="dep__gain dep__gain--word">Practice<small>no new skill</small></span>`}
       <span class="dep__main"><span><b>${esc(p.title)}</b> <span class="tag">${esc(p.level)}</span></span>
         <span class="chips">${p.skills.map((s) => `<span class="chip${p.closes.includes(s) ? "" : " chip--gap"}">${esc(s)}</span>`).join("")}</span>
         <span class="pstop__why"><b>Why:</b> ${esc(p.why)} ${ext(p.source.url, p.source.label)}</span></span></summary>
@@ -195,7 +195,7 @@ function certRow(c) {
       <button class="btn" type="submit">I passed</button></form>
       ${mine.status === "self_reported" ? `<p class="route-note">Self-reported: ${esc(mine.detail || "")}</p>` : ""}`;
   }
-  return `<div class="dep dep--cert"><span class="dep__gain">${Math.round(c.coverage * 100) >= 1 ? `${Math.round(c.coverage * 100)}%<small>covered</small>` : `All new<small>fresh start</small>`}</span>
+  return `<div class="dep dep--cert">${Math.round(c.coverage * 100) >= 1 ? `<span class="dep__gain">${Math.round(c.coverage * 100)}%<small>covered</small></span>` : `<span class="dep__gain dep__gain--word">All new<small>fresh start</small></span>`}
     <span class="dep__main"><b>${esc(c.name)}</b>
       <span class="pstop__why">${esc(demand)} · ${esc(c.issuer)} · ${ext(c.url, "Official page")}${c.adds.length ? ` · Adds stops: ${esc(c.adds.join(", "))}` : ""}</span></span>
     <span class="dep__act">${action}</span></div>`;
@@ -225,7 +225,7 @@ function proofSection() {
     ${active ? activeHTML(active) : demoHTML()}
     ${passed.map((p) => `<p class="proof-done"><span class="pstamp">APPLIED</span>${esc((catalogItem(p.id) || {}).title || p.id)} · ${esc(p.repo || "")}</p>`).join("")}
     ${cancelled.map((p) => `<p class="proof-done"><span class="stamp">Cancelled</span><s>${esc((catalogItem(p.id) || {}).title || p.id)}</s> <span class="route-note">${esc((p.cancelledAt || "").slice(0, 10))}${p.cancelReason ? ` · ${esc(p.cancelReason)}` : ""}</span></p>`).join("")}
-    <h3 class="proof__h">Departures from Project <small>Ranked by how much your match rises if it passes. A formula, no AI.</small></h3>
+    <h3 class="proof__h">Departures from Project <small>Ranked by how much your match rises if it passes (a formula). The Why line is written by AI and checked by code.</small></h3>
     <div class="deps">${d.projects.map(departureRow).join("") || `<p class="route-note">No projects for this role yet.</p>`}</div>
     <h3 class="proof__h">Certs for ${esc(d.roleName || TARGET.role)} <small>${esc(certsNote)}</small></h3>
     <div class="deps">${d.certs.map(certRow).join("") || `<p class="route-note">No certs listed for this role.</p>`}</div>
