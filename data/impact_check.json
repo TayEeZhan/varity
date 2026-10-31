@@ -1,0 +1,195 @@
+{
+  "generated_at": "2026-10-31T17:01:03+00:00",
+  "profiles": 10,
+  "kpi_4_4_plan_step_with_free_linked_resource": 1.0,
+  "kpi_8_5_ranked_role_with_score_and_gap": 1.0,
+  "kpi_8_2_plan_has_rising_or_ai_complement_skill": 1.0,
+  "mean_free_minutes_share": 1.0,
+  "steps_tagged_sdg": "32/32",
+  "fast_scenario_changes_plan": 0.5,
+  "rows": [
+    {
+      "profile": "Aina (synthetic)",
+      "ranked_roles": 7,
+      "top_role": "Backend Engineer",
+      "match_pct": 66,
+      "explained": true,
+      "steps": 4,
+      "hours": 7.5,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 4,
+      "fast_shift_top3": [
+        -0.0606,
+        -0.0052,
+        0.124
+      ],
+      "scenario_changes_plan": true
+    },
+    {
+      "profile": "Ben (synthetic)",
+      "ranked_roles": 1,
+      "top_role": "Full-stack Web Developer",
+      "match_pct": 64,
+      "explained": true,
+      "steps": 4,
+      "hours": 9.5,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 4,
+      "fast_shift_top3": [
+        0.0021
+      ],
+      "scenario_changes_plan": false
+    },
+    {
+      "profile": "Chloe (synthetic)",
+      "ranked_roles": 5,
+      "top_role": "Data Scientist",
+      "match_pct": 43,
+      "explained": true,
+      "steps": 2,
+      "hours": 18.0,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 2,
+      "fast_shift_top3": [
+        0.124,
+        -0.0052,
+        0.133
+      ],
+      "scenario_changes_plan": false
+    },
+    {
+      "profile": "aisyah-backend.docx",
+      "ranked_roles": 7,
+      "top_role": "Backend Engineer",
+      "match_pct": 66,
+      "explained": true,
+      "steps": 4,
+      "hours": 7.5,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 4,
+      "fast_shift_top3": [
+        -0.0606,
+        -0.0052,
+        0.124
+      ],
+      "scenario_changes_plan": true
+    },
+    {
+      "profile": "arjun-data.odt",
+      "ranked_roles": 5,
+      "top_role": "Data Scientist",
+      "match_pct": 78,
+      "explained": true,
+      "steps": 1,
+      "hours": 3.0,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 1,
+      "fast_shift_top3": [
+        0.124,
+        0.1756,
+        -0.0052
+      ],
+      "scenario_changes_plan": false
+    },
+    {
+      "profile": "daniel-devops.html",
+      "ranked_roles": 2,
+      "top_role": "Platform/DevOps Engineer",
+      "match_pct": 53,
+      "explained": true,
+      "steps": 4,
+      "hours": 38.0,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 4,
+      "fast_shift_top3": [
+        -0.0844,
+        -0.0606
+      ],
+      "scenario_changes_plan": true
+    },
+    {
+      "profile": "daniel-devops.md",
+      "ranked_roles": 2,
+      "top_role": "Platform/DevOps Engineer",
+      "match_pct": 53,
+      "explained": true,
+      "steps": 4,
+      "hours": 38.0,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 4,
+      "fast_shift_top3": [
+        -0.0844,
+        -0.0606
+      ],
+      "scenario_changes_plan": true
+    },
+    {
+      "profile": "daniel-devops.txt",
+      "ranked_roles": 2,
+      "top_role": "Platform/DevOps Engineer",
+      "match_pct": 53,
+      "explained": true,
+      "steps": 4,
+      "hours": 38.0,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 4,
+      "fast_shift_top3": [
+        -0.0844,
+        -0.0606
+      ],
+      "scenario_changes_plan": true
+    },
+    {
+      "profile": "sitihajar-ml.rtf",
+      "ranked_roles": 5,
+      "top_role": "ML Engineer",
+      "match_pct": 81,
+      "explained": true,
+      "steps": 1,
+      "hours": 3.0,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 1,
+      "fast_shift_top3": [
+        0.1756,
+        0.124,
+        0.133
+      ],
+      "scenario_changes_plan": false
+    },
+    {
+      "profile": "weijie-frontend.pdf",
+      "ranked_roles": 1,
+      "top_role": "Full-stack Web Developer",
+      "match_pct": 64,
+      "explained": true,
+      "steps": 4,
+      "hours": 9.5,
+      "step_with_checked_free_resource": true,
+      "free_minutes_share": 1.0,
+      "rising_or_ai_complement_step": true,
+      "steps_with_sdg_tag": 4,
+      "fast_shift_top3": [
+        0.0021
+      ],
+      "scenario_changes_plan": false
+    }
+  ]
+}
