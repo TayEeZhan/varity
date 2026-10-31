@@ -105,7 +105,7 @@ main:focus, main:focus-visible { outline: none; }
 .head-links { display: flex; align-items: flex-start; gap: 24px; margin: -12px 0 12px; }
 .head-links__a { font-size: var(--t-sm); font-weight: 700; color: var(--ink); text-underline-offset: 3px; padding: 4px 0; white-space: nowrap; }
 .head-more { flex: 1; min-width: 0; }
-.head-more > summary { cursor: pointer; display: inline-block; font-size: var(--t-sm); font-weight: 700; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; padding: 4px 0; }
+.head-more > summary { cursor: pointer; display: inline-block; list-style: none; font-size: var(--t-sm); font-weight: 700; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; padding: 4px 0; }
 .head-more > summary:hover { color: var(--ink); }
 .head-more[open] { padding-bottom: 4px; }
 .foot { border-top: 1px solid var(--rule); }
@@ -292,7 +292,10 @@ h2.sec small { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); }
 .route__match small { display: block; font-size: var(--t-xs); font-weight: 600; color: var(--ink-3); letter-spacing: 0; margin-top: 4px; }
 .route__role { font-weight: 800; font-size: var(--t-xl); letter-spacing: -0.01em; line-height: 1.25; }
 .route__rank { display: inline-block; vertical-align: 0.12em; margin-right: 10px; padding: 2px 8px; background: var(--ink); color: var(--paper); font-size: var(--t-md); font-variant-numeric: tabular-nums; line-height: 1.3; }
-.route.is-current .route__rank { background: var(--apps); }
+/* Ranks 1–3 ride their line colour; 4 and below share the ink plate. */
+.route__rank--1 { background: var(--apps); }
+.route__rank--2 { background: var(--guard); }
+.route__rank--3 { background: var(--serve); color: var(--ink); }
 .route__role-sub { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: var(--t-sm); color: var(--ink-2); flex-wrap: wrap; }
 .route__fact b { display: block; font-size: var(--t-lg); font-weight: 700; }
 .route__fact span { font-size: var(--t-xs); color: var(--ink-3); font-weight: 600; }
@@ -642,3 +645,13 @@ a.tag--mycol:hover { background: var(--paper-2); }
   .gdrop__icon { width: 44px; height: 44px; }
   .gdrop .btn { grid-column: 1 / -1; justify-self: stretch; }
 }
+.head-more > summary::after { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 0 3px 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform 200ms var(--ease); }
+.head-more[open] > summary::after { transform: rotate(-135deg); margin-bottom: -1px; }
+.planner__from + .head-more { margin: 10px 0 4px; }
+.skills-wrap:not(:has(.skills-more[open])) .skills tbody tr:nth-child(n+6) { display: none; }
+.skills-more > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; min-height: 42px; padding: 0 18px; border: 2px solid var(--ink); border-radius: 21px; font-weight: 700; }
+.skills-more > summary::-webkit-details-marker { display: none; }
+.skills-more > summary:hover { background: var(--paper-2); }
+.skills-more > summary::after { content: ""; width: 6px; height: 6px; margin-bottom: 3px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+.skills-more[open] > summary::after { transform: rotate(-135deg); margin: 3px 0 0; }
+.skills-more:not([open]) .skills-more__less, .skills-more[open] .skills-more__see { display: none; }

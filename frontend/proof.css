@@ -75,6 +75,11 @@
 .dep > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .dep__gain { font-weight: 800; font-size: 1.75rem; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1; }
 .dep__gain--word { font-size: var(--t-xl); letter-spacing: -0.01em; overflow-wrap: anywhere; }  /* a word, not a number: must fit the 96px column */
+/* Cert coverage: green near-complete, blue part-way, orange plate for a fresh start. */
+.dep__gain--high { color: var(--rise); }
+.dep__gain--mid { color: var(--apps); }
+.dep__gain--low { color: var(--ink); }
+.dep__plate { display: inline-block; background: var(--serve); color: var(--ink); padding: 2px 8px; font-size: var(--t-md); line-height: 1.3; }
 .dep__gain small { display: block; font-size: var(--t-xs); font-weight: 600; color: var(--ink-3); letter-spacing: 0; margin-top: 4px; }
 .dep__main { display: grid; gap: 8px; }
 .dep__main > span:first-child > b, .dep--cert .dep__main > b { font-size: var(--t-lg); font-weight: 800; letter-spacing: -0.01em; line-height: 1.3; }

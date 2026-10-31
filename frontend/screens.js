@@ -312,9 +312,10 @@ function savedTable() {
   const why = (s) => (s.evidence_quote ? `“${esc(s.evidence_quote)}”`
     : esc((s.evidence.find((e) => e.rule) || s.evidence.find((e) => e.note) || {}).rule || (s.evidence.find((e) => e.note) || {}).note || "Added by you"));
   const basis = (s) => (isExample(s) ? "Synthetic example" : BASIS[s.basis]);
-  return `<table class="skills"><thead><tr><th scope="col">Skill and Experience</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th><th scope="col">Edit</th></tr></thead>
+  return `<div class="skills-wrap"><table class="skills"><thead><tr><th scope="col">Skill and Experience</th><th scope="col">Basis</th><th scope="col">Why</th><th scope="col">Years</th><th scope="col">Edit</th></tr></thead>
     <tbody>${STATE.saved.skills.map((s) => `<tr><td>${esc(s.name)}</td><td><span class="lvl">${esc(basis(s))}</span></td><td class="q">${why(s)}</td><td>${esc(yearsText(s.years))}</td>
-      <td><button class="btn btn--quiet" data-act="skill-remove" data-id="${esc(s.skill_id)}" aria-label="Remove ${esc(s.name)}">Remove</button></td></tr>`).join("")}</tbody></table>`;
+      <td><button class="btn btn--quiet" data-act="skill-remove" data-id="${esc(s.skill_id)}" aria-label="Remove ${esc(s.name)}">Remove</button></td></tr>`).join("")}</tbody></table>
+    ${STATE.saved.skills.length > SKILLS_SHOWN ? `<details class="skills-more" data-keep-open="skills"${KEEP_OPEN.skills ? " open" : ""}><summary><span class="skills-more__see">See all ${STATE.saved.skills.length} skills</span><span class="skills-more__less">Show fewer</span></summary></details>` : ""}</div>`;
 }
 
 function skillsTable() {
@@ -368,7 +369,7 @@ function liveRouteRow(r, pinned = false) {
   return `<div class="route${cur ? " is-current" : ""}">
     <div class="route__row">
       <div class="route__match${low ? " route__match--low" : ""}">${Number(r.matchPct)}%<small>match now</small></div>
-      <div><div class="route__role">${low ? "" : `<span class="route__rank">#${Number(r.rank)}</span>`}${esc(r.name)}${pinned ? ` <span class="plate">Destination</span>` : ""}</div>
+      <div><div class="route__role">${low ? "" : `<span class="route__rank route__rank--${Math.min(Number(r.rank), 5)}">#${Number(r.rank)}</span>`}${esc(r.name)}${pinned ? ` <span class="plate">Destination</span>` : ""}</div>
         <div class="route__role-sub"><b>${esc(r.fitLabel)}</b></div>
         ${low ? `<p class="route-note">Long ride: this role needs most of its skills still. Other routes below are closer.</p>` : ""}</div>
       ${action}
@@ -398,7 +399,12 @@ function malaysiaLine() {
   return `<p class="route-note">Malaysia check (DOSM, official online vacancies): ${esc(m.ict.label)} sector ${Number(m.ict.vacancies).toLocaleString("en-GB")} in ${esc(dosmQuarter(m.ict.quarter))}${esc(dosmPct(m.ict.vsYearAgoPct))}. ${esc(m.note)} HN = global tech hiring sample. <a href="${esc(m.sourceUrl)}" target="_blank" rel="noopener">Data source: Department of Statistics Malaysia</a></p>`;
 }
 
-function liveRoutes() {
+const KEEP_OPEN = {};
+const SKILLS_SHOWN = 5;  // saved-skills rows before "See all", so the routes stay in view
+document.addEventListener("toggle", (e) => { const k = e.target.dataset && e.target.dataset.keepOpen; if (k) KEEP_OPEN[k] = e.target.open; }, true);
+const descBox = (key, label, body) => `<details class="head-more" data-keep-open="${key}"${KEEP_OPEN[key] ? " open" : ""}><summary>${label}</summary>${body}</details>`;
+
+function liveRoutes(lead = "") {
   const s = STATE.suggest;
   const w = s.formulaWeights;
   const formula = `match ${Math.round(w.match * 100)}% + demand ${Math.round(w.future * 100)}%`;
@@ -415,7 +421,7 @@ function liveRoutes() {
   const unmapped = s.unmappedSkills.length ? `<p class="empty"><b>Not in the job data yet, so not counted:</b> ${s.unmappedSkills.map(esc).join(", ")}</p>` : "";
   const list = others.length ? others.map((r) => liveRouteRow(r)).join("")
     : dest ? "" : `<p class="empty">No role matches your saved skills well yet. Add skills from another CV.</p>`;
-  return `${goalPicker()}${goalNote}<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>${malaysiaLine()}
+  return `${descBox("routes", "Description", `${lead}${goalPicker()}${goalNote}<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>${malaysiaLine()}`)}
     ${dest ? `${liveRouteRow(dest, true)}${others.length ? `<h3 class="routes-sub">Other routes</h3>` : ""}` : ""}${list}${low}${unmapped}
     ${ranked.length ? `<section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why these jobs matter: SDG and Malaysia links</h2>
       <p class="route-note">Each role is tied to the UN Sustainable Development Goals (SDG) and to Malaysia's list of occupations in short supply (MyCOL). Hover a target to see its source.</p>
@@ -429,7 +435,7 @@ function plannerHTML() {
   if (!STATE.saved) return `<p class="empty">Upload a CV or try an example profile. Routes appear after that.</p>`;
   if (STATE.suggestError) return problem(STATE.suggestError);
   if (!STATE.suggest) return "";
-  return `<div class="planner__from"><b>From</b> ${esc(STATE.saved.name || "your saved profile")} ${ICON.arrow} <b>To</b> ${esc((FORECAST.roles[STATE.saved.target_role || STATE.destination] || {}).name || "the roles your skills fit best")}</div>${scenarioToggle()}${liveRoutes()}`;
+  return `<div class="planner__from"><b>From</b> ${esc(STATE.saved.name || "your saved profile")} ${ICON.arrow} <b>To</b> ${esc((FORECAST.roles[STATE.saved.target_role || STATE.destination] || {}).name || "the roles your skills fit best")}</div>${liveRoutes(scenarioToggle())}`;
 }
 
 function stationText() {
@@ -666,7 +672,7 @@ function renderPathway() {
 
   const html = `
     ${head(`Pathway to ${esc(TARGET.role)}`, "", badge)}
-    <div class="head-links"><details class="head-more"><summary>About this plan</summary>
+    <div class="head-links"><details class="head-more" data-keep-open="pathway"${KEEP_OPEN.pathway ? " open" : ""}><summary>About this plan</summary>
       <p class="route-note">${lede}</p>
       <p class="route-note">${LEARNING_NOTE}</p>
       <p class="route-note">${esc(plan.scenarioLabel)}: ${Number(plan.hoursPerWeek)} h a week from ${esc(plan.startDate)}${plan.finishDate ? ` to ${esc(plan.finishDate)}` : ""}. Skills as of ${esc(plan.skillsAsOf || "–")}. ${esc(plan.notes[0] || "")}</p></details>
