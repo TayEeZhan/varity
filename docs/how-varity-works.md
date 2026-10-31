@@ -70,7 +70,7 @@ The Moderate / Fast toggle sends `?scenario=fast`. The ranking does not change. 
 
 ### 2.3 Today (`#/today`)
 
-**What the user sees.** The next day's stops from the pathway, with total minutes and a tick button on each. A progress bar shows "N of M stops done". Buttons: "Download plan (.md)", "Add to calendar (.ics)", "Generate CV for this role (.md)" and, when the server has `GOOGLE_CLIENT_ID`, "Send today to Google Tasks". A "Coming up" list.
+**What the user sees.** The next day's stops from the pathway, with total minutes and a tick button on each. A progress bar shows "N of M stops done". Buttons: "Open CV builder" and, when the server has `GOOGLE_CLIENT_ID`, "Send today to Google Tasks". A "Coming up" list.
 - **Mark as learned.** When every task of a skill is ticked, a toast and a "finished" list offer "Mark as learned". The skill joins the profile (source `pathway`), leaves the gap, and the match % rises (`POST /api/profile/learned`).
 - **Plan memory and re-plan banner.** The accepted plan is stored on the profile (`Profile.plan`) with stable task ids, so ticks no longer reset. If a rebuild adds or drops skills, a yellow "Service change" banner shows the reasons with Keep / Revert (`POST /api/pathway/decision`, `backend/signals/advisor/planner.py`).
 - **Trend-gated new skill.** A new skill is offered only when AI-news momentum and the job-post trend both rise, another nearby role needs it, and a checked resource exists. At most one offer a week; "Not now" hides it for 30 days.
@@ -79,7 +79,6 @@ The Moderate / Fast toggle sends `?scenario=fast`. The ranking does not change. 
 **What happens behind it.**
 - Today uses the same `GET /api/pathway` data. `applyPlan` in `frontend/app.js` picks the first task that is not ticked, and shows all tasks on that date.
 - Ticks are saved in the browser (`localStorage`) and sent to the server with `PUT /api/profile/progress` (`cv_api.py`), after a 500 ms delay. A short hash of the task list (`STATE.sig`) ties the ticks to one plan.
-- The `.md` and `.ics` files are built in the browser (`planMarkdown`, `planIcs` in `frontend/app.js`). The `.ics` file follows RFC 5545 line folding. Events are all-day and marked as free time.
 
 ### 2.4 Signals (`#/signals`)
 

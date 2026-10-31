@@ -175,7 +175,7 @@ function departureRow(p) {
   const mine = PROOF.data.mine.find((m) => m.id === p.id);
   const passed = mine && mine.status === "passed";
   return `<details class="dep"${PROOF.open === p.id ? " open" : ""} data-dep="${esc(p.id)}"><summary>
-      ${bullet(LEVEL_LINE[p.level] || "apps", true)}${passed || Math.round(p.gain * 100) >= 1 ? `<span class="dep__gain">${passed ? "Done" : `${matchGain(p.gain)}<small>match</small>`}</span>` : `<span class="dep__gain dep__gain--word">Practice<small>no new skill</small></span>`}
+      ${bullet(LEVEL_LINE[p.level] || "apps")}${passed || Math.round(p.gain * 100) >= 1 ? `<span class="dep__gain">${passed ? "Done" : `${matchGain(p.gain)}<small>match</small>`}</span>` : `<span class="dep__gain dep__gain--word">Practice<small>no new skill</small></span>`}
       <span class="dep__main"><span><b>${esc(p.title)}</b> <span class="tag">${esc(p.level)}</span></span>
         <span class="chips">${p.skills.map((s) => `<span class="chip${p.closes.includes(s) ? "" : " chip--gap"}">${esc(s)}</span>`).join("")}</span>
         <span class="pstop__why"><b>Why:</b> ${esc(p.why)} ${ext(p.source.url, p.source.label)}</span></span></summary>

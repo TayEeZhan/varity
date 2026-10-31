@@ -29,7 +29,7 @@ Hard rules from the brief: public, open or synthetic data only; name the LLM you
 3. **See your routes.** The app ranks up to 8 future roles for you, with a match score and a skill gap.
 4. **Pick a route.** You choose one role.
 5. **Get a pathway.** An ordered learning plan with free resources and dated daily tasks.
-6. **Do it day by day.** The Today screen lists the next stops. You tick them off, or export to `.md`, `.ics` (calendar) or Google Tasks.
+6. **Do it day by day.** The Today screen lists the next stops. You tick them off, or send them to Google Tasks.
 
 **Aina in one example** (I re-ran the code on 31 Oct to check this):
 - Her 5 skills give **#1 Backend Engineer, match 66%** (exact: 0.655), **rank score 0.759**, outlook Rising.
@@ -116,13 +116,12 @@ This is pure arithmetic from numbers `match_roles` already returns (`engine/role
 - **Resources** come only from `data/resources.json`: 77 resources, all link-checked (HTTP 200) on 2026-10-22. The minutes are a team estimate, not a provider figure. A skill with no verified resource gets no task. The engine cannot invent a course.
 - **Learning-time note** (new): "Times are for the starter course only. Job-level skill needs practice on real projects after it." (`LEARNING_NOTE` in `engine/pathway.py`). Say this if a judge asks "is 12 hours really enough?"
 - **HRD Corp employer-funded option** (new, `data/hrd_programmes.json`). It shows as an optional line next to the free resource: "Employer-funded option (HRD Corp): course by provider, N days, RM fee". Today the file has **3 entries** only: Python (PCAP, 3 days, RM3,500), AWS (Developing on AWS, 3 days, RM5,400) and GCP (Data Engineering on Google Cloud, 4 days, RM9,600), all from Trainocate Malaysia's own page. The file says it is for staff of HRD Corp-registered employers, and that the employer must apply through HRD Corp before training starts. The `checked_on` date in the file reads 2026-11-01. Re-check the links before the pitch. A skill with no programme shows nothing.
-- `.md` and `.ics` exports are built in the browser (`engine/pathway.py` has the same logic in Python for tests).
 - **Plan changes.** If you saved a plan and the data later changes it, the app offers Keep / Revert (`POST /api/pathway/decision`). If a new rising skill appears, it offers Add / Not now. "Outlook changed" shows when your target role's outlook moved since you accepted the plan (`advisor/planner.py`).
 - "I learned it" marks a skill as learned: `POST /api/profile/learned`. Tick state: `PUT /api/profile/progress`.
 
 ### 2.7 Today (`#/today`)
 - The next dated stops from the pathway, each with a "Why today" line and its source and date.
-- Buttons: download `.ics`, `.md`, and "Send today to Google Tasks" (only if `GOOGLE_CLIENT_ID` is set). The browser gets a Tasks-only token from Google and writes the list itself, so our server never sees the token or the tasks.
+- Button: "Send today to Google Tasks" (only if `GOOGLE_CLIENT_ID` is set). The browser gets a Tasks-only token from Google and writes the list itself, so our server never sees the token or the tasks.
 
 ### 2.8 Skills radar (`#/radar`) with "Trend data" bar
 - A chart of every skill: demand (share of posts) and tested change. **Only a skill with a tested Rising or Falling label gets a colour.** All others are grey, so the chart never claims a change the test did not find (`engine/radar.py`). Your own skills are marked. A skill with a contested AI stance shows a hollow mark.

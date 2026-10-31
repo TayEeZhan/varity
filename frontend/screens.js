@@ -185,9 +185,6 @@ function renderToday() {
           <p>Mark a skill as learned only when you can use it on real work. It then joins your profile and leaves your plan. It counts only part of its weight in your match until a passed project or a verified cert proves it.</p>
           <ul class="next-list">${finished.map((s) => `<li><span>${esc(s.skill)}</span><button class="btn" type="button" data-act="learned" data-skill="${esc(s.skill)}">Mark as learned</button></li>`).join("")}</ul></section>` : ""}
         <section class="panel"><h2>Take it with you</h2>
-          <p>Download the plan or add its tasks to your calendar. Nothing is sent anywhere.</p>
-          <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
-          <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
       <p><a class="btn btn--primary" href="#/cv">Open CV builder</a></p></section>
         <section class="panel"><h2>Coming up</h2>
           <ul class="next-list">${coming.map((p) => `<li>${bullet(p.line, true)}<span>${esc(p.title)}</span><span>Wk ${esc(p.week)}</span></li>`).join("")}</ul>
@@ -371,7 +368,7 @@ function liveRouteRow(r, pinned = false) {
   return `<div class="route${cur ? " is-current" : ""}">
     <div class="route__row">
       <div class="route__match${low ? " route__match--low" : ""}">${Number(r.matchPct)}%<small>match now</small></div>
-      <div><div class="route__role">${low ? "" : `#${Number(r.rank)} `}${esc(r.name)}${pinned ? ` <span class="plate">Destination</span>` : ""}</div>
+      <div><div class="route__role">${low ? "" : `<span class="route__rank">#${Number(r.rank)}</span>`}${esc(r.name)}${pinned ? ` <span class="plate">Destination</span>` : ""}</div>
         <div class="route__role-sub"><b>${esc(r.fitLabel)}</b></div>
         ${low ? `<p class="route-note">Long ride: this role needs most of its skills still. Other routes below are closer.</p>` : ""}</div>
       ${action}
@@ -668,9 +665,12 @@ function renderPathway() {
   const sdg = plan.sdgSummary;
 
   const html = `
-    ${head(`Pathway to ${esc(TARGET.role)}`, lede, badge)}
-    <p class="route-note">${LEARNING_NOTE}</p>
-    <p class="route-note">${esc(plan.scenarioLabel)}: ${Number(plan.hoursPerWeek)} h a week from ${esc(plan.startDate)}${plan.finishDate ? ` to ${esc(plan.finishDate)}` : ""}. Skills as of ${esc(plan.skillsAsOf || "–")}. ${esc(plan.notes[0] || "")} <a href="#/profile">Change route</a></p>
+    ${head(`Pathway to ${esc(TARGET.role)}`, "", badge)}
+    <div class="head-links"><details class="head-more"><summary>About this plan</summary>
+      <p class="route-note">${lede}</p>
+      <p class="route-note">${LEARNING_NOTE}</p>
+      <p class="route-note">${esc(plan.scenarioLabel)}: ${Number(plan.hoursPerWeek)} h a week from ${esc(plan.startDate)}${plan.finishDate ? ` to ${esc(plan.finishDate)}` : ""}. Skills as of ${esc(plan.skillsAsOf || "–")}. ${esc(plan.notes[0] || "")}</p></details>
+      <a class="head-links__a" href="#/profile">Change route</a></div>
     ${scenarioToggle()}${goalPicker()}
     <section class="pathmap" aria-label="Route map">
       <div class="diagram">${pathwaySVG()}</div>

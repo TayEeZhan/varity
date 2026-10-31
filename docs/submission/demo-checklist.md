@@ -47,7 +47,7 @@ Committed snapshot: `data/skill_scores.json` generated 2026-10-21T21:09:03Z, as 
 | CV & routes, "If AI speeds up" (API value `fast`) | card #1 note | "If AI speeds up (estimate): about -6.1% role demand vs expected. Does not change the ranking." The order is the same as above |
 | Pathway | Backend Engineer, 5 hours a week | 4 skills, 15 daily tasks, about 7.5 hours. Stage 1 Node.js; stage 2 Go, Kubernetes; stage 3 Terraform (the stage reasons show when you hover a station; confirm in the app) |
 | Pathway, SDG lines | text | "SDG 4.4 ... adds 4 job-listed skills in 7.5 hours (estimate) at RM0 cost using free resources." "SDG 8.5 ... moves you toward Backend Engineer (role demand: Rising, 10.6% ... vs 9.4% ...)" |
-| Today | after the plan loads | "Next stops" with minutes and a reason for each stop; "Download plan (.md)" and "Add to calendar (.ics)" buttons. Progress reads "x of N stops done" (N is the number of stops in the plan), not a percentage of minutes |
+| Today | after the plan loads | "Next stops" with minutes and a reason for each stop; an "Open CV builder" button. Progress reads "x of N stops done" (N is the number of stops in the plan), not a percentage of minutes |
 | Job forecast | Backend Engineer row | Rising; 393 posts in the last 12 months vs 366 (10.6% vs 9.4%); share now 10.2%; 12-month estimate 10.4%, band 8.3% to 12.9% |
 | Skills radar, Python | Expected (API value `moderate`) | 12-month estimate 26.3%, band 22.1% to 30.9%; trend label "No clear change" |
 | Method, forecast table | test h=12 | naive 1.81, naive3 1.66, drift 2.13, damped 2.27; chosen model naive3 |
@@ -66,7 +66,7 @@ The order follows the navigation, so nothing is reset between steps. Start with 
 
 1. Slides 1 to 3 (record separately, 0:00-0:40).
 2. CV & routes: Try an example (Aina), card #1, "If AI speeds up", back to "Expected" (0:40-1:21).
-3. Pathway, then Today: stations, SDG lines, calendar file (1:21-2:05).
+3. Pathway, then Today: stations, SDG lines, next stops (1:21-2:05).
 4. Skills radar: Python (2:05-2:20).
 5. Job forecast: Backend Engineer (2:20-2:44).
 6. Method: model table, band, label (2:44-3:09), then exposure and k line (3:09-3:34).
@@ -96,7 +96,7 @@ Times follow the script. "Hold" is how long the screen stays still while the voi
 | D3 | 2 | 1:02-1:21 | AI scenario switch and route #1 | Press "If AI speeds up (estimate)"; point at the estimate note; press "Expected (estimate)" | 5 s on the note |
 | D4 | 3 | 1:21-1:31 | Pathway | Open Pathway; the route map is visible | 2 s |
 | D5 | 3 | 1:31-1:49 | Pathway, route map | Hover the stations for Node.js, Go, Kubernetes and Terraform | 3 s per station |
-| D6 | 3 | 1:49-2:05 | SDG lines, Today | Scroll to the two SDG sentences; open Today; press "Add to calendar (.ics)" | 3 s on the SDG lines |
+| D6 | 3 | 1:49-2:05 | SDG lines, Today | Scroll to the two SDG sentences; open Today; hold on "Next stops" | 3 s on the SDG lines |
 | D7 | 4a | 2:05-2:20 | Skills radar | Select the Python dot; the detail panel is visible | 5 s |
 | D8 | 4b | 2:20-2:44 | Job forecast | Hold on the Backend Engineer row: share now, 12-month bar and band, the post counts | 4 s on the band |
 | D9 | 5 | 2:44-3:09 | Method | Model table (naive3 row); "Band coverage"; "Trend label hit rate" | 3 s each |

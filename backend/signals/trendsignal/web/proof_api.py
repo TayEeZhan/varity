@@ -114,6 +114,25 @@ def save_state(settings, owner: str, state: dict) -> None:
     store.put_proof(settings, owner, json.dumps(state, separators=(",", ":")), _now())
 
 
+def proven(settings, owner: str | None) -> tuple[list, list[str]]:
+    """(passed projects as CV projects, certified certs as CV lines) for the CV generator. Code builds every word."""
+    from advisor.cv_writer import Bullet, Project
+    if not owner:
+        return [], []
+    state, projects, certs = load_state(settings, owner), [], []
+    for p in state["projects"]:
+        item = catalog.project_by_id(p["id"])
+        if p["status"] == "passed" and item:
+            line = f"Passed Varity's code review: github.com/{p['repo']}"
+            skills = ", ".join(sorted({c["skill"] for c in item["criteria"]}))
+            projects.append(Project(name=item["title"][:120], tech=skills[:160], bullets=[Bullet(source=line, text=line)]))
+    for c in state["certs"]:
+        cert = catalog.cert_by_id(c["id"])
+        if c["status"] == "certified" and cert:
+            certs.append(f"{cert['name']} (verified on Credly: {c['badgeUrl']})")
+    return projects, certs
+
+
 def _find(items: list[dict], key: str) -> dict | None:
     return next((x for x in items if x["id"] == key), None)
 
