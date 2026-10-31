@@ -211,3 +211,13 @@ def test_old_drafts_without_new_sections_still_load():
     d = CvDraft.model_validate(old)
     assert d.leadership == [] and d.achievements == [] and d.education[0].details == []
     assert "## Leadership" not in cv_writer.render(d, "Role", set())
+
+
+def test_proven_projects_and_certs_are_added_once_by_code():
+    from advisor.cv_writer import Bullet, CvDraft, Project, add_proven
+    draft = CvDraft(name="A", contact="", summary="", jobs=[], projects=[Project(name="Old", bullets=[])],
+                    education=[], skills=[], achievements=["Dean's list"])
+    proj = Project(name="REST API in Go", tech="Go", bullets=[Bullet(source="x", text="x")])
+    out = add_proven(add_proven(draft, [proj], ["AWS SAA (verified on Credly: u)"]), [proj], ["AWS SAA (verified on Credly: u)"])
+    assert [p.name for p in out.projects] == ["Old", "REST API in Go"]
+    assert out.achievements == ["Dean's list", "AWS SAA (verified on Credly: u)"]

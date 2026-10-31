@@ -20,7 +20,7 @@ from intake.models import Evidence
 from trendsignal.jobs import AppContext
 from trendsignal.output import latest_run_id
 from trendsignal.queries import skill_momentum
-from trendsignal.web import accounts_store
+from trendsignal.web import accounts_store, proof_api
 from trendsignal.web.app import RateLimiter, envelope
 from trendsignal.web.auth_api import owner_of
 from trendsignal.web.cv_api import client_ip, load_profile, profile_out, save_profile
@@ -259,9 +259,10 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
         owner = owner_of(request, x_profile_token)
         cv_text = accounts_store.get_cv_text(settings, owner)
         momentum, _ = signals()
+        projects, certs = proof_api.proven(settings, owner)
         try:
             out = cv_writer.generate(profile, role_id, cv_text, data, model_call(request), job_ad=payload.jobAd,
-                                     momentum=momentum)
+                                     momentum=momentum, proven_projects=projects, proven_certs=certs)
         except service.RoleNotFound:
             return envelope(error="no pathway for this role: unknown, or too few job posts to learn it", status=422,
                             meta={"code": "VALIDATION_ERROR"})

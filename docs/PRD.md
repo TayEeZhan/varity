@@ -110,7 +110,7 @@ Status: ✅ built and in the app · 🟡 built, partial or unconfirmed live · �
 ### F4. Personalised pathway ✅
 - **FR4.1** Stages: no-regret, near-term, future bet (`engine/pathway.py`, `GET /api/pathway`).
 - **FR4.2** Resources only from `data/resources.json` (77 link-checked, 76 free).
-- **FR4.3** SDG 4.4 / 8.x lines per stage; export `.md` and `.ics`.
+- **FR4.3** SDG 4.4 / 8.x lines per stage. (Plan `.md` / `.ics` export removed 1 Nov 2026.)
 - **FR4.4** Optional pathway coach re-orders steps within a stage and writes one checked "why" line.
 - **FR4.5** A new skill is offered only when AI-news momentum and job-post trend both rise, a nearby role needs it and a checked resource exists; at most one offer a week.
 

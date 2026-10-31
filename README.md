@@ -46,7 +46,7 @@ Varity forecasts each skill's share of job posts from 48,508 Hacker News hiring 
 ### Key Features
 
 - **CV & routes** — Upload a CV (or try an example) and get ranked target roles with a match score and skill gap.
-- **Pathway & Today** — An ordered learning plan with free resources, exportable to `.md`, `.ics` or Google Tasks.
+- **Pathway & Today** — An ordered learning plan with free resources, with an optional Google Tasks sync.
 - **Job forecast & Skills radar** — 12-month skill-demand forecasts with tested uncertainty bands.
 - **Signals** — AI and dev-tooling news, ranked from dated sources.
 
@@ -184,7 +184,7 @@ Varity is the only app. It has eight screens:
 - **Flow map**: the planned user flow as a transit map. It says that Google sign-in and two-way Google Tasks sync are not built. Replit sign-in is built (see Optional sign-in).
 - **CV & routes**: upload a CV, or press "Try an example" (3 synthetic profiles). Shows ranked routes to roles.
 - **Today**: your next stops, taken from your pathway.
-- **Pathway**: the ordered stops from your skills to your route. You can download it as `.md` or `.ics`.
+- **Pathway**: the ordered stops from your skills to your route.
 - **Signals**: AI and dev-tooling signals, ranked from dated sources.
 - **Job forecast**: 12-month outlook for tech roles, from Hacker News hiring posts.
 - **Skills radar**: skill demand and change, with a forecast per skill.

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cert Check Preview</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1d1d1b;--mute:#6b6a64;--line:#dedad0;--ok:#1f7a4d;--okbg:#e3f3ea;--no:#b3261e;--nobg:#fbe7e5;--acc:#2b4cc4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151513;--card:#1f1f1c;--ink:#eeece6;--mute:#a09e96;--line:#34332e;--okbg:#16301f;--nobg:#3a1a17}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:24px 16px 48px}
+.tag{display:inline-block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#f2c94c;color:#1d1d1b;padding:2px 8px;border-radius:4px}
+h1{font-size:28px;margin:10px 0 4px}p.sub{color:var(--mute);margin:0 0 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input{flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+button{padding:10px 14px;border:0;border-radius:6px;background:var(--acc);color:#fff;font:inherit;cursor:pointer}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.steps button{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.steps button[aria-pressed=true]{border-color:var(--acc);outline:2px solid var(--acc)}
+ol{padding-left:20px;margin:12px 0 0}li{margin:4px 0}li.ok::marker{content:"✓  ";color:var(--ok)}li.no::marker{content:"✗  ";color:var(--no)}li.skip{color:var(--mute)}li.skip::marker{content:"–  "}
+.res{margin-top:14px;padding:12px;border-radius:8px;font-weight:600}.res.ok{background:var(--okbg);color:var(--ok)}.res.no{background:var(--nobg);color:var(--no)}
+.meter{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:6px}.meter span{display:block;height:100%;background:var(--ok);transition:width .6s}
+small{color:var(--mute)}
+</style></head><body><main>
+<span class="tag">Illustration · sample data</span>
+<h1>How Varity checks a cert</h1>
+<p class="sub">Backend Engineer · AWS Certified Solutions Architect – Associate. The live app reads each badge from Credly and runs the same five checks.</p>
+
+<div class="card">
+  <div class="steps" role="group" aria-label="Pick a case">
+    <button data-c="0" aria-pressed="true">1 · Not a Credly link</button>
+    <button data-c="1">2 · Wrong cert</button>
+    <button data-c="2">3 · Someone else's badge</button>
+    <button data-c="3">4 · Valid badge</button>
+  </div>
+  <div class="row"><input id="url" readonly aria-label="Badge link"><button id="go">I passed</button></div>
+  <ol id="checks"></ol>
+  <div id="res" class="res" hidden></div>
+</div>
+
+<div class="card">
+  <strong>Match % for Backend Engineer</strong>
+  <div class="row" style="justify-content:space-between"><small>AWS skill: <b id="cred">Not yet</b></small><b id="pct">62%</b></div>
+  <div class="meter"><span id="bar" style="width:62%"></span></div>
+  <small>A certified cert gives full credit (1.0) for its syllabus skills. Numbers here are sample values.</small>
+</div>
+</main>
+<script>
+const C=["Credly badge link","Issuer is Amazon Web Services","Title matches the cert","Accepted and not expired","Earner name matches your account"];
+const cases=[
+ {u:"https://example.com/badge",fail:0,msg:"Not certified: not a Credly badge link."},
+ {u:"https://www.credly.com/badges/3f1c…-cloud-practitioner",fail:2,msg:"Not certified: badge is \"AWS Certified Cloud Practitioner\", not Solutions Architect – Associate."},
+ {u:"https://www.credly.com/badges/9a2e…-solutions-architect",fail:4,msg:"Not certified: badge was issued to Alex Tan, not to your account name."},
+ {u:"https://www.credly.com/badges/7b4d…-solutions-architect",fail:-1,msg:"Certified · verified on Credly, issued by Amazon Web Services."}];
+let cur=0;const $=id=>document.getElementById(id);
+function pick(i){cur=i;document.querySelectorAll(".steps button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.c==i));$("url").value=cases[i].u;$("checks").innerHTML="";$("res").hidden=true;setMatch(false)}
+function setMatch(ok){$("pct").textContent=ok?"71%":"62%";$("bar").style.width=ok?"71%":"62%";$("cred").textContent=ok?"Certified":"Not yet"}
+$("go").onclick=()=>{const c=cases[cur];$("checks").innerHTML=C.map((t,i)=>{const cls=c.fail<0||i<c.fail?"ok":i==c.fail?"no":"skip";return`<li class="${cls}">${t}</li>`}).join("");
+ const r=$("res");r.hidden=false;r.className="res "+(c.fail<0?"ok":"no");r.textContent=c.msg;setMatch(c.fail<0)};
+document.querySelectorAll(".steps button").forEach(b=>b.onclick=()=>pick(+b.dataset.c));pick(0);
+</script></body></html>
