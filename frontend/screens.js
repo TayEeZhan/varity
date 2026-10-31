@@ -116,9 +116,13 @@ function allTasksHTML() {
 }
 
 /* What changed since the user accepted the plan, or one new skill the trend layer and job posts both rate as rising. */
+/* The service-change band (DESIGN.md): plan changes, trend offers and the Project/Cert re-plan offers share it. */
+const serviceBand = (sign, body, acts) => `<div class="service" role="status"><span class="service__sign">${sign}</span><div>${body}</div><div class="service__acts">${acts}</div></div>`;
+/* A credit as text: 0.5 -> "½". Other values as a percentage of full credit. */
+const creditText = (c) => ({ 0.5: "½", 0.25: "¼", 0.75: "¾" })[c] || `${Math.round(Number(c) * 100)}%`;
 function planBand() {
   const { change, offer, outlookChange: oc } = STATE.plan;
-  const band = (sign, body, acts) => `<div class="service" role="status"><span class="service__sign">${sign}</span><div>${body}</div><div class="service__acts">${acts}</div></div>`;
+  const band = serviceBand;
   // The target role's forecast moved since the plan was accepted (forecast ledger); shown above any other band.
   const outlook = oc ? band("Outlook changed", `<p>${esc(STATE.plan.targetRole)}: ${esc(oc.labelThen || "no label")} on ${esc(oc.since)}, now ${esc(oc.labelNow || "no label")}. Share of hiring posts ${(oc.shareThen * 100).toFixed(1)}% → ${(oc.shareNow * 100).toFixed(1)}%.</p><p><small>Source: ${esc(oc.source)}, ${esc(oc.date)}. Your plan is rebuilt from the new data; check the steps below.</small></p>`, "") : "";
   return outlook + planBandInner(change, offer, band);
@@ -176,8 +180,9 @@ function renderToday() {
         ${allTasksHTML()}
       </section>
       <aside class="side">
+        ${todayProofPanel()}
         ${finished.length ? `<section class="panel"><h2>Starter courses done</h2>
-          <p>Mark a skill as learned only when you can use it on real work. It then joins your profile, leaves your plan and your match goes up.</p>
+          <p>Mark a skill as learned only when you can use it on real work. It then joins your profile and leaves your plan. It counts only part of its weight in your match until a passed project or a verified cert proves it.</p>
           <ul class="next-list">${finished.map((s) => `<li><span>${esc(s.skill)}</span><button class="btn" type="button" data-act="learned" data-skill="${esc(s.skill)}">Mark as learned</button></li>`).join("")}</ul></section>` : ""}
         <section class="panel"><h2>Take it with you</h2>
           <p>Download the plan or add its tasks to your calendar. Nothing is sent anywhere.</p>
@@ -192,6 +197,7 @@ function renderToday() {
     </div>`;
 
   const bind = (root) => {
+    bindTodayProof(root);
     const strip = root.querySelector("[data-strip]");
     if (strip && strip.scrollWidth > strip.clientWidth) {
       const idx = PATHWAY.findIndex((p) => p.status === "current");
@@ -337,9 +343,10 @@ function whyPanel(r) {
   const b = r.breakdown;
   if (!b) return "";
   const pct = (x) => `${(Number(x) * 100).toFixed(1)}%`;
-  const raise = b.raise.map((x) => `<li>${esc(x.skill)} → ${Number(x.newRank).toFixed(3)}${x.resource && /^https?:\/\//.test(x.resource.url) ? ` (<a href="${esc(x.resource.url)}" target="_blank" rel="noopener">${esc(x.resource.title)}</a>)` : ""}</li>`).join("");
+  const raise = b.raise.map((x) => `<li>${x.kind === "prove" ? `Prove ${esc(x.skill)} with a project or cert` : esc(x.skill)} → ${Number(x.newRank).toFixed(3)}${x.resource && /^https?:\/\//.test(x.resource.url) ? ` (<a href="${esc(x.resource.url)}" target="_blank" rel="noopener">${esc(x.resource.title)}</a>)` : ""}</li>`).join("");
   return `<details class="route__calc"><summary>Why ${Number(r.matchPct)}%?</summary>
     <p>${Number(b.matchWeight)} × match ${pct(b.match)} + ${Number(b.outlookWeight)} × outlook ${Number(b.outlook).toFixed(1)} (${esc(r.trendLabel || "unknown")}) = ${Number(b.rank).toFixed(3)}</p>
+    ${(b.levels || []).length ? `<p>Skills you have, by proof:</p><ul>${b.levels.map((x) => `<li>${esc(x.skill)} · ${esc(x.level)} · ${x.credit < 1 ? creditText(x.credit) : "full"} credit</li>`).join("")}</ul>` : ""}
     ${raise ? `<p>What would raise it:</p><ul>${raise}</ul>` : ""}
     <p class="route-note">The ${Number(b.matchWeight)} / ${Number(b.outlookWeight)} weights are team judgement, not fitted.</p></details>`;
 }
@@ -370,7 +377,8 @@ function liveRouteRow(r, pinned = false) {
       ${action}
     </div>
     <div class="route__gap">
-      <div><h3>You already have</h3><div class="chips">${r.have.map((h) => `<span class="chip">${esc(h)}</span>`).join("") || "<span>None yet</span>"}</div></div>
+      <div><h3>You already have</h3><div class="chips">${r.have.map((h) => { const lv = ((r.breakdown && r.breakdown.levels) || []).find((x) => x.skill === h); const part = lv && lv.credit < 1;
+        return `<span class="chip"${part ? ` title="Learned on your pathway: ${creditText(lv.credit)} credit until a project or cert proves it"` : ""}>${esc(h)}${part ? ` ${creditText(lv.credit)}` : ""}</span>`; }).join("") || "<span>None yet</span>"}</div>${proofCounts(r)}</div>
       <div><h3>Skills to learn</h3><div class="chips">${r.gap.map((g) => `<span class="chip chip--gap">${esc(g)}</span>`).join("") || "<span>No gap</span>"}</div></div>
     </div>
     <details class="route__more"><summary>Details</summary>
@@ -663,6 +671,7 @@ function renderPathway() {
         <span><i class="sw-x"></i>Interchange: one stop on two lines</span>
       </div>
     </section>
+    ${proofSection()}
     <section class="panel" aria-labelledby="ex-h"><h2 id="ex-h">Take the plan with you</h2>
       <p>The files are built in your browser from this pathway. Nothing is sent anywhere.</p>
       <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
@@ -675,6 +684,7 @@ function renderPathway() {
       ${sdgTable([{ name: TARGET.role, sdg: plan.roleSdg, mycol: plan.mycol }])}</section>`;
 
   const bind = (root) => {
+    bindProof(root);
     const map = root.querySelector(".pathmap");
     bindLineLighting(map, (g, on) => {
       const row = g.dataset.stop && root.querySelector(`.pstop[data-stop="${g.dataset.stop}"]`);

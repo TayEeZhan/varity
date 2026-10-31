@@ -222,6 +222,8 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
     add_role_routes(app, ctx)
     from trendsignal.web.evidence_api import add_evidence_routes  # same reason as cv_api
     add_evidence_routes(app, ctx.settings)
+    from trendsignal.web.proof_api import add_proof_routes  # same reason as cv_api
+    add_proof_routes(app, ctx)
 
     @app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"], include_in_schema=False)
     def api_unknown(request: Request, path: str):

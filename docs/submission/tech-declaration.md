@@ -220,6 +220,9 @@ FastAPI, uvicorn, pydantic, httpx, requests, feedparser, apscheduler, jinja2, ma
 | Item | Plan | Status |
 |---|---|---|
 | KrackedDevs LiteLLM gateway (OpenAI-compatible, base URL `https://litellm.rapidscreen.io/v1`), models `deepseek-v4-flash` and `gpt-5.4-mini` | Bulk and background jobs only: relabel the HN posts, label new posts daily, review new job titles. Public HN text only, never CVs. Code checks every output. See `tasks/plan-credits.md` | **Built (`engine/llm_client.py`), runs when `KD_API_KEY` is set; not run yet.** The Method screen shows the model name once it labels. Update this row after the first real run |
+| Project review jury: Claude Haiku (Replit AI Integrations), `gpt-5.4-mini` and `deepseek-v4-flash` (KrackedDevs gateway) | Each votes pass or fail on each checklist item of a submitted project, citing `path:line`. Code keeps a pass only when that exact line holds the quoted text; a majority decides. Receives the repo files code picks (max 8 files, 24k characters per call), only after the user agrees in a consent box. The user can choose Claude + GPT only for private repos. See `tasks/plan-projects-certs.md` | **Built (`backend/signals/proof/jury.py`); tested with fake jurors only, not run against the real models yet** |
+| GitHub REST API (server read-only token) | Reads the submitted public repo: owner, push days, CI runs, pull request, files | **Built (`backend/signals/proof/github.py`); needs `GITHUB_TOKEN` in Replit Secrets** |
+| Credly public badge pages | "I passed" check of a cert badge: issuer, title, state, expiry, earner name (fuzzy) | **Built (`backend/signals/proof/credly.py`); not tried with a real badge** |
 | Runpod | None | **Not used.** No GPU work |
 
 ## 5. Sponsor resources

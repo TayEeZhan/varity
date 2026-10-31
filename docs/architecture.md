@@ -428,6 +428,24 @@ flowchart LR
 
 ---
 
+### 3.21 Project and Cert stations [IN APP; jury and GitHub App not yet tested live]
+
+- **Why.** Judge feedback: finishing tasks does not close a skill gap. Each skill now has an evidence level: Learned (pathway tasks ticked), Applied (a project passed review), Certified (a verified Credly badge). Plan: `tasks/plan-projects-certs.md`.
+- **Match score.** `match = sum(weight * credit) / total weight`. Credit is 1.0 for CV, Applied and Certified evidence, and `LEARNED_CREDIT = 0.5` (an assumption, `advisor/mapping.py`) for a skill backed only by ticked tasks. The Why panel's raise list also offers "prove X" (`engine/roles.py score_breakdown`, kind `prove`).
+- **Projects.** `data/projects.json` (hand-curated, real public sources). Rank = match gain if the project passes (`proof/catalog.py`), a formula. The "Why" line is a code template from the formula's facts (not an LLM sentence yet).
+- **Review.** `trendsignal/web/proof_api.py`. Hard checks first, no LLM (`proof/github.py`): repo readable, owner (verified only with GitHub connect), not a fork, 5+ commits on 3+ days, latest Actions run passed, PR merged (issue projects), demo returns 2xx/3xx on a public https host. Then the live jury (`proof/jury.py`): Claude Haiku (Replit), `gpt-5.4-mini` and `deepseek-v4-flash` (KrackedDevs) vote per criterion on picked files (max 8 files, 24k chars). A pass counts only if the cited `path:line` holds the quoted text. 2 of 3 decide; fewer agreeing answers give "delayed", never a pass. Passed: each criterion skill gets `jury_pass` evidence. One dispute per failed item.
+- **Certs.** `data/certs.json` (hand-curated, no prices). Rank = share of HN posts for the role that name the cert (`engine/cert_demand.py` -> `data/cert_demand.json`) x syllabus coverage; coverage alone until that file exists. "I passed" checks a Credly badge (`proof/credly.py`): issuer, title, state, expiry. Else "self-reported".
+- **Re-plan.** A failed item (or a cert syllabus skill) not on the route gives a service-change band. Keep adds it as a pushed skill (`planner.answer_offer`), Revert hides it for 30 days.
+- **GitHub (URL only, 1 Nov).** GitHub connect and the webhook were removed by decision. The user pastes a public repo link; the server reads it with its read-only `GITHUB_TOKEN`. Every repo is "Unverified owner". Private repos cannot be reviewed.
+- **Why line (1 Nov).** `proof/why.py`: DeepSeek V4 Flash (KrackedDevs, else Claude) writes one sentence from the formula's facts. Code shows it only when every number in it is the rounded gain and it names every skill the project closes. Else the template (`catalog.why_line`) shows. One call per project, role and week, cached in the server process.
+- **Storage.** `owner_proof` (owner-keyed, moved and deleted with the profile, so the 365-day purge covers it).
+- **Frontend.** `frontend/screens-proof.js`, `frontend/proof.css`: proof line, platform sign, Departures timetable, submit form, jury tracks, certs, Today checklist, Applied / Certified counts on CV & routes.
+- **Review fixes (1 Nov).** Citations must hold the quote on the exact cited line, and only lines shown to the juror count. A dispute also stops at a failed hard check. Commit spread uses GitHub push times (events API), so backdated commits do not count. Ownership with GitHub connect = the repo is in the user's app installation. Expired user tokens are refreshed; else "Reconnect GitHub". Public reads use the server's `GITHUB_TOKEN` and cache each file once per review. The review lock is a database row (`proof_review_locks`, stale after 10 min), so it works across server copies and restarts. No per-user cap (by decision): a repeat review needs new commits. Consent can choose Claude + GPT only for private repos (then both must pass). Credly flags a badge whose earner name does not match the account name. Webhook events are deleted after 30 days. The Method page shows the 0.5 credit as an assumption. A synthetic sample review (`frontend/demo-review.json`) is shown when no project is on board.
+- **Not built.** Live collectors for GitHub issues, Kaggle and HN project briefs (the catalog is hand-curated), the LLM "why" sentence. The offline jury eval is dropped (user, 1 Nov). Stored GitHub tokens are not encrypted (no crypto library in the project).
+- **Tests.** `backend/signals/tests/test_proof.py`.
+
+---
+
 ## 4. Predicting future job roles: architecture
 
 ### 4.1 What "predict" means here

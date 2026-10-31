@@ -47,8 +47,8 @@ def evidence_id(evidence: Evidence, skill_id: str) -> str:
 
 
 def basis_of(evidence: Evidence) -> Basis:
-    if evidence.source == "cv":
-        return "stated"
+    if evidence.source == "cv" or evidence.method in ("jury_pass", "badge_verified"):
+        return "stated"  # a passed project review or a verified badge is outside proof, not self-report
     if evidence.source == "inferred":
         return "suggested" if evidence.method == "graph:often_uses" else "implied"
     return "self_reported"
