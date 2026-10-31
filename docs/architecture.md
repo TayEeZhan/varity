@@ -117,7 +117,7 @@ The shape of the system:
 
 - **The engine is plain Python.** It reads files in `data/` and writes files in `data/`. It has no server and no database.
 - **One server, one app.** Varity is a FastAPI backend (`backend/signals`, started with `python -m trendsignal serve`) that serves the static frontend in `frontend/` at `/` and the JSON APIs under `/api`. The frontend is plain HTML, CSS and JavaScript with no build step. The Streamlit app (`app.py`) is retired.
-- **The backend reads files.** It imports the engine for role match and pathway, and reads the engine's output files in `data/` at request time. The Varity screens are Flow map, CV & routes, Today, Pathway, Signals, Job forecast, Skills radar and Method (section 3.16). A Moderate or Fast scenario toggle sits on the routes.
+- **The backend reads files.** It imports the engine for role match and pathway, and reads the engine's output files in `data/` at request time. The Varity screens are Flow map, CV & routes, Today, Pathway, Signals, Job forecast, Skills radar and Method (section 3.16). An "Expected" or "If AI speeds up" scenario toggle (both labelled estimates; the API values are still `moderate` and `fast`) sits on the routes.
 - **Sheng Kuan's AI-advancement layer runs in the same server.** It re-ranks every 15 minutes when the server starts with `--scheduler`, and it serves the Signals screen (`GET /api/signals`). A link from its ranked file to the skill forecast is still a design (section 3.17).
 - **Collectors write counts, not text.** Raw post text stays in the gitignored folder `data/raw/`. Only aggregates and thread links are committed.
 
@@ -144,7 +144,7 @@ The shape of the system:
 - **Why built this way.** The source is free, dated, monthly and tech-specific. Each thread has a URL to cite. `refresh()` never writes into the committed `data/` folder. It copies the files to a runtime folder, fetches the newest thread, recomputes only that month, and rebuilds the scores there. If the network fails, it keeps the last good data and returns an error dict instead of raising.
 - **How tested.** `tests/test_refresh.py`, `tests/test_demand.py`.
 - **Limit.** The source is US- and startup-heavy (docs/build-plan.md, risks).
-- **Status.** [BUILT]. The Varity app has no Refresh button and no stored-snapshot banner. The demand data in the app is the committed snapshot (as of 2026-10). It changes only when someone re-runs the engine or the scheduled job (section 3.13).
+- **Status.** [BUILT]. The Skills radar "Trend data" bar has a "Fetch latest HN" button (`POST /api/data/refresh`, no token). The server starts at most one fetch per 10 minutes for all viewers; otherwise it returns 429 with `retryAfter`. There is no stored-snapshot banner. Without a fetch, the app shows the committed snapshot (as of 2026-10).
 
 ### 3.3 Demand series and AI-context series [IN APP]
 
@@ -188,7 +188,7 @@ flowchart LR
 - **Outputs.** The forecast fields inside `data/skill_scores.json`. All backtest numbers in `data/backtest.json`.
 - **Key functions.** `engine/forecast.py`: `forecast_skill`, `choose_model`, `band_offsets`, `build_residual_tables`. `engine/backtest.py`: `run_backtest`, `evaluate_bands`. `engine/scores.py`: `build_scores(as_of, ...)`.
 - **Why built this way.** The test chose the simplest model. On held-out origins (2023-11 to 2025-10) the 12-month mean error is 1.661 pp for naive3, 1.806 for naive, 2.128 for drift and 2.266 for damped (data/backtest.json). Job demand 12 months ahead is close to "no change", so the trend models lose. The band comes from the errors of the last 24 forecasts whose outcome is known, scaled by how noisy the skill is. On held-out origins the 80% band covered 93.8% of real values at 12 months (data/backtest.json). That is above target, so the band is wide, not tight. We say so in the app.
-- **No look-ahead.** `build_scores(as_of)` uses only data with a known outcome by `as_of`. The earliest supported `as_of` is 2023-11 (data/skill_scores.json). The Varity app has no as-of slider and always shows the latest scores; the `as_of` argument is used by the backtest and the tests.
+- **No look-ahead.** `build_scores(as_of)` uses only data with a known outcome by `as_of`. The earliest supported `as_of` is 2023-11 (data/skill_scores.json). The Skills radar can replay a past month for one viewer: the browser keeps the month in `sessionStorage` and sends `?asOf=YYYY-MM` on the roles, pathway, radar and status calls (a bad month returns 422; no server state). The `as_of` argument is also used by the backtest and the tests.
 - **How tested.** `tests/test_forecast.py`, `tests/test_backtest.py` (including tests that a changed future leaves the past unchanged), `tests/test_scores.py`.
 - **Status.** [IN APP]. The Skills radar screen shows the skill forecast from `data/skill_scores.json`; the Method screen shows `data/backtest.json`.
 
@@ -210,11 +210,11 @@ flowchart LR
 - **Why built this way.** An earlier version hid emerging skills. Now they appear with honest counts.
 - **Status.** [IN APP]
 
-### 3.8 Scenarios (Moderate and Fast AI disruption) [IN APP]
+### 3.8 Scenarios (Expected and "If AI speeds up") [IN APP]
 
-- **What it does.** Shows two futures per skill. Moderate is the forecast. Fast is `moderate * (1 - k * e_s)`, where `e_s` is the skill's exposure minus the mean over the 40 skills. `k = 2` is shown as an assumption (data/skill_scores.json, `scenario_params`).
+- **What it does.** Shows two futures per skill. "Expected" (API value `moderate`) is the forecast. "If AI speeds up" (API value `fast`) is `moderate * (1 - k * e_s)`, where `e_s` is the skill's exposure minus the mean over the 40 skills. `k = 2` is shown as an assumption (data/skill_scores.json, `scenario_params`).
 - **Key function.** `engine/scores.py`: `fast_scenario`.
-- **Why built this way.** The brief asks for more than one scenario, labelled as estimates. One stated formula is easy to explain and to challenge. The app labels both scenarios as estimates. The Fast band is never graded: only the Moderate band is backtested (`engine/backtest.py`).
+- **Why built this way.** The brief asks for more than one scenario, labelled as estimates. One stated formula is easy to explain and to challenge. The app labels both scenarios as estimates. The "If AI speeds up" band is never graded: only the Expected band is backtested (`engine/backtest.py`).
 - **How tested.** `tests/test_scores.py`.
 - **Status.** [IN APP]
 
@@ -243,10 +243,10 @@ flowchart LR
   - A skill needs at least 10 single-role posts, `p_role` of at least 0.08 and lift of at least 1.1. The top 10 by `p_role` stay, and their weights sum to 1.
   - Confidence tiers: `solid`, `rough` or `not_ranked`. Today four roles are solid, four are rough and one (Analytics Engineer) is not ranked (data/role_profiles.json).
   - `rank_score = 0.7 * match_score + 0.3 * future_score`. `future_score` is 1.0 for Rising, 0.5 for No clear change or unknown, and 0.0 for Falling. The 0.7 and 0.3 are team judgement, not fitted to data. A role with match below 0.20 is not ranked. The routes on the CV & routes screen use this formula. An optional language-model advisor (section 3.19) may re-order the roles by at most 2 places; the fit label always comes from code.
-  - One profile exists per as-of point (2023-12, 2024-06, 2024-12, 2025-06, 2025-12, 2026-10). `profile_for` picks the latest point at or before the chosen month, so a profile never saw later posts. The Varity app has no as-of slider and uses the latest profile.
+  - One profile exists per as-of point (2023-12, 2024-06, 2024-12, 2025-06, 2025-12, 2026-10). `profile_for` picks the latest point at or before the chosen month, so a profile never saw later posts. With `?asOf=`, the app uses the profile for that month; otherwise it uses the latest.
 - **Why built this way.** Weights learned from real posts can be cited. Weights we invented could not.
 - **How tested.** `tests/test_roles.py`.
-- **Limit.** The daily scheduled job does not rebuild the role files. They are rebuilt by hand from the raw posts (`python -m engine.roles --raw-dir ...`).
+- **Limit.** The daily refresh rebuilds the current month's role demand, trends, backtest and forecast (`_update_roles` in `engine/refresh.py`); on failure it restores the old role files. The learned profiles are still rebuilt by hand from the raw posts (`python -m engine.roles --raw-dir ...`).
 - **Status.** [IN APP]
 
 ### 3.10 Reskilling pathway [IN APP]
@@ -255,8 +255,8 @@ flowchart LR
 - **Inputs.** The gap from role match, `data/skill_scores.json`, `data/resources.json`, scenario, hours per week, start date.
 - **Outputs.** A plan object (`GET /api/pathway`). The `.md` and `.ics` exports are built in the browser.
 - **Key functions.** `engine/pathway.py`: `build_pathway`, `classify`, `schedule_tasks`, `progress`, `to_markdown`, `to_ics`, `sdg_headline`.
-- **How it works.** Each gap skill goes to the first stage it fits. Stage 1, `no_regret`: needed by 2 or more of the counted roles, not Falling, not AI-substitutable. Stage 2, `near_term`: in the top half of the gap skills by share now. Stage 3, `future_bet`: Rising or AI-complement. The Fast scenario moves stage 3 to second place. Tasks last at most 45 minutes on Monday to Friday, with dates in Malaysia time.
-- **Why built this way.** Code sets the dates and builds the order. The optional pathway coach may re-order steps within a stage, pick among the listed resources and write one checked "why" line; it never changes a date, a minute count or a stage. A resource can come only from `data/resources.json`, and only if its link returned HTTP 200 (77 resources for the 40 skills, checked on 2026-10-22, docs/pathway.md). A skill without a verified resource gets no task. The engine never invents a course. HRD Corp claim status is not verified, so no claim is made.
+- **How it works.** Each gap skill goes to the first stage it fits. Stage 1, `no_regret`: needed by 2 or more of the counted roles, not Falling, not AI-substitutable. Stage 2, `near_term`: in the top half of the gap skills by share now. Stage 3, `future_bet`: Rising or AI-complement. The "If AI speeds up" (`fast`) scenario moves stage 3 to second place. Tasks last at most 45 minutes on Monday to Friday, with dates in Malaysia time.
+- **Why built this way.** Code sets the dates and builds the order. The optional pathway coach may re-order steps within a stage, pick among the listed resources and write one checked "why" line; it never changes a date, a minute count or a stage. A resource can come only from `data/resources.json`, and only if its link returned HTTP 200 (77 resources for the 40 skills, checked on 2026-10-22, docs/pathway.md). A skill without a verified resource gets no task. The engine never invents a course. HRD Corp: only the programmes in `data/hrd_programmes.json` (3 entries, each with the provider's own claim statement and a check date) show an HRD Corp option. All other resources make no claim.
 - **How tested.** `tests/test_pathway.py`, including a test that every chosen link exists in the resource list.
 - **Status.** [IN APP]. "What changed and why" (a full diff view between two runs, `data/diff.json` in the contract) is [PLANNED]. Google sign-in and two-way Google Tasks sync are not built; the Flow map says so. One-way push of today's stops to Google Tasks is built (needs `GOOGLE_CLIENT_ID`). Replit sign-in is built (section 3.20).
 
@@ -298,20 +298,20 @@ flowchart LR
 - **Outputs.** Snapshots under `snapshots/<UTC time>/` in the bucket (`skill_scores.json`, `demand_monthly.csv`, `hn_threads.csv`, `ai_context_monthly.csv`, `meta.json`). `latest.json` points to the newest and is written last. The newest 14 snapshots are kept.
 - **Key functions.** `engine/scheduled.py`: `run`. `engine/store.py`: `LocalStore`, `ReplitStore`, `get_store`. `engine/live.py`: `start_dir`, `publish`, `banner`. `engine/live.py` is unused by the Varity app.
 - **Why built this way.** On Replit a redeploy replaces the disk. A failed run never changes `latest.json`, so a reader keeps the last good data.
-- **Limit.** The Varity app reads the committed `data/` files. It does not read the stored snapshots, and it has no Refresh button or banner. The demand data is the committed snapshot (as of 2026-10).
+- **Limit.** The Varity app reads `data/` files. The in-server scheduler (`--scheduler`) runs `forecast_refresh` daily at 06:30 and `retention` at 06:45 (server time zone setting). The app does not read the stored snapshots.
 - **How tested.** `tests/test_store.py`, `tests/test_scheduled.py`, `tests/test_refresh.py`.
 - **Status.** [BUILT]. The Replit UI steps (create the bucket, create the Scheduled deployment) are not done yet (docs/replit-schedule.md).
 
-### 3.14 SDG sector links [IN APP: role and skill tags; goal re-rank BUILT, not used]
+### 3.14 SDG sector links [IN APP: role and skill tags, goal picker and re-rank]
 
 - **What it does.** Links roles and skills to Sustainable Development Goals through the sectors that hire for them.
 - **Inputs.** The raw posts (employer descriptions), `data/roles.json`, `data/sdg_sectors.json` (sector patterns).
 - **Outputs.** `data/role_sdg.json` and `data/skill_sdg.json`. Counts, shares and thread URLs only.
 - **Key functions.** `engine/sdg.py`: `rerank_for_goal(match_roles_output, role_sdg, goal_sector)` and `plan_sdg_summary(plan, role, role_sdg, goal_sector)`.
 - **Why built this way.** The SDG tag is measured from what employers say, not written by hand. Perk and legal lines are removed first, so a benefits line does not tag a post as health.
-- **In the app.** Each route carries SDG tags from these files, and the pathway API builds its SDG lines with `plan_sdg_summary` (no goal). The goal picker and the "re-rank by goal" option of the Streamlit app were removed.
+- **In the app.** Each route carries SDG tags from these files. CV & routes has a goal picker and a reason line per role ("Most over-represented sector" or "Main SDG-linked sector"), plus a "too few posts to re-rank" note. On the pathway, goal-linked skills move first inside each stage (`plan_sdg_summary`). Thresholds are not lowered, so with today's data the route order does not change.
 - **Limit.** The sector shares are one build (HN only, a US-heavy sample).
-- **Status.** [IN APP] for the tags. `rerank_for_goal` is [BUILT] and is not called by the app.
+- **Status.** [IN APP]. `rerank_for_goal` is wired in.
 
 ### 3.15 Malaysian data [IN APP: MyCOL badges; job-site collectors BUILT, gated]
 
@@ -327,7 +327,7 @@ flowchart LR
 
 - **What it does.** The only user interface. A static page in `frontend/` (HTML, CSS, JavaScript, no build step) served by the FastAPI backend at `/`. It has eight screens:
   - **Flow map**: the planned user flow as a transit map. It says that Google sign-in and two-way Google Tasks sync are not built. Replit sign-in is built (section 3.20).
-  - **CV & routes**: CV upload (section 3.18), or "Try an example" with 3 synthetic profiles (`data/example_profiles.json`), which needs no LLM. Routes are ranked by `0.7 * match + 0.3 * outlook` (section 3.9). Reasons are typed chips with a source and a date (section 3.19). Each route has SDG tags and MyCOL badges. A Moderate or Fast scenario toggle is labelled as an estimate.
+  - **CV & routes**: CV upload (section 3.18), or "Try an example" with 3 synthetic profiles (`data/example_profiles.json`), which needs no LLM. Routes are ranked by `0.7 * match + 0.3 * outlook` (section 3.9). Reasons are typed chips with a source and a date (section 3.19). Each route has SDG tags and MyCOL badges. An "Expected (estimate)" or "If AI speeds up (estimate)" scenario toggle sits on the routes (API values `moderate` and `fast`). A goal picker (SDG) and a reason line per role are built (section 3.14). The free resource under a stop can show an HRD Corp option from `data/hrd_programmes.json`.
   - **Today**: the next stops, taken from the pathway.
   - **Pathway**: the ordered stops from the saved profile to the chosen route (`engine/pathway.py`). `.md` and `.ics` downloads are built in the browser.
   - **Signals**: the AI-trend ranker output (section 3.17), dated and updated.
@@ -336,7 +336,8 @@ flowchart LR
   - **Method**: backtests, the AI exposure cross-check, k as an assumption, and sources. `trendsignal/web/evidence_api.py` reads these from `data/` at request time.
 - **Offline behaviour.** `frontend/data.js` keeps only dated real snapshots, labelled "offline snapshot". If the server cannot be reached, the page says so. No synthetic data is shown as real.
 - **Key code.** `frontend/app.js`, `frontend/screens*.js`, `backend/signals/trendsignal/web/` (`app.py`, `cv_api.py`, `roles_api.py`, `evidence_api.py`, `auth_api.py`, `accounts_store.py`). In `engine/radar.py`, a skill gets a colour only if its Welch label is Rising or Falling. Every other skill is grey, so the chart never claims a change the test did not find.
-- **Removed from the Streamlit version.** The in-app Refresh and Reload buttons and the stored-snapshot banner; the as-of slider (past view); the Evidence skills table with filters, the skill detail tab, the Malaysia jobs snapshot table, the AI-in-posts chart and the candidate new-skills radar; the SDG goal picker and re-rank.
+- **Removed from the Streamlit version.** The Reload button and the stored-snapshot banner; the Evidence skills table with filters, the skill detail tab, the Malaysia jobs snapshot table, the AI-in-posts chart and the candidate new-skills radar.
+- **Also built.** A privacy page (`frontend/privacy.html`, PDPA, 7 principles) and a consent tick before a CV upload. Skills radar has a "Trend data" bar (replay a past month, back to latest, Fetch latest HN; see sections 3.2 and 3.3). Each route card has a "Why NN%?" panel. A Team (HR) view was built and removed on 1 Nov (it did not fit a worker-facing site).
 - **Status.** [IN APP]. Live, published 24 Oct 2026.
 
 ### 3.17 AI-advancement ranker (Sheng Kuan) [IN APP] and its integration [PLANNED]
@@ -419,7 +420,7 @@ flowchart LR
 - **What it does.** A user can click "Sign in" and use Replit Auth. Signing in is optional: the whole app works without it ("Try an example", or the browser token `X-Profile-Token`). A signed-in user keeps the profile across devices and restarts.
 - **Sign-in flow.** OpenID Connect with PKCE (S256). The client id is the Repl's `REPL_ID` and the issuer is `https://replit.com/oidc`. Routes in `backend/signals/trendsignal/web/auth_api.py`: `/api/login/prepare`, `/api/login`, `/api/callback`, `/api/me`, `/api/logout`. Login is on only when `REPL_ID` and `SESSION_SECRET` are set.
 - **Session.** A signed HttpOnly cookie (HMAC-SHA256 with `SESSION_SECRET`), 30 days, SameSite=Lax. Sign out also ends the Replit session.
-- **What is stored.** Per account (table `users`): the Replit user id (`sub`), email, display name, profile image URL, and the created and last-login times. Per profile: the skill ledger, the target role and the pathway tick progress. Never the raw CV text and never tokens.
+- **What is stored.** Per account (table `users`): the Replit user id (`sub`), email, display name, profile image URL, and the created and last-login times. Per profile: the skill ledger, the target role and the pathway tick progress. Also the cleaned CV text (for the CV builder; deleted with the profile). Never the uploaded file and never tokens.
 - **Where.** `backend/signals/trendsignal/web/accounts_store.py`. Replit PostgreSQL when `DATABASE_URL` is set, else the SQLite file.
 - **Delete and move.** `DELETE /api/me` removes the user and the profile. An anonymous profile moves into the account on the first sign-in.
 - **Not built.** Google sign-in and syncing ticks back from Google Tasks. Only Replit sign-in exists. Pushing today's stops to Google Tasks is built: the browser uses Google Identity Services for a Tasks-only token and calls the Tasks API directly.
@@ -437,7 +438,7 @@ Verity does not predict the number of jobs. It predicts a role's **share of job 
 - **The outlook** is the same machinery as for skills: a persistence level (naive3, the mean of the last 3 months on the logit scale), a rolling conformal band and a Welch trend label. Persistence won the skill backtest, so we tested it for roles instead of assuming it (section 4.4).
 - **The role's skills** are learned from single-role posts, at as-of points, so a profile never saw posts from after its date.
 
-The trend label and the learned profile are [IN APP]. The role level, band and backtest are also [IN APP]: the Job forecast screen reads `data/role_forecast.json`. Emerging-role discovery is [PLANNED] (section 4.3).
+The trend label and the learned profile are [IN APP]. The role level, band and backtest are also [IN APP]: the Job forecast screen reads `data/role_forecast.json`. Emerging-role discovery is [PARTLY BUILT, not run] (section 4.3).
 
 ### 4.2 Pipeline and role forecast [IN APP]
 
@@ -474,17 +475,17 @@ Steps:
 4. **Learned profiles.** `learn_profile_set` builds one profile per as-of point from the 24 months before that point. It masks the title and uses single-role posts only. Section 3.9 gives the filters.
 5. **Rank.** `match_roles` computes `rank_score = 0.7 * match_score + 0.3 * future_score`. The outlook is only 30% of the rank, and it comes from the label, not from a forecast.
 6. **Fast shift.** `fast_shift = -k * sum(weight * e_s)` applies the skill scenario rule to the role's skill weights. It is a labelled estimate for display. The Fast scenario never changes the rank.
-7. **No leakage.** `profile_for(as_of)` picks a profile that saw no later post. `build_role_trends(..., as_of=...)` cuts the rows. The Varity app has no as-of slider; the tests and backtests pass `as_of`.
+7. **No leakage.** `profile_for(as_of)` picks a profile that saw no later post. `build_role_trends(..., as_of=...)` cuts the rows. The Skills radar Replay passes `asOf` per browser tab; the tests and backtests pass `as_of` too.
 
 What is not built:
 
 - A Fast scenario for the role level or band. The `fast_shift` of `match_roles` stays a labelled estimate.
-- Emerging-role discovery (section 4.3).
+- Running emerging-role discovery on real data (section 4.3).
 - A role refresh in the daily job. Role files change only when someone rebuilds them.
 
-### 4.3 Emerging and declining roles [PLANNED]
+### 4.3 Emerging and declining roles [PARTLY BUILT, not run]
 
-None of this is built. It is a design. Every signal is evidence for a human. None of them writes a role into the product on its own.
+New-title discovery with a Claude review and automatic add is built in `engine/role_discover.py`; the Claude post labeller is built in `engine/llm_labels.py`. Neither has been run on the real data yet (they wait for AI credits). The rest of this section is a design. Every signal is evidence for a human. None of them writes a role into the product on its own.
 
 ```mermaid
 flowchart TB
@@ -612,7 +613,7 @@ Rules that hold for every committed file: counts, shares, skill names and thread
 
 ## 7. Trust and safety
 
-- **Privacy.** Sign-in is optional (section 3.20). For a signed-in user we store the Replit user id, email, display name and profile image URL. These are personal data under Malaysia's PDPA. Purpose: keep the user's profile and progress. The user can delete them any time (`DELETE /api/me`). We sell or share none of it. Without sign-in, the backend keeps the skill profile under an anonymous profile token (`X-Profile-Token`). An uploaded CV is read by the CV intake; the raw CV text is not stored. Raw HN posts can hold names and contact details. They stay in gitignored folders on team machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored (docs/submission/tech-declaration.md). The CV intake sends CV text to Anthropic directly. We use synthetic CVs only. Real CVs need a PDPA assessment and a retention rule first, so they stay out of scope.
+- **Privacy.** Sign-in is optional (section 3.20). For a signed-in user we store the Replit user id, email, display name and profile image URL. These are personal data under Malaysia's PDPA. Purpose: keep the user's profile and progress. The user can delete them any time (`DELETE /api/me`). We sell or share none of it. Without sign-in, the backend keeps the skill profile under an anonymous profile token (`X-Profile-Token`). An uploaded CV is read by the CV intake. The uploaded file is not stored. The cleaned CV text (emails, phones and links replaced) is stored for the CV builder and deleted with the profile. Accounts with no login for 365 days are deleted. See `frontend/privacy.html`. Raw HN posts can hold names and contact details. They stay in gitignored folders on team machines and, during a refresh, in a temporary folder on the Replit server. Only aggregates are committed or stored (docs/submission/tech-declaration.md). The CV intake sends CV text to Anthropic directly. We use synthetic CVs only. Real CVs need a PDPA assessment and a retention rule first, so they stay out of scope.
 - **No bot-protection bypass.** We fetch only from public APIs and from pages that `robots.txt` allows. When a site answers with a challenge, we stop. This is why JobStreet has no scraper (docs/jobstreet.md on branch `feat/jobstreet-my`). `docs/data-contract.md` also excludes LinkedIn and X from the engine's sources.
 - **Sources and licences.** `data/SOURCES.md` lists every dataset with URL, date and licence. AEI is CC BY. O*NET is CC BY 4.0 and is credited in the README. The AIOE data has no licence file, so we cite it and do not redistribute it (docs/exposure-crosscheck.md, section 5).
 - **AI disclosure.** Claude Code is the major development tool (code, tests, data pipeline and documents, from the team's prompts and plans). Replit Agent is a minor tool: environment setup, with two commits that change only `.replit` (docs/submission/tech-declaration.md). Claude Haiku 5.5 (CV intake, route advisor, pathway coach) is declared as an AI model (tech declaration, section 4.1). Jev is declared if it is turned on. The forecast, role match and SDG parts run no LLM. The optional route advisor (section 3.19) re-orders routes by at most 2 places and writes one checked summary line. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Both fall back to code.

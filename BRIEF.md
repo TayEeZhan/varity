@@ -9,7 +9,7 @@ Precedence: the T&C override both handbooks. Discord messages cannot change the 
 - **Team name: Hokkien Mee Is Purple.** File names: `SDC2026_HokkienMeeIsPurple_Preliminary.pdf`, `SDC2026_HokkienMeeIsPurple_TechDeclaration.pdf` (confirm spacing rule in the submission video).
 - 2 members: the user plus Goh Sheng Kuan.
 - Answered 22 Oct: RunPod proof is NOT needed if no GPU is used. Workshop recordings exist; both members must watch them before ticking the readiness checklist. Mentor booking is done.
-- Project: **Verity**. Repo https://github.com/TayEeZhan/verity (private until submission), local clone `C:\Users\eezha\verity`. Build plan `tasks/todo.md`, data contract `docs/data-contract.md`.
+- Project: **Verity**. Repo https://github.com/TayEeZhan/varity (private until submission), local clone `C:\Users\eezha\verity`. Build plan `tasks/todo.md`, data contract `docs/data-contract.md`.
 - Split: Ee Zhan = skill engine (HN demand backfill, forecast + intervals + backtest, scenarios, role match, pathway). Sheng Kuan = live signal fetchers, CV intake, UI pages, docs drafts.
 - Note: the preliminary score does not carry forward. The final uses a different rubric, which is shared with finalists only.
 

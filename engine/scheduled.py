@@ -17,6 +17,7 @@ import json
 import logging
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -79,6 +80,9 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, stream=sys.stderr,
                         format="%(asctime)s %(name)s %(levelname)s %(message)s")
     summary = run()
+    if datetime.now(timezone.utc).weekday() == 0:  # weekly: a new DOSM quarter? my_dosm.update never raises and keeps the old CSV on failure
+        from engine import my_dosm
+        log.info("DOSM check: %s", my_dosm.update())
     if not summary["ok"]:
         log.error("scheduled refresh failed at %s: %s", summary.get("stage"), summary.get("error"))
     print(json.dumps(summary, sort_keys=True))

@@ -251,7 +251,7 @@ All numbers below are **planning estimates**. Check the prices on the Anthropic 
 
 ---
 
-## WP-MY. A Malaysian demand source (judges' feedback, 1 Nov 2026). **Plan only, not built.**
+## WP-MY. A Malaysian demand source (judges' feedback, 1 Nov 2026). **Built as a sector-level check (see Design).**
 
 **Feedback.** "Hacker News posts aren't very representative of Malaysia, so adding a Malaysian data source would make a big difference."
 
@@ -259,7 +259,7 @@ All numbers below are **planning estimates**. Check the prices on the Anthropic 
 
 **Why it fits.** `data/mycol_role_map.json` already maps our roles to MASCO codes. So a role can show "Malaysia: N online vacancies for <MASCO occupation> in Qx YYYY (DOSM), up/down from the last quarter".
 
-**Design**
+**Design (built 1 Nov as a sector-level check: DOSM has no per-job-title split, see engine/my_dosm.py)**
 ```
 DOSM quarterly summary table (PDF/Excel) ──engine/my_dosm.py (parse ICT MASCO rows)──▶ data/my_vacancies_quarterly.csv
    (quarter, masco_code, occupation, vacancies, source_url, published)

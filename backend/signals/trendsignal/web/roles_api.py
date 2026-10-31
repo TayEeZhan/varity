@@ -129,7 +129,7 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
         return envelope(service.suggestions(profile, rows, run_id, settings.db_path, scenario=scenario,
                                             hours_per_week=hoursPerWeek, use_llm=settings.llm_mode != "off",
                                             call=model_call(request), data=data, goal=goal),
-                        meta=service.data_meta(asOf))
+                        meta={**service.data_meta(asOf), "malaysia": service.malaysia_meta()})
 
     @app.post("/api/profile/target-role")
     def api_target_role(payload: TargetRoleIn, request: Request, x_profile_token: str | None = Header(default=None)):

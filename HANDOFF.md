@@ -26,10 +26,13 @@ The "Update 29 Oct" section is the newest. The sections after it are the 24 Oct 
   - Accounts with no login for 365 days are deleted (at start-up and by a daily job at 06:45).
   - Fact found: the cleaned CV text is stored for the CV builder and deleted with the profile.
 - **Fairness:** `backend/signals/tests/test_fairness.py`. The same skills give the same routes, whatever the name, age or gender.
-- **Team (HR) view:** removed on 1 Nov: does not fit a worker-facing site. (`#/team`, `POST /api/team` and `test_team.py` are gone.)
+- **Team (HR) view:** built, then removed on 1 Nov: does not fit a worker-facing site. (`#/team`, `POST /api/team` and `test_team.py` are gone.)
+
+- **DOSM Malaysia check:** `engine/my_dosm.py` and `data/my_vacancies_quarterly.csv` (3 rows x 28 quarters, Q3 2019 to Q2 2026; sector level, not per role). Shown under the CV & routes header and on the Skills radar. `meta.malaysia` on `/api/roles/suggestions`, `malaysia` in `/api/skills/radar`. Weekly Monday update in `engine/scheduled.py`. The Method screen also has a Fairness block and a Privacy link.
+- **Docs fixed:** `docs/app-explained.md` (DOSM, fairness, credits plan, section 9 resolved and open lists) and the DOSM row in `docs/submission/tech-declaration.md`. Still open: `.docx` declaration not regenerated; Haiku 5.5 vs 4.5 wording; licences not reviewed (no DOSM terms page found).
 
 ### Not built, on purpose
-- **HRD Corp list (WP3):** a person must check each programme. No entry is safer than an invented one.
+- **HRD Corp list (WP3):** now built with 3 entries in `data/hrd_programmes.json` (provider's own claim statement, `checked_on` date). More entries need a person to check each programme.
 - **Impact counters and pilot:** no real users before the final. The pitch presents them as the next step: a pilot with the XMUM career centre that measures the 3 Phase 1 KPIs.
 - Bahasa Malaysia labels, skill badges.
 
@@ -200,10 +203,10 @@ Still needed for the daily job at all: App Storage bucket and Scheduled Deployme
 - Organisers allow scrapers. But organiser OK does not override a site's robots.txt, terms or bot protection; we never bypass a challenge.
 
 ## The product: Verity
-- **Repo:** https://github.com/TayEeZhan/verity (private until submission). Local clone: `C:\Users\eezha\verity`.
+- **Repo:** https://github.com/TayEeZhan/varity (private until submission). Local clone: `C:\Users\eezha\verity`.
 - **Live app:** https://verity--eezhan0805.replit.app. It still serves older code until the user pulls and republishes on Replit.
-- **Stack:** Python 3.12, Streamlit 1.66.1, Pillow 13.0.0, all pins in `requirements.txt`. ML experiment packages are in `requirements-dev.txt`. Virtual env: `C:\Users\eezha\verity\.venv`.
-- **Tests:** 975 pass on main (`.venv\Scripts\python -m pytest -q`, about 8 min).
+- **Stack:** Python 3.12, FastAPI + static web app (Streamlit retired), Pillow 13.0.0, all pins in `requirements.txt`. ML experiment packages are in `requirements-dev.txt`. Virtual env: `C:\Users\eezha\verity\.venv`.
+- **Tests:** 1,332 collected on 31 Oct 2026 (868 root + 464 in `backend/signals/`; `pytest --collect-only`). The count of 975 was older. A full pass run is not re-done here.
 - **App flow:** 1 You (persona or skill picker) → 2 Skills radar → 3 Future roles (match + outlook + SDG goal + MyCOL badges + role forecast) → 4 Your plan (staged pathway, daily to-do, .md/.ics export, SDG lines) → Evidence (Skills, Skill detail, Method).
 
 ## Built and merged into main (PRs #1–#15, all merged)
@@ -214,16 +217,16 @@ Still needed for the daily job at all: App Storage bucket and Scheduled Deployme
 | Trend label | Welch test, last 12 vs prior 12 months, p<0.05; held 67.2% (n=720) |
 | AI exposure | Anthropic Economic Index automation share by occupation. Cross-check with GPTs-are-GPTs, AIOE and Microsoft: only the "language" stance is robust, the rest are shown as contested. k=2 is a labelled assumption; the data cannot pin it down |
 | Roles | 9 roles (8 ranked); profiles learned from single-role posts with the title masked; rank = 0.7 match + 0.3 outlook; under 20% match is not ranked. Role forecast band covered 93.6%; label held 69.3% (n=228, 8 roles = a rough guide) |
-| Pathway | no-regret → near-term → future-bet stages; ≤45-min daily tasks; 77 link-checked resources (76 free, 1 free trial); no HRD Corp claims |
+| Pathway | no-regret → near-term → future-bet stages; ≤45-min daily tasks; 77 link-checked resources (76 free, 1 free trial); HRD Corp option only for the 3 programmes in `data/hrd_programmes.json` |
 | SDG | Employer-sector shares per role from posts (8 sectors, hand-checked precision ~85–95%). Goal re-rank needs ≥10 sector posts; with real data no example profile is re-ordered |
 | Malaysia | MyCOL 2024/2025 (TalentCorp), 10 tech occupations mapped to roles (team judgement; read by eye from the PDF). Job-site collectors (Hiredly, Jobstore) are built but **refuse to run without `--permission-confirmed`**. JobStreet, Maukerja, Indeed and Ricebowl block with a Cloudflare challenge |
-| Live data | Refresh button; scheduled job + Replit App Storage code (**Replit UI setup still pending**, see docs/replit-schedule.md) |
+| Live data | Fetch latest HN button (10-min limit); daily role refresh; scheduled job + Replit App Storage code (**Replit UI setup still pending**, see docs/replit-schedule.md) |
 | Other | New-skill discovery radar (weak backtest, human review only); VS Code CodeTour (`.tours/`); submission drafts in `docs/submission/` |
 
 ## Open / to do
 1. **Replit:** in Git, Pull → `pip install -r requirements.txt` → restart → Republish. Optional: scheduled job + bucket (docs/replit-schedule.md).
-2. **Varity is the only app (PR #21, `feat/varity-only`, not merged).** Streamlit UI retired; #18/#19/#20 are on main. Varity renders only from the API (no synthetic numbers), with example profiles, SDG + MyCOL, .md/.ics export, Skills radar, Method page. `.replit` = Reserved VM running `backend/signals` on 8080. `app.py` and `engine/outcome.py` are deleted. The HN demand data is the committed 2026-10 snapshot (no Refresh button now).
-3. **Replit after merging #21:** Pull → republish as Reserved VM → enable AI Integrations → Anthropic → confirm `AI_INTEGRATIONS_ANTHROPIC_API_KEY` / `_BASE_URL` names in Secrets → run one synthetic CV and click all 8 screens. Claude model on Replit: `claude-haiku-4-5`.
+2. **Varity is the only app (PR #21, `feat/varity-only`, not merged).** Streamlit UI retired; #18/#19/#20 are on main. Varity renders only from the API (no synthetic numbers), with example profiles, SDG + MyCOL, .md/.ics export, Skills radar, Method page. `.replit` runs `backend/signals` on 8080; `deploymentTarget = "cloudrun"` = Autoscale. `app.py` and `engine/outcome.py` are deleted. The HN demand data is the committed 2026-10 snapshot (a Fetch latest HN button was added later).
+3. **Replit after merging #21:** Pull → republish (Autoscale) → enable AI Integrations → Anthropic → confirm `AI_INTEGRATIONS_ANTHROPIC_API_KEY` / `_BASE_URL` names in Secrets → run one synthetic CV and click all 8 screens. Claude model on Replit: `claude-haiku-4-5`.
 4. **Submission docs:** fill [TEAM TO FILL] (email, phone, university, workshop ticks, Replit plan, signatures). Export `SDC2026_HokkienMeeIsPurple_Preliminary.pdf` and `SDC2026_HokkienMeeIsPurple_TechDeclaration.pdf`.
 5. **Pitch script and Q&A** in docs/submission/ predate the journey UI, SDG goal and role forecast. Update them, then record the video. Don't click Refresh during recording.
 6. **Decisions still open:**

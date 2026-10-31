@@ -175,6 +175,7 @@ async function api(path, options = {}) {
     err.status = res.status;
     throw err;
   }
+  if (body.meta && body.meta.malaysia) STATE.malaysia = body.meta.malaysia;  // DOSM check, shown on CV & routes
   return body.data;
 }
 

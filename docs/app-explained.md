@@ -44,7 +44,7 @@ Hard rules from the brief: public, open or synthetic data only; name the LLM you
 3. **Everything has a source and a date.** Each number links to Hacker News threads or a data file.
 4. **We say what is weak.** The Method screen shows where our own tests are poor (for example, the band is too wide, the AI-exposure stance is contested).
 
-**Honest limit to say first.** The job data is Hacker News "Who is hiring?" posts. It is US- and startup-heavy, not Malaysian. The judges flagged this. The plan is a Malaysian source (DOSM). See sections 6 and 7.
+**Honest limit to say first.** The job data is Hacker News "Who is hiring?" posts. It is US- and startup-heavy, not Malaysian. The judges flagged this. We added a Malaysian check from DOSM (official online vacancies). It is at sector level, not per role. See sections 2.3, 6 and 7.
 
 ---
 
@@ -80,8 +80,10 @@ Note: the "Team" (HR) page was built and then removed on 1 Nov because it does n
 - **"Why NN%?"** panel (details/summary). It shows the formula parts and the top 3 skills that would raise the score, each with a free resource. See 2.4.
 - **"Details"** panel. It holds the SDG tags, the "reason line" for the SDG sector, the goal line, and the MyCOL badge (see below).
 - A **goal picker** ("I care about: health, climate, education ..."; 8 sectors in `data/role_sdg.json`). See 2.5.
+- **One Malaysia line under the header** (not per card): "Malaysia check (DOSM, official online vacancies): Information and communication sector 13,960 in Q2 2026 (-17.8% on a year ago) ..." with a Source link. Code builds it from `meta.malaysia` on `GET /api/roles/suggestions` (`frontend/screens.js` `malaysiaLine`, `frontend/app.js` `STATE.malaysia`). Why one line and not one per role: DOSM does not split vacancies by job title, so any per-role number would be invented.
 
 **Where the numbers come from.**
+- Malaysia line: DOSM "Big Data Analytics: Job Market Insights", see 4.14.
 - Match score: learned skill weights per role (`data/role_profiles.json`), see section 4.
 - Outlook (Rising / No clear change / Falling): Welch test on role demand (`data/role_trends.json`).
 - Forecast and band: `data/role_forecast.json`.
@@ -132,6 +134,8 @@ This is pure arithmetic from numbers `match_roles` already returns (`engine/role
   - **Limit to say honestly:** the replay cuts the skill scores and the role trends. The forecast chips (`role_forecast.json`) stay at latest (`HANDOFF.md`).
   - The bar always shows: "Source: HN Who is hiring - as of YYYY-MM - fetched <date>".
 
+- **Malaysia block** (from `malaysia` in `GET /api/skills/radar`, drawn by `frontend/screens-evidence.js` `malaysiaSeries`): a small line chart and the last 8 quarters of DOSM online vacancies for the Information and communication sector, with the note "DOSM does not split by job title, so this is not a per-role number" and a source link.
+
 ### 2.9 Job forecast (`#/forecast`)
 - `GET /api/roles/forecast` returns `data/role_forecast.json` untouched (or the newest daily-refresh snapshot). The `meta.source` says "daily refresh" or "committed".
 - For each of 8 ranked roles: share of HN posts now, 12-month forecast with an 80% target band, a Rising / Falling label, the "If AI speeds up" value, and a "declining" flag (Falling AND more than 50% of the role's skill weight in Falling skills; no role meets it today).
@@ -149,7 +153,8 @@ This is pure arithmetic from numbers `match_roles` already returns (`engine/role
 ### 2.11 Method (`#/method`)
 - `GET /api/evidence`. Shows the backtests for skills and roles, the AI-exposure cross-check, the k assumption and the data sources with licences.
 - This is where you prove "we tested it". Numbers: section 4.
-- The privacy-fairness line: see section 6 (the fairness test is a test file; check whether the Method screen line was added before the pitch).
+- **Fairness check block** (new, `frontend/screens-evidence.js` `fairnessBlock`): "Same skills, same result" (points at `backend/signals/tests/test_fairness.py`) and the limit "the job-post data itself may carry hiring bias; we do not correct it".
+- **Privacy notice link** (`privacy.html`) under that block.
 
 ### 2.12 My CV (`#/cv`) - the CV builder
 - `POST /api/cv/generate` writes a new CV for a target role from your saved (cleaned) CV text and your skill ledger. `GET/PUT /api/cv/draft` load and save the draft. `POST /api/cv/agent` is a chat agent that proposes one edit at a time.
@@ -248,10 +253,10 @@ Verity has two stores. Do not mix them up.
 | `DELETE /api/profile` | delete the profile | token or cookie | `deleted` |
 | `POST /api/profile/learned` | mark a pathway skill as learned | `skill` | profile |
 | `POST /api/profile/target-role` | save the chosen route | `roleId` | profile |
-| `GET /api/roles/suggestions` | ranked roles + reasons + breakdown | `scenario`, `hoursPerWeek`, `goal`, `asOf` | roles, lowMatch, notRanked, formula |
+| `GET /api/roles/suggestions` | ranked roles + reasons + breakdown | `scenario`, `hoursPerWeek`, `goal`, `asOf` | roles, lowMatch, notRanked, formula; `meta.malaysia` (DOSM block) |
 | `GET /api/pathway` | the plan with dated tasks | `roleId`, `scenario`, `hoursPerWeek`, `goal`, `asOf` | steps, tasks, SDG lines, HRD option |
 | `POST /api/pathway/decision` | Keep/Revert a changed plan, Add/Later a skill | `roleId`, `action`, `skill` | new pathway |
-| `GET /api/skills/radar` | the radar | `asOf` | points, sentences, table |
+| `GET /api/skills/radar` | the radar | `asOf` | points, sentences, table, `malaysia` (DOSM block) |
 | `GET /api/evidence` | Method screen | none | backtests, exposure, k, sources |
 | `POST /api/cv/generate` | new CV for a role | `roleId`, `jobAd` | draft + markdown |
 | `GET /api/cv/draft`, `PUT /api/cv/draft` | load, save the draft | draft, facts | draft + markdown |
@@ -259,7 +264,7 @@ Verity has two stores. Do not mix them up.
 | `POST /api/login/prepare`, `GET /api/login`, `GET /api/callback`, `GET /api/logout` | Replit sign-in flow | | redirects, cookie |
 | `GET /api/me`, `DELETE /api/me` | who am I; delete my account | cookie | account / `deleted` |
 
-That is 31 routes (`grep` of the `@app.get/post/put/delete` decorators in `trendsignal/web/*.py`).
+That is still 31 routes, recounted on 31 Oct from the `@app.get/post/put/delete` decorators in `trendsignal/web/*.py`. The DOSM check added fields to 2 existing routes, not new routes.
 
 **External APIs and services Verity calls:**
 
@@ -276,7 +281,7 @@ That is 31 routes (`grep` of the `@app.get/post/put/delete` decorators in `trend
 
 Datasets used offline (not live APIs): Anthropic Economic Index release 2026-06-26 (CC BY), O*NET 31.0 (CC BY 4.0, v1 only, superseded), GPTs-are-GPTs, AIOE and Microsoft "Working with AI" indices (cross-check only), TalentCorp MyCOL 2024/2025 (`data/SOURCES.md`, `docs/architecture.md` 3.4, 3.15).
 
-**Not used.** DOSM is **not** used yet. It is a plan (`tasks/plan-final-round.md`, WP-MY). OpenRouter and Jev are optional and off by default.
+**DOSM** is used offline, not as a live API: a weekly job downloads the quarterly Data Excel from dosm.gov.my and rewrites `data/my_vacancies_quarterly.csv` (see 4.14). The running app only reads the CSV. OpenRouter and Jev are optional and off by default.
 
 ### 3.6 Payments and third parties
 - **Payments: none. Out of scope** per the brief. Verity sells nothing and charges nothing. Course fees (HRD list) are shown for information only.
@@ -293,7 +298,7 @@ Datasets used offline (not live APIs): Anthropic Economic Index release 2026-06-
 - **Hosting.** Replit. `.replit` sets `deploymentTarget = "cloudrun"`, which is Replit's **Autoscale** deployment. Build: `pip install -r requirements.txt`. Run: `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. Port 8080 maps to external port 80. The README says 2 vCPU / 4 GiB, region Asia. The live URL is https://verity--eezhan0805.replit.app/#/.
   - Reserved VM would keep the scheduler alive all day; on Autoscale the in-process 06:30 job only runs if an instance is awake. That is why the plan uses a separate **Scheduled Deployment** (`python -m engine.scheduled`) (`docs/replit-schedule.md`).
 - **Secrets.** In Replit Secrets, never in the code: `ANTHROPIC_API_KEY`, `SESSION_SECRET`, `DATABASE_URL`, `GOOGLE_CLIENT_ID` (`.env.example`).
-- **Source control.** GitHub `TayEeZhan/verity` (README links `varity`). 149 commits from 2026-10-21 to 2026-10-31 (`git log`). The brief warns that a pre-built-looking repo or one big late commit can disqualify a final-round team.
+- **Source control.** GitHub `TayEeZhan/varity` (README and the submission files all use `varity`). 149 commits from 2026-10-21 to 2026-10-31 (`git log`). The brief warns that a pre-built-looking repo or one big late commit can disqualify a final-round team.
 - **Tests.** Root `pytest` collects **1,332 tests** (868 in `tests/`, 464 in `backend/signals/tests/`; I counted with `pytest --collect-only` on 31 Oct). Full run is about 8 minutes (`CLAUDE.md`). Backend only: `pytest -q` in `backend/signals/`. There are tests that the future cannot leak into a past forecast, that every chosen resource link exists in the resource list, that no committed data file holds an email, and the new fairness test (section 6). `HANDOFF.md` still says 975 (old). Use 1,332 only after you re-run the full suite and it passes. I did not run the full suite.
 - **How a deploy happens.** You commit and push to GitHub (only when you say so, `CLAUDE.md`). In Replit: Git pane, Pull, then Republish. Replit runs the build command and starts the server. Data files ship in the repo.
 - **How data stays current.** Daily job: download newest HN thread, rebuild skill and role files, save a snapshot to App Storage. The web app reads it within 10 minutes. If the job fails, `latest.json` does not move.
@@ -402,6 +407,15 @@ Section 2.6 covers the rules. In one line: gap skills -> three stages -> one fre
 - **The user test from the finalist guide:** "if the tag were removed, would the user lose anything?" Now yes: the goal picker reorders the pathway inside stages and adds goal lines. On routes it re-ranks only when data is reliable.
 - Sector sectors and SDG targets: 8 sectors with targets e.g. climate 7.2 and 13.2, health 3.8 and 3.b, education 4.3 and 4.4 (`data/role_sdg.json`).
 
+### 4.14 Malaysia check: DOSM online vacancies (`engine/my_dosm.py`)
+- **Source.** DOSM "Big Data Analytics: Job Market Insights", quarterly "Data" Excel (release-document-log id 20742 for Q2 2026, released 18 Aug 2026).
+- **What is kept.** 3 rows x 28 quarters (Q3 2019 to Q2 2026) = 84 rows in `data/my_vacancies_quarterly.csv`: sector "Information and communication", and MASCO major groups "Professionals" and "Technicians and associate professionals". Each row names its sheet and cell.
+- **Checks.** Code reads the Excel with zipfile and XML (no Excel library) and asserts that each stored number equals the cell it names. A changed layout raises an error and the old CSV stays. Code does the percentages (`summary()`). No LLM touches this.
+- **Not per role.** DOSM gives only two tables: by economic activity and by MASCO major group. There is no job-title split, so the app never shows a Malaysia number for one role.
+- **Update.** `engine/scheduled.py` runs `my_dosm.update()` on Mondays (UTC). It looks for the next quarter's release page. It never raises and keeps the old CSV on any failure.
+- **Use.** A cross-check only. It does not feed the forecast or the rank score.
+- **Test.** `tests/test_my_dosm.py` with `tests/fixtures/my_dosm_mini.xlsx`. (I did not run it.)
+
 ---
 
 ## 5. Where AI is used, and where it is NOT
@@ -428,6 +442,14 @@ Tagging skills in posts, demand shares, the Welch test, the forecast and band, b
 - You can override with `VERITY_INTAKE_MODEL`, `VERITY_ADVISOR_MODEL`, `VERITY_COACH_MODEL`, `VERITY_CV_AGENT_MODEL`, `VERITY_LABEL_MODEL`.
 - Temperature 0 and a pinned model id for the labeller. A daily spend gate stops calls after the budget ($1 each by default).
 - The brief says "name the LLM": say "Claude Haiku (5.5 on our own key, 4.5 through Replit AI Integrations)". The README and tech docs say only 5.5. See section 9.
+
+### 5.3b Credits plan: which AI job runs where (`tasks/plan-credits.md`, **planned, not built**)
+Two credit pools: Replit ($100, Claude through Replit AI Integrations, also pays hosting) and KrackedDevs ($20 per teammate key, GPT and DeepSeek models, **no Claude**, OpenAI-compatible gateway).
+- **Replit (Claude Haiku), live and user-facing:** CV reading, route advisor, pathway coach, CV builder and CV agent.
+- **KrackedDevs, bulk and background:** the one-off relabel of the 48,508 HN posts (`deepseek-v4-flash`, fall back `gpt-5.4-nano`), daily labelling of new posts, weekly new-title review (`gpt-5.4-mini`), and, as a proposal that needs Sheng Kuan's agreement, the Signals ranker steps.
+- **Stays as now:** Jev scoring through Replit OpenRouter.
+- **Safety:** code checks every quote, so a cheaper model can miss labels but cannot invent them. Only public HN text goes to KrackedDevs, never CVs.
+- **Status:** no code calls KrackedDevs. Build step 1 is a shared `engine/llm_client.py` plus a budget guard. The declaration lists it as planned (`tech-declaration.md` 4.5). Do not say it is running.
 
 ### 5.4 Guardrails (say these)
 1. **Quote check.** The model must give an exact quote. Code looks for it in the text. No quote, no skill.
@@ -460,7 +482,7 @@ Tagging skills in posts, demand shares, the Welch test, the forecast and band, b
 - **Limit to state.** The source data (HN posts) may carry hiring bias. We do not correct it.
 
 ### 6.3 Limits you must say out loud
-1. **HN is US-heavy, not Malaysian.** The judges flagged it. Our answer: skills like Python and Kubernetes are global; MyCOL badges add a Malaysian shortage-list cross-check; and the next step is **DOSM "Job Vacancies Advertised Online"** (official, quarterly, by MASCO occupation). The plan: parse ICT MASCO rows into a CSV, show a "Malaysia" line on route cards via the existing `mycol_role_map.json`, and use it as a **cross-check, not a forecast input** until there are enough quarters to backtest (`tasks/plan-final-round.md` WP-MY). **Not built.**
+1. **HN is US-heavy, not Malaysian.** The judges flagged it. Our answer: skills like Python and Kubernetes are global; MyCOL badges add a Malaysian shortage-list cross-check; and the **DOSM online-vacancy check is now built** (4.14). Limit: it is sector level (Information and communication; Professionals; Technicians), not per role, and it is a cross-check, not a forecast input. Online ads are not jobs, and the ad counts are not comparable in size to HN posts.
 2. **A share is not a job count.** HN posts are a sample.
 3. **The 0.7 / 0.3 rank weights and the k = 2 are judgement,** and the app labels them.
 4. **Labeller accuracy is unmeasured against human labels** (the user chose a fully automatic process, `HANDOFF.md`).
@@ -497,7 +519,10 @@ Courses come only from `data/resources.json`; each URL returned HTTP 200 on 2026
 CV & routes -> pick a goal, e.g. health. The pathway moves goal-linked skills first inside each stage and adds a goal line. On routes we show the sector share and say "too few posts to re-rank" when the sample is small. We did not lower the thresholds to force a change.
 
 **8. "Hacker News is US data. How is this Malaysian?"**
-It is not Malaysian data, and we say so. Skills are global; MyCOL badges add Malaysian shortage evidence; HRD Corp options and Malaysia-time scheduling are local. The next source is DOSM's online-vacancy series by MASCO, as a cross-check first (planned, not built).
+It is not Malaysian data, and we say so. Skills are global; MyCOL badges add Malaysian shortage evidence; HRD Corp options and Malaysia-time scheduling are local. The DOSM online-vacancy series is built as a sector-level cross-check (see 8a).
+
+**8a. "Is this relevant to Malaysia?"**
+Partly, and we say which part. The job-post data is Hacker News: global and US-heavy. The Malaysian parts are: (1) the DOSM check, official online vacancies for the Information and communication sector, Q3 2019 to Q2 2026 (latest, Q2 2026: 13,960, which is -17.8% on Q2 2025, both from `data/my_vacancies_quarterly.csv`), shown under the CV & routes header and on the Skills radar; (2) MyCOL shortage badges; (3) HRD Corp options (3 entries); (4) the PDPA privacy notice and Malaysia-time scheduling. What we do not claim: a Malaysian number for one role (DOSM has no job-title split), or a Malaysian forecast. The DOSM series checks the HN sample; it does not drive scores. Click: CV & routes (Malaysia line), then Skills radar (Malaysia block).
 
 **9. "Isn't this just a chatbot? Where is the AI?"**
 There is no chatbot for the core. Statistics and learned role profiles do the work, and a gradient-boosting model was trained and rejected. LLMs only read CVs and word a few checked lines.
@@ -533,7 +558,7 @@ Forecast skill: 12-month demand is near flat, and 13 of 40 skills have too few p
 The app reads committed files, so a failed HN fetch cannot break it. The daily job never moves `latest.json` on failure. The page shows a dated offline snapshot if the server is unreachable.
 
 **20. "What is built and what is only planned?"**
-Built: skills forecast, role forecast, replay and fetch, score breakdown, goal picker, HRD option (3 entries), privacy notice, fairness test, CV builder, Signals. Planned or waiting: DOSM source, Claude post labeller backfill (needs credits), Scheduled Deployment and App Storage set-up, impact counters, Bahasa Malaysia labels, Google two-way sync.
+Built: skills forecast, role forecast, replay and fetch, score breakdown, goal picker, HRD option (3 entries), privacy notice, fairness test, CV builder, Signals. Also built: the DOSM Malaysia check (sector level) and the Fairness block on the Method screen. Planned or waiting: KrackedDevs credits plan, Claude post labeller backfill (needs credits), Scheduled Deployment and App Storage set-up, impact counters, Bahasa Malaysia labels, Google two-way sync.
 
 **21. "What is the stack, which model, and where is Replit?"**
 Python 3.12, FastAPI, static HTML/JS, Replit Autoscale, Replit PostgreSQL and Auth, pandas/numpy/scipy/statsmodels. Claude Haiku for CV reading and optional steps. Forecast, match and pathway use no model.
@@ -621,7 +646,7 @@ Job forecast shows posts so far this month. The nowcast weight comes from a back
 - **Tier (solid / rough / not_ranked).** How many posts support a role profile.
 - **MASCO.** Malaysia Standard Classification of Occupations. Each job type has a code. MyCOL and DOSM use it.
 - **MyCOL.** Malaysia Critical Occupations List (TalentCorp). A shortage list, not a vacancy count.
-- **DOSM.** Department of Statistics Malaysia. Planned source for online vacancies.
+- **DOSM.** Department of Statistics Malaysia. Source of the quarterly online-vacancy check (sector level, not per role).
 - **HRD Corp.** Malaysian agency that funds employer training. "Claimable" means an employer can reclaim the fee, after applying first.
 - **PDPA.** Personal Data Protection Act 2010 (Malaysia). Has 7 principles.
 - **SDG / SDG target.** UN Sustainable Development Goal / one of its sub-goals (for example 4.4 skills for employment, 8.5 productive employment).
@@ -635,22 +660,30 @@ Job forecast shows posts so far this month. The nowcast weight comes from a back
 
 ## 9. Where docs and code disagree (code wins)
 
-1. **Model name.** README and tech docs say Claude Haiku 5.5 only. Code uses `claude-haiku-5-5` with the team key, but `claude-haiku-4-5` when it runs through Replit AI Integrations (`intake/llm_extract.py`, `advisor/llm.py`). Say both if asked which model.
-2. **CV text storage.** `docs/submission/qa-prep.md` (Q27) and `README.md` say the raw CV text is never stored. Code stores the **cleaned** CV text in `owner_cvs` for the CV builder (`cv_api.py`, `accounts_store.py`); `privacy.html` says so. Use the privacy page wording.
-3. **Retention.** Plan said "for example 12 months". Code: 365 days (`RETENTION_DAYS`).
-4. **Test count.** `HANDOFF.md` says 975; qa-prep says "over 700". The collected count today is 1,332 (868 root + 464 backend). I did not run the full suite.
-5. **Single-role posts.** qa-prep says 2,569. `data/role_profiles.json` sums to 2,580.
-6. **Architecture doc is partly old.** `docs/architecture.md` still says: the app has no as-of slider or Refresh button; the role files are not refreshed daily; the goal re-rank is not used; emerging roles are "planned". The code now has all of these built (replay, `/api/data/refresh`, daily `_update_roles`, `rerank_for_goal` wired in, role discovery code). New-role discovery and the AI labeller are built but not run.
-7. **Scenario names.** Docs say Moderate and Fast. The UI says "Expected (estimate)" and "If AI speeds up (estimate)". The API values are still `moderate` and `fast`.
-8. **Team page.** `tasks/plan-final-round.md` plans a Team (HR) view. It was built and removed. `HANDOFF.md`'s 31 Oct heading still mentions it in places.
-9. **HRD Corp.** `tasks/plan-final-round.md` says "do not invent; manual research". The HRD file now exists with 3 entries. `docs/architecture.md` and `HANDOFF.md` still say "not built". Also `engine/pathway.py` still prints the older note "HRD Corp-claimable status not verified for these resources" for the free resources. That is correct: only the 3 listed programmes carry a claim statement.
-10. **Hosting.** The brief task note mentions Reserved VM. `.replit` uses `cloudrun` = Autoscale. The scheduled job is a plan.
-11. **Repo name.** README links `TayEeZhan/varity`; other docs say `TayEeZhan/verity`.
-12. **Method-screen fairness line.** The plan said to add a "Fairness check" line to the Method screen. I did not find it in `screens-evidence.js`. Only the test exists. Add the line or do not claim it.
-13. **`checked_on` in `data/hrd_programmes.json`** reads 2026-11-01, which is after 31 Oct. Confirm the date.
-14. **Signals footer.** `frontend/index.html` still shows "Signals: offline snapshot of 22 Oct" as the default text and run id `20261022T050908-ab9c76`. The page replaces it with live data when the API answers.
+### Resolved in the working tree (checked 31 Oct 2026)
+- **CV text storage.** `docs/submission/qa-prep.md` and `tech-declaration.md` now say the cleaned CV text is stored and deleted with the profile. (README not re-checked.)
+- **Retention.** qa-prep now states 365 days (`RETENTION_DAYS`).
+- **Test count.** qa-prep, tech-declaration and HANDOFF now say 1,332 collected (868 root + 464 backend). Collected, not a full pass run.
+- **Single-role posts.** qa-prep now says 2,580.
+- **Repo name.** README, `BRIEF.md`, HANDOFF, the proposal and the declaration all use `TayEeZhan/varity`.
+- **Method-screen fairness line.** Built (`fairnessBlock`), with a Privacy link.
+- **HRD Corp.** HANDOFF now says built with 3 entries. `checked_on` in `data/hrd_programmes.json` is 2026-10-31.
+- **Replit AI Integrations.** The declaration no longer says it is unused: it says supported in code, used when enabled, Haiku 4.5 on Replit.
+- **DOSM.** Built (4.14) and listed in the declaration (4.4).
+
+### Still open
+1. **Model naming.** README and the declaration lead with Claude Haiku 5.5. The code uses `claude-haiku-4-5` when it runs through Replit AI Integrations. Say both if asked. Pick one public wording.
+2. **`.docx` files not regenerated.** `docs/submission/SDC2026_HokkienMeeIsPurple_TechDeclaration.docx` and the Preliminary `.docx` still hold the old text. Regenerate them from the `.md` files before upload.
+3. **Licences and terms not reviewed:** DOSM (no terms-of-use page found; its home page footer gives only a copyright line), TypeSafe, Bluesky, arXiv, Hugging Face, publisher RSS terms, the Trainocate/HRD pages, MyCOL, HN (`tech-declaration.md` 4.4 says "not reviewed").
+4. **Architecture doc is partly old.** `docs/architecture.md` line 478 still says the Varity app has no as-of slider, and emerging-role discovery is called a design in places. The code has replay, `/api/data/refresh`, a daily role update and discovery code (built, **not run**).
+5. **Scenario names.** Docs say Moderate and Fast. The UI says "Expected (estimate)" and "If AI speeds up (estimate)". API values are still `moderate` and `fast`.
+6. **Team page.** Built and removed. `tasks/plan-final-round.md` still plans it.
+7. **Hosting.** The brief task note mentions Reserved VM. `.replit` uses `cloudrun` = Autoscale. The scheduled job is a plan.
+8. **Signals footer.** `frontend/index.html` still shows "Signals: offline snapshot of 22 Oct" and run id `20261022T050908-ab9c76` until the API answers.
+9. **`[TEAM TO FILL]` items** remain in the declaration (Replit plan, Replit Agent model, live CV-intake confirmation).
+10. **Plan docs not updated:** `tasks/plan-final-round.md` WP-MY and `tasks/plan-credits.md` (judges' feedback item 1) still describe DOSM as a plan with a per-role idea. The built version is sector level.
 
 ### What I did not check
-- I did not run the full test suite or the app in a browser. Numbers come from files, and Aina's results from running the engine code on 31 Oct.
+- I did not run the full test suite, `tests/test_my_dosm.py`, or the app in a browser. Numbers come from files, and Aina's results from running the engine code on 31 Oct.
 - I did not open the live Replit site, so I cannot confirm the deployment state, region or plan.
 - Frontend text was read from source, not seen rendered.
