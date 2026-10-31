@@ -192,7 +192,7 @@ def _update_roles(data_dir: Path, raw_dir: Path, threads_csv: Path, month: str) 
             labeller = "title regex (Claude's labels drifted from the usual today)"
         else:
             labels = result["labels"]
-            labeller = "claude" + (f", title regex for {result['regex_posts']} posts Claude did not label"
+            labeller = llm_labels.labeller_name() + (f", title regex for {result['regex_posts']} posts Claude did not label"
                                    if result["regex_posts"] else "")
     scan = roles_mod.scan_threads(raw_dir, threads, roles, labels=labels)
     fresh = roles_mod.role_demand(raw_dir, threads_csv, roles, scan=scan)

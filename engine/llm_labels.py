@@ -17,6 +17,7 @@ Guards against hallucination and drift
   counted with the regex and the forecast page says so.
 - Claude never gives a number. Code counts posts, shares and forecasts.
 
+Provider: KrackedDevs (engine.llm_client) when KD_API_KEY is set, else Claude. `backfill --limit N` is a dry run.
 Switching it on (once, needs AI credits): python -m engine.llm_labels backfill [--yes]
 Labels every post since 2019 (cost printed first), stores the cross-check baseline in role_labeller.json,
 and rebuilds the role files. Before that, the regex counts, so old and new months never mix methods.
@@ -37,6 +38,7 @@ from typing import Callable, Mapping
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from engine import llm_client  # noqa: E402
 from engine.demand import RAW_DIR, _read_threads  # noqa: E402
 from engine.roles import DATA_DIR, compile_patterns, load_roles, matching_roles  # noqa: E402
 from engine.tagging import clean_text  # noqa: E402
@@ -77,10 +79,17 @@ def _replit_route() -> bool:
 
 
 def has_credentials() -> bool:
-    return bool(os.environ.get("ANTHROPIC_API_KEY")) or _replit_route()
+    return llm_client.kd_configured() or bool(os.environ.get("ANTHROPIC_API_KEY")) or _replit_route()
+
+
+def labeller_name() -> str:
+    """Shown on the Method screen: "claude", or the KrackedDevs model string."""
+    return model_name() if llm_client.kd_configured() else "claude"
 
 
 def model_name() -> str:
+    if llm_client.kd_configured():  # KrackedDevs wins when its key is set (tasks/plan-credits.md)
+        return f"krackeddevs/{llm_client.label_model()}"
     default = "claude-haiku-4-5" if _replit_route() else "claude-haiku-5-5"  # Replit's model list lags
     return os.environ.get("VERITY_LABEL_MODEL", default)
 
@@ -169,9 +178,28 @@ def claude_call(client=None, model: str | None = None) -> Callable[[str, str], s
     return call
 
 
+def _kd(model: str, job: str) -> Callable[[str, str], str]:
+    inner = llm_client.kd_call(model, job)
+
+    def call(system: str, user: str) -> str:
+        try:
+            return inner(system, user)
+        except llm_client.KDError as exc:  # includes BudgetExceeded: the existing failure path keeps old files
+            raise LabellerUnavailable(str(exc)) from exc
+    return call
+
+
+def label_call() -> Callable[[str, str], str]:
+    return _kd(llm_client.label_model(), "label") if llm_client.kd_configured() else claude_call()
+
+
+def review_call() -> Callable[[str, str], str]:
+    return _kd(llm_client.review_model(), "title_review") if llm_client.kd_configured() else claude_call()
+
+
 def cost_estimate(posts: list[tuple[str, str]], roles: list[dict], model: str) -> float:
     """Rough USD for labelling these posts: characters / 3.5 as tokens, about 30 output tokens a post."""
-    p_in, p_out = PRICES.get(model, PRICES["claude-haiku-4-5"])
+    p_in, p_out = {**PRICES, **llm_client.PRICES}.get(model.split("/")[-1], PRICES["claude-haiku-4-5"])
     batches = max(1, -(-len(posts) // BATCH))
     chars = sum(min(len(t), MAX_CHARS) for _, t in posts) + batches * len(SYSTEM + _role_list(roles))
     return (chars / CHARS_PER_TOKEN * p_in + len(posts) * OUT_TOKENS_PER_POST * p_out) / 1e6
@@ -242,7 +270,7 @@ def label_thread(data_dir: Path | str, raw_dir: Path | str, thread: Mapping[str,
         try:
             if max_new is not None and len(todo) > max_new:
                 raise LabellerUnavailable(f"{len(todo)} new posts is more than the limit of {max_new} per run")
-            fresh, dropped = classify(todo, roles, call or claude_call())
+            fresh, dropped = classify(todo, roles, call or label_call())
             append_labels(data_dir, thread, fresh, model_name())
             cache.update(fresh)
         except LabellerUnavailable as exc:
@@ -263,7 +291,7 @@ def drifted(result: Mapping, config: Mapping) -> bool:
 
 # ---------------------------------------------------------------- one-off backfill
 
-def backfill(data_dir: Path, raw_dir: Path, yes: bool, call=None) -> dict:
+def backfill(data_dir: Path, raw_dir: Path, yes: bool, call=None, limit: int | None = None) -> dict:
     """Label every post of every thread with Claude, store the cross-check baseline, rebuild the role files."""
     from engine import role_backtest, role_forecast
     from engine import roles as roles_mod
@@ -274,11 +302,19 @@ def backfill(data_dir: Path, raw_dir: Path, yes: bool, call=None) -> dict:
     todo = [(pid, text) for t in threads for pid, text in thread_posts(raw_dir, t["thread_id"]) if pid not in cache]
     cost = cost_estimate(todo, roles, model_name())
     print(f"{len(todo)} posts to label with {model_name()}, about ${cost:.2f}.")
+    if limit:  # dry run: label the first N posts, write nothing, print the real cost
+        return _dry_run(todo[:limit], len(todo), roles, call or label_call())
     if not yes:
         print("Run again with --yes to spend it.")
         return {"posts": len(todo), "usd": cost, "done": False}
-    call = call or claude_call()
-    results = [label_thread(data_dir, raw_dir, t, roles, call, max_new=None) for t in threads]
+    call = call or label_call()
+    results = []
+    for t in threads:
+        results.append(label_thread(data_dir, raw_dir, t, roles, call, max_new=None))
+        if results[-1]["error"]:
+            break  # bad key or budget reached: stop here, labels so far are cached, no files rebuilt
+    if len(results) < len(threads):
+        raise LabellerUnavailable(f"stopped early: {results[-1]['error']}")
     missing = sum(r["regex_posts"] for r in results)
     if missing:
         raise LabellerUnavailable(f"{missing} posts are still without a Claude label; run backfill again")
@@ -298,15 +334,29 @@ def backfill(data_dir: Path, raw_dir: Path, yes: bool, call=None) -> dict:
     return {"posts": len(todo), "usd": cost, "done": True, **config}
 
 
+def _dry_run(sample: list[tuple[str, str]], total: int, roles: list[dict], call) -> dict:
+    before = llm_client.job_usage(llm_client.USAGE_PATH, "label")
+    labels, dropped = classify(sample, roles, call)
+    after = llm_client.job_usage(llm_client.USAGE_PATH, "label")
+    p_tok, c_tok, usd = after[0] - before[0], after[1] - before[1], after[2] - before[2]
+    projected = usd / len(sample) * total if sample else 0.0
+    print(f"Dry run: {len(sample)} posts, {len(labels)} answered, {dropped} labels dropped (bad quote). "
+          f"{p_tok} prompt + {c_tok} completion tokens, about ${usd:.4f}. "
+          f"Projected for all {total} posts: about ${projected:.2f}. Nothing was written.")
+    return {"dry_run": True, "posts": len(sample), "tokens": p_tok + c_tok, "usd": usd, "projected_usd": projected, "done": False}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Label every HN post with Claude once and switch the role counts to it.")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("backfill").add_argument("--yes", action="store_true")
+    bf = sub.add_parser("backfill")
+    bf.add_argument("--yes", action="store_true")
+    bf.add_argument("--limit", type=int, help="dry run on the first N posts; writes nothing")
     args = parser.parse_args(argv)
     if not has_credentials():
-        print("No AI credentials: set up Replit AI Integrations (Anthropic) or ANTHROPIC_API_KEY first.")
+        print("No AI credentials: set KD_API_KEY (KrackedDevs), or set up Replit AI Integrations (Anthropic) or ANTHROPIC_API_KEY.")
         return 1
-    print(json.dumps(backfill(DATA_DIR, RAW_DIR, args.yes), indent=2))
+    print(json.dumps(backfill(DATA_DIR, RAW_DIR, args.yes, limit=args.limit), indent=2))
     return 0
 
 
