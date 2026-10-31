@@ -584,8 +584,9 @@ a.tag--mycol:hover { background: var(--paper-2); }
 .plate::before { margin-right: 6px; }
 .plate--up::before { content: "▲"; }
 .plate--down::before { content: "▼"; }
-.plate--flat { background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
-.plate--flat::before { content: "▶"; font-size: 0.85em; }
+/* Steady is "nothing to act on": plain grey text with a sideways arrow, not a box that looks pressable. */
+.plate--flat { background: none; color: var(--ink-2); text-align: left; padding-left: 0; padding-right: 0; }
+.plate--flat::before { content: "→"; }
 .brow--target { box-shadow: inset 6px 0 0 var(--signal); }
 .you-tag { display: inline-block; margin-left: 8px; padding: 1px 7px; background: var(--signal); color: var(--ink); font-size: var(--t-xs); font-weight: 800; vertical-align: 0.15em; }
 @media (max-width: 640px) { .board--roles .brow { grid-template-columns: minmax(0, 1fr) 58px 112px; } }
@@ -608,3 +609,26 @@ a.tag--mycol:hover { background: var(--paper-2); }
 .week.is-locked > * { opacity: 0.45; filter: grayscale(1); }
 .week.is-locked a { pointer-events: none; }
 @media (max-width: 960px) { .week { grid-template-columns: minmax(0, 1fr); gap: 14px; } }
+
+/* Start pop-up with the CV upload inside: a wide horizontal drop strip (unlike the tall CV & routes box). */
+.sheet--cv { width: min(640px, 100%); max-height: calc(100dvh - 32px); overflow: auto; }
+.gdrop { justify-self: stretch; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 18px; border: 2px solid var(--ink); background: var(--paper-2); transition: background 150ms, box-shadow 150ms; }
+.gdrop.is-over { background: var(--paper); box-shadow: inset 0 0 0 4px var(--ink); }
+.gdrop__icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--ink); }
+.gdrop__icon svg { width: 26px; height: 26px; stroke: var(--paper); color: var(--paper); }
+.gdrop strong { font-size: var(--t-lg); font-weight: 800; }
+.gdrop p { margin-top: 2px; color: var(--ink-3); font-size: var(--t-xs); }
+.gdrop.is-busy { grid-template-columns: 56px minmax(0, 1fr); }
+.gdrop.is-busy .gdrop__icon { animation: gpulse 1.2s ease-in-out infinite; }
+@keyframes gpulse { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .gdrop.is-busy .gdrop__icon { animation: none; } }
+.gerr { justify-self: stretch; padding: 10px 12px; border-left: 4px solid var(--fall); background: #fbecee; color: var(--ink); font-size: var(--t-sm); font-weight: 600; }
+.gconsent { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: start; font-size: var(--t-sm); color: var(--ink-2); cursor: pointer; }
+.gconsent input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--ink); }
+.gconsent small { display: block; margin-top: 4px; color: var(--ink-3); font-size: var(--t-xs); }
+.sample:disabled { opacity: 0.5; cursor: wait; }
+@media (max-width: 560px) {
+  .gdrop { grid-template-columns: 44px minmax(0, 1fr); }
+  .gdrop__icon { width: 44px; height: 44px; }
+  .gdrop .btn { grid-column: 1 / -1; justify-self: stretch; }
+}

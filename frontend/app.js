@@ -106,17 +106,76 @@ function syncShell(screen) {
   } else if (!gate.hidden) { gate.hidden = true; gate.innerHTML = ""; }
 }
 
-/* CV first, no Close: the user uploads a CV or picks a sample. Upload goes to CV & routes (its upload and
-   review flow); the header Home link still leaves. */
+/* CV first, no Close: the user reads a CV here or picks a sample. A read CV opens CV & routes for the skill
+   review; the header Home link still leaves. GATE survives the pop-up's redraws. */
+const GATE = { consent: false, busy: "", error: "" };
 function gateHtml() {
-  const samples = STATE.examples.map((e) => `<button class="sample" type="button" data-global="example" data-id="${esc(e.id)}">
-      <span>${esc(e.name)}<small>${esc(e.headline)}</small></span><span class="synthetic">Synthetic</span></button>`).join("");
-  return `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="gate-h">
+  // Aina comes as her CV file (read like an upload), so her skills-only example is left out here.
+  const samples = STATE.examples.filter((e) => e.id !== "aina").map((e) => `<button class="sample" type="button" data-global="example" data-id="${esc(e.id)}">
+      <span>${esc(e.name)}<small>${esc(e.headline)} · skills only, no CV read</small></span><span class="synthetic">Synthetic</span></button>`).join("");
+  const drop = GATE.busy
+    ? `<div class="gdrop is-busy" aria-busy="true"><span class="gdrop__icon">${ICON.file}</span>
+        <div><strong>Reading ${esc(GATE.busy)}…</strong><p>Quoting the sentence behind each skill.</p></div></div>`
+    : `<div class="gdrop" data-gdrop>
+        <span class="gdrop__icon">${ICON.up}</span>
+        <div><strong>Drop your CV here</strong><p>PDF, Word, OpenDocument, RTF, HTML or text · up to 5 MB and 4 pages</p></div>
+        <button class="btn btn--primary" type="button" data-global="gate-choose">Choose a file</button>
+      </div>`;
+  return `<div class="sheet sheet--cv" role="dialog" aria-modal="true" aria-labelledby="gate-h">
     <div class="sheet__head"><h2 id="gate-h">Start with your CV</h2><p>Every match, gap and task is built from it. You can replace it later.</p></div>
     <div class="sheet__body">
-      <a class="btn btn--primary" href="#/profile">Upload my CV</a>
-      ${samples ? `<div class="or">or use a sample CV</div><div class="samples">${samples}</div>` : ""}
+      ${drop}
+      ${GATE.error ? `<p class="gerr" role="alert">${esc(GATE.error)}</p>` : ""}
+      <label class="gconsent"><input type="checkbox" data-gate-consent${GATE.consent ? " checked" : ""}${GATE.busy ? " disabled" : ""}>
+        <span>I use a sample CV, not a real person's. The text goes to Anthropic for reading. <a href="privacy.html" target="_blank" rel="noopener">Privacy notice</a><small>The file is read, not stored. Only the skills you save are kept.</small></span></label>
+      <input type="file" accept=".pdf,.docx,.odt,.rtf,.html,.htm,.txt,.md" hidden data-gate-file>
+      <div class="or">or use a sample</div>
+      <div class="samples">
+        <button class="sample" type="button" data-global="gate-sample"${GATE.busy ? " disabled" : ""}><span>Aina (synthetic)<small>Junior Python developer · her CV is read like an upload, so you see each quote</small></span><span class="synthetic">Synthetic</span></button>
+        ${samples}
+      </div>
     </div></div>`;
+}
+
+/* Read a CV from the pop-up. Errors stay in the pop-up; success hands the review to CV & routes. */
+async function gateRead(name, body) {
+  GATE.busy = name;
+  GATE.error = "";
+  syncShell(currentScreen());
+  try {
+    STATE.review = await api("/api/cv/extract", { method: "POST", body: JSON.stringify(body) });
+  } catch (err) {
+    GATE.busy = "";
+    GATE.error = errText(err);
+    syncShell(currentScreen());
+    return;
+  }
+  GATE.busy = "";
+  STATE.keep = new Set(STATE.review.rows.filter((r) => r.default_keep).map((r) => r.skill_id));
+  STATE.cv = "review";
+  location.hash = "#/profile";
+  toast("CV read. Check each skill against its quote, then save.");
+}
+function gateFile(file) {
+  if (!file || GATE.busy) return;
+  const fail = (m) => { GATE.error = m; syncShell(currentScreen()); };
+  if (!GATE.consent) return fail("Tick the box first: use a sample CV, not a real person's.");
+  if (!/\.(pdf|docx|odt|rtf|html?|txt|md)$/i.test(file.name)) return fail(`“${file.name}” is not a supported file type. Export your CV as a PDF and try again.`);
+  if (file.size > 5 * 1024 * 1024) return fail(`“${file.name}” is larger than 5 MB. Try a smaller file.`);
+  const reader = new FileReader();
+  reader.onload = () => gateRead(file.name, { file_name: file.name, file_b64: String(reader.result).split(",")[1] || "" });
+  reader.onerror = () => fail(`“${file.name}” could not be opened. Try again.`);
+  reader.readAsDataURL(file);
+}
+{
+  const gate = document.querySelector("[data-gate]");  // the pop-up host stays; its inside is redrawn, so listen here
+  gate.addEventListener("change", (e) => {
+    if (e.target.matches("[data-gate-consent]")) { GATE.consent = e.target.checked; if (GATE.consent && /Tick the box/.test(GATE.error)) { GATE.error = ""; syncShell(currentScreen()); } }
+    else if (e.target.matches("[data-gate-file]")) gateFile(e.target.files[0]);
+  });
+  gate.addEventListener("dragover", (e) => { const d = e.target.closest("[data-gdrop]"); if (d) { e.preventDefault(); d.classList.add("is-over"); } });
+  gate.addEventListener("dragleave", (e) => { const d = e.target.closest("[data-gdrop]"); if (d) d.classList.remove("is-over"); });
+  gate.addEventListener("drop", (e) => { const d = e.target.closest("[data-gdrop]"); if (d) { e.preventDefault(); gateFile(e.dataTransfer.files[0]); } });
 }
 
 function navigate() {
@@ -614,6 +673,11 @@ document.addEventListener("click", async (e) => {
   const act = b.dataset.global;
   if (act === "signin") {
     signIn();
+  } else if (act === "gate-choose") {
+    if (!GATE.consent) { GATE.error = "Tick the box first: use a sample CV, not a real person's."; syncShell(currentScreen()); }
+    else document.querySelector("[data-gate-file]").click();
+  } else if (act === "gate-sample") {
+    gateRead("Aina's sample CV (synthetic)", { sample: "aina" });
   } else if (act === "start") {
     if (ACCOUNT.enabled && !ACCOUNT.signedIn) signIn("/#/today");  // login off (local copies): straight to the CV pop-up
     else location.hash = "#/today";
