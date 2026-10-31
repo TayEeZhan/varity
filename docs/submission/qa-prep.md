@@ -23,7 +23,7 @@ How to use this sheet:
 | 2,580 posts | Single-role posts behind the role profiles | `data/role_profiles.json` |
 | 1 robust, 5 contested categories; 26 of 40 skills contested | Exposure cross-check | `data/exposure_robustness.csv` |
 | -0.79 | Rank correlation of Microsoft's index with the Anthropic index | `data/exposure_agreement.json` |
-| k = 2 (assumed); data says 1.8 per 12 months, 95% interval -1.0 to 2.9 | Fast scenario strength | `data/k_estimate.json` |
+| k = 2 (assumed); data says 1.8 per 12 months, 95% interval -1.0 to 2.9 | "If AI speeds up" scenario strength | `data/k_estimate.json` |
 | 77 resources | Link-checked (HTTP 200 on 22 Oct 2026): 76 free, 1 free trial | `data/resources.json` |
 | 3 of 15 | New-skills radar hits at 2023-06 (base rate 0.30). The radar is in the engine only, not in the app | `docs/skill-discovery.md` |
 | 1,332 | Automated tests collected on 31 Oct 2026: 868 in the root suite and 464 in `backend/signals/`. Collected, not a full pass run. | `pytest --collect-only` |
@@ -54,8 +54,8 @@ Relies on: `data/backtest.json`; `docs/exposure-crosscheck.md`; `docs/pathway.md
 Not well, and we removed it from the app with the Streamlit version. At 2023-06, 3 of its top 15 terms kept growing (0.20, 95% interval 0.07 to 0.45), against a base rate of 0.30 for all candidates. `engine/discover.py` stays as a tool to surface terms for a person to review, and it never adds a skill itself.
 Relies on: `docs/skill-discovery.md` (Backtest); `data/skill_candidates.json`.
 
-**7. What is the Fast scenario, and why does it not reorder the roles?**
-Fast equals Moderate times (1 minus k times e), where e is how far a skill's AI automation share sits above the average and k is 2. Because k is an assumption, the CV & routes screen only adds an estimate of demand change (about -6.1% for Backend Engineer) and never changes the ranking. On the Pathway screen it moves future-bet skills to second place and changes nothing else.
+**7. What is the "If AI speeds up" scenario, and why does it not reorder the roles?**
+On screen the two scenarios are "Expected (estimate)" and "If AI speeds up (estimate)". The API values are `moderate` and `fast`. "If AI speeds up" equals Expected times (1 minus k times e), where e is how far a skill's AI automation share sits above the average and k is 2. Because k is an assumption, the CV & routes screen only adds an estimate of demand change (about -6.1% for Backend Engineer) and never changes the ranking. On the Pathway screen it moves future-bet skills to second place and changes nothing else.
 Relies on: `docs/build-plan.md` P9; `docs/pathway.md` (Order of stages); the route note on the CV & routes screen ("Ranked by the formula").
 
 ## Problem-Solution Fit (25%)
@@ -87,7 +87,7 @@ Relies on: `frontend/index.html` (footer); `docs/pathway.md`; `backend/signals/a
 ## Feasibility of Build (25%)
 
 **14. Why is the k = 2 assumption OK?**
-It is a labelled assumption, not a finding. We tried to measure k: the best estimate is 1.8 per 12 months, with a 95% interval of -1.0 to 2.9, so 2 is inside it and so is 0. The slope changes sign when the AI/ML category is left out, so the data cannot pin k down, and the Skills radar shows the Fast estimate next to the Moderate one, both with their bands (for Python, 25.1% against 26.3%).
+It is a labelled assumption, not a finding. We tried to measure k: the best estimate is 1.8 per 12 months, with a 95% interval of -1.0 to 2.9, so 2 is inside it and so is 0. The slope changes sign when the AI/ML category is left out, so the data cannot pin k down, and the Skills radar shows the "If AI speeds up" estimate next to the Expected one, both with their bands (for Python, 25.1% against 26.3%).
 Relies on: `data/k_estimate.json` (`headline`, `verdict`); `docs/exposure-crosscheck.md` Part B; `data/skill_scores.json` (Python).
 
 **15. What happens if a source goes down?**

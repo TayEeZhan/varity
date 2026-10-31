@@ -44,12 +44,12 @@ Committed snapshot: `data/skill_scores.json` generated 2026-10-21T21:09:03Z, as 
 | CV & routes | Try an example | "Aina (synthetic)": Python, SQL, PostgreSQL, Docker, AWS |
 | CV & routes, route #1 | Backend Engineer | "#1 Backend Engineer"; 66% "match now"; "Strong fit, rising demand"; "Demand: Rising (job forecast, 2026-10)"; 4 skills to learn: Go, Kubernetes, Terraform, Node.js; reason chips with a source and date; an SDG tag; a TalentCorp MyCOL badge (Software Developers, direct) |
 | CV & routes, ranking | order | #1 Backend Engineer (66%), #2 AI/LLM Application Engineer (39%), #3 Data Engineer (51%), #4 Data Scientist (43%), #5 Platform/DevOps Engineer (38%), #6 ML Engineer (24%), #7 Full-stack Web Developer (22%); "Low match, not ranked": Mobile Developer (0%). "Ranked by the formula (match 70% + demand 30%)" when no model is used |
-| CV & routes, Fast | card #1 note | "Fast AI scenario (estimate): about -6.1% role demand vs moderate. Does not change the ranking." The order is the same as above |
+| CV & routes, "If AI speeds up" (API value `fast`) | card #1 note | "If AI speeds up (estimate): about -6.1% role demand vs expected. Does not change the ranking." The order is the same as above |
 | Pathway | Backend Engineer, 5 hours a week | 4 skills, 15 daily tasks, about 7.5 hours. Stage 1 Node.js; stage 2 Go, Kubernetes; stage 3 Terraform (the stage reasons show when you hover a station; confirm in the app) |
 | Pathway, SDG lines | text | "SDG 4.4 ... adds 4 job-listed skills in 7.5 hours (estimate) at RM0 cost using free resources." "SDG 8.5 ... moves you toward Backend Engineer (role demand: Rising, 10.6% ... vs 9.4% ...)" |
 | Today | after the plan loads | "Next stops" with minutes and a reason for each stop; "Download plan (.md)" and "Add to calendar (.ics)" buttons. Progress reads "x of N stops done" (N is the number of stops in the plan), not a percentage of minutes |
 | Job forecast | Backend Engineer row | Rising; 393 posts in the last 12 months vs 366 (10.6% vs 9.4%); share now 10.2%; 12-month estimate 10.4%, band 8.3% to 12.9% |
-| Skills radar, Python | Moderate | 12-month estimate 26.3%, band 22.1% to 30.9%; trend label "No clear change" |
+| Skills radar, Python | Expected (API value `moderate`) | 12-month estimate 26.3%, band 22.1% to 30.9%; trend label "No clear change" |
 | Method, forecast table | test h=12 | naive 1.81, naive3 1.66, drift 2.13, damped 2.27; chosen model naive3 |
 | Method, band | coverage | 93.8% (target 80%), mean width 8.4 pp |
 | Method, label | hit rate | 67.2% (n = 720); Rising 60.5%, Falling 71.9% |
@@ -65,7 +65,7 @@ If the app shows a different value, use the screen as the truth and edit the spo
 The order follows the navigation, so nothing is reset between steps. Start with a fresh private window.
 
 1. Slides 1 to 3 (record separately, 0:00-0:40).
-2. CV & routes: Try an example (Aina), card #1, Fast, back to Moderate (0:40-1:21).
+2. CV & routes: Try an example (Aina), card #1, "If AI speeds up", back to "Expected" (0:40-1:21).
 3. Pathway, then Today: stations, SDG lines, calendar file (1:21-2:05).
 4. Skills radar: Python (2:05-2:20).
 5. Job forecast: Backend Engineer (2:20-2:44).
@@ -93,7 +93,7 @@ Times follow the script. "Hold" is how long the screen stays still while the voi
 | S3 | 1 | 0:30-0:40 | Slide 3 | Aina and the five boxes; the word "synthetic" visible | 10 s |
 | D1 | 2 | 0:40-0:48 | App, CV & routes | Press "Try an example", then Aina (synthetic); the skills list is visible | 3 s |
 | D2 | 2 | 0:48-1:02 | Route #1 | Point at the match (66%), the gap chips and the Demand line; hover one reason chip | 4 s on the match |
-| D3 | 2 | 1:02-1:21 | AI scenario switch and route #1 | Press "Fast"; point at the estimate note; press "Moderate" | 5 s on the note |
+| D3 | 2 | 1:02-1:21 | AI scenario switch and route #1 | Press "If AI speeds up (estimate)"; point at the estimate note; press "Expected (estimate)" | 5 s on the note |
 | D4 | 3 | 1:21-1:31 | Pathway | Open Pathway; the route map is visible | 2 s |
 | D5 | 3 | 1:31-1:49 | Pathway, route map | Hover the stations for Node.js, Go, Kubernetes and Terraform | 3 s per station |
 | D6 | 3 | 1:49-2:05 | SDG lines, Today | Scroll to the two SDG sentences; open Today; press "Add to calendar (.ics)" | 3 s on the SDG lines |

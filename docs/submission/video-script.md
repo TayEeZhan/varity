@@ -31,7 +31,7 @@ Let's see it live on Replit, with a synthetic CV.
 - **Untick one skill, save.** "I stay in charge: I untick anything wrong."
 - **Scroll the job suggestions.** "These job suggestions are ranked by an AI advisor using our data: my match score, demand trends and my skills gap. The AI can only move a role two places, and every reason shows its source and date. Here: [X]% match, what I already have, and what I'm missing."
 - **Open "Destination", pick a role.** "But I don't have to take the AI's advice. I can pick any role I want myself, and it's pinned on top with its own plan."
-- **Flip Moderate → Fast.** "And two scenarios, not one guess: Fast AI disruption adds a labelled estimate."
+- **Flip Expected → If AI speeds up.** "And two scenarios, not one guess: 'If AI speeds up' adds a labelled estimate."
 
 **Slide 7 → browser · Demo 2: job forecast (2:30–3:05)**
 - **Open Job forecast.** "This is the job forecast. For each of eight tech roles: its share of hiring posts today, a forecast twelve months ahead with its range, and a Rising or Falling label."

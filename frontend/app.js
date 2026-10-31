@@ -53,9 +53,15 @@ function currentScreen() {
   const r = location.hash.replace(/^#\/?/, "").split("?")[0];
   if (r === "" && location.hash.startsWith("#/")) return "home";
   if (r === "flow") return "how";  // old Flow map links
-  if (SCREENS[r]) return r;
+  if (SCREENS[r]) return needsSignIn(r) ? "home" : r;
   return hasKey() ? DEFAULT_SCREEN : "home";
 }
+
+/* With login on, the app screens need an account; the landing, How it works and the two evidence pages it links to
+   stay open. With login off (local copies, the backup demo) nothing is locked. */
+const PUBLIC_SCREENS = new Set(["home", "how", "radar", "method"]);
+const needsSignIn = (screen) => ACCOUNT.loaded && ACCOUNT.enabled && !ACCOUNT.signedIn && !PUBLIC_SCREENS.has(screen);
+const hashScreen = () => location.hash.replace(/^#\/?/, "").split("?")[0];
 let shownScreen = "";
 
 /* Draw the current screen into a fresh <main> (dropping old listeners).
@@ -84,6 +90,7 @@ function syncShell(screen) {
   const inApp = hasKey();
   document.querySelector('[data-nav="out"]').hidden = inApp;
   document.querySelector('[data-nav="in"]').hidden = !inApp;
+  if (document.querySelector("[data-acct] [data-out-only]")) document.querySelector("[data-acct]").hidden = inApp;
   document.body.classList.toggle("is-cvpop", screen === "cv");
   const behind = document.querySelector("[data-cvpop-behind]");
   if (screen === "cv" && behind.hidden) { behind.innerHTML = renderProfile().html; behind.hidden = false; }
@@ -99,7 +106,8 @@ function syncShell(screen) {
   } else if (!gate.hidden) { gate.hidden = true; gate.innerHTML = ""; }
 }
 
-/* CV first. No close button, but Upload goes to CV & routes (its upload and review flow), so a failed file never traps anyone. */
+/* CV first, no Close: the user uploads a CV or picks a sample. Upload goes to CV & routes (its upload and
+   review flow); the header Home link still leaves. */
 function gateHtml() {
   const samples = STATE.examples.map((e) => `<button class="sample" type="button" data-global="example" data-id="${esc(e.id)}">
       <span>${esc(e.name)}<small>${esc(e.headline)}</small></span><span class="synthetic">Synthetic</span></button>`).join("");
@@ -112,6 +120,11 @@ function gateHtml() {
 }
 
 function navigate() {
+  const asked = hashScreen();
+  if (SCREENS[asked] && needsSignIn(asked)) {
+    history.replaceState(null, "", "#/");
+    toast(`Sign in to open ${TITLES[asked]}: press Get started.`);
+  }
   const screen = currentScreen();
   document.querySelectorAll(".tabs a").forEach((a) => {
     if (a.dataset.route === screen) {
@@ -675,10 +688,14 @@ function accountChip() {
 function renderAcct() {
   const host = document.querySelector("[data-acct]");
   if (!host) return;
-  host.hidden = !ACCOUNT.enabled;
-  if (!ACCOUNT.enabled) { host.innerHTML = ""; return; }
+  host.hidden = false;
+  if (!ACCOUNT.enabled) {  // login off (local copies): Sign in opens the CV pop-up, like Get started
+    host.innerHTML = `<button type="button" class="acct__in" data-global="start" data-out-only>Sign in</button>`;
+    host.hidden = hasKey();
+    return;
+  }
   if (!ACCOUNT.signedIn) {
-    host.innerHTML = `<button type="button" class="acct__in" data-global="signin">Sign in</button>`;
+    host.innerHTML = `<button type="button" class="acct__in" data-global="start">Sign in</button>`;  // then Today, or the CV pop-up
     return;
   }
   const u = ACCOUNT.user || {};
@@ -720,10 +737,13 @@ const loginFailed = /\?login=failed/.test(location.hash);
 if (loginFailed) history.replaceState(null, "", location.pathname + location.search + location.hash.replace(/\?login=failed/, ""));
 
 window.addEventListener("hashchange", navigate);
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && currentScreen() === "cv") location.hash = "#/profile"; });
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (currentScreen() === "cv") location.hash = "#/profile";
+});
 STATE.loading = profileToken() ? "profile" : "";
 /* Bare URL and no browser token: an account may still hold a profile (Today, not the landing), so draw nothing until /api/me answers. */
-const waitForMe = !location.hash && !profileToken();
+const waitForMe = (!location.hash && !profileToken()) || !PUBLIC_SCREENS.has(hashScreen() || "home");  // an app screen: check sign-in first
 if (!waitForMe) navigate();  // draw at once; the data arrives below
 if (loginFailed) toast("Sign-in did not finish. Try again.");
 loadMine();

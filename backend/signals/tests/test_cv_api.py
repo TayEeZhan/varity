@@ -119,3 +119,9 @@ def test_rate_limit_uses_the_forwarded_address(client):
 def test_cv_reading_is_rate_limited(client):
     statuses = [extract(client, text="Python", use_ai=False).status_code for _ in range(7)]
     assert statuses[:6] == [200] * 6 and statuses[6] == 429
+
+
+def test_extract_rejects_text_that_is_not_a_cv(client):
+    response = client.post("/api/cv/extract", json={"text": "Mix the flour and sugar, then bake for 20 minutes.", "use_ai": False})
+    assert response.status_code == 422
+    assert response.json()["meta"]["code"] == "NOT_CV"

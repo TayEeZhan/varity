@@ -151,7 +151,6 @@ function renderToday() {
   const pct = allTasks.length ? Math.round((tasksDone / allTasks.length) * 100) : 100;  // a stop spans several days, so the bar counts tasks
   const used = ["apps", "guard", "serve"].filter((l) => PATHWAY.some((p) => p.line === l));
   const coming = PATHWAY.filter((p) => p.status === "next" && !tasks.some((t) => t.station === p.id)).slice(0, 4);
-  const gtasksOn = !!ACCOUNT.googleClientId && tasks.length > 0;
   const title = !TODAY.day ? "Today" : TODAY.day === todayIso() ? `Today, ${TODAY.date}` : `Next stop, ${TODAY.date}`;
   const lede = TODAY.day
     ? `${tasks.length} stop${tasks.length === 1 ? "" : "s"}, ${mins} minutes, from your pathway. Each one says why it is on your list.`
@@ -181,11 +180,10 @@ function renderToday() {
           <p>Mark a skill as learned only when you can use it on real work. It then joins your profile, leaves your plan and your match goes up.</p>
           <ul class="next-list">${finished.map((s) => `<li><span>${esc(s.skill)}</span><button class="btn" type="button" data-act="learned" data-skill="${esc(s.skill)}">Mark as learned</button></li>`).join("")}</ul></section>` : ""}
         <section class="panel"><h2>Take it with you</h2>
-          <p>Download the plan or add its tasks to your calendar.${gtasksOn ? " Google Tasks gets today's stops only when you press its button, straight from your browser." : " Nothing is sent anywhere."}</p>
+          <p>Download the plan or add its tasks to your calendar. Nothing is sent anywhere.</p>
           <p><button class="btn" type="button" data-global="download-md">Download plan (.md)</button>
           <button class="btn" type="button" data-global="download-ics">Add to calendar (.ics)</button></p>
-      <p><a class="btn btn--primary" href="#/cv">Open CV builder</a></p>
-          ${gtasksOn ? `<p><button class="btn" type="button" data-global="gtasks"${GTASKS.busy ? " disabled" : ""}>${GTASKS.busy ? "Sending to Google Tasks…" : "Send today to Google Tasks"}</button></p>` : ""}</section>
+      <p><a class="btn btn--primary" href="#/cv">Open CV builder</a></p></section>
         <section class="panel"><h2>Coming up</h2>
           <ul class="next-list">${coming.map((p) => `<li>${bullet(p.line, true)}<span>${esc(p.title)}</span><span>Wk ${esc(p.week)}</span></li>`).join("")}</ul>
           <p style="margin-top:10px"><a href="#/pathway">See the whole route</a></p>
@@ -194,7 +192,6 @@ function renderToday() {
     </div>`;
 
   const bind = (root) => {
-    if (gtasksOn) loadGis().catch(() => {});  // loaded early so the Google popup opens inside the click
     const strip = root.querySelector("[data-strip]");
     if (strip && strip.scrollWidth > strip.clientWidth) {
       const idx = PATHWAY.findIndex((p) => p.status === "current");
@@ -393,7 +390,7 @@ const dosmPct = (p) => (p === null || p === undefined ? "" : ` (${p >= 0 ? "+" :
 function malaysiaLine() {
   const m = STATE.malaysia;
   if (!m || !m.ict) return "";
-  return `<p class="route-note">Malaysia check (DOSM, official online vacancies): ${esc(m.ict.label)} sector ${Number(m.ict.vacancies).toLocaleString("en-GB")} in ${esc(dosmQuarter(m.ict.quarter))}${esc(dosmPct(m.ict.vsYearAgoPct))}. ${esc(m.note)} HN = global tech hiring sample. <a href="${esc(m.sourceUrl)}" target="_blank" rel="noopener">Source</a></p>`;
+  return `<p class="route-note">Malaysia check (DOSM, official online vacancies): ${esc(m.ict.label)} sector ${Number(m.ict.vacancies).toLocaleString("en-GB")} in ${esc(dosmQuarter(m.ict.quarter))}${esc(dosmPct(m.ict.vsYearAgoPct))}. ${esc(m.note)} HN = global tech hiring sample. <a href="${esc(m.sourceUrl)}" target="_blank" rel="noopener">Data source: Department of Statistics Malaysia</a></p>`;
 }
 
 function liveRoutes() {

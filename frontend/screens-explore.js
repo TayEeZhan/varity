@@ -10,21 +10,31 @@ const FILTERS = [
   { id: "models", label: "Model releases", match: (s) => s.category === "Model release" },
 ];
 
+/* Story type → line letter and colour (styles.css .cat--*). The key sits above the board so the letters are explained first. */
+const CATS = [{ k: "S", name: "Security", match: (c) => c === "Security incident" }, { k: "R", name: "Research", match: (c) => c === "Research" },
+  { k: "P", name: "Products", match: (c) => c === "Product feature" }, { k: "M", name: "Model releases", match: (c) => c === "Model release" },
+  { k: "A", name: "APIs & policy", match: (c) => /API|Policy/.test(c) }];
+const catOf = (c) => (CATS.find((x) => x.match(c)) || CATS[1]).k;
+const catBullet = (c) => `<i class="cat cat--${catOf(c)}" aria-hidden="true">${catOf(c)}</i>`;
+
+/* Highest score first; the rank is the place in that order, kept when a filter hides some stories. */
+const rankedStories = () => STORIES.slice().sort((a, b) => b.score - a.score).map((s, i) => ({ ...s, place: i + 1 }));
+
 function noticesHTML() {
   const f = FILTERS.find((x) => x.id === STATE.filter);
-  const list = STORIES.filter(f.match);
+  const list = rankedStories().filter(f.match);
   if (!list.length) {
     return `<p class="empty">No ${f.label.toLowerCase()} in today's top 10. Lower-ranked stories are still tracked; this view only shows what is worth your time today.</p>`;
   }
-  const max = STORIES[0].score;
-  return list.map((s) => `<article class="notice">
-      <div class="notice__rank">${s.rank}</div>
+  return list.map((s) => `<article class="brow">
+      <div class="rank">${s.place}</div>
+      <div>${catBullet(s.category)}</div>
       <div>
-        <div class="notice__title"><a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener">${esc(s.title)}</a></div>
-        <div class="notice__meta">${esc(s.category)} · ${s.sources.map(esc).join(" + ")} · first seen ${esc(s.date)}</div>
-        <div class="notice__why">Ranks here because: ${s.why.map(esc).join(" · ")}</div>
+        <div class="t"><a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener">${esc(s.title)}</a></div>
+        <div class="m">${esc(s.category)} · ${s.sources.map(esc).join(" + ")} · first seen ${esc(s.date)}</div>
+        <div class="m"><b>Ranks here because:</b> ${s.why.map(esc).join(" · ")}</div>
       </div>
-      <div class="notice__score">${s.score.toFixed(1)}<small>score</small><i style="width:${Math.round((s.score / max) * 100)}%"></i></div>
+      <div class="score r">${s.score.toFixed(1)}<small>score</small></div>
     </article>`).join("");
 }
 
@@ -33,28 +43,35 @@ function renderSignals() {
   // momentum = (this week − usual) ÷ usual, with usual floored at 1; under 1 mention a week a % would mislead, so say "New".
   const change = (s, usual) => usual < 1 ? (s.weekly[4] ? "New" : "–")
     : `${s.momentum >= 0 ? "+" : "−"}${Math.round(Math.abs(s.momentum) * 100).toLocaleString()}%`;
+  // Green = more than usual, red = fewer; "New" counts as up.
+  const dir = (s, usual) => (usual < 1 ? s.weekly[4] > 0 : s.momentum > 0) ? "up" : usual >= 1 && s.momentum < 0 ? "down" : "flat";
   const rows = skills.map((s) => {
     const usual = s.weekly.slice(0, 4).reduce((a, b) => a + b, 0) / 4;
-    return `<tr><td>${esc(s.skill)}</td><td class="num">${s.weekly[4]}</td><td class="num">${usual.toFixed(1)}</td><td class="num">${change(s, usual)}</td></tr>`;
+    return `<div class="brow" role="row"><div class="t" role="cell">${esc(s.skill)}</div><div class="num" role="cell">${s.weekly[4]}</div><div class="num usual" role="cell">${usual.toFixed(1)}</div><div role="cell"><span class="flap flap--${dir(s, usual)}">${change(s, usual)}</span></div></div>`;
   }).join("");
 
   const html = `
     ${head("Signals", "What moved in AI and dev tooling this week, ranked by a fixed formula from dated, named sources. Every rank shows its reasons.", (STATE.signalsLive ? real : snapshot)(`${STATE.signalsLive ? "Real data" : "Offline snapshot"} · ${SIGNAL_RUN.storyCount} stories · ${SIGNAL_RUN.generatedAt}`))}
     <div class="signals-grid">
-      <section aria-labelledby="sm-h">
-        <h2 class="sec" id="sm-h">Skill momentum <small>Mentions per week, last 5 weeks</small></h2>
-        <table class="ridership">
-          <thead><tr><th scope="col">Skill</th><th scope="col" class="num">This week</th><th scope="col" class="num">Usual week</th><th scope="col" class="num">Change</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <p class="method">Counts are news mentions. "Usual week" is the average of the 4 weeks before this one. "Change" compares this week with that average. "New" means the skill had under 1 mention a week before, so a percentage would mislead. Rows are sorted by change.</p>
+      <section>
+        <div class="board board--skills" role="table" aria-labelledby="sm-h">
+          <div class="board__title"><h2 id="sm-h">Skills in the news</h2><small>this week vs a usual week</small></div>
+          <div class="brow brow--head" role="row"><span role="columnheader">Skill</span><span role="columnheader">Now</span><span class="usual" role="columnheader">Usual</span><span role="columnheader">Change</span></div>
+          ${rows}
+        </div>
+        <p class="board-foot">Counts are news mentions. "Usual" is the average of the 4 weeks before this one. "Change" compares this week with that average: green is up, red is down. "New" means the skill had under 1 mention a week before, so a percentage would mislead.</p>
       </section>
       <section aria-labelledby="sn-h">
-        <h2 class="sec" id="sn-h">Service notices <small>Top 10 of ${SIGNAL_RUN.storyCount}</small></h2>
-        <div class="filters" role="group" aria-label="Filter notices">
+        <p class="cat-key"><b>Story type:</b>${CATS.map((c) => `<span><i class="cat cat--${c.k}" aria-hidden="true">${c.k}</i>${esc(c.name)}</span>`).join("")}</p>
+        <div class="filters" role="group" aria-label="Filter stories">
           ${FILTERS.map((f) => `<button class="filter" data-filter="${f.id}" aria-pressed="${STATE.filter === f.id}">${f.label}</button>`).join("")}
         </div>
-        <div data-notices>${noticesHTML()}</div>
+        <div class="board board--news">
+          <div class="board__title"><h2 id="sn-h">Top AI news</h2><small>top ${STORIES.length} of ${SIGNAL_RUN.storyCount} · highest score first</small></div>
+          <div class="brow brow--head"><span>#</span><span></span><span>Story</span><span class="r">Score</span></div>
+          <div data-notices>${noticesHTML()}</div>
+        </div>
+        <p class="board-foot">Each score comes from the trend layer's fixed formula; "Ranks here because" lists what raised it. Ranked by ${esc(SIGNAL_RUN.rankedBy || "deterministic formula")}.</p>
       </section>
     </div>`;
 
@@ -71,7 +88,6 @@ function renderSignals() {
 /* ── Job forecast ──────────────────────────────────────────────── */
 /* Data: FORECAST = data/role_forecast.json (engine/role_forecast.py), live from GET /api/roles/forecast. */
 const TREND_ORDER = { Rising: 0, "No clear change": 1, Falling: 2 };
-const TREND_CLASS = { Rising: "up", Falling: "down" };
 const pct = (v) => `${(v * 100).toFixed(1)}%`;
 // " · updated <date> · <n> posts so far" when the backend served the daily-refresh snapshot.
 const refreshedText = () => {
@@ -119,30 +135,22 @@ function renderForecast() {
     .sort((a, b) => (TREND_ORDER[a.trend.label] ?? 1) - (TREND_ORDER[b.trend.label] ?? 1) || b.share_now.value - a.share_now.value);
   const skipped = [...roles.filter((r) => !ok.includes(r)).map((r) => ({ name: r.name, reason: r.note || "No forecast for this month" })),
     ...(FORECAST.excluded_roles || []).map((r) => ({ name: r.name, reason: r.reason }))];
-  // One shared axis from 0 to just past the widest range, rounded up to a whole percent.
-  const top = Math.ceil(Math.max(0.01, ...ok.map((r) => r.forecast_moderate.high)) * 100) / 100;
-  const pos = (v) => (Math.max(0, Math.min(top, v)) / top) * 100;
-  const step = top > 0.1 ? 0.05 : 0.02;
-  const ticks = Array.from({ length: Math.floor(top / step + 1e-9) + 1 }, (_, i) => i * step);
   const band = FORECAST.interval ? FORECAST.interval.label : "range";
   const hnLinks = (r) => (r.sources || []).filter((s) => /^https?:\/\//i.test(s.url))
     .map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.date)}</a>`).join(" · ");
+  const PLATE = { Rising: ["up", "Growing"], Falling: ["down", "Shrinking"] };
 
+  // One departure-board row per role: the evidence line under the name keeps every number the old chart showed.
   const rowHTML = (r) => {
-    const f = r.forecast_moderate, t = r.trend, cls = TREND_CLASS[t.label] || "";
+    const f = r.forecast_moderate, t = r.trend, [cls, word] = PLATE[t.label] || ["flat", "Steady"];
     const fast = r.forecast_fast && r.forecast_fast.value_12m != null ? r.forecast_fast.value_12m : null;
     const ch = changes[r.id];
-    const moved = ch ? `<br><small>Since ${esc(ch.since)}: ${pct(ch.share_now_from)} → ${pct(ch.share_now_to)} of posts</small>` : "";
-    return `<div class="fc__row">
-      <div class="fc__role">${esc(r.name)}<small class="trend ${cls}">${esc(t.label)}</small>${r.declining ? `<small class="trend down" title="Falling, and most of its skill weight is in falling skills">Declining in this sample</small>` : ""}</div>
-      <div class="fc__track" role="img" aria-label="${esc(r.name)}: ${pct(r.share_now.value)} of hiring posts now; in 12 months ${pct(f.value_12m)}, ${esc(band)} ${pct(f.low)} to ${pct(f.high)}; ${esc(t.label)}">
-        <span class="fc__band" style="left:${pos(f.low)}%;width:${pos(f.high) - pos(f.low)}%"></span>
-        <span class="fc__bar ${cls}" style="left:calc(${pos(f.value_12m)}% - 5px);width:10px"></span>
-        <span class="fc__other" style="left:calc(${pos(r.share_now.value)}% - 1px)"></span>
-      </div>
-      <div class="fc__val ${cls}">${pct(r.share_now.value)}</div>
-      <div class="fc__drv"><b>${t.mentions_last12}</b> posts in the last 12 months vs <b>${t.mentions_prev12}</b> the 12 before
-        (${pct(t.share_last12)} vs ${pct(t.share_prev12)} of posts)${fast != null ? `<br><small>If AI speeds up, in 12 months: ${pct(fast)} (estimate)</small>` : ""}${moved}<br><small>HN threads: ${hnLinks(r) || "none"}</small></div>
+    return `<div class="brow">
+      <div><div class="t">${esc(r.name)}</div>
+        <div class="m"><b>${t.mentions_last12}</b> posts in the last 12 months vs <b>${t.mentions_prev12}</b> the 12 before (${pct(t.share_last12)} vs ${pct(t.share_prev12)} of posts).${r.declining ? " <b>Declining in this sample:</b> falling, and most of its skill weight is in falling skills." : ""}${fast != null ? ` If AI speeds up, in 12 months: ${pct(fast)} (estimate).` : ""}${ch ? ` Since ${esc(ch.since)}: ${pct(ch.share_now_from)} → ${pct(ch.share_now_to)}.` : ""} HN threads: ${hnLinks(r) || "none"}</div></div>
+      <div class="num t">${pct(r.share_now.value)}</div>
+      <div class="num hide-sm"><span class="t">${pct(f.value_12m)}</span><div class="m">${pct(f.low)}–${pct(f.high)}</div></div>
+      <div><span class="plate plate--${cls}" title="${esc(t.label)}: last 12 months against the 12 before">${word}</span></div>
     </div>`;
   };
 
@@ -150,16 +158,13 @@ function renderForecast() {
     ${head("Job forecast", "How demand for tech roles may change over the next 12 months, from the share of Hacker News “Who is hiring?” posts that name each role. Ranges are estimates, not counts. Two scenarios exist for routes: the forecast here is the expected one; the “If AI speeds up” scenario is shown on CV &amp; routes, also as an estimate.")}
     <div class="fc-bar-head">
       ${(STATE.forecastLive ? real : snapshot)(`${STATE.forecastLive ? "Real data" : "Offline snapshot"} · HN hiring posts · as of ${(FORECAST.as_of || "?") + (FORECAST.partial_month ? " (month in progress)" : "")}${refreshedText()}`)}
-      <div class="fc-key">
-        <span><i class="k-tick"></i>Share now</span>
-        <span><i class="k-bar"></i>In 12 months</span>
-        <span><i class="k-band"></i>${esc(band)}</span>
-      </div>
     </div>
-    <section class="fc" aria-label="Share of hiring posts by role, now and in 12 months">
-      <div class="fc__axis"><div>Role</div><div class="fc__ticks">${ticks.map((v) => `<span style="left:${pos(v)}%">${Math.round(v * 100)}%</span>`).join("")}</div><div style="text-align:right">Now</div><div>Why</div></div>
-      <div>${ok.map(rowHTML).join("") || `<p class="empty">No role forecast yet. Run engine/role_forecast.py.</p>`}</div>
+    <section class="board board--roles" aria-labelledby="fc-h">
+      <div class="board__title"><h2 id="fc-h">Jobs: the next 12 months</h2><small>share of hiring posts · estimate with an ${esc(band)}</small></div>
+      <div class="brow brow--head"><span>Job</span><span>Now</span><span class="hide-sm">In 12 months</span><span>Trend</span></div>
+      ${ok.map(rowHTML).join("") || `<p class="empty">No role forecast yet. Run engine/role_forecast.py.</p>`}
     </section>
+    <p class="board-foot">Now = share of the last 3 months of posts. In 12 months = the expected value, with the ${esc(band)} below it. Growing / Steady / Shrinking = the last 12 months against the 12 before; Steady means the difference could be noise.</p>
     ${skipped.length ? `<p class="method">Left out: ${skipped.map((s) => `${esc(s.name)} (${esc(s.reason)})`).join("; ")}.</p>` : ""}
     <div class="fc-note">
       <div><h3>What the numbers mean</h3><p>Share of monthly HN hiring posts that name the role (last 3 months), and where that share is expected to be in 12 months. HN is a sample of tech hiring, not a count of jobs.</p></div>

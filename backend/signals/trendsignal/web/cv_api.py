@@ -68,6 +68,10 @@ class ExampleIn(BaseModel):
     id: str = Field(pattern=SKILL_ID_PATTERN)
 
 
+NOT_CV = ("This does not look like a CV: we found no tech skills in it. "
+          "Upload your CV (PDF, Word or text) and try again.")
+
+
 def load_examples() -> list[dict]:
     try:
         return json.loads(EXAMPLES_FILE.read_text(encoding="utf-8"))["profiles"]
@@ -226,6 +230,9 @@ def add_cv_routes(app: FastAPI, settings: Settings) -> None:
                                 llm_label=label, off_reason=off_reason, removed_ids=removed)
         except ReadError as exc:
             return envelope(error=exc.message, status=422, meta={"code": exc.code})
+        # shortcut: "not a CV" means no tech skill or interest found; a tech article still passes.
+        if not result.review.rows and not result.review.interests:
+            return envelope(error=NOT_CV, status=422, meta={"code": "NOT_CV"})
         return envelope({
             "review_id": reviews.put((result.review, result.cv_text)),
             "llm_status": result.llm_status,

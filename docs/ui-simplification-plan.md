@@ -1,6 +1,8 @@
 # UI plan: landing gate, Google sign-in, CV-first onboarding
 
-Status: built 31 Oct 2026 (steps 1–5; step 6 demo docs not yet updated). Upload in the CV pop-up opens CV & routes, which already has the upload and review flow. Risk 1 open: Get started uses Replit login (`/api/login`). Date: 2026-10-31. Preview: `frontend/preview.html`.
+Status: built 31 Oct 2026 (steps 1–5; step 6 demo docs not yet updated). Upload in the CV pop-up opens CV & routes, which already has the upload and review flow. Date: 2026-10-31. Preview: `frontend/preview.html`.
+
+Update 1 Nov 2026 (local, not committed): Risk 1 decided: keep Replit login. Risk 3: the user chose no Close button (31 Oct), so a CV or sample is required. A non-CV upload shows "This does not look like a CV ... try again"; the sample CVs stay in the pop-up. New: with login on, a signed-out visitor who types an app address (for example `#/signals`) goes to the landing with "Sign in to open Signals". The landing, How Varity works, Skills radar and Method stay open. With login off (local copies), nothing is locked, so the backup demo works (risk 2).
 
 ## Goal
 
