@@ -579,6 +579,7 @@ function renderProfile() {
         if (!confirm("Delete your saved profile from Varity's server? This cannot be undone.")) return;
         call("/api/profile", { method: "DELETE" }, () => {
           setProfileToken(null);
+          ACCOUNT.hasProfile = false;
           STATE.saved = null;
           STATE.suggest = null;
           STATE.routeId = null;
