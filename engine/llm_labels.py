@@ -90,6 +90,11 @@ def labeller_name() -> str:
 def model_name() -> str:
     if llm_client.kd_configured():  # KrackedDevs wins when its key is set (tasks/plan-credits.md)
         return f"krackeddevs/{llm_client.label_model()}"
+    return claude_model()
+
+
+def claude_model() -> str:
+    """The Claude model for a direct Anthropic call, even when KrackedDevs labels the posts (the jury's juror)."""
     default = "claude-haiku-4-5" if _replit_route() else "claude-haiku-5-5"  # Replit's model list lags
     return os.environ.get("VERITY_LABEL_MODEL", default)
 
