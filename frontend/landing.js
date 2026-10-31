@@ -76,8 +76,7 @@ function renderLanding() {
       <h1 id="lp-h1">From CV to hired, one stop at a time.</h1>
       <p class="lp-sub">A personal route from the skills you have to the job you want, with free resources where we have them.</p>
       <div class="lp-cta">
-        <a class="btn btn--primary" href="#/profile">Find my jobs</a>
-        <a class="lp-alt" href="#/profile?examples=1">Not ready? Try an example</a>
+        <button class="btn btn--primary" type="button" data-global="start">Get started</button>
       </div>
     </section>
 
@@ -156,6 +155,14 @@ async function bindBoard(root) {
     root.querySelector("[data-asof]").textContent = asOf ? "As of " + asOf : "";
     root.querySelector("#lp-board").hidden = false;
   } catch (e) { /* the board stays hidden */ }
+}
+
+/* The landing's How Varity works tab: the flow map (renamed) followed by the How page, ending on Get started. */
+function renderHowTab() {
+  const flow = renderFlow(), how = renderHow();
+  const html = `${flow.html.replace("How Varity is used", "How Varity works")}${how.html.replace("<h1>How Varity works</h1>", "<h2 class=\"sec\">Under the hood</h2>")}
+    <div class="hw-cta"><p>Sign in with Google, add your CV, and Varity plans your route.</p><button class="btn btn--primary" type="button" data-global="start">Get started</button></div>`;
+  return { html, bind: (root) => { flow.bind(root); how.bind(root); } };
 }
 
 /* ── How Varity works ─────────────────────────────────────────── */

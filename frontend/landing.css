@@ -166,3 +166,34 @@
 .lp-static .lp-halo.s2 { opacity: 1; }
 .lp-static .lp-lbl--n.s2 { opacity: 0; }
 .lp-static .lp-lbl--b.s2 { opacity: 1; }
+
+/* Get started at the end of How Varity works */
+.hw-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 40px; padding-top: 18px; border-top: 3px solid var(--ink); }
+.hw-cta p { color: var(--ink-2); max-width: 52ch; }
+
+/* CV-first pop-up: modal on purpose, the app has nothing to show without a CV */
+.scrim { position: fixed; inset: 0; background: rgba(18, 18, 18, 0.55); display: grid; place-items: center; padding: 16px; z-index: 30; }
+.scrim[hidden] { display: none; }
+.sheet { background: var(--paper); width: min(560px, 100%); border-top: 6px solid var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
+.sheet__head { padding: 22px 24px 16px; border-bottom: 3px solid var(--ink); }
+.sheet__head h2 { font-size: var(--t-xl); font-weight: 800; letter-spacing: -0.02em; }
+.sheet__head p { color: var(--ink-2); margin-top: 6px; }
+.sheet__body { padding: 20px 24px 24px; display: grid; gap: 14px; justify-items: start; }
+.or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: var(--t-sm); font-weight: 600; justify-self: stretch; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+.samples { display: grid; border-top: 1px solid var(--rule); justify-self: stretch; }
+.sample { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 12px 4px; border: 0; border-bottom: 1px solid var(--rule); background: none; text-align: left; font: inherit; font-weight: 700; cursor: pointer; transition: background 150ms; }
+.sample:hover { background: var(--paper-2); }
+.sample small { display: block; color: var(--ink-3); font-size: var(--t-xs); font-weight: 600; }
+
+/* My CV pop-up: <main> itself becomes the sheet, over a still copy of CV & routes */
+.cvpop-behind[hidden] { display: none; }
+.is-cvpop { overflow: hidden; }
+.is-cvpop .cvpop-behind { position: fixed; inset: 0; overflow: hidden; padding: 96px 32px 0; max-width: 1280px; margin: 0 auto; pointer-events: none; }
+.is-cvpop::after { content: ""; position: fixed; inset: 0; background: rgba(18, 18, 18, 0.55); z-index: 25; }
+.is-cvpop #main { position: fixed; z-index: 26; inset: 16px; margin: 0 auto; max-width: 1100px; overflow: auto; background: var(--paper); border-top: 6px solid var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); padding: 16px 24px 32px; }
+.cvpop__bar { position: sticky; top: -16px; display: flex; justify-content: flex-end; background: var(--paper); padding: 8px 0; z-index: 1; }
+@media (max-width: 640px) { .is-cvpop #main { inset: 0; padding: 12px 16px 24px; } }
+
+/* Two header navs (signed out / in): .tabs sets display, so hidden needs saying */
+.tabs[hidden] { display: none; }

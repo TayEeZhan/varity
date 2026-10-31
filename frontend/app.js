@@ -34,8 +34,7 @@ const TARGET = { role: "" };
 
 const SCREENS = {
   home: renderLanding,
-  how: renderHow,
-  flow: renderFlow,
+  how: renderHowTab,
   profile: renderProfile,
   today: renderToday,
   pathway: renderPathway,
@@ -45,7 +44,7 @@ const SCREENS = {
   method: renderMethod,
   cv: renderCv,
 };
-const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method", cv: "My CV" };
+const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method", cv: "My CV" };
 const DEFAULT_SCREEN = "today";
 
 /* An explicit hash wins ("#/" is the landing). With none, a visitor with a saved profile (account or this
@@ -53,6 +52,7 @@ const DEFAULT_SCREEN = "today";
 function currentScreen() {
   const r = location.hash.replace(/^#\/?/, "").split("?")[0];
   if (r === "" && location.hash.startsWith("#/")) return "home";
+  if (r === "flow") return "how";  // old Flow map links
   if (SCREENS[r]) return r;
   return hasKey() ? DEFAULT_SCREEN : "home";
 }
@@ -62,16 +62,53 @@ let shownScreen = "";
    `refocus` is a selector to focus afterwards, so ticking a stop keeps keyboard position. */
 function rerender(refocus) {
   const old = document.getElementById("main");
-  const { html, bind } = SCREENS[currentScreen()]();
+  const screen = currentScreen();
+  const { html, bind } = SCREENS[screen]();
   const fresh = old.cloneNode(false);
-  fresh.innerHTML = html;
+  fresh.innerHTML = screen === "cv" ? `<div class="cvpop__bar"><a class="btn" href="#/profile">Close</a></div>${html}` : html;
   old.replaceWith(fresh);
   bind(fresh);
+  syncShell(screen);
   if (refocus) {
     const el = fresh.querySelector(refocus);
     if (el) el.focus();
   }
   return fresh;
+}
+
+/* Header nav (Home / How before a profile exists, the app tabs after), the CV-first pop-up, and the
+   My CV pop-up. My CV stays its own screen so its redraws keep working; <main> is styled as a sheet
+   over a still copy of CV & routes. */
+const APP_SCREENS = new Set(["today", "pathway", "signals", "forecast", "radar", "method"]);
+function syncShell(screen) {
+  const inApp = hasKey();
+  document.querySelector('[data-nav="out"]').hidden = inApp;
+  document.querySelector('[data-nav="in"]').hidden = !inApp;
+  document.body.classList.toggle("is-cvpop", screen === "cv");
+  const behind = document.querySelector("[data-cvpop-behind]");
+  if (screen === "cv" && behind.hidden) { behind.innerHTML = renderProfile().html; behind.hidden = false; }
+  if (screen !== "cv" && !behind.hidden) { behind.hidden = true; behind.innerHTML = ""; }
+  const gate = document.querySelector("[data-gate]");
+  // Wait for /api/me so a returning account holder never sees the pop-up flash.
+  const show = ACCOUNT.loaded && !inApp && !STATE.loading && APP_SCREENS.has(screen);
+  if (show) {
+    const opening = gate.hidden;
+    gate.innerHTML = gateHtml();
+    gate.hidden = false;
+    if (opening) gate.querySelector("a, button").focus();
+  } else if (!gate.hidden) { gate.hidden = true; gate.innerHTML = ""; }
+}
+
+/* CV first. No close button, but Upload goes to CV & routes (its upload and review flow), so a failed file never traps anyone. */
+function gateHtml() {
+  const samples = STATE.examples.map((e) => `<button class="sample" type="button" data-global="example" data-id="${esc(e.id)}">
+      <span>${esc(e.name)}<small>${esc(e.headline)}</small></span><span class="synthetic">Synthetic</span></button>`).join("");
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="gate-h">
+    <div class="sheet__head"><h2 id="gate-h">Start with your CV</h2><p>Every match, gap and task is built from it. You can replace it later.</p></div>
+    <div class="sheet__body">
+      <a class="btn btn--primary" href="#/profile">Upload my CV</a>
+      ${samples ? `<div class="or">or use a sample CV</div><div class="samples">${samples}</div>` : ""}
+    </div></div>`;
 }
 
 function navigate() {
@@ -563,6 +600,9 @@ document.addEventListener("click", async (e) => {
   const act = b.dataset.global;
   if (act === "signin") {
     signIn();
+  } else if (act === "start") {
+    if (ACCOUNT.enabled && !ACCOUNT.signedIn) signIn("/#/today");  // login off (local copies): straight to the CV pop-up
+    else location.hash = "#/today";
   } else if (act === "retry") {
     loadMine();
   } else if (act === "scenario") {
@@ -604,7 +644,7 @@ document.addEventListener("click", async (e) => {
 });
 
 /* ── Accounts (hidden unless GET /api/me says login is configured) ─────────────── */
-const ACCOUNT = { enabled: false, signedIn: false, user: null, hasProfile: false, googleClientId: "" };
+const ACCOUNT = { loaded: false, enabled: false, signedIn: false, user: null, hasProfile: false, googleClientId: "" };
 /* Is there a saved profile to ask for: the account's, or one this browser holds a token for? */
 const hasKey = () => (ACCOUNT.signedIn ? ACCOUNT.hasProfile : !!profileToken());
 
@@ -614,14 +654,15 @@ async function loadMe() {
     Object.assign(ACCOUNT, { enabled: !!d.enabled, signedIn: !!(d.enabled && d.signedIn), user: d.user || null, hasProfile: !!d.hasProfile,
       googleClientId: d.googleClientId || "" });
   } catch (e) { /* login unavailable: no account UI */ }
+  ACCOUNT.loaded = true;
   renderAcct();
 }
 
-async function signIn() {
+async function signIn(returnTo) {
   try {
     await api("/api/login/prepare", { method: "POST" });
   } catch (e) { toast(errText(e)); return; }
-  const here = location.pathname + location.hash.replace(/\?login=failed/, "");
+  const here = returnTo || location.pathname + location.hash.replace(/\?login=failed/, "");
   location.href = `/api/login?returnTo=${encodeURIComponent(here)}`;
 }
 
@@ -679,6 +720,7 @@ const loginFailed = /\?login=failed/.test(location.hash);
 if (loginFailed) history.replaceState(null, "", location.pathname + location.search + location.hash.replace(/\?login=failed/, ""));
 
 window.addEventListener("hashchange", navigate);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && currentScreen() === "cv") location.hash = "#/profile"; });
 STATE.loading = profileToken() ? "profile" : "";
 /* Bare URL and no browser token: an account may still hold a profile (Today, not the landing), so draw nothing until /api/me answers. */
 const waitForMe = !location.hash && !profileToken();
