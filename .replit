@@ -37,3 +37,7 @@ waitForPort = 8080
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[userenv]
+
+[userenv.shared]
