@@ -724,7 +724,8 @@ document.addEventListener("click", async (e) => {
 /* ── Accounts (hidden unless GET /api/me says login is configured) ─────────────── */
 const ACCOUNT = { loaded: false, enabled: false, signedIn: false, user: null, hasProfile: false, googleClientId: "" };
 /* Is there a saved profile to ask for: the account's, or one this browser holds a token for? */
-const hasKey = () => (ACCOUNT.signedIn ? ACCOUNT.hasProfile : !!profileToken());
+// Signed in: /api/me's answer at load, or a profile saved since (an account save returns no token).
+const hasKey = () => (ACCOUNT.signedIn ? ACCOUNT.hasProfile || !!STATE.saved : !!profileToken());
 
 async function loadMe() {
   try {
