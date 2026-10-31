@@ -100,6 +100,19 @@ function radarTable(d) {
     <tbody>${rows}</tbody></table>`;
 }
 
+/* DOSM quarterly online vacancies in the Information and communication sector: a check on the HN sample, not a per-role number. */
+function malaysiaSeries(m) {
+  if (!m || !m.ict) return "";
+  const pts = m.ict.series, max = Math.max(...pts.map((p) => p.vacancies)), w = 240, h = 48;
+  const xy = pts.map((p, i) => `${(i / Math.max(pts.length - 1, 1) * w).toFixed(1)},${(h - p.vacancies / max * h).toFixed(1)}`).join(" ");
+  const rows = pts.slice(-8).map((p) => `<tr><td>${esc(p.quarter.replace(/^(\d{4})-(Q\d)$/, "$2 $1"))}</td><td>${Number(p.vacancies).toLocaleString("en-GB")}</td></tr>`).join("");
+  return `<section aria-labelledby="ev-my-h"><h2 class="sec" id="ev-my-h">Malaysia check <small>DOSM official online vacancies</small></h2>
+    <p class="method">${esc(m.ict.label)} sector, ${esc(pts[0].quarter)} to ${esc(m.ict.quarter)}. ${esc(m.note)} HN is a global tech hiring sample; this is the Malaysian check.</p>
+    <svg viewBox="0 0 ${w} ${h}" width="240" height="48" role="img" aria-label="Quarterly online vacancies, Information and communication sector"><polyline points="${xy}" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    <table class="ev-table"><thead><tr><th>Quarter</th><th>Vacancies</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="method"><a href="${esc(m.sourceUrl)}" target="_blank" rel="noopener">Source: DOSM Job Market Insights data file</a>, published ${esc(m.published)}.</p></section>`;
+}
+
 function radarBody(d) {
   if (!d.points.length) return `<p class="empty">No skill has enough job posts to place on the radar.</p>`;
   const miss = d.unmapped.length ? `<p class="method">Not on the chart (no matching skill in the data): ${d.unmapped.map(esc).join(", ")}.</p>` : "";
@@ -111,6 +124,7 @@ function radarBody(d) {
     <div class="ev-sentences">${d.sentences.map((s) => `<p>${esc(s)}</p>`).join("")}</div>${noHeld}${miss}
     <p class="method">${esc(d.howToRead)}</p>
     ${d.contestedKnown ? "" : `<p class="method" role="note">The AI-stance cross-check file is missing, so no mark is hollow.</p>`}
+    ${malaysiaSeries(d.malaysia)}
     <h2 class="sec">All skills <small>Same data as the chart</small></h2>${radarTable(d)}
     <p class="method">Source: ${esc(d.source.file)} (${esc(d.source.text)}); stance cross-check: ${esc(d.source.robustness)}. As of ${esc(evAsOf(d))}, generated ${esc(d.generatedAt || "?")}.</p>`;
 }
@@ -249,6 +263,14 @@ function methodBody(d) {
       <p class="method">Full list with dates and licences: data/SOURCES.md.</p></section>` : ""}${miss}`;
 }
 
+/* Fairness check: states what backend/signals/tests/test_fairness.py proves, and its limit. */
+function fairnessBlock() {
+  return `<section class="ev-sec" aria-labelledby="ev-fair"><h2 class="sec" id="ev-fair">Fairness check</h2>
+    <p><strong>Same skills, same result:</strong> a test gives three CVs with the same skills but different names, ages, genders and schools. They get the same routes and match scores (<code>backend/signals/tests/test_fairness.py</code>).</p>
+    <p><strong>Limit:</strong> the job-post data itself may carry hiring bias; we do not correct it.</p>
+    <p><a href="privacy.html">Privacy notice</a></p></section>`;
+}
+
 function renderMethod() {
   const html = `${head("Method", "How the forecast and the AI stance were tested, and where every number comes from. Each figure is read from a file in data/.", `<span id="ev-badge"></span>`)}
     <div id="ev-body" class="ev">${evState("Loading the evidence…", {})}</div>`;
@@ -257,7 +279,7 @@ function renderMethod() {
     api("/api/evidence").then((d) => {
       EV.evidence = d;
       root.querySelector("#ev-badge").innerHTML = real(`Real data · backtests · as of ${esc(d.asOf || "?")}`);
-      body.innerHTML = methodBody(d);
+      body.innerHTML = methodBody(d) + fairnessBlock();
     }).catch((e) => { body.innerHTML = evState("", { error: e instanceof TypeError ? "The server cannot be reached." : e.message }); });
   };
   return { html, bind };

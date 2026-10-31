@@ -20,18 +20,18 @@ How to use this sheet:
 | 67.2% (720 cases) | Rising or Falling label pointed the right way for the next 12 months | `data/backtest.json` |
 | 94 threads, 48,508 posts | Hacker News "Who is hiring?" data, 2019-01 to 2026-10 | `data/hn_threads.csv`, `data/demand_monthly.csv` |
 | 40 skills: 27 ok, 8 low volume, 5 rare | Data-volume status | `data/skill_scores.json` |
-| 2,569 posts | Single-role posts behind the role profiles | `data/role_profiles.json` |
+| 2,580 posts | Single-role posts behind the role profiles | `data/role_profiles.json` |
 | 1 robust, 5 contested categories; 26 of 40 skills contested | Exposure cross-check | `data/exposure_robustness.csv` |
 | -0.79 | Rank correlation of Microsoft's index with the Anthropic index | `data/exposure_agreement.json` |
 | k = 2 (assumed); data says 1.8 per 12 months, 95% interval -1.0 to 2.9 | Fast scenario strength | `data/k_estimate.json` |
 | 77 resources | Link-checked (HTTP 200 on 22 Oct 2026): 76 free, 1 free trial | `data/resources.json` |
 | 3 of 15 | New-skills radar hits at 2023-06 (base rate 0.30). The radar is in the engine only, not in the app | `docs/skill-discovery.md` |
-| Over 700 | Automated tests that passed on 22 Oct, before the Streamlit tests were removed. [TEAM TO FILL: re-run pytest and update the count] | `docs/build-plan.md` |
+| 1,332 | Automated tests collected on 31 Oct 2026: 868 in the root suite and 464 in `backend/signals/`. Collected, not a full pass run. | `pytest --collect-only` |
 
 ## Innovation and Creativity (30%)
 
 **1. Isn't this just a chatbot? Where is the AI?**
-No. Verity has no chatbot. The forecast, role match numbers, pathway dates and SDG parts use no language model, because a language model can invent numbers and the brief forbids invented statistics. The AI there is statistical learning: role profiles learned from 2,569 single-role posts, forecasts with tested bands, and a gradient-boosting model we trained and then rejected. Language models appear in the CV intake, where Claude Haiku 5.5 only points at skill mentions and code checks every quote (see #26), in an optional route advisor that moves a role at most 2 places and writes one checked summary line, and in an optional pathway coach that re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Code checks all of it and takes over when the model is off. Optional Claude use in Sheng Kuan's signal ranker is off by default.
+No. Verity has no chatbot. The forecast, role match numbers, pathway dates and SDG parts use no language model, because a language model can invent numbers and the brief forbids invented statistics. The AI there is statistical learning: role profiles learned from 2,580 single-role posts, forecasts with tested bands, and a gradient-boosting model we trained and then rejected. Language models appear in the CV intake, where Claude Haiku 5.5 only points at skill mentions and code checks every quote (see #26), in an optional route advisor that moves a role at most 2 places and writes one checked summary line, and in an optional pathway coach that re-orders steps within a stage, picks among listed resources and writes one checked "why" line. Code checks all of it and takes over when the model is off. Optional Claude use in Sheng Kuan's signal ranker is off by default.
 Relies on: `backend/signals/advisor/llm.py` (the "at most 2 places" rule); `docs/ml-forecaster.md`; `docs/skill-profile-intake-architecture.md`; `docs/submission/tech-declaration.md` section 4.1.
 
 **2. Why trust a forecast that is basically "no change"?**
@@ -95,7 +95,7 @@ The app reads committed files in `data/`, so a failed Hacker News fetch cannot b
 Relies on: `frontend/data.js`; `docs/replit-schedule.md`; `docs/architecture.md` section 3.13; `BRIEF.md` (final deliverables).
 
 **16. Privacy and PDPA?**
-Sign-in is optional, and the three example profiles are synthetic. A signed-in user's email and name are personal data under the PDPA (question 27). We use synthetic CVs only. CV text goes to Anthropic directly, and code redacts contact details and ID numbers first, but names can remain. We commit only counts and thread links; raw post text stays in gitignored folders on our machines and, during a refresh, in a temporary folder on the Replit server. Tests check that no committed data file holds an email address and that radar output holds no author names. Real CVs would need a PDPA assessment and a retention rule. [TEAM TO FILL: retention rule]
+Sign-in is optional, and the three example profiles are synthetic. A signed-in user's email and name are personal data under the PDPA (question 27). We use synthetic CVs only. CV text goes to Anthropic directly, and code redacts contact details and ID numbers first, but names can remain. We commit only counts and thread links; raw post text stays in gitignored folders on our machines and, during a refresh, in a temporary folder on the Replit server. Tests check that no committed data file holds an email address and that radar output holds no author names. Real CVs would need a PDPA assessment. The retention rule in code: an account with no login for 365 days is deleted, with its profile and cleaned CV text.
 Relies on: `docs/submission/tech-declaration.md` section 6.1; `docs/build-plan.md` P2 and P12; `docs/skill-discovery.md`.
 
 **17. What is your hardest technical risk, and what is the fallback?**
@@ -103,7 +103,7 @@ The hardest risk is forecast skill: 12-month demand is close to no change, and 1
 Relies on: `data/skill_scores.json` (`status`); `docs/build-plan.md` P8.
 
 **18. What is built, and what is only planned?**
-In the Varity app: forecast, bands, trend labels, scenarios, role match with reason chips, the pathway with `.md` and `.ics` export, the Job forecast, Skills radar and Method screens, the AI-signal ranker and the CV intake, with over 700 tests passing on 22 Oct (re-count: the Streamlit tests were removed). Built but not yet tested live: optional Replit sign-in. Not built: Google sign-in and Google Tasks, JobStreet data and a full "what changed" diff. Removed with Streamlit: the in-app Refresh button, the as-of slider and the new-skills radar. The CV intake calls Claude Haiku 5.5 through the Anthropic API. The route advisor was confirmed live on 24 Oct with a synthetic example profile; the CV-intake call is not yet confirmed live. [TEAM TO FILL: update after the first live run]
+In the Varity app: forecast, bands, trend labels, scenarios, role match with reason chips, the pathway with `.md` and `.ics` export, the Job forecast, Skills radar and Method screens, the AI-signal ranker and the CV intake, with 1,332 tests collected on 31 Oct 2026 (868 root, 464 in `backend/signals/`). Built but not yet tested live: optional Replit sign-in. Not built: Google sign-in and Google Tasks, JobStreet data and a full "what changed" diff. Also built: a per-viewer replay of a past month (`?asOf=YYYY-MM`) and a "Fetch latest HN" button (one fetch per 10 minutes for the whole server). Removed with Streamlit: the new-skills radar. The Team (HR) view was built and then removed. The CV intake calls Claude Haiku 5.5 through the Anthropic API. The route advisor was confirmed live on 24 Oct with a synthetic example profile; the CV-intake call is not yet confirmed live. [TEAM TO FILL: update after the first live run]
 Relies on: `docs/architecture.md`; `docs/build-plan.md` (status table, 22 Oct).
 
 **19. What is the stack, which model, and where is Replit?**
@@ -111,7 +111,7 @@ Python 3.12 with FastAPI and uvicorn, serving a static HTML, CSS and JavaScript 
 Relies on: `requirements.txt`, `backend/signals/requirements.txt`; `docs/submission/tech-declaration.md`; `BRIEF.md` (answered 22 Oct).
 
 **20. How do you know the code is correct?**
-Over 700 automated tests passed on 22 Oct (before the Streamlit tests were removed; [TEAM TO FILL: re-count]), including tests that the future cannot leak into a past forecast. The ML experiment has its own leak test: scrambling every month after the origin left the prediction unchanged at 3 test origins. The build plan requires a stronger-model review of each major part before it merges, and the merged work sits in pull requests #1 to #7.
+1,332 automated tests were collected on 31 Oct 2026 (868 root, 464 in `backend/signals/`; a full pass run is not yet re-counted), including tests that the future cannot leak into a past forecast. The ML experiment has its own leak test: scrambling every month after the origin left the prediction unchanged at 3 test origins. The build plan requires a stronger-model review of each major part before it merges, and the merged work sits in pull requests #1 to #7.
 Relies on: `docs/build-plan.md`; `data/ml_backtest.json` (`leak_test`).
 
 ## Clarity of Proposal and integrity (20%)
@@ -142,7 +142,7 @@ CVs are free text, and people name the same skill in many ways. The LLM only poi
 Relies on: `docs/skill-profile-intake-architecture.md` (the LLM contract); `backend/signals/intake/llm_extract.py`.
 
 **27. What personal data do you store?**
-Only if a user chooses to sign in with Replit. Then we store, per account: the Replit user id, email, display name, profile image link, and the created and last-login times. Per profile we store the skill list, the target role and the pathway ticks. We never store the raw CV text or any token. The data sit in Replit PostgreSQL when a database is configured, and in a SQLite file if not. The session is a signed HttpOnly cookie that lasts 30 days. These are personal data under the PDPA. Purpose: keep the user's profile and progress. The user can delete the account and the profile at any time (`DELETE /api/me`). We sell or share none of it. Without sign-in, the whole app still works ("Try an example", or a browser token). A profile made before sign-in moves into the account at first sign-in. Real CVs are still out of scope. Not yet tested on the live Replit app; Replit sign-in only, no Google.
+Only if a user chooses to sign in with Replit. Then we store, per account: the Replit user id, email, display name, profile image link, and the created and last-login times. Per profile we store the skill list, the target role and the pathway ticks. We never store the uploaded CV file or any token. For the CV builder we store the cleaned CV text, with emails, phone numbers and links replaced by placeholders (`owner_cvs`); it is deleted with the profile. Accounts with no login for 365 days are deleted. The privacy page (`frontend/privacy.html`) says the same. The data sit in Replit PostgreSQL when a database is configured, and in a SQLite file if not. The session is a signed HttpOnly cookie that lasts 30 days. These are personal data under the PDPA. Purpose: keep the user's profile and progress. The user can delete the account and the profile at any time (`DELETE /api/me`). We sell or share none of it. Without sign-in, the whole app still works ("Try an example", or a browser token). A profile made before sign-in moves into the account at first sign-in. Real CVs are still out of scope. Not yet tested on the live Replit app; Replit sign-in only, no Google.
 Relies on: `backend/signals/trendsignal/web/auth_api.py`; `backend/signals/trendsignal/web/accounts_store.py`; `docs/submission/tech-declaration.md` section 6.1.
 
 ## Questions to expect that this sheet does not answer

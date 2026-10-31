@@ -386,6 +386,15 @@ function liveRouteRow(r, pinned = false) {
   </div>`;
 }
 
+/* DOSM official online vacancies: the Malaysian check beside the HN sample. Sector level only (DOSM has no job-title split). */
+const dosmQuarter = (q) => String(q).replace(/^(\d{4})-(Q\d)$/, "$2 $1");
+const dosmPct = (p) => (p === null || p === undefined ? "" : ` (${p >= 0 ? "+" : ""}${p}% on a year ago)`);
+function malaysiaLine() {
+  const m = STATE.malaysia;
+  if (!m || !m.ict) return "";
+  return `<p class="route-note">Malaysia check (DOSM, official online vacancies): ${esc(m.ict.label)} sector ${Number(m.ict.vacancies).toLocaleString("en-GB")} in ${esc(dosmQuarter(m.ict.quarter))}${esc(dosmPct(m.ict.vsYearAgoPct))}. ${esc(m.note)} HN = global tech hiring sample. <a href="${esc(m.sourceUrl)}" target="_blank" rel="noopener">Source</a></p>`;
+}
+
 function liveRoutes() {
   const s = STATE.suggest;
   const w = s.formulaWeights;
@@ -403,7 +412,7 @@ function liveRoutes() {
   const unmapped = s.unmappedSkills.length ? `<p class="empty"><b>Not in the job data yet, so not counted:</b> ${s.unmappedSkills.map(esc).join(", ")}</p>` : "";
   const list = others.length ? others.map((r) => liveRouteRow(r)).join("")
     : dest ? "" : `<p class="empty">No role matches your saved skills well yet. Add skills from another CV.</p>`;
-  return `${goalPicker()}${goalNote}<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>
+  return `${goalPicker()}${goalNote}<p class="route-note">${esc(by)}. Skills as of ${esc(s.inputs.skillsAsOf || "–")}, job forecast as of ${esc(s.inputs.forecastAsOf || "–")}. Salary data is not available yet.</p>${malaysiaLine()}
     ${dest ? `${liveRouteRow(dest, true)}${others.length ? `<h3 class="routes-sub">Other routes</h3>` : ""}` : ""}${list}${low}${unmapped}
     ${ranked.length ? `<section class="sdgsec" aria-labelledby="sdg-h"><h2 class="sec" id="sdg-h">Why these jobs matter: SDG and Malaysia links</h2>
       <p class="route-note">Each role is tied to the UN Sustainable Development Goals (SDG) and to Malaysia's list of occupations in short supply (MyCOL). Hover a target to see its source.</p>

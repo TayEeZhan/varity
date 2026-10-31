@@ -93,7 +93,7 @@ def radar_payload(settings: Settings, owner: str | None, data_dir: Path = DATA_D
         "asOf": scores.get("as_of"), "partialMonth": bool(scores.get("partial_month")),
         "generatedAt": scores.get("generated_at"), "dataWindow": scores.get("data_window"),
         "band": {"label": interval.get("label"), "level": interval.get("level"), "model": interval.get("model")},
-        "contestedKnown": contested is not None,
+        "contestedKnown": contested is not None, "malaysia": service.malaysia_meta(),
         "source": {"file": "data/skill_scores.json", "robustness": "data/exposure_robustness.csv",
                    "text": "Hacker News 'Who is hiring?' posts; AI stance from the Anthropic Economic Index"},
     }

@@ -28,6 +28,7 @@ if str(VERITY_ROOT) not in sys.path:
 
 from engine import ledger as ledger_mod
 from engine import live as live_mod  # noqa: E402
+from engine import my_dosm  # noqa: E402
 from engine import pathway as pathway_mod  # noqa: E402
 from engine import roles as roles_mod  # noqa: E402
 from engine import sdg as sdg_mod  # noqa: E402
@@ -108,6 +109,20 @@ def _replayed(as_of: str) -> dict[str, Any]:
         _replay["cache"][as_of] = {"scores": scores_mod.build_scores(as_of=as_of, data_dir=DATA_DIR),
                                    "trends": roles_mod.build_role_trends(rows, roles, as_of=as_of)}
     return _replay["cache"][as_of]
+
+
+def malaysia_meta() -> dict | None:
+    """DOSM online-vacancy check (data/my_vacancies_quarterly.csv, committed). None when the file is missing."""
+    path = DATA_DIR / "my_vacancies_quarterly.csv"
+    try:
+        return _malaysia(str(path), path.stat().st_mtime)
+    except OSError:
+        return None
+
+
+@lru_cache(maxsize=2)
+def _malaysia(path: str, mtime: float) -> dict | None:
+    return my_dosm.summary(my_dosm.read_csv(Path(path)))
 
 
 def data_meta(as_of: str | None = None) -> dict[str, Any]:
