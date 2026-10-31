@@ -10,7 +10,7 @@ Order of trust, per post:
 
 Guards against hallucination and drift
 - Only role ids from roles.json are kept; invented roles are dropped.
-- temperature 0 and a pinned model id (VERITY_LABEL_MODEL, recorded with every label).
+- a pinned model id (VERITY_LABEL_MODEL, recorded with every label). No temperature: anthropic SDK 2.x refuses it.
 - Every quote is checked against the post text (quote_ok).
 - Daily cross-check: the share of posts where Claude and the regex disagree is compared with the share
   measured on the whole history at backfill. If today is more than DRIFT_MAX above it, today's month is
@@ -175,11 +175,11 @@ def claude_call(client=None, model: str | None = None) -> Callable[[str, str], s
 
     def call(system: str, user: str) -> str:
         try:
-            msg = client.messages.create(model=model, max_tokens=4000, temperature=0, system=system,
+            msg = client.messages.create(model=model, max_tokens=4000, system=system,
                                          messages=[{"role": "user", "content": user}])
         except Exception as exc:  # noqa: BLE001
             raise LabellerUnavailable(f"{type(exc).__name__}: {exc}") from exc
-        return "".join(getattr(b, "text", "") for b in msg.content)
+        return "".join(getattr(b, "text", None) or "" for b in msg.content)  # a block without text adds nothing
     return call
 
 

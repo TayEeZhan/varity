@@ -420,7 +420,7 @@ def test_claude_juror_asks_anthropic_for_a_claude_model_when_krackeddevs_is_set(
 
     class FakeMessages:
         def create(self, **kw):
-            seen["model"] = kw["model"]
+            seen.update(kw)
             return type("M", (), {"content": []})()
 
     monkeypatch.setattr(llm_client, "kd_configured", lambda: True)
@@ -429,6 +429,7 @@ def test_claude_juror_asks_anthropic_for_a_claude_model_when_krackeddevs_is_set(
     claude = next(j for j in jury.default_jurors() if j.name == "Claude Haiku")
     claude.call("s", "u")
     assert seen["model"].startswith("claude-")
+    assert "temperature" not in seen                 # anthropic SDK 2.x raises TypeError on it
 
 
 def test_a_silent_juror_shows_the_cause_and_allows_a_recheck_without_new_commits(client, token, wired, monkeypatch):
