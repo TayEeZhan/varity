@@ -262,6 +262,7 @@ function cvPanel() {
       <div class="cvfile__name">${ICON.file}Your saved profile</div>
       <p>${STATE.saved.skills.length} skills · updated ${esc(STATE.saved.updated_at.slice(0, 10))}. ${STATE.saved.account ? "Kept on Varity's server under your account." : "Kept on Varity's server. Only this browser holds the key, so clearing your browser data loses it."}</p>
       ${typeof accountChip === "function" ? accountChip() : ""}
+      <a class="btn" href="#/cv">Generate my CV</a>
       <button class="btn" data-act="cv-replace">Read another CV</button>
       <button class="btn btn--quiet" data-act="profile-delete">Delete my profile</button>
       ${exampleButtons()}
