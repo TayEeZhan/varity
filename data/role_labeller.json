@@ -1,0 +1,8 @@
+{
+  "labeller": "llm",
+  "model": "krackeddevs/deepseek-v4-flash",
+  "backfilled_at": "2026-10-31",
+  "posts": 48491,
+  "baseline_disagree": 0.38842259388340106,
+  "dropped_quotes": 0
+}
