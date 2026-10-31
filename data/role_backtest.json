@@ -11,8 +11,8 @@
     "mobile_developer",
     "platform_devops_engineer"
   ],
-  "sample_note": "Only 8 ranked roles, so 188 role-origin pairs on test and 228 labelled role-origins for the trend label. Roles move together over time and consecutive origins overlap, so the effective sample is much smaller. Rates here are a rough guide, not a validation.",
-  "generated_at": "2026-10-22T18:46:09Z",
+  "sample_note": "Only 8 ranked roles, so 192 role-origin pairs on test and 226 labelled role-origins for the trend label. Roles move together over time and consecutive origins overlap, so the effective sample is much smaller. Rates here are a rough guide, not a validation.",
+  "generated_at": "2026-10-31T11:38:06Z",
   "data_window": {
     "from": "2019-01",
     "to": "2026-10"
@@ -39,89 +39,89 @@
     "ai_app_engineer"
   ],
   "n_role_origin_pairs": {
-    "early": 161,
-    "test": 188,
-    "excluded": 27
+    "early": 162,
+    "test": 192,
+    "excluded": 22
   },
   "models": {
     "naive": {
       "early_mae_pp": {
-        "h1": 1.1195,
-        "h6": 1.4323,
-        "h12": 1.7419,
-        "mean_h1_12": 1.4522
+        "h1": 1.4854,
+        "h6": 1.7758,
+        "h12": 2.4652,
+        "mean_h1_12": 1.9058
       },
       "test_mae_pp": {
-        "h1": 1.1499,
-        "h6": 1.414,
-        "h12": 1.6319,
-        "mean_h1_12": 1.4543
+        "h1": 1.6383,
+        "h6": 2.067,
+        "h12": 2.3115,
+        "mean_h1_12": 2.0326
       },
       "in_production": true
     },
     "naive3": {
       "early_mae_pp": {
-        "h1": 0.9523,
-        "h6": 1.3131,
-        "h12": 1.6386,
-        "mean_h1_12": 1.3305
+        "h1": 1.2792,
+        "h6": 1.6591,
+        "h12": 2.4507,
+        "mean_h1_12": 1.7822
       },
       "test_mae_pp": {
-        "h1": 1.0747,
-        "h6": 1.2617,
-        "h12": 1.604,
-        "mean_h1_12": 1.336
+        "h1": 1.5173,
+        "h6": 1.7713,
+        "h12": 2.1997,
+        "mean_h1_12": 1.8426
       },
       "in_production": true,
       "test_h12_vs_naive": {
-        "test_h12_mae_gain_pp": 0.028,
+        "test_h12_mae_gain_pp": 0.1117,
         "ci95_role_bootstrap": [
-          -0.0926,
-          0.1492
+          0.0097,
+          0.2139
         ]
       }
     },
     "drift": {
       "early_mae_pp": {
-        "h1": 1.1244,
-        "h6": 1.4234,
-        "h12": 1.6513,
-        "mean_h1_12": 1.4256
+        "h1": 1.4888,
+        "h6": 1.8002,
+        "h12": 2.6768,
+        "mean_h1_12": 1.9557
       },
       "test_mae_pp": {
-        "h1": 1.1507,
-        "h6": 1.4584,
-        "h12": 1.7828,
-        "mean_h1_12": 1.4999
+        "h1": 1.6471,
+        "h6": 2.1287,
+        "h12": 2.4797,
+        "mean_h1_12": 2.1068
       },
       "in_production": false,
       "test_h12_vs_naive": {
-        "test_h12_mae_gain_pp": -0.1509,
+        "test_h12_mae_gain_pp": -0.1683,
         "ci95_role_bootstrap": [
-          -0.3588,
-          0.1045
+          -0.3389,
+          -0.0191
         ]
       }
     },
     "damped": {
       "early_mae_pp": {
-        "h1": 1.0129,
-        "h6": 1.418,
-        "h12": 1.7373,
-        "mean_h1_12": 1.4105
+        "h1": 1.333,
+        "h6": 1.9083,
+        "h12": 2.992,
+        "mean_h1_12": 2.0686
       },
       "test_mae_pp": {
-        "h1": 1.1294,
-        "h6": 1.4296,
-        "h12": 1.8639,
-        "mean_h1_12": 1.4854
+        "h1": 1.5208,
+        "h6": 1.8896,
+        "h12": 2.4553,
+        "mean_h1_12": 1.9814
       },
       "in_production": false,
       "test_h12_vs_naive": {
-        "test_h12_mae_gain_pp": -0.232,
+        "test_h12_mae_gain_pp": -0.1439,
         "ci95_role_bootstrap": [
-          -0.5074,
-          0.0242
+          -0.4217,
+          0.0701
         ]
       }
     }
@@ -137,21 +137,21 @@
   "model_choice": {
     "rule": "naive or naive3, lowest mean share-scale |error| at h=12 over origins whose 12-month target is <= the forecast date",
     "scores_at_forecast_date_pp": {
-      "naive": 1.6307,
-      "naive3": 1.5776
+      "naive": 2.2727,
+      "naive3": 2.2236
     },
     "model_used_at_test_origins": {
-      "naive": 0,
-      "naive3": 24
+      "naive": 10,
+      "naive3": 14
     }
   },
   "chosen_model": "naive3",
-  "chosen_because": "naive3 has the lower mean share-scale |error| at h=12 over origins whose 12-month target is <= 2026-10: naive 1.631 pp, naive3 1.578 pp.",
+  "chosen_because": "naive3 has the lower mean share-scale |error| at h=12 over origins whose 12-month target is <= 2026-10: naive 2.273 pp, naive3 2.224 pp.",
   "beats_naive": true,
   "models_beating_naive_on_test_h12": [
     "naive3"
   ],
-  "verdict": "On test origins naive3 beats naive at h=12 (1.604 vs 1.632 pp MAE).",
+  "verdict": "On test origins naive3 beats naive at h=12 (2.200 vs 2.311 pp MAE).",
   "interval": {
     "label": "80% target band",
     "level": 0.8,
@@ -162,156 +162,156 @@
     "window_note": "W=24 set a priori to match the 24-month windows",
     "earliest_supported_as_of": "2023-11",
     "q_by_h_at_forecast_date": [
-      1.24958,
-      1.37539,
-      1.43003,
-      1.457,
-      1.36211,
-      1.31808,
-      1.32336,
-      1.39413,
-      1.56981,
-      1.55204,
-      1.59514,
-      1.54868
+      1.21655,
+      1.30112,
+      1.31491,
+      1.51487,
+      1.46356,
+      1.44939,
+      1.42613,
+      1.52427,
+      1.54922,
+      1.55022,
+      1.66815,
+      1.72992
     ]
   },
   "coverage": {
     "label": "80% target band",
     "nominal": 0.8,
     "evaluation": "TEST origins only. At each test origin the model choice and q use only residuals with target <= that origin.",
-    "test_h12": 0.9362,
-    "test_mean_over_h": 0.8803,
+    "test_h12": 0.901,
+    "test_mean_over_h": 0.8533,
     "test_by_h": [
-      0.8245,
-      0.8138,
-      0.7926,
-      0.8457,
-      0.8723,
-      0.8883,
-      0.9149,
-      0.9149,
-      0.8936,
-      0.9202,
-      0.9468,
-      0.9362
+      0.8281,
+      0.776,
+      0.8073,
+      0.8229,
+      0.8438,
+      0.8646,
+      0.8802,
+      0.875,
+      0.8854,
+      0.8906,
+      0.8646,
+      0.901
     ],
     "by_share_group": {
       "lt_3pct": {
-        "n_role_origins": 41,
-        "h12": 0.9268,
-        "mean_over_h": 0.8476,
-        "mean_band_width_h12_pp": 6.864
+        "n_role_origins": 25,
+        "h12": 0.92,
+        "mean_over_h": 0.9133,
+        "mean_band_width_h12_pp": 4.964
       },
       "3_to_10pct": {
-        "n_role_origins": 111,
-        "h12": 0.964,
-        "mean_over_h": 0.8956,
-        "mean_band_width_h12_pp": 8.677
+        "n_role_origins": 106,
+        "h12": 0.934,
+        "mean_over_h": 0.8719,
+        "mean_band_width_h12_pp": 8.505
       },
       "gt_10pct": {
-        "n_role_origins": 36,
-        "h12": 0.8611,
-        "mean_over_h": 0.8704,
-        "mean_band_width_h12_pp": 9.692
+        "n_role_origins": 61,
+        "h12": 0.8361,
+        "mean_over_h": 0.7964,
+        "mean_band_width_h12_pp": 12.061
       }
     },
     "share_group_definition": "raw share over the 3 months up to the origin: <3%, 3-10%, >10%",
-    "test_mean_band_width_h12_pp": 8.476,
-    "n_role_origins": 188
+    "test_mean_band_width_h12_pp": 9.174,
+    "n_role_origins": 192
   },
   "interval_sensitivity": {
     "note": "Sensitivity only, not used to choose W. W=24 set a priori to match the 24-month windows. Where fewer origins than the window exist, all available origins are used.",
     "W36": {
       "test_by_h": [
-        0.8457,
-        0.8245,
-        0.7979,
-        0.8511,
-        0.8564,
-        0.9043,
-        0.9149,
-        0.8989,
-        0.8723,
-        0.8989,
-        0.9255,
-        0.9309
+        0.8229,
+        0.7448,
+        0.8073,
+        0.8125,
+        0.8177,
+        0.8281,
+        0.8594,
+        0.8542,
+        0.8281,
+        0.8802,
+        0.849,
+        0.8698
       ],
-      "test_mean_over_h": 0.8768,
-      "test_h12": 0.9309,
-      "mean_band_width_h12_pp": 8.291,
-      "n_role_origins": 188
+      "test_mean_over_h": 0.8312,
+      "test_h12": 0.8698,
+      "mean_band_width_h12_pp": 8.623,
+      "n_role_origins": 192
     },
     "all_history": {
       "test_by_h": [
-        0.8245,
-        0.8032,
-        0.7606,
-        0.8298,
-        0.8457,
-        0.8989,
-        0.9096,
-        0.8989,
-        0.867,
-        0.8989,
-        0.9202,
-        0.9255
+        0.8073,
+        0.7396,
+        0.7552,
+        0.7812,
+        0.8125,
+        0.8177,
+        0.849,
+        0.8542,
+        0.8177,
+        0.8646,
+        0.8333,
+        0.849
       ],
-      "test_mean_over_h": 0.8652,
-      "test_h12": 0.9255,
-      "mean_band_width_h12_pp": 8.109,
-      "n_role_origins": 188
+      "test_mean_over_h": 0.8151,
+      "test_h12": 0.849,
+      "mean_band_width_h12_pp": 8.402,
+      "n_role_origins": 192
     },
     "naive3_fixed_W24": {
       "test_by_h": [
-        0.8245,
-        0.8138,
-        0.7926,
-        0.8457,
-        0.8723,
-        0.8883,
-        0.9149,
-        0.9149,
-        0.8936,
-        0.9202,
-        0.9468,
-        0.9362
+        0.8073,
+        0.7917,
+        0.8125,
+        0.8281,
+        0.8438,
+        0.8802,
+        0.8906,
+        0.9062,
+        0.8854,
+        0.8906,
+        0.8854,
+        0.8906
       ],
-      "test_mean_over_h": 0.8803,
-      "test_h12": 0.9362,
-      "mean_band_width_h12_pp": 8.476,
-      "n_role_origins": 188
+      "test_mean_over_h": 0.8594,
+      "test_h12": 0.8906,
+      "mean_band_width_h12_pp": 8.698,
+      "n_role_origins": 192
     },
     "naive_fixed_W24": {
       "test_by_h": [
-        0.8457,
-        0.7979,
-        0.8191,
-        0.8138,
-        0.8617,
-        0.8404,
-        0.8883,
-        0.9149,
-        0.8936,
-        0.8723,
-        0.9096,
-        0.9149
+        0.8125,
+        0.8177,
+        0.8073,
+        0.8385,
+        0.8385,
+        0.8333,
+        0.8542,
+        0.8906,
+        0.8854,
+        0.8802,
+        0.8594,
+        0.9115
       ],
-      "test_mean_over_h": 0.8644,
-      "test_h12": 0.9149,
-      "mean_band_width_h12_pp": 9.112,
-      "n_role_origins": 188
+      "test_mean_over_h": 0.8524,
+      "test_h12": 0.9115,
+      "mean_band_width_h12_pp": 10.095,
+      "n_role_origins": 192
     }
   },
-  "trend_label_hit_rate": 0.693,
+  "trend_label_hit_rate": 0.7212,
   "trend_label_backtest": {
-    "trend_label_hit_rate": 0.693,
-    "n": 228,
-    "n_rising": 77,
-    "n_falling": 151,
-    "hit_rate_rising": 0.6753,
-    "hit_rate_falling": 0.702,
-    "n_no_clear_change": 148,
+    "trend_label_hit_rate": 0.7212,
+    "n": 226,
+    "n_rising": 85,
+    "n_falling": 141,
+    "hit_rate_rising": 0.8471,
+    "hit_rate_falling": 0.6454,
+    "n_no_clear_change": 150,
     "n_unlabelled_under_30_mentions": 0,
     "origins": [
       "2021-12",

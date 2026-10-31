@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-29T10:25:39Z",
+  "generated_at": "2026-10-31T11:38:06Z",
   "as_of": "2026-10",
   "partial_month": true,
   "nowcast": {
     "k": 0.0,
-    "posts_this_month": 266,
+    "posts_this_month": 261,
     "weight": null
   },
   "interval": {
@@ -13,10 +13,10 @@
     "level": 0.8,
     "model": "naive3",
     "window_origins": 24,
-    "q_h12": 1.5486797822399663,
+    "q_h12": 1.7299234536990027,
     "model_scores_h12_pp": {
-      "naive": 1.6307,
-      "naive3": 1.5776
+      "naive": 2.2727,
+      "naive3": 2.2236
     },
     "n_roles_pooled": 8,
     "earliest_supported_as_of": "2023-11"
@@ -49,38 +49,38 @@
       "note": null,
       "ai_exposure_e_r": -0.066502092,
       "forecast_fast": {
-        "value_12m": 0.07419590914101833,
-        "low": 0.05022536817266331,
-        "high": 0.1084606733182664
+        "value_12m": 0.1107840606472392,
+        "low": 0.07406471206690103,
+        "high": 0.16290732207479763
       },
       "declining": false,
       "falling_skill_weight": 0.0,
       "share_now": {
-        "value": 0.06460296096904442,
-        "mentions": 48,
-        "posts": 743,
+        "value": 0.09659863945578231,
+        "mentions": 71,
+        "posts": 735,
         "months": [
           "2026-08",
           "2026-09",
           "2026-10"
         ]
       },
-      "level_now": 0.0654859974824403,
+      "level_now": 0.09777903931133161,
       "forecast_moderate": {
-        "value_12m": 0.0654859974824403,
-        "low": 0.0443293757268802,
-        "high": 0.09572839610825869
+        "value_12m": 0.09777903931133161,
+        "low": 0.06537020172813504,
+        "high": 0.14378351322557661
       },
-      "band_width_pp": 5.139902038137849,
+      "band_width_pp": 7.841331149744157,
       "trend": {
-        "label": "Rising",
-        "p": 0.007728571790836767,
-        "share_last12": 0.06327409800753904,
-        "share_prev12": 0.049565661727133364,
-        "mentions_last12": 235,
-        "posts_last12": 3714,
-        "mentions_prev12": 194,
-        "posts_prev12": 3914
+        "label": "No clear change",
+        "p": 0.3090580562553645,
+        "share_last12": 0.08594594594594594,
+        "share_prev12": 0.07926361544362055,
+        "mentions_last12": 318,
+        "posts_last12": 3700,
+        "mentions_prev12": 310,
+        "posts_prev12": 3911
       },
       "sources": [
         {
@@ -101,7 +101,7 @@
         {
           "name": "Verity role backtest (data/role_backtest.json)",
           "url": "data/role_backtest.json",
-          "date": "2026-10-22"
+          "date": "2026-10-31"
         }
       ],
       "as_of": "2026-10",
@@ -113,38 +113,38 @@
       "note": null,
       "ai_exposure_e_r": 0.030294872653127344,
       "forecast_fast": {
-        "value_12m": 0.09748306870391596,
-        "low": 0.07777622056509437,
-        "high": 0.12147922476743939
+        "value_12m": 0.15875724643679862,
+        "low": 0.10966805509822948,
+        "high": 0.22389051543267718
       },
       "declining": false,
       "falling_skill_weight": 0.0,
       "share_now": {
-        "value": 0.10228802153432032,
-        "mentions": 76,
-        "posts": 743,
+        "value": 0.16870748299319727,
+        "mentions": 124,
+        "posts": 735,
         "months": [
           "2026-08",
           "2026-09",
           "2026-10"
         ]
       },
-      "level_now": 0.10377049666729066,
+      "level_now": 0.1689967143147215,
       "forecast_moderate": {
-        "value_12m": 0.10377049666729066,
-        "low": 0.08279260331307539,
-        "high": 0.129314348188633
+        "value_12m": 0.1689967143147215,
+        "low": 0.11674138593897092,
+        "high": 0.23833092550779866
       },
-      "band_width_pp": 4.65217448755576,
+      "band_width_pp": 12.158953956882774,
       "trend": {
-        "label": "Rising",
-        "p": 0.016783346836068417,
-        "share_last12": 0.10581583198707593,
-        "share_prev12": 0.09351047521716914,
-        "mentions_last12": 393,
-        "posts_last12": 3714,
-        "mentions_prev12": 366,
-        "posts_prev12": 3914
+        "label": "No clear change",
+        "p": 0.912686411901025,
+        "share_last12": 0.20810810810810812,
+        "share_prev12": 0.20173868575811812,
+        "mentions_last12": 770,
+        "posts_last12": 3700,
+        "mentions_prev12": 789,
+        "posts_prev12": 3911
       },
       "sources": [
         {
@@ -165,7 +165,7 @@
         {
           "name": "Verity role backtest (data/role_backtest.json)",
           "url": "data/role_backtest.json",
-          "date": "2026-10-22"
+          "date": "2026-10-31"
         }
       ],
       "as_of": "2026-10",
@@ -177,38 +177,38 @@
       "note": null,
       "ai_exposure_e_r": 0.002593498625,
       "forecast_fast": {
-        "value_12m": 0.029498715609002468,
-        "low": 0.015436681303696855,
-        "high": 0.05564276816278467
+        "value_12m": 0.04142596831229441,
+        "low": 0.02188395808584716,
+        "high": 0.07703691563622682
       },
       "declining": false,
       "falling_skill_weight": 0.0,
       "share_now": {
-        "value": 0.02826379542395693,
-        "mentions": 21,
-        "posts": 743,
+        "value": 0.04081632653061224,
+        "mentions": 30,
+        "posts": 735,
         "months": [
           "2026-08",
           "2026-09",
           "2026-10"
         ]
       },
-      "level_now": 0.029652523165115484,
+      "level_now": 0.041641965070600216,
       "forecast_moderate": {
-        "value_12m": 0.029652523165115484,
-        "low": 0.01551716881567153,
-        "high": 0.05593289191935492
+        "value_12m": 0.041641965070600216,
+        "low": 0.021998061972805433,
+        "high": 0.07743858938641805
       },
-      "band_width_pp": 4.0415723103683385,
+      "band_width_pp": 5.544052741361262,
       "trend": {
         "label": "No clear change",
-        "p": 0.06556479847085941,
-        "share_last12": 0.0395799676898223,
-        "share_prev12": 0.050076647930505876,
-        "mentions_last12": 147,
-        "posts_last12": 3714,
-        "mentions_prev12": 196,
-        "posts_prev12": 3914
+        "p": 0.2088553308560527,
+        "share_last12": 0.047837837837837835,
+        "share_prev12": 0.05343901815392483,
+        "mentions_last12": 177,
+        "posts_last12": 3700,
+        "mentions_prev12": 209,
+        "posts_prev12": 3911
       },
       "sources": [
         {
@@ -229,7 +229,7 @@
         {
           "name": "Verity role backtest (data/role_backtest.json)",
           "url": "data/role_backtest.json",
-          "date": "2026-10-22"
+          "date": "2026-10-31"
         }
       ],
       "as_of": "2026-10",
@@ -241,38 +241,38 @@
       "note": null,
       "ai_exposure_e_r": -0.061997296820296824,
       "forecast_fast": {
-        "value_12m": 0.03239255697993353,
-        "low": 0.017679365210636757,
-        "high": 0.05870072162198523
+        "value_12m": 0.04175358531396401,
+        "low": 0.01951423066617707,
+        "high": 0.08733388456500135
       },
       "declining": false,
       "falling_skill_weight": 0.0,
       "share_now": {
-        "value": 0.026917900403768506,
-        "mentions": 20,
-        "posts": 743,
+        "value": 0.03537414965986395,
+        "mentions": 26,
+        "posts": 735,
         "months": [
           "2026-08",
           "2026-09",
           "2026-10"
         ]
       },
-      "level_now": 0.028819139489821528,
+      "level_now": 0.037147496571780715,
       "forecast_moderate": {
-        "value_12m": 0.028819139489821528,
-        "low": 0.015729048262922405,
-        "high": 0.05222509249964885
+        "value_12m": 0.037147496571780715,
+        "low": 0.017361498690995396,
+        "high": 0.07769955928535993
       },
-      "band_width_pp": 3.649604423672645,
+      "band_width_pp": 6.033806059436453,
       "trend": {
         "label": "No clear change",
-        "p": 0.3959374703300835,
-        "share_last12": 0.019116855142703285,
-        "share_prev12": 0.022738886050076648,
-        "mentions_last12": 71,
-        "posts_last12": 3714,
-        "mentions_prev12": 89,
-        "posts_prev12": 3914
+        "p": 0.8158483187718949,
+        "share_last12": 0.023783783783783784,
+        "share_prev12": 0.02250063922270519,
+        "mentions_last12": 88,
+        "posts_last12": 3700,
+        "mentions_prev12": 88,
+        "posts_prev12": 3911
       },
       "sources": [
         {
@@ -293,7 +293,7 @@
         {
           "name": "Verity role backtest (data/role_backtest.json)",
           "url": "data/role_backtest.json",
-          "date": "2026-10-22"
+          "date": "2026-10-31"
         }
       ],
       "as_of": "2026-10",
@@ -305,38 +305,38 @@
       "note": null,
       "ai_exposure_e_r": -0.0010433298913298911,
       "forecast_fast": {
-        "value_12m": 0.11744625420237446,
-        "low": 0.08857441777122708,
-        "high": 0.15414121371549194
+        "value_12m": 0.22454408176934737,
+        "low": 0.1636077042488778,
+        "high": 0.3000545701823004
       },
       "declining": false,
       "falling_skill_weight": 0.04550404550404551,
       "share_now": {
-        "value": 0.11709286675639301,
-        "mentions": 87,
-        "posts": 743,
+        "value": 0.22312925170068026,
+        "mentions": 164,
+        "posts": 735,
         "months": [
           "2026-08",
           "2026-09",
           "2026-10"
         ]
       },
-      "level_now": 0.11720169414075135,
+      "level_now": 0.22407651032700923,
       "forecast_moderate": {
-        "value_12m": 0.11720169414075135,
-        "low": 0.08838997795902978,
-        "high": 0.15382024320024704
+        "value_12m": 0.22407651032700923,
+        "low": 0.16326702152123476,
+        "high": 0.2994297621399116
       },
-      "band_width_pp": 6.543026524121726,
+      "band_width_pp": 13.616274061867687,
       "trend": {
-        "label": "Falling",
-        "p": 0.00841310624648893,
-        "share_last12": 0.14862681744749595,
-        "share_prev12": 0.17577925396014307,
-        "mentions_last12": 552,
-        "posts_last12": 3714,
-        "mentions_prev12": 688,
-        "posts_prev12": 3914
+        "label": "No clear change",
+        "p": 0.07429062239688868,
+        "share_last12": 0.28216216216216217,
+        "share_prev12": 0.3096394783942726,
+        "mentions_last12": 1044,
+        "posts_last12": 3700,
+        "mentions_prev12": 1211,
+        "posts_prev12": 3911
       },
       "sources": [
         {
@@ -357,7 +357,7 @@
         {
           "name": "Verity role backtest (data/role_backtest.json)",
           "url": "data/role_backtest.json",
-          "date": "2026-10-22"
+          "date": "2026-10-31"
         }
       ],
       "as_of": "2026-10",
@@ -369,38 +369,38 @@
       "note": null,
       "ai_exposure_e_r": -0.08782111829999999,
       "forecast_fast": {
-        "value_12m": 0.04810842842952907,
-        "low": 0.032934251718739344,
-        "high": 0.06984663896666722
+        "value_12m": 0.0889859993448137,
+        "low": 0.05684829465160068,
+        "high": 0.1370660884645029
       },
       "declining": false,
       "falling_skill_weight": 0.0,
       "share_now": {
-        "value": 0.039030955585464336,
-        "mentions": 29,
-        "posts": 743,
+        "value": 0.07482993197278912,
+        "mentions": 55,
+        "posts": 735,
         "months": [
           "2026-08",
           "2026-09",
           "2026-10"
         ]
       },
-      "level_now": 0.0409209765792869,
+      "level_now": 0.0756913936693568,
       "forecast_moderate": {
-        "value_12m": 0.0409209765792869,
-        "low": 0.028013838473502275,
-        "high": 0.05941147467503911
+        "value_12m": 0.0756913936693568,
+        "low": 0.04835509722414194,
+        "high": 0.11658826486270434
       },
-      "band_width_pp": 3.1397636201536834,
+      "band_width_pp": 6.82331676385624,
       "trend": {
         "label": "No clear change",
-        "p": 0.1647592194044774,
-        "share_last12": 0.045234248788368334,
-        "share_prev12": 0.05109862033725089,
-        "mentions_last12": 168,
-        "posts_last12": 3714,
-        "mentions_prev12": 200,
-        "posts_prev12": 3914
+        "p": 0.5361905324430642,
+        "share_last12": 0.0745945945945946,
+        "share_prev12": 0.07772948095116339,
+        "mentions_last12": 276,
+        "posts_last12": 3700,
+        "mentions_prev12": 304,
+        "posts_prev12": 3911
       },
       "sources": [
         {
@@ -421,7 +421,7 @@
         {
           "name": "Verity role backtest (data/role_backtest.json)",
           "url": "data/role_backtest.json",
-          "date": "2026-10-22"
+          "date": "2026-10-31"
         }
       ],
       "as_of": "2026-10",
@@ -433,38 +433,38 @@
       "note": null,
       "ai_exposure_e_r": -0.000636167,
       "forecast_fast": {
-        "value_12m": 0.024923766965044305,
-        "low": 0.009239467655470438,
-        "high": 0.0654754206409328
+        "value_12m": 0.032741917822404244,
+        "low": 0.01710669549295007,
+        "high": 0.06177053853249454
       },
       "declining": false,
       "falling_skill_weight": 0.0,
       "share_now": {
-        "value": 0.024226110363391656,
-        "mentions": 18,
-        "posts": 743,
+        "value": 0.0326530612244898,
+        "mentions": 24,
+        "posts": 735,
         "months": [
           "2026-08",
           "2026-09",
           "2026-10"
         ]
       },
-      "level_now": 0.024892095905092993,
+      "level_now": 0.032700312103504346,
       "forecast_moderate": {
-        "value_12m": 0.024892095905092993,
-        "low": 0.009227726904786763,
-        "high": 0.06539221989622336
+        "value_12m": 0.032700312103504346,
+        "low": 0.017084957720353903,
+        "high": 0.06169204564529048
       },
-      "band_width_pp": 5.616449299143659,
+      "band_width_pp": 4.460708792493658,
       "trend": {
         "label": "No clear change",
-        "p": 0.3809693685017445,
-        "share_last12": 0.02665589660743134,
-        "share_prev12": 0.025038323965252938,
-        "mentions_last12": 99,
-        "posts_last12": 3714,
-        "mentions_prev12": 98,
-        "posts_prev12": 3914
+        "p": 0.7070269762970941,
+        "share_last12": 0.036756756756756756,
+        "share_prev12": 0.03937611863973409,
+        "mentions_last12": 136,
+        "posts_last12": 3700,
+        "mentions_prev12": 154,
+        "posts_prev12": 3911
       },
       "sources": [
         {
@@ -485,7 +485,7 @@
         {
           "name": "Verity role backtest (data/role_backtest.json)",
           "url": "data/role_backtest.json",
-          "date": "2026-10-22"
+          "date": "2026-10-31"
         }
       ],
       "as_of": "2026-10",
@@ -497,38 +497,38 @@
       "note": null,
       "ai_exposure_e_r": 0.042222609125,
       "forecast_fast": {
-        "value_12m": 0.08374142175597896,
-        "low": 0.060631762284760624,
-        "high": 0.11447980078278315
+        "value_12m": 0.08974092760172844,
+        "low": 0.059222452713877265,
+        "high": 0.1335337809280819
       },
       "declining": false,
       "falling_skill_weight": 0.0,
       "share_now": {
-        "value": 0.0901749663526245,
-        "mentions": 67,
-        "posts": 743,
+        "value": 0.09659863945578231,
+        "mentions": 71,
+        "posts": 735,
         "months": [
           "2026-08",
           "2026-09",
           "2026-10"
         ]
       },
-      "level_now": 0.09146522242602984,
+      "level_now": 0.09801808629102104,
       "forecast_moderate": {
-        "value_12m": 0.09146522242602984,
-        "low": 0.06622406817521995,
-        "high": 0.1250387230395601
+        "value_12m": 0.09801808629102104,
+        "low": 0.06468477244002692,
+        "high": 0.1458501267098886
       },
-      "band_width_pp": 5.881465486434015,
+      "band_width_pp": 8.116535426986166,
       "trend": {
         "label": "No clear change",
-        "p": 0.20836031799040683,
-        "share_last12": 0.10285406569736133,
-        "share_prev12": 0.09504343382728667,
-        "mentions_last12": 382,
-        "posts_last12": 3714,
-        "mentions_prev12": 372,
-        "posts_prev12": 3914
+        "p": 0.28163650433776005,
+        "share_last12": 0.10567567567567568,
+        "share_prev12": 0.09716185118895423,
+        "mentions_last12": 391,
+        "posts_last12": 3700,
+        "mentions_prev12": 380,
+        "posts_prev12": 3911
       },
       "sources": [
         {
@@ -549,7 +549,7 @@
         {
           "name": "Verity role backtest (data/role_backtest.json)",
           "url": "data/role_backtest.json",
-          "date": "2026-10-22"
+          "date": "2026-10-31"
         }
       ],
       "as_of": "2026-10",
