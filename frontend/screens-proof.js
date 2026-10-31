@@ -175,7 +175,7 @@ function departureRow(p) {
   const mine = PROOF.data.mine.find((m) => m.id === p.id);
   const passed = mine && mine.status === "passed";
   return `<details class="dep"${PROOF.open === p.id ? " open" : ""} data-dep="${esc(p.id)}"><summary>
-      ${bullet(LEVEL_LINE[p.level] || "apps", true)}<span class="dep__gain">${passed ? "Done" : matchGain(p.gain)}<small>match</small></span>
+      ${bullet(LEVEL_LINE[p.level] || "apps", true)}<span class="dep__gain">${passed ? "Done" : Math.round(p.gain * 100) >= 1 ? `${matchGain(p.gain)}<small>match</small>` : `Practice<small>no new skill</small>`}</span>
       <span class="dep__main"><span><b>${esc(p.title)}</b> <span class="tag">${esc(p.level)}</span></span>
         <span class="chips">${p.skills.map((s) => `<span class="chip${p.closes.includes(s) ? "" : " chip--gap"}">${esc(s)}</span>`).join("")}</span>
         <span class="pstop__why"><b>Why:</b> ${esc(p.why)} ${ext(p.source.url, p.source.label)}</span></span></summary>
@@ -195,7 +195,7 @@ function certRow(c) {
       <button class="btn" type="submit">I passed</button></form>
       ${mine.status === "self_reported" ? `<p class="route-note">Self-reported: ${esc(mine.detail || "")}</p>` : ""}`;
   }
-  return `<div class="dep dep--cert"><span class="dep__gain">${Math.round(c.coverage * 100)}%<small>covered</small></span>
+  return `<div class="dep dep--cert"><span class="dep__gain">${Math.round(c.coverage * 100) >= 1 ? `${Math.round(c.coverage * 100)}%<small>covered</small>` : `All new<small>fresh start</small>`}</span>
     <span class="dep__main"><b>${esc(c.name)}</b>
       <span class="pstop__why">${esc(demand)} · ${esc(c.issuer)} · ${ext(c.url, "Official page")}${c.adds.length ? ` · Adds stops: ${esc(c.adds.join(", "))}` : ""}</span></span>
     <span class="dep__act">${action}</span></div>`;

@@ -296,8 +296,9 @@ def add_proof_routes(app: FastAPI, ctx: AppContext) -> None:
             except gh_mod.GithubError as exc:
                 return envelope(error=f"GitHub could not be read: {exc}", status=502, meta={"code": "GITHUB_ERROR"})
             last = p["reviews"][-1] if p["reviews"] else None
+            missed = last and any(v["vote"] == "none" for i in last.get("items", []) for v in i.get("votes", []))
             if (only is None and last and last["outcome"] in NEEDS_NEW_COMMITS and info.get("head")
-                    and info["head"] == last.get("head")):
+                    and info["head"] == last.get("head") and not missed):  # a juror that did not answer may vote again
                 return envelope(error="push your fixes to GitHub first: this commit was already reviewed", status=409,
                                 meta={"code": "NO_NEW_COMMITS"})
             p["unverified"] = True  # no GitHub sign-in: nothing proves the repo is the user's
