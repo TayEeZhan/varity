@@ -2,7 +2,7 @@
    timetable rows, the yellow halo only for "you are here" and the service-change band. */
 
 .proof { margin-top: 40px; }
-.proof__line svg { min-width: 560px; width: 100%; max-width: 1120px; height: auto; display: block; margin: 0 auto; }
+.proof__line svg { min-width: 560px; max-width: 800px; width: 100%; height: auto; display: block; }
 .proof__track { stroke: var(--apps); stroke-width: 8; stroke-linecap: round; }
 .proof__cap { fill: var(--paper); stroke: var(--ink); stroke-width: 3; }
 .proof__cap--done { fill: var(--ink); }
@@ -42,7 +42,8 @@
 
 .pstamp { display: inline-block; border: 3px solid var(--rise); color: var(--rise); font-weight: 800; font-size: var(--t-lg); padding: 4px 14px; letter-spacing: 0.08em; line-height: 1.2; transform: rotate(-4deg); margin-right: 12px; }
 .pstamp--ink { border-color: var(--ink); color: var(--ink); }
-.proof-done { display: flex; align-items: center; gap: 8px; font-size: var(--t-md); margin: 14px 0; }
+.proof-done { display: flex; align-items: center; gap: 10px; font-size: var(--t-md, 1.0625rem); margin: 16px 0; }
+.proof-done .pstamp { font-size: var(--t-lg, 1.25rem); border-width: 4px; padding: 4px 14px; }
 
 /* Jury: three signal stations on a short track */
 .jury { margin-top: 6px; font-size: var(--t-sm); }

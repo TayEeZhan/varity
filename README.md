@@ -46,7 +46,8 @@ Varity forecasts each skill's share of job posts from 48,508 Hacker News hiring 
 ### Key Features
 
 - **CV & routes** — Upload a CV (or try an example) and get ranked target roles with a match score and skill gap.
-- **Pathway & Today** — An ordered learning plan with free resources, with an optional Google Tasks sync.
+- **Pathway & Today** — An ordered, dated learning plan with free, link-checked resources and HRD Corp-claimable options; later weeks unlock as you finish.
+- **SDG and scenarios** — Every role and skill carries SDG targets with a reason; a Fast AI-disruption scenario shifts scores and plans, labelled as estimates.
 - **Job forecast & Skills radar** — 12-month skill-demand forecasts with tested uncertainty bands.
 - **Signals** — AI and dev-tooling news, ranked from dated sources.
 
@@ -57,7 +58,7 @@ Varity forecasts each skill's share of job posts from 48,508 Hacker News hiring 
 | Frontend      | HTML, CSS, JavaScript (no build step) |
 | Backend       | Python 3.12, FastAPI, uvicorn |
 | Database      | Replit PostgreSQL (SQLite fallback) |
-| AI / Compute  | Claude Haiku 5.5 (Anthropic API); pandas and SciPy statistics on CPU |
+| AI / Compute  | Claude Haiku 5.5 (Anthropic API); DeepSeek V4 Flash and GPT-5.4 mini (KrackedDevs gateway); pandas and SciPy statistics on CPU |
 | Hosting / Dev | Replit |
 
 ---
@@ -144,9 +145,14 @@ python -m pytest
 - **Hosting:** The app is deployed with Replit Deployments (Autoscale, 2 vCPU / 4 GiB, region Asia) at the Live Demo link above.
 - **Database & Auth:** Replit PostgreSQL stores accounts and saved profiles; optional sign-in uses Replit Auth.
 - **Secrets:** API keys are stored in Replit Secrets, never in the code.
-- **Credits:** SDC-provided Replit credits.
+- **App Storage:** each daily data refresh is saved as a snapshot; the app serves the newest good one.
+- **Credits:** the SDC Replit credits did not arrive; the organisers waived the Replit proof of usage for the final.
 
-📄 Proof of use: [`submission/SDC2026_HokkienMeeIsPurple_Replit_POU.pdf`](submission/SDC2026_HokkienMeeIsPurple_Replit_POU.pdf)
+📄 Preliminary proof of use: [`submission/SDC2026_HokkienMeeIsPurple_Replit_POU.pdf`](submission/SDC2026_HokkienMeeIsPurple_Replit_POU.pdf)
+
+## Daily data refresh
+
+Replit allows one deployment type per app, so the daily job runs on GitHub Actions (`.github/workflows/daily-refresh.yml`, 09:00 MYT). It wakes the app and calls `POST /api/data/refresh`: the app fetches the newest Hacker News hiring posts, labels them (KrackedDevs), rebuilds the forecast and saves a snapshot to Replit App Storage. A failed run keeps the last good snapshot. Run it by hand from the Actions tab ("Run workflow").
 
 ## How We Use RunPod *(Required)*
 
@@ -163,7 +169,7 @@ Not used. Varity has no GPU workload: forecasts are CPU statistics and the CV in
 ## Future Improvements
 
 - [ ] Malaysian job-post sources
-- [ ] Daily automatic data refresh on a Replit Scheduled Deployment
+- [x] Daily automatic data refresh (GitHub Actions + Replit App Storage)
 - [ ] User testing with Malaysian students and developers
 
 ## Team
@@ -179,25 +185,23 @@ Not used. Varity has no GPU workload: forecasts are CPU statistics and the CV in
 
 ### Screens
 
-Varity is the only app. It has eight screens:
+A landing page (Home, How Varity works) leads to sign-in and a "Start with your CV" pop-up (upload a CV or pick a synthetic sample). Then seven screens:
 
-- **Flow map**: the planned user flow as a transit map. It says that Google sign-in and two-way Google Tasks sync are not built. Replit sign-in is built (see Optional sign-in).
-- **CV & routes**: upload a CV, or press "Try an example" (3 synthetic profiles). Shows ranked routes to roles.
+- **CV & routes**: the skills found in your CV, each with its quote, and ranked routes to roles with a score breakdown and skills gap.
 - **Today**: your next stops, taken from your pathway.
-- **Pathway**: the ordered stops from your skills to your route.
-- **Signals**: AI and dev-tooling signals, ranked from dated sources.
-- **Job forecast**: 12-month outlook for tech roles, from Hacker News hiring posts.
+- **Pathway**: the ordered stops from your skills to your route, one row per week; later weeks unlock as you finish.
+- **Signals**: AI and dev-tooling signals, ranked from dated sources, as departure boards.
+- **Job forecast**: 12-month outlook for tech roles, from Hacker News hiring posts, with range bars.
 - **Skills radar**: skill demand and change, with a forecast per skill.
 - **Method**: backtests, AI exposure cross-check, and data sources.
 
-### Optional sign-in
+### Sign-in
 
-Press "Sign in" to use Replit Auth (OpenID Connect). It is optional: the whole app works without it. A signed-in user keeps the skill ledger, target role and pathway ticks in an account. We store the Replit user id, email, display name and profile image URL, never the raw CV text or tokens. `DELETE /api/me` deletes the account and the profile. Google sign-in is not built. Not yet tested on the live Replit app.
+On the live app, press "Sign in" or "Get started" to use Replit Auth (OpenID Connect); app screens need an account. On a local copy without Replit, login is off and the whole app works without it. A signed-in user keeps the skill ledger, target role and pathway ticks in an account. We store the Replit user id, email, display name and profile image URL, never the raw CV text or tokens. `DELETE /api/me` deletes the account and the profile. Google sign-in is not built (Replit's page offers Google).
 
 Environment variables:
 
 - `SESSION_SECRET`: signs the 30-day session cookie. Sign-in is on only when this and `REPL_ID` (set by Replit) exist.
-- `GOOGLE_CLIENT_ID`: a Google OAuth web client id (Google Cloud console, Tasks API enabled, your site's origin under Authorized JavaScript origins). With it, Today shows "Send today to Google Tasks": the browser gets a Tasks-only token from Google and writes a dated list itself, so the server never sees the token or the tasks. Without it, the button is hidden.
 - `DATABASE_URL`: Replit PostgreSQL for accounts and profiles. With no value, the server uses SQLite.
 
 ### Data and AI disclosure
@@ -217,7 +221,9 @@ AI models in the running app:
 - CV intake: Claude Haiku 5.5 (`claude-haiku-5-5`) through the Anthropic API. The key (`ANTHROPIC_API_KEY`) is a team member's, set in Replit Secrets and Production app secrets, and Anthropic bills that account. With no key, a keyword pass takes over. The model only points at skill mentions. Code checks every quote word for word. A daily cap of $1 applies (`VERITY_INTAKE_DAILY_BUDGET_USD`). The CV-intake call is not yet confirmed on the live app (the route advisor is). Use synthetic CVs only: CV text goes to Anthropic directly.
 - The skill forecast, role match, pathway steps, dates and SDG parts are code. Only the CV intake and two optional steps use an LLM. The optional route advisor re-orders roles by at most 2 places, picks reason chips that code wrote and writes one checked summary line; the fit label always comes from code. The optional pathway coach re-orders steps within a stage, picks among listed resources and writes one checked "why" line. All of it runs within code's limits and falls back to code.
 - "Try an example" needs no LLM.
-- The signal ranker (`backend/signals/`) can use Claude and Jev (TypeSafe AI), but both are off by default.
+- Role labels on Hacker News posts: DeepSeek V4 Flash through the KrackedDevs gateway (`KD_API_KEY`); it quotes the words that show each role, and code drops a label whose quote is not in the post. GPT-5.4 mini (same gateway) reviews new job titles. Without the key, title rules take over.
+- The CV builder and CV assistant use Claude Haiku 5.5; code rejects invented facts and stronger verbs.
+- The signal ranker (`backend/signals/`) labels stories with Claude Haiku; its prose brief (Claude Sonnet) and Jev (TypeSafe AI) are off by default.
 
 AI tools used in development: Claude Code (Anthropic), Replit Agent (setup only).
 
@@ -241,6 +247,8 @@ The repo has guided tours for the VS Code CodeTour extension, in the `.tours/` f
 - [x] RunPod: not used (no GPU workload)
 - [x] Preliminary submission completed (`SDC2026_HokkienMeeIsPurple_Preliminary.pdf`)
 - [x] Technology declaration completed (`SDC2026_HokkienMeeIsPurple_TechDeclaration.pdf`)
+- [x] Final report (`SDC2026_HokkienMeeIsPurple_Final.pdf`) and finalist tools declaration (`SDC2026_HokkienMeeIsPurple_TechDeclaration_Final.pdf`)
+- [x] Live demo guide (`docs/submission/live-demo-guide.md`)
 - [x] Submission files renamed with your team name
 - [x] "How to Run" steps verified
 - [x] No API keys or secrets committed to the repository
