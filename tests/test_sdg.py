@@ -538,3 +538,29 @@ def test_plan_summary_flags_rough_numbers_and_missing_roles():
     assert "too few zzz posts" in missing["lines"][2] and missing["numbers"]["goal"] is None
     with pytest.raises(ValueError):
         plan_sdg_summary(PLAN, "a", _role_sdg({"a": (0.3, 60, 200, True)}), "nope")
+
+
+# ---------------------------------------------------------------- role_reason and the goal reorder
+
+def _doc(count, reliable):
+    cell = lambda sh, c, r: {"share_recent": sh, "count_recent": c, "reliable": r}
+    return {"months": 12, "sectors": [{"id": "health", "name": "Health", "sdg": ["3.8"]}, {"id": "education", "name": "Education", "sdg": ["4.3"]}],
+            "baseline": {"sectors": {"health": {"share_recent": 0.06}, "education": {"share_recent": 0.02}}},
+            "roles": {"r": {"sectors": {"health": cell(0.08, count, reliable), "education": cell(0.02, 20, True)}}}}
+
+
+def test_role_reason_reliable_and_rough():
+    assert sdg.role_reason(_doc(40, True), "r") == (
+        "Most over-represented sector: Health, 8.0% of posts in the last 12 months (SDG 3.8), against 6.0% of all posts.")
+    rough = sdg.role_reason(_doc(5, False), "r")  # only the reliable education cell counts, so the best is education
+    assert "Education" in rough and "few posts" not in rough
+    doc = _doc(5, False)
+    doc["roles"]["r"]["sectors"]["education"]["reliable"] = False
+    assert "Health" in sdg.role_reason(doc, "r") and "(few posts, n=5)" in sdg.role_reason(doc, "r")
+    assert sdg.role_reason(_doc(5, False), "missing") is None
+
+
+def test_goal_first_moves_only_inside_a_stage():
+    steps = [{"skill": "A", "stage": "s1"}, {"skill": "B", "stage": "s1"}, {"skill": "C", "stage": "s2"}, {"skill": "D", "stage": "s2"}]
+    out = sdg.goal_first(steps, {"B", "D"})
+    assert [(s["skill"], s["goalLinked"]) for s in out] == [("B", True), ("A", False), ("D", True), ("C", False)]

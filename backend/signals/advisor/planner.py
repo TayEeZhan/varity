@@ -53,6 +53,30 @@ def diff(state: PlanState | None, steps: Sequence[Mapping[str, Any]], held: Iter
     return {"added": added, "removed": removed} if added or removed else None
 
 
+MOVE_PP = 1.0  # a share move this big (percentage points) is worth telling, even with the same label (team judgement)
+
+
+def outlook_change(state: PlanState | None, role_id: str, ledger_rows: Sequence[Mapping[str, str]]) -> dict | None:
+    """The target role's outlook on the day the plan was accepted (forecast ledger) against today's.
+
+    None when there is no accepted plan, no ledger row from that day or before, or nothing worth telling
+    (same trend label and a share move under MOVE_PP).
+    """
+    if state is None:
+        return None
+    mine = [r for r in ledger_rows if r["role_id"] == role_id]
+    then = [r for r in mine if r["run_date"] <= state.accepted_at[:10]]
+    if not then:
+        return None
+    old, new = then[-1], mine[-1]
+    moved = (float(new["share_now"]) - float(old["share_now"])) * 100
+    if old["label"] == new["label"] and abs(moved) < MOVE_PP:
+        return None
+    return {"since": old["run_date"], "date": new["run_date"], "labelThen": old["label"] or None,
+            "labelNow": new["label"] or None, "shareThen": float(old["share_now"]), "shareNow": float(new["share_now"]),
+            "movedPp": round(moved, 2), "source": "Verity forecast ledger (daily HN refresh)"}
+
+
 def trend_offer(state: PlanState | None, today: str, held: Iterable[str], planned: Iterable[str],
                 other_gaps: Iterable[Iterable[Mapping[str, Any]]], scores: Mapping[str, Mapping],
                 momentum: Mapping[str, Mapping], links: Mapping[str, str], with_resource: set[str],

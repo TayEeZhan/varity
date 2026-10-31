@@ -13,6 +13,7 @@ const STATE = {
   loading: "",            // "" | profile | routes | plan: which call is in flight
   profileError: "",
   routeId: null,
+  goal: "",               // an SDG sector id from the goal picker, or "" for any goal
   scenario: "moderate",   // moderate | fast: both are engine scenarios, shown as estimates
   destination: "",        // role id picked on the CV screen; "" = Not sure yet
   suggest: null,          // GET /api/roles/suggestions for the saved profile
@@ -193,17 +194,25 @@ function setProfileToken(token) {
   try { token ? localStorage.setItem(TOKEN_KEY, token) : localStorage.removeItem(TOKEN_KEY); } catch (e) { /* private mode: profile lasts this visit only */ }
 }
 
+/* The replay month this tab chose (sessionStorage, this tab only). Sent as asOf on the calls that serve trend data. */
+const ASOF_KEY = "verity_asof";
+const getAsOf = () => { try { return sessionStorage.getItem(ASOF_KEY) || ""; } catch (e) { return ""; } };
+const setAsOf = (m) => { try { m ? sessionStorage.setItem(ASOF_KEY, m) : sessionStorage.removeItem(ASOF_KEY); } catch (e) { /* no storage: replay lasts until reload */ } };
+const withAsOf = (path) => (getAsOf() && /^\/api\/(roles\/suggestions|pathway|skills\/radar|data\/status)/.test(path)
+  ? path + (path.includes("?") ? "&" : "?") + "asOf=" + encodeURIComponent(getAsOf()) : path);
+
 /* JSON call to the backend. Throws Error(server message) on an API error and TypeError when unreachable. */
 async function api(path, options = {}) {
   const token = ACCOUNT.signedIn ? null : profileToken();  // signed in: the cookie speaks for the profile
   const headers = { Accept: "application/json", "Content-Type": "application/json", ...(token ? { "X-Profile-Token": token } : {}) };
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(withAsOf(path), { ...options, headers });
   const body = await res.json().catch(() => null);
   if (!res.ok || !body || !body.success) {
     const err = new Error((body && body.error) || `Server error (${res.status})`);
     err.status = res.status;
     throw err;
   }
+  if (body.meta && body.meta.malaysia) STATE.malaysia = body.meta.malaysia;  // DOSM check, shown on CV & routes
   return body.data;
 }
 
@@ -230,20 +239,25 @@ async function loadProfile() {
 /* Pathway stages drawn as the three map lines (colours in styles.css). */
 const STAGE_LINE = { no_regret: "apps", near_term: "serve", other: "serve", future_bet: "guard" };
 
+const goalQ = () => (STATE.goal ? `&goal=${encodeURIComponent(STATE.goal)}` : "");
+
+let routesSeq = 0;  // a late answer for an older profile must not overwrite the newer one
 async function loadRoutes() {
+  const seq = ++routesSeq;
   STATE.suggest = null;
   STATE.suggestError = "";
   STATE.routeId = null;
   if (!STATE.saved) return;
   STATE.loading = "routes";
   try {
-    const s = await api(`/api/roles/suggestions?scenario=${STATE.scenario}`);
+    const s = await api(`/api/roles/suggestions?scenario=${STATE.scenario}${goalQ()}`);
+    if (seq !== routesSeq) return;
     STATE.suggest = s;
     // Only a role that has a pathway can be the route.
     const ids = new Set([...s.roles, ...s.lowMatch].map((r) => r.roleId));
     STATE.routeId = ids.has(s.targetRoleId) ? s.targetRoleId : (s.roles[0] || {}).roleId || null;
   } catch (e) {
-    STATE.suggestError = errText(e);
+    if (seq === routesSeq) STATE.suggestError = errText(e);
   }
 }
 
@@ -252,7 +266,7 @@ async function loadPlan() {
   if (!STATE.saved || !STATE.routeId) return applyPlan(null);
   STATE.loading = "plan";
   try {
-    applyPlan(await api(`/api/pathway?roleId=${encodeURIComponent(STATE.routeId)}&scenario=${STATE.scenario}`));
+    applyPlan(await api(`/api/pathway?roleId=${encodeURIComponent(STATE.routeId)}&scenario=${STATE.scenario}${goalQ()}`));
   } catch (e) {
     applyPlan(null);
     STATE.planError = errText(e);
@@ -413,8 +427,8 @@ function applyPlan(plan) {
       id: `s${s.order}`, line: STAGE_LINE[s.stage] || "serve", x: Math.round(80 + i * gap),
       week: s.startDate ? Math.floor((new Date(s.startDate).getTime() - start) / DAY_MS / 7) + 1 : "–",
       status: "next", title: s.skill, mins: s.minutes, resource: res.title || s.resourceNote, url: res.url || "",
-      cost: res.cost === "free" ? "Free" : res.cost || "–", sdgTags: s.sdgTags, sdgReason: s.sdgReason,
-      why: s.whyForYou, reasons: s.reasons,
+      cost: res.cost === "free" ? "Free" : res.cost || "–", sdgTags: s.sdgTags, sdgReason: s.sdgReason, goalLinked: s.goalLinked,
+      why: s.whyForYou, reasons: s.reasons, employer: s.employerFunded || null,
     };
     return stop;
   }));
@@ -423,6 +437,7 @@ function applyPlan(plan) {
 }
 
 /* ── Plan files, built here from the pathway payload (same fields as engine/pathway.py to_markdown / to_ics) ── */
+const LEARNING_NOTE = "Times are for the starter course only. Job-level skill needs practice on real projects after it.";
 function planMarkdown(p) {
   const t = p.totals;
   const lines = [
@@ -431,7 +446,8 @@ function planMarkdown(p) {
     `- Pace: ${p.hoursPerWeek} hours a week, Monday to Friday`,
     `- Plan: ${t.steps} skills, ${t.tasks} daily tasks, about ${t.hours} hours (estimate)`,
     `- Dates: ${p.startDate} to ${p.finishDate || "n/a"}`,
-    `- Skill data as of: ${p.skillsAsOf || "n/a"}`, "",
+    `- Skill data as of: ${p.skillsAsOf || "n/a"}`,
+    `- ${LEARNING_NOTE}`, "",
     "## Order of skills", "",
   ];
   for (const stage of p.stages) {
@@ -574,6 +590,10 @@ async function undoGoogleTasks(list) {
 }
 
 /* Buttons that work on any screen. */
+document.addEventListener("change", (e) => {
+  if (e.target.matches("select[data-goal]")) { STATE.goal = e.target.value; refreshRoutes(); }
+});
+
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-global]");
   if (!b) return;
@@ -612,6 +632,7 @@ document.addEventListener("click", async (e) => {
       STATE.profileError = "";
       STATE.review = null;
       STATE.cv = "parsed";
+      STATE.suggest = null;  // routes belong to the old profile: hide them until the new ones load
       resetCvBuilder();
       rerender();
       toast("Example profile saved. It is synthetic: no CV was read.");
@@ -709,3 +730,4 @@ loadMine();
 loadSignals().then(() => rerender());
 loadForecast().then(() => rerender());
 loadExamples().then(() => rerender());
+loadDataStatus().then(() => rerender());

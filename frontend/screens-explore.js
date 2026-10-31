@@ -30,10 +30,12 @@ function noticesHTML() {
 
 function renderSignals() {
   const skills = SKILLS.slice().sort((a, b) => b.momentum - a.momentum);
-  const max = Math.max(...SKILLS.flatMap((s) => s.weekly));
+  // momentum = (this week − usual) ÷ usual, with usual floored at 1; under 1 mention a week a % would mislead, so say "New".
+  const change = (s, usual) => usual < 1 ? (s.weekly[4] ? "New" : "–")
+    : `${s.momentum >= 0 ? "+" : "−"}${Math.round(Math.abs(s.momentum) * 100).toLocaleString()}%`;
   const rows = skills.map((s) => {
-    const color = "#8a8b8e";
-    return `<tr><td>${esc(s.skill)}</td><td>${ridershipSVG(s.weekly, max, color)}</td><td class="num">${s.weekly[4]}</td><td class="num hide-sm">${s.momentum >= 0 ? "+" : ""}${s.momentum.toFixed(1)}</td></tr>`;
+    const usual = s.weekly.slice(0, 4).reduce((a, b) => a + b, 0) / 4;
+    return `<tr><td>${esc(s.skill)}</td><td class="num">${s.weekly[4]}</td><td class="num">${usual.toFixed(1)}</td><td class="num">${change(s, usual)}</td></tr>`;
   }).join("");
 
   const html = `
@@ -42,10 +44,10 @@ function renderSignals() {
       <section aria-labelledby="sm-h">
         <h2 class="sec" id="sm-h">Skill momentum <small>Mentions per week, last 5 weeks</small></h2>
         <table class="ridership">
-          <thead><tr><th scope="col">Skill</th><th scope="col">5 weeks →</th><th scope="col" class="num">This week</th><th scope="col" class="num hide-sm">Momentum</th></tr></thead>
+          <thead><tr><th scope="col">Skill</th><th scope="col" class="num">This week</th><th scope="col" class="num">Usual week</th><th scope="col" class="num">Change</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
-        <p class="method">Line thickness is mentions per week, on one shared scale (thickest = ${max}). Momentum = (this week − the earlier weekly average) ÷ that average, with the average floored at 1.</p>
+        <p class="method">Counts are news mentions. "Usual week" is the average of the 4 weeks before this one. "Change" compares this week with that average. "New" means the skill had under 1 mention a week before, so a percentage would mislead. Rows are sorted by change.</p>
       </section>
       <section aria-labelledby="sn-h">
         <h2 class="sec" id="sn-h">Service notices <small>Top 10 of ${SIGNAL_RUN.storyCount}</small></h2>
@@ -78,8 +80,41 @@ const refreshedText = () => {
   return ` · updated ${String(m.fetched_at).slice(0, 10)}${m.posts_after ? ` · ${m.posts_after} posts so far this month` : ""}`;
 };
 
+// Track record and the open-month weight from the daily job (engine/ledger.py, engine/forecast.nowcast_y).
+const trackText = (tr) => {
+  if (!tr || !tr.runs) return "Not recorded yet: the daily job writes every forecast to a ledger from its first run.";
+  const graded = tr.forecasts_graded
+    ? `${tr.forecasts_in_band} of ${tr.forecasts_graded} past forecasts landed in the range.`
+    : `None can be checked yet: the first one is due in ${esc(tr.next_grading_month || "12 months")}.`;
+  return `${tr.runs} daily runs recorded since ${esc(tr.first_run)}. ${graded}`;
+};
+const nowcastText = (nc) => !nc || !nc.posts_this_month ? "This month is complete."
+  : nc.weight == null ? `This month has ${nc.posts_this_month} posts so far. After about two weeks a thread is nearly complete, so it counts in full.`
+  : `This month has ${nc.posts_this_month} posts so far, so it counts ${Math.round(nc.weight * 100)}% and last month the rest. The weight is chosen by a backtest on past threads cut at day 1, 3, 7 and 14.`;
+
+// Claude labels first; the title rules are the backup (engine/llm_labels.py). Every Claude label has a checked quote.
+const labellerText = (fc) => {
+  const lab = String(fc.labeller || "title regex"), chk = fc.label_check || {};
+  if (!/^(claude|krackeddevs\/)/.test(lab)) {
+    const why = lab.includes("drifted") ? " Claude's labels drifted from the usual today, so the rules counted this month."
+      : chk.error ? " Claude could not be reached today, so the rules counted this month." : "";
+    return `Fixed title rules decide which roles a post names.${why} Code does every count and forecast.`;
+  }
+  const backup = chk.regex_posts ? ` The title rules covered ${chk.regex_posts} posts Claude did not label; Claude tries them again tomorrow.` : "";
+  const who = lab.startsWith("krackeddevs/") ? `The AI model ${esc(lab.split(",")[0])}` : "Claude";
+  return `${who} reads each post and names its roles, quoting the words that show it; code checks each quote is really in the post.${backup} Code does every count and forecast.`;
+};
+const newRolesText = (nr, excluded) => {
+  const auto = (excluded || []).filter((r) => /Found automatically/.test(r.reason || ""));
+  const added = auto.length ? `Found automatically and tracked: ${auto.map((r) => esc(r.name)).join(", ")}. ` : "";
+  if (!nr) return added + "Each day the job looks for job titles no role covers yet.";
+  const waiting = nr.waiting_for_review ? `${nr.waiting_for_review} titles are waiting for Claude's review.` : "No new titles are waiting.";
+  return `${added}${waiting} Claude adds a role only with three quotes from real posts.`;
+};
+
 function renderForecast() {
-  const roles = Object.values(FORECAST.roles || {});
+  const changes = (FORECAST.track_record || {}).changes_since_last_run || {};
+  const roles = Object.entries(FORECAST.roles || {}).map(([id, r]) => ({ id, ...r }));
   const ok = roles.filter((r) => r.status === "ok" && r.share_now && r.forecast_moderate && r.trend)
     .sort((a, b) => (TREND_ORDER[a.trend.label] ?? 1) - (TREND_ORDER[b.trend.label] ?? 1) || b.share_now.value - a.share_now.value);
   const skipped = [...roles.filter((r) => !ok.includes(r)).map((r) => ({ name: r.name, reason: r.note || "No forecast for this month" })),
@@ -95,8 +130,11 @@ function renderForecast() {
 
   const rowHTML = (r) => {
     const f = r.forecast_moderate, t = r.trend, cls = TREND_CLASS[t.label] || "";
+    const fast = r.forecast_fast && r.forecast_fast.value_12m != null ? r.forecast_fast.value_12m : null;
+    const ch = changes[r.id];
+    const moved = ch ? `<br><small>Since ${esc(ch.since)}: ${pct(ch.share_now_from)} → ${pct(ch.share_now_to)} of posts</small>` : "";
     return `<div class="fc__row">
-      <div class="fc__role">${esc(r.name)}<small class="trend ${cls}">${esc(t.label)}</small></div>
+      <div class="fc__role">${esc(r.name)}<small class="trend ${cls}">${esc(t.label)}</small>${r.declining ? `<small class="trend down" title="Falling, and most of its skill weight is in falling skills">Declining in this sample</small>` : ""}</div>
       <div class="fc__track" role="img" aria-label="${esc(r.name)}: ${pct(r.share_now.value)} of hiring posts now; in 12 months ${pct(f.value_12m)}, ${esc(band)} ${pct(f.low)} to ${pct(f.high)}; ${esc(t.label)}">
         <span class="fc__band" style="left:${pos(f.low)}%;width:${pos(f.high) - pos(f.low)}%"></span>
         <span class="fc__bar ${cls}" style="left:calc(${pos(f.value_12m)}% - 5px);width:10px"></span>
@@ -104,12 +142,12 @@ function renderForecast() {
       </div>
       <div class="fc__val ${cls}">${pct(r.share_now.value)}</div>
       <div class="fc__drv"><b>${t.mentions_last12}</b> posts in the last 12 months vs <b>${t.mentions_prev12}</b> the 12 before
-        (${pct(t.share_last12)} vs ${pct(t.share_prev12)} of posts)<br><small>HN threads: ${hnLinks(r) || "none"}</small></div>
+        (${pct(t.share_last12)} vs ${pct(t.share_prev12)} of posts)${fast != null ? `<br><small>If AI speeds up, in 12 months: ${pct(fast)} (estimate)</small>` : ""}${moved}<br><small>HN threads: ${hnLinks(r) || "none"}</small></div>
     </div>`;
   };
 
   const html = `
-    ${head("Job forecast", "How demand for tech roles may change over the next 12 months, from the share of Hacker News “Who is hiring?” posts that name each role. Ranges are estimates, not counts. Two scenarios exist for routes: the forecast here is the moderate one; the fast AI scenario is shown on CV &amp; routes, also as an estimate.")}
+    ${head("Job forecast", "How demand for tech roles may change over the next 12 months, from the share of Hacker News “Who is hiring?” posts that name each role. Ranges are estimates, not counts. Two scenarios exist for routes: the forecast here is the expected one; the “If AI speeds up” scenario is shown on CV &amp; routes, also as an estimate.")}
     <div class="fc-bar-head">
       ${(STATE.forecastLive ? real : snapshot)(`${STATE.forecastLive ? "Real data" : "Offline snapshot"} · HN hiring posts · as of ${(FORECAST.as_of || "?") + (FORECAST.partial_month ? " (month in progress)" : "")}${refreshedText()}`)}
       <div class="fc-key">
@@ -127,6 +165,10 @@ function renderForecast() {
       <div><h3>What the numbers mean</h3><p>Share of monthly HN hiring posts that name the role (last 3 months), and where that share is expected to be in 12 months. HN is a sample of tech hiring, not a count of jobs.</p></div>
       <div><h3>Rising or falling</h3><p>The trend label compares the last 12 months with the 12 before. It is observed, not forecast. “No clear change” means the difference could be noise.</p></div>
       <div><h3>Use it as one input</h3><p>The forecast shapes which routes Varity suggests. It does not decide for you: you pick the route.</p></div>
+      <div><h3>The month in progress</h3><p>${nowcastText(FORECAST.nowcast)}</p></div>
+      <div><h3>Track record</h3><p>${trackText(FORECAST.track_record)}</p></div>
+      <div><h3>Who reads the posts</h3><p>${labellerText(FORECAST)}</p></div>
+      <div><h3>New roles</h3><p>${newRolesText(FORECAST.new_roles, FORECAST.excluded_roles)}</p></div>
     </div>`;
 
   return { html, bind: () => {} };

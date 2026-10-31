@@ -90,14 +90,18 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
                 for row in skill_momentum(settings, ctx.watchlist)]
         return rows, latest_run_id(settings)
 
-    def engine_data():
+    def engine_data(as_of: str | None = None):
         try:
-            return service.load_data(), None
+            service.check_as_of(as_of)
+        except ValueError as exc:
+            return None, envelope(error=str(exc), status=422, meta={"code": "INVALID_REQUEST"})
+        try:
+            return service.load_data(as_of=as_of), None
         except (OSError, ValueError):
             return None, envelope(error="role data is missing: run the engine (engine/roles.py)", status=500,
                                   meta={"code": "ROLE_DATA_MISSING"})
 
-    def checks(request: Request, token: str | None):
+    def checks(request: Request, token: str | None, as_of: str | None = None):
         """(profile, data, error response)."""
         if not limiter.allow(client_ip(request)):
             return None, None, envelope(error="too many requests, try again in a minute", status=429,
@@ -106,21 +110,26 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
         if profile is None:
             return None, None, envelope(error="no saved profile: read and save a CV first", status=404,
                                         meta={"code": "PROFILE_NOT_FOUND"})
-        data, error = engine_data()
+        data, error = engine_data(as_of)
         return profile, data, error
 
     @app.get("/api/roles/suggestions")
     def api_role_suggestions(request: Request, scenario: Literal["moderate", "fast"] = "moderate",
                              hoursPerWeek: int = Query(default=5, ge=MIN_HOURS, le=MAX_HOURS),
+                             goal: str | None = Query(default=None, max_length=40),
+                             asOf: str | None = Query(default=None, max_length=7),
                              x_profile_token: str | None = Header(default=None)):
         """Roles ranked for the saved profile, each with reason chips built from the profile, forecast and signals."""
-        profile, data, error = checks(request, x_profile_token)
+        profile, data, error = checks(request, x_profile_token, asOf)
         if error:
             return error
+        if bad_goal(goal, data):
+            return envelope(error="unknown goal sector", status=422, meta={"code": "VALIDATION_ERROR"})
         rows, run_id = signals()
         return envelope(service.suggestions(profile, rows, run_id, settings.db_path, scenario=scenario,
                                             hours_per_week=hoursPerWeek, use_llm=settings.llm_mode != "off",
-                                            call=model_call(request), data=data))
+                                            call=model_call(request), data=data, goal=goal),
+                        meta={**service.data_meta(asOf), "malaysia": service.malaysia_meta()})
 
     @app.post("/api/profile/target-role")
     def api_target_role(payload: TargetRoleIn, request: Request, x_profile_token: str | None = Header(default=None)):
@@ -139,24 +148,32 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
     def api_pathway(request: Request, roleId: str | None = Query(default=None, max_length=60),
                     hoursPerWeek: int = Query(default=5, ge=MIN_HOURS, le=MAX_HOURS),
                     scenario: Literal["moderate", "fast"] = "moderate",
+                    goal: str | None = Query(default=None, max_length=40),
+                    asOf: str | None = Query(default=None, max_length=7),
                     x_profile_token: str | None = Header(default=None)):
         """The pathway to roleId, or to the saved route. Its dated tasks feed the Today page."""
-        profile, data, error = checks(request, x_profile_token)
+        profile, data, error = checks(request, x_profile_token, asOf)
         if error:
             return error
+        if bad_goal(goal, data):
+            return envelope(error="unknown goal sector", status=422, meta={"code": "VALIDATION_ERROR"})
         role_id = roleId or profile.target_role
         if not role_id:
             return envelope(error="pick a route first", status=409, meta={"code": "NO_TARGET_ROLE"})
-        plan, error = build_plan(request, x_profile_token, profile, data, role_id, scenario, hoursPerWeek)
-        return error or envelope(plan)
+        plan, error = build_plan(request, x_profile_token, profile, data, role_id, scenario, hoursPerWeek, goal)
+        return error or envelope(plan, meta=service.data_meta(asOf))
 
-    def build_plan(request: Request, token: str | None, profile, data, role_id: str, scenario: str, hours: int):
+    def bad_goal(goal: str | None, data) -> bool:
+        return goal is not None and goal not in {x["id"] for x in (data.get("role_sdg") or {}).get("sectors", [])}
+
+    def build_plan(request: Request, token: str | None, profile, data, role_id: str, scenario: str, hours: int,
+                   goal: str | None = None):
         """(pathway, error). Saves the plan state when the service says it changed without needing a question."""
         rows, run_id = signals()
         try:
             plan = service.pathway(profile, role_id, rows, run_id, settings.db_path, scenario=scenario,
                                    hours_per_week=hours, use_llm=settings.llm_mode != "off",
-                                   call=model_call(request), data=data)
+                                   call=model_call(request), data=data, goal=goal)
         except service.RoleNotFound:
             return None, envelope(error="no pathway for this role: unknown, or too few job posts to learn it", status=422,
                                   meta={"code": "VALIDATION_ERROR"})
@@ -166,9 +183,10 @@ def add_role_routes(app: FastAPI, ctx: AppContext) -> None:
         return plan, None
 
     @app.post("/api/pathway/decision")
-    def api_pathway_decision(payload: DecisionIn, request: Request, x_profile_token: str | None = Header(default=None)):
+    def api_pathway_decision(payload: DecisionIn, request: Request, asOf: str | None = Query(default=None, max_length=7),
+                             x_profile_token: str | None = Header(default=None)):
         """Keep / Revert a changed plan, or Add / Not now a trend skill. Returns the pathway after the decision."""
-        profile, data, error = checks(request, x_profile_token)
+        profile, data, error = checks(request, x_profile_token, asOf)
         if error:
             return error
         plan, error = build_plan(request, x_profile_token, profile, data, payload.roleId, payload.scenario, payload.hoursPerWeek)

@@ -17,7 +17,7 @@ Items marked [TEAM TO FILL] are for the team. Do not submit with any of them lef
 | University | [TEAM TO FILL: university] |
 | Number of members | 2 (Tay Ee Zhan, Goh Sheng Kuan) |
 | Live prototype | https://verity--eezhan0805.replit.app |
-| Code repository | https://github.com/TayEeZhan/verity (public at submission) |
+| Code repository | https://github.com/TayEeZhan/varity (public at submission) |
 
 ¹ We pick SDG 4 as the main track. Verity's core output is a learning plan that adds job-listed skills. That matches target 4.4 and its indicator 4.4.1 (ICT skills for employment). SDG 8 (targets 8.2 and 8.5) follows only if users then find better work. We cannot measure that in Phase 2.
 

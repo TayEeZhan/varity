@@ -23,13 +23,13 @@ def test_cli_digest_without_stories_uses_the_template(settings, capsys):
 
 
 def test_scheduler_runs_the_ranker_and_the_daily_forecast_refresh_by_default(ctx):
-    assert {job.id for job in build_scheduler(ctx).get_jobs()} == {"pipeline", "forecast_refresh"}
+    assert {job.id for job in build_scheduler(ctx).get_jobs()} == {"pipeline", "forecast_refresh", "retention"}
 
 
 def test_scheduler_adds_briefs_when_enabled(ctx):
     with_briefs = replace(ctx, settings=replace(ctx.settings, write_briefs=True))
     assert {job.id for job in build_scheduler(with_briefs).get_jobs()} == {
-        "pipeline", "forecast_refresh", "daily_digest", "weekly_digest"}
+        "pipeline", "forecast_refresh", "retention", "daily_digest", "weekly_digest"}
 
 
 def test_plain_text_drops_citations_and_markdown():

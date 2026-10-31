@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "02a7eeb1-6674-4f6e-988d-9914f0660210",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "C:\\Users\\eezha\\AppData\\Local\\Temp\\claude\\C--Users-eezha-verity\\01157d41-e4ab-415f-9ce0-7bfd5d97c512\\scratchpad\\dynamic-forecast\\candidate.archify.md",
+  "output": "C:\\Users\\eezha\\verity\\docs\\diagrams\\dynamic-forecast.html",
+  "specification": {
+    "sha256": "484ae0ca64412096a9adb9ffd04ca3f2da7f1c4b570a06935902fcf035ae5ba0",
+    "bytes": 9217
+  },
+  "artifact": {
+    "sha256": "fe5b6eaa1fb54579f97de71eed84c03e658c49f945ba7f32f8865dc9a3111150",
+    "bytes": 1773888
+  },
+  "explainer": {
+    "preparedSha256": "869519b0640556f6545c30df857fbcd1b52fe95253e5fc144177ca920f068450",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "current-manual",
+        "inline": true,
+        "sha256": "7b81caf10161721324e3bfb0debd5c8f2cf6b28c0ac17c1d246167a7d034eaa8",
+        "bytes": 1813
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "current-auto",
+        "inline": true,
+        "sha256": "52cf2cea0b103007e5ea3c6d7a0233b66a70443586fa110d0cd75f3aeedf1104",
+        "bytes": 1504
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "target-architecture",
+        "inline": true,
+        "sha256": "8f98999c0c32981e545906fa79068e231138ec1f7eebfc514a02a6d60545db84",
+        "bytes": 3060
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "daily-run",
+        "inline": true,
+        "sha256": "5a3f97d47c114bee18145fa09b2b17832806c55ad91d412797bf99f0d5d26ccf",
+        "bytes": 1712
+      }
+    ]
+  }
+}

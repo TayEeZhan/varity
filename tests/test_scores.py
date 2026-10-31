@@ -12,7 +12,7 @@ from engine import scores as sc
 from engine.forecast import (HORIZON, MIN_MEAN_MENTIONS, inv_logit, load_demand, logit_series,
                              skill_status, trend_label, wide_tables)
 
-TOP_KEYS = {"schema_version", "generated_at", "as_of", "partial_month", "scenario_params",
+TOP_KEYS = {"schema_version", "generated_at", "as_of", "partial_month", "nowcast", "scenario_params",
             "interval", "notes", "data_window", "skills"}
 SKILL_KEYS = {"skill", "sdg", "demand_share_latest", "mentions_last3", "posts_last3", "level_now",
               "demand_slope", "momentum", "ai_exposure", "stance", "status", "note", "trend_label",

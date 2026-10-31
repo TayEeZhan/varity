@@ -19,7 +19,8 @@ from intake.verify import MAX_QUOTE, Verification, phrase_regex
 NOTE_INJECTION = "This line looks like an instruction to an AI, so it is not ticked."
 NOTE_REMOVED = "You removed this skill before."
 _METHOD = {("llm",): "llm", ("keyword",): "keyword", ("keyword", "llm"): "llm+keyword"}
-_WINDOW_SIDE = 140
+_SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
+_MAX_WORDS = 8
 
 
 @dataclass(frozen=True)
@@ -62,13 +63,22 @@ def highlight(quote: str, phrase: str) -> str:
     return f"{quote[:match.start()]}«{match.group(0)}»{quote[match.end():]}"
 
 
-def _window(line: str, phrase: str) -> str:
-    """A long CV line is cut to the part around the phrase, so it fits the quote limit."""
-    if len(line) <= MAX_QUOTE:
-        return line
-    start = max(line.find(phrase), 0)
-    left = max(start - _WINDOW_SIDE, 0)
-    return line[left:left + MAX_QUOTE].strip()
+def _clause(line: str, phrase: str) -> str:
+    """Keep only the sentence around the phrase, and at most 8 words either side of it.
+
+    Names, pronouns and schools in other sentences must not reach the stored profile.
+    """
+    match = phrase_regex(phrase, re.IGNORECASE).search(line)
+    if not match:
+        return line[:MAX_QUOTE]
+    ends = [m.end() for m in _SENTENCE_END.finditer(line)]
+    lo = max([0] + [e for e in ends if e <= match.start()])
+    hi = min([len(line)] + [e for e in ends if e >= match.end()])
+    before = list(re.finditer(r"\S+", line[lo:match.start()]))
+    after = list(re.finditer(r"\S+", line[match.end():hi]))
+    start = lo + before[-_MAX_WORDS].start() if len(before) > _MAX_WORDS else lo
+    end = match.end() + after[_MAX_WORDS - 1].end() if len(after) > _MAX_WORDS else hi
+    return line[start:end].strip()
 
 
 def _from_llm(verification: Verification, graph: SkillGraph, injection_lines: frozenset[int]) -> dict[str, ReviewRow]:
@@ -82,9 +92,10 @@ def _from_llm(verification: Verification, graph: SkillGraph, injection_lines: fr
                 rows[named.skill_id] = replace(current, years=mention.years, years_line=mention.years_line)
             continue
         suspicious = mention.line_no in injection_lines
+        quote = _clause(mention.quote, mention.phrase)
         rows[named.skill_id] = ReviewRow(
             skill_id=named.skill_id, name=named.name, category=named.category, basis="stated",
-            why=highlight(mention.quote, mention.phrase), quote=mention.quote,
+            why=highlight(quote, mention.phrase), quote=quote,
             context=mention.context, years=mention.years, years_line=mention.years_line,
             methods=("llm",), default_keep=not suspicious,
             note=NOTE_INJECTION if suspicious else None,
@@ -109,7 +120,7 @@ def _add_keyword_hits(
                 rows[hit.skill_id] = replace(row, methods=tuple(sorted({*row.methods, "keyword"})))
             continue
         node = graph.nodes[hit.skill_id]
-        quote = _window(hit.line, hit.phrase)
+        quote = _clause(hit.line, hit.phrase)
         if hit.line_no in interest_lines or has_learning_cue(hit.line):
             interests.setdefault(hit.skill_id, ReviewInterest(hit.skill_id, node.name, hit.phrase, quote))
             continue

@@ -50,7 +50,9 @@ LATEST_KEY = "latest.json"
 META_NAME = "meta.json"
 REQUIRED_FILES = ("skill_scores.json", "demand_monthly.csv", "hn_threads.csv")
 OPTIONAL_FILES = ("ai_context_monthly.csv", "role_demand_monthly.csv", "role_trends.json",
-                  "role_backtest.json", "role_forecast.json")
+                  "role_backtest.json", "role_forecast.json", "forecast_ledger.csv", "llm_role_labels.csv",
+                  "roles.json", "title_counts_monthly.csv", "role_reviews.json", "role_candidates.json",
+                  "role_labeller.json")
 STORE_DIR_ENV = "VERITY_STORE_DIR"
 STORE_KIND_ENV = "VERITY_STORE"      # "replit" or "local" forces the choice
 BUCKET_ENV = "VERITY_BUCKET"         # optional bucket id; default is the app's default bucket

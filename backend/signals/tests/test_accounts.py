@@ -1,6 +1,7 @@
 """Optional accounts: Replit Auth (mocked, no network), signed session, profile storage in SQLite and the Postgres SQL."""
 
 import os
+from datetime import datetime, timezone
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -209,3 +210,14 @@ def test_postgres_round_trip(settings, monkeypatch):
     store.put_profile_json(settings, "u:pgtest", "{}", "t")
     assert store.get_profile_json(settings, "u:pgtest") == "{}"
     assert store.delete_profile_row(settings, "u:pgtest")
+
+
+def test_delete_stale_users_keeps_fresh_accounts(settings, monkeypatch):
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    store.upsert_user(settings, "old", "o@example.com", "Old", None, "2024-01-01T00:00:00Z")
+    store.put_profile_json(settings, "u:old", "{}", "2024-01-01T00:00:00Z")
+    store.upsert_user(settings, "new", "n@example.com", "New", None, "2026-10-30T00:00:00Z")
+    now = datetime(2026, 10, 31, tzinfo=timezone.utc)
+    assert store.delete_stale_users(settings, now) == 1
+    assert store.get_user(settings, "old") is None and store.get_profile_json(settings, "u:old") is None
+    assert store.get_user(settings, "new") is not None

@@ -193,7 +193,7 @@ def test_fast_scenario_moves_future_bets_to_second_place(scores, resources, taxo
     assert fast_skills.index("RAG") < fast_skills.index("SQL")
     assert fast_skills.index("RAG") > fast_skills.index("Docker")
     assert sorted(fast_skills) == sorted(s["skill"] for s in moderate["steps"])
-    assert "Fast" in fast["scenario_label"] and "estimate" in fast["scenario_label"]
+    assert "speeds up" in fast["scenario_label"] and "estimate" in fast["scenario_label"]
 
 
 def test_reasons_use_the_numbers(scores, resources, taxonomy, staging_case):
@@ -543,7 +543,7 @@ def test_markdown_export(scores, taxonomy):
     path = build(gap, [gap, gap], scores, rs, taxonomy, scenario="fast")
     md = pw.to_markdown(path)
     assert md.startswith("# Reskilling pathway: Backend Engineer\n")
-    assert "Fast AI disruption (estimate)" in md
+    assert "If AI speeds up (estimate)" in md
     assert "[Docker docs](https://example.org/docker)" in md
     assert "Needed by 2 of the 2 roles counted" in md
     assert "No verified free resource yet" in md          # Go has no resource

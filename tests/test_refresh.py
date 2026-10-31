@@ -25,7 +25,7 @@ def _post(text):
 
 
 def _item(thread_id, posts):
-    return {"id": thread_id, "children": [_post(t) for t in posts]}
+    return {"id": thread_id, "children": [{**_post(t), "id": thread_id * 1000 + i} for i, t in enumerate(posts)]}
 
 
 OLD = {
@@ -381,6 +381,33 @@ def test_refresh_rebuilds_role_demand_trends_and_forecast_for_the_new_month_only
     forecast = json.loads((work / "role_forecast.json").read_text(encoding="utf-8"))
     trends = json.loads((work / "role_trends.json").read_text(encoding="utf-8"))
     assert forecast["as_of"] == trends["as_of"] == "2026-11"
+    assert forecast["labeller"] == "title regex" and forecast["track_record"]["runs"] == 1
+    ledger_rows = read_rows(work / "forecast_ledger.csv")
+    assert {r["as_of"] for r in ledger_rows} == {"2026-11"} and {r["target_month"] for r in ledger_rows} == {"2027-11"}
+    role = forecast["roles"]["backend_engineer"]
+    assert "forecast_fast" in role and isinstance(role["declining"], bool)
+
+
+def test_with_the_ai_labeller_on_the_month_is_counted_from_claude_labels(tmp_path, monkeypatch):
+    from engine import llm_labels
+
+    work = tmp_path / "work"
+    created = datetime(2026, 11, 1, 15, 0, 0, tzinfo=timezone.utc)
+    session = LatestThreadSession(777, "Ask HN: Who is hiring? (November 2026)", created, _fake_posts(40))
+    monkeypatch.setattr(llm_labels, "uses_llm", lambda data_dir: True)
+    def all_backend(data_dir, raw_dir, thread, roles):
+        labels = {pid: {"backend_engineer"} for pid, _ in llm_labels.thread_posts(raw_dir, thread["thread_id"])}
+        return {"labels": labels, "regex": {}, "claude_posts": len(labels), "regex_posts": 0, "dropped_quotes": 0,
+                "disagree": None, "error": None}
+
+    monkeypatch.setattr(llm_labels, "label_thread", all_backend)
+
+    result = refresh_mod.refresh(work, source_dir=REAL_DATA, session=session)
+
+    assert result["roles_updated"] is True, result
+    new = {r["role_id"]: r for r in read_rows(work / "role_demand_monthly.csv") if r["month"] == "2026-11"}
+    assert new["backend_engineer"]["mentions"] == "40" and new["data_engineer"]["mentions"] == "0"
+    assert json.loads((work / "role_forecast.json").read_text(encoding="utf-8"))["labeller"] == "claude"
 
 
 def test_a_role_failure_keeps_the_old_role_files_and_the_new_skill_scores(tmp_path, monkeypatch):
@@ -396,7 +423,10 @@ def test_a_role_failure_keeps_the_old_role_files_and_the_new_skill_scores(tmp_pa
     assert result["ok"] is True and result["scores_updated"] is True
     assert result["roles_updated"] is False and result["roles_error"] == "RuntimeError: boom"
     for name in refresh_mod.ROLE_FILES:
-        assert (work / name).read_bytes() == (REAL_DATA / name).read_bytes(), name
+        if (REAL_DATA / name).exists():
+            assert (work / name).read_bytes() == (REAL_DATA / name).read_bytes(), name
+        else:  # the ledger and the label cache: a failed run must not leave a half-written one
+            assert not (work / name).exists(), name
 
 
 # --- the default work folder is never the committed data folder ------------------------

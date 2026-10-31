@@ -39,6 +39,8 @@ HRD_CORP_NOTE = ("HRD Corp-claimable status not verified for these resources; "
 ESTIMATE_NOTE = ("All times are estimates by the Verity team. The Fast scenario changes only "
                  "the order of the stages. It is an assumption, not a forecast.")
 
+LEARNING_NOTE = "Times are for the starter course only. Job-level skill needs practice on real projects after it."
+
 STAGE_LABELS = {
     "no_regret": "Stage 1: no-regret (needed by 2 or more of your roles, not falling, not AI-substitutable)",
     "near_term": "Stage 2: near-term demand (highest share of job posts among your gap skills)",
@@ -439,8 +441,8 @@ def build_pathway(target_role: str,
     return {
         "target_role": target_role,
         "scenario": scenario,
-        "scenario_label": ("Fast AI disruption (estimate)" if scenario == "fast"
-                           else "Moderate (estimate)"),
+        "scenario_label": ("If AI speeds up (estimate)" if scenario == "fast"
+                           else "Expected (estimate)"),
         "hours_per_week": hours_per_week,
         "start_date": start.isoformat(),
         "finish_date": tasks[-1]["deadline"] if tasks else None,
@@ -507,6 +509,7 @@ def to_markdown(pathway: Mapping[str, Any]) -> str:
         f"- Plan: {totals['steps']} skills, {totals['tasks']} daily tasks, about {totals['hours']} hours (estimate)",
         f"- Dates: {p['start_date']} to {p['finish_date'] or 'n/a'}",
         f"- Skill data as of: {p.get('skill_scores_as_of') or 'n/a'}",
+        f"- {LEARNING_NOTE}",
         "",
         "## Order of skills",
         "",
