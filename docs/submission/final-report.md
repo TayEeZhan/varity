@@ -84,7 +84,7 @@ Phase 1 showed one feature: CV intake with quotes. Now the whole six-stage journ
 | Target SDG Metric Achievement | **Phase 1 targets were shares of test users:** 50% finish a plan step with a link-checked resource (SDG 4.4); 80% pick a role after they see the score and gap (8.5); 60% add a Rising or AI-complement skill (8.2). **We ran no real-user test:** the rules forbid real CVs, and the sprint left no time for volunteers. So we measured what the system delivers to every synthetic profile: 10 runs (3 example profiles and 7 demo CVs; 8 people). **4.4:** 10 of 10 got a plan whose steps all use free, link-checked resources (100% of plan minutes free). **8.5:** 10 of 10 got ranked roles with a match score, a skills gap and the gain from each missing skill. **8.2:** 10 of 10 plans hold an AI-complement skill. **SDG tags:** 32 of 32 plan steps carry a target and a reason. **Scenarios:** the Fast scenario changed the role outlook for all 10 and the plan itself for 5 of 10. These numbers show that the system can deliver each KPI. They are not user outcomes. |
 | Verification Evidence Method | `scripts/measure_impact.py` sends every synthetic profile through the real API (no mocks, no model calls) and writes `data/impact_check.json` (run on 1 Nov 2026). Forecast accuracy: rolling-origin backtests with no look-ahead (`data/backtest.json`, `data/role_backtest.json`). Cost: `data/llm_usage.csv`, one row per gateway call. Freshness: the GitHub Actions run log. Fairness: `backend/signals/tests/test_fairness.py` proves that name, age, gender, nationality and school do not move the ranking. 1,375 automated tests in all. |
 | Socio-Economic / Civic Value | **Reach:** first through university and TVET career centres, which advise whole cohorts, and through HR teams that plan HRD Corp-funded training. **Cost per user:** at most US$0.0041 per CV read (price table in `intake/llm_extract.py`), under a US$1-a-day cap. Labelling all 48,491 posts cost US$2.63 once, and a day's new posts cost under one cent. **Learning cost:** the plan uses free resources first (100% of minutes in all 10 runs), with HRD Corp-claimable courses as an employer-funded option. **Freshness:** daily at 09:00 MYT. **Privacy (PDPA):** synthetic CVs only; contact details are redacted before any model call; users can delete their account, and an account unused for 365 days is deleted. |
-| Deployment & Commercial Feasibility | Free for individuals. Paid seats for career centres and HR teams, and the same JSON API for a learning-management system or HR portal. The running cost is small and mostly fixed: one CPU server, one daily refresh and sub-cent model calls per user. No GPU and no model training in production. The data layer does not depend on one source, so a Malaysian job feed can join or replace Hacker News once a provider grants access. |
+| Deployment & Commercial Feasibility | RM32 a month for individuals, which covers the AI cost per user. A yearly licence per class for universities, a fee per hire for employers, and the same JSON API for a learning-management system or HR portal. The running cost is small and mostly fixed: one CPU server, one daily refresh and sub-cent model calls per user. No GPU and no model training in production. The data layer does not depend on one source, so a Malaysian job feed can join or replace Hacker News once a provider grants access. |
 
 ### 4.1 Mathematical Proof / Code Logic Snippet
 
@@ -119,7 +119,7 @@ Trend models and gradient boosting lost on skills (drift 2.13, damped trend 2.27
 
 ## 5. Market Viability & Future Scalability Plan
 
-**Who pays.** Career centres and HR teams pay per seat for a cohort view that turns a group's skills gap into HRD Corp-claimable training plans. Individuals use Varity free.
+**Who pays.** Three streams. (1) B2C: students and developers pay RM32 a month (US$8 at RM4.06 per US$1, 30 Oct 2026), which covers the AI that reads CVs and reviews projects. (2) B2B: universities pay a yearly licence per class for a view of who has proven which skill, with HRD Corp-claimable training plans for the gaps. (3) B2B: employers pay a fee per hire of a graduate with reviewed (Applied) projects. Prices will be tested in the pilot.
 
 **Scaling the data.** Today the job signal is Hacker News, a US and startup-heavy sample. With funding or a partner, we would:
 1. License a Malaysian job feed (for example JobStreet or Hiredly, which blocked automated access during the hackathon) and run it through the same tagger, backtest and band. The code already has collectors that refuse to run without written permission.
@@ -131,6 +131,10 @@ Trend models and gradient boosting lost on skills (drift 2.13, damped trend 2.27
 **Partners.** Through SDC's Rotary network and XMUM research links: career centres for a pilot with real, consenting users, to measure the three Phase 1 KPIs; TalentCorp (the MyCOL shortage list, already shown in the app) and HRD Corp for course data; and a joint study on whether the forecast band holds on Malaysian data.
 
 **First six months.** A pilot with one career centre and 200 students, logging the three KPIs.
+
+**After the pilot.** More universities and employers; more languages and marketing outside Malaysia; then other fields, since the engine needs only a job-post source and a skill list per field.
+
+**After the pilot.** More universities and employers; more languages and marketing outside Malaysia; then other fields, since the engine needs only a job-post source and a skill list per field.
 
 ## 6. Final Submission Checklist
 
