@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Varity · UI preview</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="evidence.css?v=2">
+  <link rel="stylesheet" href="landing.css?v=3">
+  <style>
+    /* Preview only (docs/ui-simplification-plan.md). New pieces use the app's own tokens; nothing new in the palette. */
+
+    /* Preview switcher: a strip under the band, so it never pretends to be product UI */
+    .pv { background: var(--paper-2); border-bottom: 1px solid var(--rule); font-size: var(--t-sm); }
+    .pv__in { max-width: var(--max); margin: 0 auto; padding: 8px var(--gutter); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+    .pv__in b { font-weight: 800; }
+    .pv__in button { border: 1px solid var(--ink-3); background: var(--paper); border-radius: 13px; padding: 3px 10px; font-size: var(--t-sm); font-weight: 600; cursor: pointer; }
+    .pv__in button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+    .hw-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 40px; padding-top: 18px; border-top: 3px solid var(--ink); }
+    .hw-cta p { color: var(--ink-2); max-width: 52ch; }
+
+    /* Onboarding sheets: modal on purpose. Nothing after them works without an account and a CV. */
+    .scrim { position: fixed; inset: 0; background: rgba(18, 18, 18, 0.55); display: grid; place-items: center; padding: 16px; z-index: 20; }
+    .scrim[hidden] { display: none; }
+    .sheet { background: var(--paper); width: min(560px, 100%); border-top: 6px solid var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
+    .sheet__head { padding: 22px 24px 16px; border-bottom: 3px solid var(--ink); }
+    .sheet__head h2 { font-size: var(--t-xl); font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .sheet__head p { color: var(--ink-2); margin-top: 6px; }
+    .sheet__body { padding: 20px 24px 24px; display: grid; gap: 14px; }
+    .drop { border: 2px dashed var(--ink-3); padding: 28px 20px; text-align: center; display: grid; gap: 8px; justify-items: center; cursor: pointer; transition: background 150ms, border-color 150ms; }
+    .drop:hover { background: var(--paper-2); border-color: var(--ink); }
+    .drop b { font-size: var(--t-lg); }
+    .drop span { color: var(--ink-3); font-size: var(--t-sm); }
+    .drop svg { width: 34px; height: 34px; stroke: var(--ink); }
+    .or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: var(--t-sm); font-weight: 600; }
+    .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+    .samples { display: grid; border-top: 1px solid var(--rule); }
+    .sample { display: grid; grid-template-columns: 26px 1fr auto; gap: 12px; align-items: center; padding: 12px 4px; border: 0; border-bottom: 1px solid var(--rule); background: none; text-align: left; cursor: pointer; transition: background 150ms; }
+    .sample:hover { background: var(--paper-2); }
+    .sample small { display: block; color: var(--ink-3); font-size: var(--t-xs); font-weight: 600; }
+    .sheet__foot { font-size: var(--t-xs); color: var(--ink-3); }
+
+    /* Signed-in placeholder: the screens themselves are unchanged */
+    .same { border: 2px dashed var(--ink-3); padding: 28px; display: grid; gap: 12px; justify-items: start; }
+    .same h1 { font-size: var(--t-2xl); font-weight: 800; letter-spacing: -0.02em; }
+    .same p { color: var(--ink-2); max-width: 62ch; }
+  </style>
+</head>
+<body>
+  <header class="band">
+    <div class="band__inner">
+      <a class="mark" href="#" data-go="home">
+        <span class="mark__bullet" aria-hidden="true">V</span>
+        <span class="mark__word">Varity</span>
+      </a>
+      <nav class="tabs" aria-label="Screens" data-nav></nav>
+      <p class="band__meta">Signals: offline snapshot of <time datetime="2026-10-22T13:09+08:00">22 Oct, 13:09</time></p>
+      <div class="acct" data-acct></div>
+    </div>
+  </header>
+
+  <div class="pv" role="region" aria-label="Preview controls">
+    <div class="pv__in">
+      <b>Preview, not the live app.</b>
+      <span>Jump to:</span>
+      <button data-go="home">1 Landing</button>
+      <button data-go="how">2 How Varity works</button>
+      <button data-go="signin">3 Google account</button>
+      <button data-go="gate">4 CV pop-up</button>
+      <button data-go="app">5 After sign-in</button>
+      <button data-go="cvpop">6 My CV pop-up</button>
+    </div>
+  </div>
+
+  <main id="main" tabindex="-1"></main>
+
+  <footer class="foot">
+    <p><strong>Varity prototype.</strong> Signals and skill momentum are output of the AI Trend Signal Layer; if the server cannot be reached, the page shows a dated offline snapshot and says so. CVs are read by the skill profile intake: every skill is checked against a quote from the CV. The job forecast comes from the role forecast engine (Hacker News hiring posts). Example profiles are synthetic. Scenarios are estimates. Varity supports your judgement; it does not replace it.</p>
+  </footer>
+
+  <!-- Step 1: Google account (in the real app this is Google's own picker) -->
+  <div class="scrim" data-signin hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="signin-h">
+      <div class="sheet__head">
+        <h2 id="signin-h"><span class="bullet bullet--apps" aria-hidden="true">1</span>Choose your Google account</h2>
+        <p>Sign in with Gmail to save your CV, routes and ticks. Varity is hosted on Replit.</p>
+      </div>
+      <div class="sheet__body">
+        <div class="samples">
+          <button class="sample" data-go="gate"><span class="acct__av" style="background:var(--ink);color:#fff">A</span><span>Aisha Rahman<small>aisha.example@gmail.com</small></span><span></span></button>
+          <button class="sample" data-go="gate"><span class="acct__av" style="border-style:dashed">+</span><span>Use another account</span><span></span></button>
+        </div>
+        <p class="sheet__foot">Mock-up: in the real app this step is Google's own account picker. Next: upload your CV. <a href="#" data-go="home">Back</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: CV first -->
+  <div class="scrim" data-gate hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="gate-h">
+      <div class="sheet__head">
+        <h2 id="gate-h"><span class="bullet bullet--apps" aria-hidden="true">2</span>Start with your CV</h2>
+        <p>Every match, gap and task is built from it. You can replace it later.</p>
+      </div>
+      <div class="sheet__body">
+        <label class="drop">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>
+          <b>Drop your CV here</b>
+          <span>PDF or DOCX · or click to choose a file</span>
+          <input type="file" accept=".pdf,.docx" hidden>
+        </label>
+        <div class="or">or use a sample CV</div>
+        <div class="samples">
+          <button class="sample" data-go="app"><span class="bullet bullet--apps" aria-hidden="true">A</span><span>Fresh CS graduate<small>Python, SQL, one web project</small></span><span class="synthetic">Synthetic</span></button>
+          <button class="sample" data-go="app"><span class="bullet bullet--guard" aria-hidden="true">G</span><span>Backend developer, 3 years<small>Java, REST APIs, Docker</small></span><span class="synthetic">Synthetic</span></button>
+        </div>
+        <p class="sheet__foot">No close button on purpose: the app has nothing to show until it has a CV.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- My CV pop-up: the original My CV screen, unchanged, inside a large sheet -->
+  <div class="scrim" data-cvpop hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cvpop-h" style="width:min(1100px,100%);max-height:calc(100vh - 32px);display:grid;grid-template-rows:auto 1fr">
+      <div class="sheet__head" style="display:flex;align-items:center;gap:12px">
+        <h2 id="cvpop-h" style="flex:1">My CV</h2>
+        <button class="btn" data-go="app" data-tab="profile">Close</button>
+      </div>
+      <div class="sheet__body" style="overflow:auto">
+        <div class="same">
+          <span class="synthetic">Unchanged screen</span>
+          <p>The original My CV screen goes here as it is today: the CV generator and the CV chat assistant. Close or Esc returns to CV &amp; routes.</p>
+          <a class="btn" href="http://localhost:8126/#/cv" target="_blank" rel="noopener">See My CV in the real app</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Stubs so the real landing, flow-map and how renderers can draw here without a server.
+    var STATE = { flowSel: "f7" };
+    var api = () => new Promise(() => {});
+  </script>
+  <script src="data.js?v=12"></script>
+  <script src="diagram.js?v=11"></script>
+  <script src="screens.js?v=21"></script>
+  <script src="screens-explore.js?v=12"></script>
+  <script src="landing.js?v=4"></script>
+  <script>
+    const NAV = {
+      out: [["home", "Home"], ["how", "How Varity works"]],
+      // Original tabs, unchanged; Flow map and How Varity works now live on the landing.
+      in: [["profile", "CV &amp; routes"], ["today", "Today"], ["pathway", "Pathway"],["signals", "Signals"], ["forecast", "Job forecast"]],
+    };
+    const getStarted = `<button class="btn btn--primary" data-go="signin">Get started</button>`;
+
+    function landing() {
+      const el = document.createElement("div");
+      el.innerHTML = renderLanding().html;
+      el.querySelector(".lp-cta").innerHTML = getStarted;
+      el.querySelectorAll('a[href="#/how"]').forEach((a) => a.setAttribute("data-go", "how"));
+      return el.innerHTML;
+    }
+
+    function how() {
+      let flow = "", page = "";
+      try { flow = renderFlow().html.replace("How Varity is used", "How Varity works"); } catch (e) { /* skip */ }
+      try { page = renderHow().html.replace("<h1>How Varity works</h1>", `<h2 class="sec" style="margin-top:48px">More about how it works</h2>`); } catch (e) { /* skip */ }
+      return flow + page + `<div class="hw-cta"><p>Ready? Upload your CV and see your matches.</p>${getStarted}</div>`;
+    }
+
+    function app(tab) {
+      const label = (NAV.in.find(([id]) => id === tab) || NAV.in[0])[1];
+      return `<div class="same">
+        <span class="synthetic">Unchanged screen</span>
+        <h1>${label}</h1>
+        <p>After sign-in, every tab is the original app screen with no changes. This preview does not redraw them; open the real app to see them.</p>
+        <a class="btn" href="http://localhost:8126/#/${tab}" target="_blank" rel="noopener">Open ${label} in the real app</a>
+        ${tab === "profile" ? `<p style="margin-top:8px"><b>New on this screen:</b> the My CV tab is gone; it opens as a pop-up from here.</p><button class="btn btn--primary" data-go="cvpop">Generate my CV</button>` : ""}
+      </div>`;
+    }
+
+    function show(v, tab = "profile") {
+      const signedIn = v === "gate" || v === "app" || v === "cvpop";
+      document.querySelector("[data-nav]").innerHTML = (signedIn ? NAV.in : NAV.out)
+        .map(([id, label]) => {
+          const on = signedIn ? id === tab : id === (v === "how" ? "how" : "home");
+          return `<a href="#" data-go="${signedIn ? "app" : id}" data-tab="${id}" ${on ? 'aria-current="page"' : ""}>${label}</a>`;
+        }).join("");
+      document.querySelector("[data-acct]").innerHTML = signedIn
+        ? `<button class="acct__btn"><span class="acct__av">A</span><span class="acct__name">Aisha</span></button>`
+        : `<button class="acct__in" data-go="signin">Sign in</button>`;
+      const main = document.getElementById("main");
+      main.innerHTML = v === "how" ? how() : signedIn ? app(tab) : landing();
+      if (v === "how") try { renderFlow().bind(main); } catch (e) { /* static map is fine for a preview */ }
+      if (typeof CSSPropertyRule === "undefined") main.querySelectorAll(".lp-map").forEach((m) => m.classList.add("lp-static"));
+      document.querySelector("[data-signin]").hidden = v !== "signin";
+      document.querySelector("[data-gate]").hidden = v !== "gate";
+      document.querySelector("[data-cvpop]").hidden = v !== "cvpop";
+      document.querySelectorAll(".pv button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.go === v)));
+      window.scrollTo(0, 0);
+    }
+
+    document.addEventListener("click", (e) => {
+      const go = e.target.closest("[data-go]");
+      if (!go) return;
+      e.preventDefault();
+      show(go.dataset.go, go.dataset.tab);
+    });
+    show("home");
+  </script>
+</body>
+</html>
