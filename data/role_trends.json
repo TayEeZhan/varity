@@ -1,81 +1,81 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-22T06:50:40Z",
+  "generated_at": "2026-10-31T11:38:00Z",
   "as_of": "2026-10",
   "partial_month": true,
   "method": "Welch t-test on the monthly logit share, last 12 months against the 12 before; p < 0.05 and at least 30 mentions in the 24 months, as for skills.",
   "roles": {
     "data_engineer": {
       "trend_label": "No clear change",
-      "trend_p": 0.06556479847085941,
-      "mentions_last12": 147,
-      "posts_last12": 3714,
-      "mentions_prev12": 196,
-      "posts_prev12": 3914
+      "trend_p": 0.2088553308560527,
+      "mentions_last12": 177,
+      "posts_last12": 3700,
+      "mentions_prev12": 209,
+      "posts_prev12": 3911
     },
     "analytics_engineer": {
-      "trend_label": "No clear change",
-      "trend_p": 0.6127294533974689,
-      "mentions_last12": 18,
-      "posts_last12": 3714,
-      "mentions_prev12": 15,
-      "posts_prev12": 3914
+      "trend_label": null,
+      "trend_p": null,
+      "mentions_last12": 13,
+      "posts_last12": 3700,
+      "mentions_prev12": 16,
+      "posts_prev12": 3911
     },
     "data_scientist": {
       "trend_label": "No clear change",
-      "trend_p": 0.3959374703300835,
-      "mentions_last12": 71,
-      "posts_last12": 3714,
-      "mentions_prev12": 89,
-      "posts_prev12": 3914
+      "trend_p": 0.8158483187718949,
+      "mentions_last12": 88,
+      "posts_last12": 3700,
+      "mentions_prev12": 88,
+      "posts_prev12": 3911
     },
     "ml_engineer": {
       "trend_label": "No clear change",
-      "trend_p": 0.1647592194044774,
-      "mentions_last12": 168,
-      "posts_last12": 3714,
-      "mentions_prev12": 200,
-      "posts_prev12": 3914
+      "trend_p": 0.5361905324430642,
+      "mentions_last12": 276,
+      "posts_last12": 3700,
+      "mentions_prev12": 304,
+      "posts_prev12": 3911
     },
     "ai_app_engineer": {
-      "trend_label": "Rising",
-      "trend_p": 0.007728571790836767,
-      "mentions_last12": 235,
-      "posts_last12": 3714,
-      "mentions_prev12": 194,
-      "posts_prev12": 3914
+      "trend_label": "No clear change",
+      "trend_p": 0.3090580562553645,
+      "mentions_last12": 318,
+      "posts_last12": 3700,
+      "mentions_prev12": 310,
+      "posts_prev12": 3911
     },
     "backend_engineer": {
-      "trend_label": "Rising",
-      "trend_p": 0.016783346836068417,
-      "mentions_last12": 393,
-      "posts_last12": 3714,
-      "mentions_prev12": 366,
-      "posts_prev12": 3914
+      "trend_label": "No clear change",
+      "trend_p": 0.912686411901025,
+      "mentions_last12": 770,
+      "posts_last12": 3700,
+      "mentions_prev12": 789,
+      "posts_prev12": 3911
     },
     "fullstack_developer": {
-      "trend_label": "Falling",
-      "trend_p": 0.00841310624648893,
-      "mentions_last12": 552,
-      "posts_last12": 3714,
-      "mentions_prev12": 688,
-      "posts_prev12": 3914
+      "trend_label": "No clear change",
+      "trend_p": 0.07429062239688868,
+      "mentions_last12": 1044,
+      "posts_last12": 3700,
+      "mentions_prev12": 1211,
+      "posts_prev12": 3911
     },
     "platform_devops_engineer": {
       "trend_label": "No clear change",
-      "trend_p": 0.20836031799040683,
-      "mentions_last12": 382,
-      "posts_last12": 3714,
-      "mentions_prev12": 372,
-      "posts_prev12": 3914
+      "trend_p": 0.28163650433776005,
+      "mentions_last12": 391,
+      "posts_last12": 3700,
+      "mentions_prev12": 380,
+      "posts_prev12": 3911
     },
     "mobile_developer": {
       "trend_label": "No clear change",
-      "trend_p": 0.3809693685017445,
-      "mentions_last12": 99,
-      "posts_last12": 3714,
-      "mentions_prev12": 98,
-      "posts_prev12": 3914
+      "trend_p": 0.7070269762970941,
+      "mentions_last12": 136,
+      "posts_last12": 3700,
+      "mentions_prev12": 154,
+      "posts_prev12": 3911
     }
   }
 }
