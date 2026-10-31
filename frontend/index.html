@@ -16,7 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Lato:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=17">
   <link rel="stylesheet" href="evidence.css?v=2">
-  <link rel="stylesheet" href="landing.css?v=3">
+  <link rel="stylesheet" href="landing.css?v=4">
   <link rel="stylesheet" href="cv.css?v=3">
 </head>
 <body>
@@ -28,15 +28,16 @@
         <span class="mark__bullet" aria-hidden="true">V</span>
         <span class="mark__word">Varity</span>
       </a>
-      <nav class="tabs" aria-label="Screens">
-        <a href="#/flow" data-route="flow">Flow map</a>
+      <nav class="tabs" aria-label="Screens" data-nav="out">
+        <a href="#/" data-route="home">Home</a>
+        <a href="#/how" data-route="how">How Varity works</a>
+      </nav>
+      <nav class="tabs" aria-label="Screens" data-nav="in" hidden>
         <a href="#/profile" data-route="profile">CV &amp; routes</a>
         <a href="#/today" data-route="today">Today</a>
         <a href="#/pathway" data-route="pathway">Pathway</a>
-        <a href="#/cv" data-route="cv">My CV</a>
         <a href="#/signals" data-route="signals">Signals</a>
         <a href="#/forecast" data-route="forecast">Job forecast</a>
-        <a href="#/how" data-route="how">How Varity works</a>
       </nav>
       <p class="band__meta">Signals: offline snapshot of <time datetime="2026-10-22T13:09+08:00">22 Oct, 13:09</time></p>
       <div class="acct" data-acct hidden></div>
@@ -44,6 +45,8 @@
   </header>
 
   <main id="main" tabindex="-1"></main>
+  <div class="cvpop-behind" data-cvpop-behind inert aria-hidden="true" hidden></div>
+  <div class="scrim" data-gate hidden></div>
 
   <footer class="foot">
     <p><strong>Varity prototype.</strong> Signals and skill momentum are output of the AI Trend Signal Layer (run <span data-run-id>20261022T050908-ab9c76</span>); if the server cannot be reached, the page shows a dated offline snapshot and says so. CVs are read by the skill profile intake: every skill is checked against a quote from the CV. The job forecast comes from the role forecast engine (Hacker News hiring posts). Match scores, routes, the pathway and today's stops are computed by code from your saved profile and the files in data/; example profiles are synthetic. Scenarios are estimates. Varity supports your judgement; it does not replace it.</p>
@@ -51,11 +54,11 @@
 
   <script src="data.js?v=12"></script>
   <script src="diagram.js?v=11"></script>
-  <script src="screens.js?v=21"></script>
+  <script src="screens.js?v=22"></script>
   <script src="screens-explore.js?v=12"></script>
   <script src="screens-evidence.js?v=1"></script>
   <script src="screens-cv.js?v=3"></script>
-  <script src="landing.js?v=4"></script>
-  <script src="app.js?v=18"></script>
+  <script src="landing.js?v=5"></script>
+  <script src="app.js?v=19"></script>
 </body>
 </html>
