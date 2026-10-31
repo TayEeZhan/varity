@@ -455,3 +455,12 @@ def test_a_silent_juror_shows_the_cause_and_allows_a_recheck_without_new_commits
     assert review["items"][0]["votes"][2]["reason"] == "No answer (NotFoundError)"
     again = client.post("/api/proof/recheck", json={"projectId": "olist-warehouse"}, headers=h).json()
     assert again["error"] is None                                   # same commit, but a juror never voted
+
+
+def test_postgres_items_show_the_store_and_migration_files():
+    """Hints match file paths: the redrx layout hid internal/store/migrate.go from every juror."""
+    crit = next(c for c in catalog.project_by_id("go-api")["criteria"] if c["skill"] == "PostgreSQL")
+    paths = ["README.md", "internal/web/handlers_api.go", "internal/web/handlers_pages.go", "cmd/main.go",
+             "internal/store/migrate.go", "internal/store/store.go", "Dockerfile"]
+    picked = jury.pick_paths(paths, crit["hints"], max_files=3)
+    assert "internal/store/migrate.go" in picked and "internal/store/store.go" in picked
