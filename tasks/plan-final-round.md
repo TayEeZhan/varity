@@ -23,17 +23,17 @@ Guide items 1+5 are the same work (WP1). Items 2+6 are the same work (WP2). Item
 
 **Architecture**
 ```
-Skills radar screen ──POST /api/admin/refresh──▶ engine.refresh.refresh(work_dir)
+Skills radar screen ──POST /api/data/refresh──▶ engine.refresh.refresh(work_dir)
    │                                               └▶ engine.store.save_snapshot (fetched_at)
    │
-   └──POST /api/data/asof {as_of}──▶ service.set_override(as_of)
+   └──GET /api/* ?asOf=YYYY-MM (kept in sessionStorage)──▶ service.load_data(as_of)
                                       └▶ engine.scores.build_scores(as_of) + roles.profile_for(as_of)
 All screens ──GET /api/*──▶ service.current_data_dir()  (override > newest snapshot > committed data/)
                              └▶ every reply carries meta {source, as_of, fetched_at}
 Frontend banner: "Source: HN Who is hiring · as of 2025-10 · fetched 2026-10-30 09:12 MYT"
 ```
 - Files: `backend/signals/trendsignal/web/app.py` (2 routes), `backend/signals/advisor/service.py` (override), `frontend/screens-explore.js` (buttons and banner), `frontend/app.js` (re-fetch after a change).
-- Guard: both routes need an admin token (env var `VERITY_ADMIN_TOKEN`), so a visitor cannot change the data for everyone. The override is in memory only and expires after 30 minutes.
+- Guard: the replay is per viewer (query parameter, no server state), so a visitor cannot change the data for anyone else. The refresh starts at most once per 10 minutes for the whole server (429 otherwise).
 
 **Example run (Aina: Python, SQL, PostgreSQL, Docker, AWS; real numbers from today's files)**
 1. Latest data: #1 Backend Engineer, match 0.655, rank 0.759, Rising. #2 AI/LLM Application Engineer, match 0.388, rank 0.571, Rising. #3 Data Engineer, match 0.513, rank 0.509, No clear change.
@@ -147,7 +147,7 @@ They earn credit only inside the criteria, and they never replace a must-have. *
 | Feature | Size | Risk to existing code | Advice |
 |---|---|---|---|
 | **G1. Fairness test** | S (half a day) | None: a new test file and one Method-screen line | **Do.** The cheapest Impact & Feasibility points |
-| **G2. HR / team view** | M (1–2 days) | Low: a new screen and a new route that call `match_roles` once per profile. Existing screens are untouched | **Do.** It also covers the HR user group |
+| **G2. HR / team view** | M (1–2 days) | Low: a new screen and a new route that call `match_roles` once per profile. Existing screens are untouched | **Removed on 1 Nov: does not fit a worker-facing site.** |
 | **G3. Bahasa Malaysia labels** | M | Low–medium: UI strings go through a `t()` lookup, so there are many small edits in `frontend/` | Main journey labels only (about 60 strings), BM only. Skip Chinese |
 | **G4. SDG view for a team** | S, after G2 | Low | Do with G2: add up `plan_sdg_summary` numbers over the team |
 | **G5. Skill badges** | S | Low | Skip. Design & UX is only 5% |
@@ -248,3 +248,28 @@ All numbers below are **planning estimates**. Check the prices on the Anthropic 
 4. Item 12 privacy page (S); item 11 cost logging (S); WP3 HRD list (manual research).
 5. Optional: G2 team view, G3 BM labels.
 6. Update the pitch script, the demo checklist and HANDOFF.md. Commit when the user says so.
+
+---
+
+## WP-MY. A Malaysian demand source (judges' feedback, 1 Nov 2026). **Plan only, not built.**
+
+**Feedback.** "Hacker News posts aren't very representative of Malaysia, so adding a Malaysian data source would make a big difference."
+
+**Source.** DOSM, *Job Vacancies Advertised Online* (also called "Big Data Analytics: Job Market Insights and My Job Profile"). It is official, public and quarterly. It breaks vacancies down by occupation (MASCO), economic activity, state, skills and field of study. DOSM collects it by web scraping and says it does not cover every vacancy in Malaysia. Example release: Q3 2023, published 29 Feb 2024 (https://www.dosm.gov.my/portal-main/release-content/big-data-analytics-job-market-insights-and-my-job-profile-third-quarter-of-). Interactive data: ILMIA (ilmia.gov.my) and OpenDOSM (open.dosm.gov.my).
+
+**Why it fits.** `data/mycol_role_map.json` already maps our roles to MASCO codes. So a role can show "Malaysia: N online vacancies for <MASCO occupation> in Qx YYYY (DOSM), up/down from the last quarter".
+
+**Design**
+```
+DOSM quarterly summary table (PDF/Excel) ──engine/my_dosm.py (parse ICT MASCO rows)──▶ data/my_vacancies_quarterly.csv
+   (quarter, masco_code, occupation, vacancies, source_url, published)
+mycol_role_map (role → MASCO) ──▶ service.py adds "malaysia" to each route ──▶ route card Details: Malaysia line + source + date
+```
+- Quarterly refresh: the scheduled job checks the DOSM release page once a week and parses a new release.
+- It is a **cross-check**, not a forecast input, until we have enough quarters to backtest it (same rule as HN: no model enters without a backtest).
+
+**Steps:** 1) find whether OpenDOSM has a CSV/API for this series (preferred) or only PDF tables; 2) parse the last 8 quarters for the ~10 ICT MASCO codes; 3) show the Malaysia line on route cards and the Method screen; 4) tests: parser on a saved table, no invented rows.
+
+**Risks.** The tables may be PDF only (fragile parsing; the fallback is a hand-entered CSV with the page reference per row). MASCO groups are broad (for example, "software developers"), so the match to our roles is team judgement, as with MyCOL. If the fine detail is only on the ILMIA dashboard, we read it by hand and say so.
+
+**Effort.** About half a day to a day if CSV, 1–2 days if PDF.

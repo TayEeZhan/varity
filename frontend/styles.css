@@ -296,6 +296,8 @@ h2.sec small { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); }
 .chip--gap { border-style: dashed; border-color: var(--ink-3); color: var(--ink-2); }
 .route__summary { margin-top: 6px; font-size: var(--t-sm); color: var(--ink-2); }
 .route__why { padding: 0 0 12px 112px; }
+.route__more { padding: 0 14px 12px 112px; }
+.route__more > summary { cursor: pointer; font-weight: 600; }
 .route.is-current .route__why { padding-right: 14px; padding-left: 126px; }
 .reason { border-color: var(--rule); background: var(--paper-2); }
 .reason--watch { border-color: var(--ink-3); background: #fff8d6; }
@@ -473,7 +475,7 @@ h2.sec small { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); }
   .route__row > :last-child { grid-column: 2; }
   .route__match { font-size: 1.5rem; }
   .route__gap { grid-template-columns: 1fr; padding-left: 0; gap: 14px; }
-  .route__why, .route.is-current .route__why { padding-left: 0; }
+  .route__why, .route.is-current .route__why, .route__more { padding-left: 14px; }
   .notice { grid-template-columns: 34px minmax(0, 1fr); }
   .notice__score { grid-column: 2; text-align: left; display: flex; gap: 8px; align-items: baseline; font-size: var(--t-md); }
   .notice__score small { margin: 0; }
@@ -519,12 +521,4 @@ a.tag--mycol:hover { background: var(--paper-2); }
   .sdgt tbody th::before, .sdgt td::before { content: attr(data-label); display: block; font-size: var(--t-xs); font-weight: 700; color: var(--ink-3); }
 }
 
-/* Team screen */
-.team__form { display: grid; gap: 8px; max-width: 720px; margin-bottom: 20px; }
-.team__scroll { overflow-x: auto; }
-.team { border-collapse: collapse; }
-.team th, .team td { border: 1px solid var(--ink); padding: 6px 10px; text-align: left; }
-.team__skill span { display: inline-block; max-width: 9em; }
-.team__have { background: #d9f0dc; color: #14451c; }
-.team__gap { background: #fbe0dc; color: #7a1a10; font-weight: 700; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

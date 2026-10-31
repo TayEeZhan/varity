@@ -44,9 +44,8 @@ const SCREENS = {
   radar: renderRadar,
   method: renderMethod,
   cv: renderCv,
-  team: renderTeam,
 };
-const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method", cv: "My CV", team: "Team" };
+const TITLES = { home: "Varity: from CV to hired", how: "How Varity works", flow: "Flow map", profile: "CV & routes", today: "Today", pathway: "Pathway", signals: "Signals", forecast: "Job forecast", radar: "Skills radar", method: "Method", cv: "My CV" };
 const DEFAULT_SCREEN = "today";
 
 /* An explicit hash wins ("#/" is the landing). With none, a visitor with a saved profile (account or this
@@ -158,11 +157,18 @@ function setProfileToken(token) {
   try { token ? localStorage.setItem(TOKEN_KEY, token) : localStorage.removeItem(TOKEN_KEY); } catch (e) { /* private mode: profile lasts this visit only */ }
 }
 
+/* The replay month this tab chose (sessionStorage, this tab only). Sent as asOf on the calls that serve trend data. */
+const ASOF_KEY = "verity_asof";
+const getAsOf = () => { try { return sessionStorage.getItem(ASOF_KEY) || ""; } catch (e) { return ""; } };
+const setAsOf = (m) => { try { m ? sessionStorage.setItem(ASOF_KEY, m) : sessionStorage.removeItem(ASOF_KEY); } catch (e) { /* no storage: replay lasts until reload */ } };
+const withAsOf = (path) => (getAsOf() && /^\/api\/(roles\/suggestions|pathway|skills\/radar|data\/status)/.test(path)
+  ? path + (path.includes("?") ? "&" : "?") + "asOf=" + encodeURIComponent(getAsOf()) : path);
+
 /* JSON call to the backend. Throws Error(server message) on an API error and TypeError when unreachable. */
 async function api(path, options = {}) {
   const token = ACCOUNT.signedIn ? null : profileToken();  // signed in: the cookie speaks for the profile
   const headers = { Accept: "application/json", "Content-Type": "application/json", ...(token ? { "X-Profile-Token": token } : {}) };
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(withAsOf(path), { ...options, headers });
   const body = await res.json().catch(() => null);
   if (!res.ok || !body || !body.success) {
     const err = new Error((body && body.error) || `Server error (${res.status})`);
@@ -197,7 +203,9 @@ const STAGE_LINE = { no_regret: "apps", near_term: "serve", other: "serve", futu
 
 const goalQ = () => (STATE.goal ? `&goal=${encodeURIComponent(STATE.goal)}` : "");
 
+let routesSeq = 0;  // a late answer for an older profile must not overwrite the newer one
 async function loadRoutes() {
+  const seq = ++routesSeq;
   STATE.suggest = null;
   STATE.suggestError = "";
   STATE.routeId = null;
@@ -205,12 +213,13 @@ async function loadRoutes() {
   STATE.loading = "routes";
   try {
     const s = await api(`/api/roles/suggestions?scenario=${STATE.scenario}${goalQ()}`);
+    if (seq !== routesSeq) return;
     STATE.suggest = s;
     // Only a role that has a pathway can be the route.
     const ids = new Set([...s.roles, ...s.lowMatch].map((r) => r.roleId));
     STATE.routeId = ids.has(s.targetRoleId) ? s.targetRoleId : (s.roles[0] || {}).roleId || null;
   } catch (e) {
-    STATE.suggestError = errText(e);
+    if (seq === routesSeq) STATE.suggestError = errText(e);
   }
 }
 
@@ -381,7 +390,7 @@ function applyPlan(plan) {
       week: s.startDate ? Math.floor((new Date(s.startDate).getTime() - start) / DAY_MS / 7) + 1 : "–",
       status: "next", title: s.skill, mins: s.minutes, resource: res.title || s.resourceNote, url: res.url || "",
       cost: res.cost === "free" ? "Free" : res.cost || "–", sdgTags: s.sdgTags, sdgReason: s.sdgReason, goalLinked: s.goalLinked,
-      why: s.whyForYou, reasons: s.reasons,
+      why: s.whyForYou, reasons: s.reasons, employer: s.employerFunded || null,
     };
     return stop;
   }));
@@ -390,6 +399,7 @@ function applyPlan(plan) {
 }
 
 /* ── Plan files, built here from the pathway payload (same fields as engine/pathway.py to_markdown / to_ics) ── */
+const LEARNING_NOTE = "Times are for the starter course only. Job-level skill needs practice on real projects after it.";
 function planMarkdown(p) {
   const t = p.totals;
   const lines = [
@@ -398,7 +408,8 @@ function planMarkdown(p) {
     `- Pace: ${p.hoursPerWeek} hours a week, Monday to Friday`,
     `- Plan: ${t.steps} skills, ${t.tasks} daily tasks, about ${t.hours} hours (estimate)`,
     `- Dates: ${p.startDate} to ${p.finishDate || "n/a"}`,
-    `- Skill data as of: ${p.skillsAsOf || "n/a"}`, "",
+    `- Skill data as of: ${p.skillsAsOf || "n/a"}`,
+    `- ${LEARNING_NOTE}`, "",
     "## Order of skills", "",
   ];
   for (const stage of p.stages) {
@@ -580,6 +591,7 @@ document.addEventListener("click", async (e) => {
       STATE.profileError = "";
       STATE.review = null;
       STATE.cv = "parsed";
+      STATE.suggest = null;  // routes belong to the old profile: hide them until the new ones load
       resetCvBuilder();
       rerender();
       toast("Example profile saved. It is synthetic: no CV was read.");

@@ -40,7 +40,7 @@ FILES = {"profiles": "role_profiles.json", "scores": "skill_scores.json", "trend
          "exposure": "exposure.csv"}
 # Left out of the answer (not an error) when missing, as app.py does.
 OPTIONAL_FILES = {"role_sdg": "role_sdg.json", "mycol": "mycol.json", "mycol_map": "mycol_role_map.json"}
-SCENARIO_LABELS = {"moderate": "Moderate (estimate)", "fast": "Fast AI disruption (estimate)"}
+SCENARIO_LABELS = {"moderate": "Expected (estimate)", "fast": "If AI speeds up (estimate)"}
 # Short names for the SDG targets that data/ uses (plain paraphrase of the UN target text).
 SDG_LABELS = {
     "1.4": "Access to basic services", "2.3": "Small food producers' income", "2.4": "Sustainable food production",
@@ -83,9 +83,9 @@ def current_data_dir() -> Path:
     return Path(_live["dir"]) if _live["dir"] else DATA_DIR
 
 
-REPLAY_SECONDS = 1800
-_replay = {"as_of": None, "until": 0.0, "cache": {}}
-_refresh_state = {"running": False, "error": None, "fetched_at": None}
+REFRESH_GAP_SECONDS = 600
+_replay = {"cache": {}}
+_refresh_state = {"running": False, "error": None, "fetched_at": None, "last_start": None}
 
 
 def replay_months() -> list[str]:
@@ -93,17 +93,10 @@ def replay_months() -> list[str]:
     return sorted(_read(str(DATA_DIR / FILES["profiles"]), (DATA_DIR / FILES["profiles"]).stat().st_mtime)["profiles"])
 
 
-def set_replay(as_of: str | None) -> None:
-    """Show the data as of a past month (None = back to latest). In memory only; it expires after 30 minutes."""
+def check_as_of(as_of: str | None) -> None:
+    """Raise ValueError for a month that is not a replay month. None (latest) is fine."""
     if as_of is not None and as_of not in replay_months():
-        raise ValueError(f"as_of must be one of {replay_months()}")
-    _replay.update(as_of=as_of, until=time.monotonic() + REPLAY_SECONDS)
-
-
-def replay_as_of() -> str | None:
-    if _replay["as_of"] and time.monotonic() > _replay["until"]:
-        _replay["as_of"] = None
-    return _replay["as_of"]
+        raise ValueError(f"asOf must be one of {replay_months()}")
 
 
 def _replayed(as_of: str) -> dict[str, Any]:
@@ -117,9 +110,9 @@ def _replayed(as_of: str) -> dict[str, Any]:
     return _replay["cache"][as_of]
 
 
-def data_meta() -> dict[str, Any]:
-    """What the UI shows in the 'Trend data' banner."""
-    as_of, snap = replay_as_of(), live_mod.folder_meta(current_data_dir())
+def data_meta(as_of: str | None = None) -> dict[str, Any]:
+    """What the UI shows in the 'Trend data' banner. as_of is the viewer's replay month (already checked)."""
+    snap = live_mod.folder_meta(current_data_dir())
     scores_as_of = as_of or _read(str(current_data_dir() / FILES["scores"]), (current_data_dir() / FILES["scores"]).stat().st_mtime).get("as_of")
     mode = "refreshing" if _refresh_state["running"] else "replay" if as_of else "latest"
     return {"mode": mode, "asOf": scores_as_of, "dataAsOf": scores_as_of, "dataMode": "replay" if as_of else "latest",
@@ -127,12 +120,15 @@ def data_meta() -> dict[str, Any]:
             "source": "HN Who is hiring", "error": _refresh_state["error"], "replayMonths": replay_months()}
 
 
-def refresh_in_background() -> bool:
-    """Start engine.refresh.refresh in a thread. False when one is already running. A failure keeps the last good data."""
+def refresh_in_background() -> tuple[bool, int]:
+    """Start engine.refresh.refresh in a thread. (False, seconds to wait) when one runs or started under 10 minutes ago.
+
+    A failure keeps the last good data. The gap is server-wide and in memory (it resets on restart)."""
     import threading
-    if _refresh_state["running"]:
-        return False
-    _refresh_state.update(running=True, error=None)
+    wait = REFRESH_GAP_SECONDS - (time.monotonic() - (_refresh_state["last_start"] or float("-inf")))
+    if _refresh_state["running"] or wait > 0:
+        return False, max(1, int(wait)) if wait > 0 else REFRESH_GAP_SECONDS
+    _refresh_state.update(running=True, error=None, last_start=time.monotonic())
 
     def run() -> None:
         try:
@@ -150,12 +146,12 @@ def refresh_in_background() -> bool:
             _refresh_state["running"] = False
 
     threading.Thread(target=run, daemon=True).start()
-    return True
+    return True, 0
 
 
-def load_data(data_dir: Path | None = None) -> dict[str, Any]:
-    """The engine files. Raises FileNotFoundError when one is missing."""
-    replay = data_dir is None and replay_as_of()
+def load_data(data_dir: Path | None = None, as_of: str | None = None) -> dict[str, Any]:
+    """The engine files. Raises FileNotFoundError when one is missing. as_of (a replay month) is checked by the caller."""
+    replay = data_dir is None and as_of
     data_dir = data_dir or current_data_dir()
     data = {key: _read(str(data_dir / name), (data_dir / name).stat().st_mtime) for key, name in FILES.items()}
     for key, name in OPTIONAL_FILES.items():
@@ -163,6 +159,10 @@ def load_data(data_dir: Path | None = None) -> dict[str, Any]:
             data[key] = _read(str(data_dir / name), (data_dir / name).stat().st_mtime)
         except (OSError, ValueError):
             data[key] = None
+    try:  # employer-funded options (HRD Corp): always from the repo data folder; missing file = none
+        data["hrd"] = _read(str(DATA_DIR / "hrd_programmes.json"), (DATA_DIR / "hrd_programmes.json").stat().st_mtime)
+    except (OSError, ValueError):
+        data["hrd"] = {"programmes": []}
     doc = data["role_sdg"]
     if doc is not None and not (isinstance(doc, dict) and isinstance(doc.get("roles"), dict)
                                 and isinstance(doc.get("sectors"), list)):
@@ -382,6 +382,15 @@ def _task_out(t: Mapping[str, Any]) -> dict:
             "resourceUrl": t["resource_url"], "reason": t["reason"], "sdg": t["sdg"]}
 
 
+def _employer_funded(skill: str, hrd: Mapping[str, Any] | None) -> dict | None:
+    hrd = hrd or {}
+    p = next((p for p in hrd.get("programmes") or [] if p.get("skill") == skill), None)
+    if p is None:
+        return None
+    return {"title": p["title"], "provider": p["provider"], "url": p["url"], "days": p["days"], "feeMyr": p["fee_myr"],
+            "hrdStatus": p["hrd_status"], "checkedOn": hrd.get("checked_on")}
+
+
 def _step_out(s: Mapping[str, Any]) -> dict:
     return {"order": s["order"], "skill": s["skill"], "stage": s["stage"], "stageLabel": s["stage_label"],
             "reason": s["reason"], "reasons": s["reasons"], "whyForYou": s.get("whyForYou"), "resource": s["resource"],
@@ -460,7 +469,7 @@ def pathway(profile: Profile, role_id: str, momentum_rows: Sequence[Mapping], ru
         "personalisedBy": "llm" if personalised else "formula", "llmStatus": status,
         "stages": [{"name": st["name"], "label": st["label"],
                     "skills": [s["skill"] for s in steps if s["stage"] == st["name"]]} for st in plan["stages"]],
-        "steps": [{**_step_out(s), "pushed": s["skill"] in pushed, "goalLinked": bool(s.get("goalLinked"))} for s in steps], "tasks": [_task_out(t) for t in tasks],
+        "steps": [{**_step_out(s), "employerFunded": _employer_funded(s["skill"], data.get("hrd")), "pushed": s["skill"] in pushed, "goalLinked": bool(s.get("goalLinked"))} for s in steps], "tasks": [_task_out(t) for t in tasks],
         "unresolved": [s["skill"] for s in steps if not s["resource"]],
         "totals": {"steps": len(steps), "tasks": len(tasks), "minutes": minutes, "hours": round(minutes / 60, 1)},
         "notes": plan["notes"],
