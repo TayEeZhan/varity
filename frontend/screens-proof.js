@@ -195,7 +195,7 @@ function certRow(c) {
       <button class="btn" type="submit">I passed</button></form>
       ${mine.status === "self_reported" ? `<p class="route-note">Self-reported: ${esc(mine.detail || "")}</p>` : ""}`;
   }
-  return `<div class="dep dep--cert">${Math.round(c.coverage * 100) >= 1 ? `<span class="dep__gain">${Math.round(c.coverage * 100)}%<small>covered</small></span>` : `<span class="dep__gain dep__gain--word">All new<small>fresh start</small></span>`}
+  return `<div class="dep dep--cert">${Math.round(c.coverage * 100) >= 1 ? `<span class="dep__gain dep__gain--${c.coverage >= 0.75 ? "high" : c.coverage >= 0.4 ? "mid" : "low"}">${Math.round(c.coverage * 100)}%<small>covered</small></span>` : `<span class="dep__gain dep__gain--word dep__gain--new"><span class="dep__plate">All new</span><small>fresh start</small></span>`}
     <span class="dep__main"><b>${esc(c.name)}</b>
       <span class="pstop__why">${esc(demand)} · ${esc(c.issuer)} · ${ext(c.url, "Official page")}${c.adds.length ? ` · Adds stops: ${esc(c.adds.join(", "))}` : ""}</span></span>
     <span class="dep__act">${action}</span></div>`;
