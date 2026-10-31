@@ -1,6 +1,6 @@
 # Plan: which AI work runs on Replit credits and which on KrackedDevs
 
-Written 1 Nov 2026. **Plan only. Nothing is built.**
+Written 1 Nov 2026. **The KrackedDevs side is built (`engine/llm_client.py`) and not yet run against the real gateway. The Replit side waits for credits.**
 
 ## What each credit can do
 | | Replit ($100) | KrackedDevs ($20 per teammate key; 2 teammates = $40) |
@@ -47,8 +47,7 @@ Written 1 Nov 2026. **Plan only. Nothing is built.**
 
 ## The judges' feedback and what to improve
 1. **"HN is not representative of Malaysia."** This is the main gap.
-   - Build WP-MY (`tasks/plan-final-round.md`): DOSM *Job Vacancies Advertised Online*, quarterly, by MASCO occupation, mapped to our roles through the existing MyCOL MASCO map. Show "Malaysia: N online vacancies for <occupation>, Qx YYYY (DOSM)" in each route's Details.
-   - KrackedDevs can help here too: a model can read a DOSM PDF table into rows, **but code must check each number appears in the PDF text** before it is stored.
+   - Built (WP-MY, `tasks/plan-final-round.md`): a sector-level Malaysia check from DOSM online vacancies, quarterly (`engine/my_dosm.py`, `data/my_vacancies_quarterly.csv`). DOSM has no job-title split, so it is not per role. Code reads each number from a named Excel cell and checks it. No LLM is used.
    - On screen, keep the honest line: "HN = global tech hiring sample; DOSM = Malaysian check."
-2. **"Finishing a tutorial doesn't close a skill gap."** Done: the starter-course note, "Starter course done" labels, and the HRD Corp option (multi-day professional courses). Next: add one "practice project" step per skill (for example, "Deploy a small API on AWS"), taken from a sourced list. Code never invents one.
+2. **"Finishing a tutorial doesn't close a skill gap."** Done: the starter-course note, "Starter course done" labels, and the HRD Corp option (multi-day professional courses). Next: add one "practice project" step per skill (for example, "Deploy a small API on AWS"), taken from a sourced list. Code never invents one. Sheng Kuan is building this step.
 3. **Strength to keep showing:** the model comparison and the uncertainty bands. Lead the pitch with them.

@@ -110,7 +110,7 @@ function malaysiaSeries(m) {
     <p class="method">${esc(m.ict.label)} sector, ${esc(pts[0].quarter)} to ${esc(m.ict.quarter)}. ${esc(m.note)} HN is a global tech hiring sample; this is the Malaysian check.</p>
     <svg viewBox="0 0 ${w} ${h}" width="240" height="48" role="img" aria-label="Quarterly online vacancies, Information and communication sector"><polyline points="${xy}" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
     <table class="ev-table"><thead><tr><th>Quarter</th><th>Vacancies</th></tr></thead><tbody>${rows}</tbody></table>
-    <p class="method"><a href="${esc(m.sourceUrl)}" target="_blank" rel="noopener">Source: DOSM Job Market Insights data file</a>, published ${esc(m.published)}.</p></section>`;
+    <p class="method"><a href="${esc(m.sourceUrl)}" target="_blank" rel="noopener">Data source: Department of Statistics Malaysia</a> (Job Market Insights data file, published ${esc(m.published)}).</p></section>`;
 }
 
 function radarBody(d) {

@@ -147,7 +147,7 @@ They earn credit only inside the criteria, and they never replace a must-have. *
 | Feature | Size | Risk to existing code | Advice |
 |---|---|---|---|
 | **G1. Fairness test** | S (half a day) | None: a new test file and one Method-screen line | **Do.** The cheapest Impact & Feasibility points |
-| **G2. HR / team view** | M (1–2 days) | Low: a new screen and a new route that call `match_roles` once per profile. Existing screens are untouched | **Removed on 1 Nov: does not fit a worker-facing site.** |
+| **G2. HR / team view** | M (1–2 days) | Low: a new screen and a new route that call `match_roles` once per profile. Existing screens are untouched | **Built, then removed on 1 Nov (does not fit a worker-facing site).** |
 | **G3. Bahasa Malaysia labels** | M | Low–medium: UI strings go through a `t()` lookup, so there are many small edits in `frontend/` | Main journey labels only (about 60 strings), BM only. Skip Chinese |
 | **G4. SDG view for a team** | S, after G2 | Low | Do with G2: add up `plan_sdg_summary` numbers over the team |
 | **G5. Skill badges** | S | Low | Skip. Design & UX is only 5% |
@@ -193,7 +193,7 @@ All numbers below are **planning estimates**. Check the prices on the Anthropic 
 **Cost per month**
 | Item | Assumption | Estimate |
 |---|---|---|
-| Hosting (Replit Reserved VM, smallest) | Replit price page | about $10–20 per month (check) |
+| Hosting (Replit Autoscale; `.replit` sets `cloudrun`) | Replit price page | the old $10–20 per month figure was for a Reserved VM; re-check for Autoscale |
 | App Storage | a few MB of snapshots | under $1 |
 | CV reading (Claude Haiku) | about 3k tokens in + 1k out per CV; Haiku 4.5 list price $1 in / $5 out per million tokens ≈ $0.008 per CV | about $8 per 1,000 CVs |
 | Daily post labelling | about 15 new posts a day × about 900 tokens | under $1 per month |
@@ -257,7 +257,7 @@ All numbers below are **planning estimates**. Check the prices on the Anthropic 
 
 **Source.** DOSM, *Job Vacancies Advertised Online* (also called "Big Data Analytics: Job Market Insights and My Job Profile"). It is official, public and quarterly. It breaks vacancies down by occupation (MASCO), economic activity, state, skills and field of study. DOSM collects it by web scraping and says it does not cover every vacancy in Malaysia. Example release: Q3 2023, published 29 Feb 2024 (https://www.dosm.gov.my/portal-main/release-content/big-data-analytics-job-market-insights-and-my-job-profile-third-quarter-of-). Interactive data: ILMIA (ilmia.gov.my) and OpenDOSM (open.dosm.gov.my).
 
-**Why it fits.** `data/mycol_role_map.json` already maps our roles to MASCO codes. So a role can show "Malaysia: N online vacancies for <MASCO occupation> in Qx YYYY (DOSM), up/down from the last quarter".
+**What was built.** A sector-level check, not per role. DOSM gives only two tables (by economic activity and by MASCO major group) and no job-title split. `engine/my_dosm.py` keeps 3 rows (Information and communication; Professionals; Technicians and associate professionals) in `data/my_vacancies_quarterly.csv`, each with its sheet and cell. The first idea was a per-role line through `data/mycol_role_map.json`. DOSM data cannot support that, so the app shows no Malaysia number for one role.
 
 **Design (built 1 Nov as a sector-level check: DOSM has no per-job-title split, see engine/my_dosm.py)**
 ```
