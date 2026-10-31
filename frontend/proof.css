@@ -1,0 +1,104 @@
+/* Project and Cert stations (screens-proof.js). Transit grammar from DESIGN.md: capsule stops, a black platform sign,
+   timetable rows, the yellow halo only for "you are here" and the service-change band. */
+
+.proof { margin-top: 40px; }
+.proof__line svg { min-width: 560px; width: 100%; height: auto; display: block; }
+.proof__track { stroke: var(--apps); stroke-width: 8; stroke-linecap: round; }
+.proof__cap { fill: var(--paper); stroke: var(--ink); stroke-width: 3; }
+.proof__cap--done { fill: var(--ink); }
+.proof__halo { fill: var(--signal); animation: proof-pulse 2.4s var(--ease) infinite; }
+@keyframes proof-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+.proof__h { font-size: var(--t-md); font-weight: 800; margin: 28px 0 8px; padding-top: 8px; border-top: 3px solid var(--ink); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.proof__h small { font-size: var(--t-sm); font-weight: 500; color: var(--ink-3); }
+
+.platform { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--ink); color: #fff; padding: 10px 14px; font-weight: 700; }
+.platform__plate { background: #fff; color: var(--ink); font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.08em; padding: 3px 8px; }
+.platform__note { margin-left: auto; font-size: var(--t-xs); font-weight: 600; border: 1px dashed #fff; padding: 2px 8px; }
+
+.proof-card { margin: 16px 0; border: 1px solid var(--rule); }
+.proof-card > :not(.platform) { margin-left: 14px; margin-right: 14px; }
+.proof-card h3 { font-size: var(--t-md); font-weight: 800; margin-top: 14px; }
+.proof-card .submit { padding-bottom: 14px; }
+.submit label, .dispute label { display: grid; gap: 4px; font-size: var(--t-sm); font-weight: 600; margin: 10px 0; }
+.submit input, .submit select, .cert-pass input, .dispute textarea { font: inherit; font-weight: 400; padding: 8px 10px; border: 1px solid var(--ink-3); border-radius: 4px; background: #fff; width: 100%; max-width: 520px; }
+.submit input:invalid:not(:placeholder-shown) { border-color: var(--fall); }
+.dispute textarea { min-height: 70px; }
+.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--ink); text-decoration: underline; cursor: pointer; }
+
+.crit { margin: 8px 0 0; padding: 0; counter-reset: c; }
+.crit li { list-style: none; counter-increment: c; display: grid; grid-template-columns: 26px 1fr; gap: 6px; padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: var(--t-sm); }
+.crit li::before { content: counter(c); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.checks { list-style: none; margin: 10px 0 0; padding: 0; }
+.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: var(--t-sm); align-items: start; }
+.checks li small { display: block; color: var(--ink-3); }
+.st-ok { color: var(--rise); font-weight: 800; }
+.st-no { color: var(--fall); font-weight: 800; }
+.st-wait { color: var(--ink-3); }
+.spin { display: inline-block; animation: proof-spin 1s linear infinite; }
+@keyframes proof-spin { to { transform: rotate(360deg); } }
+.review__head { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+.review__head h3 { margin: 0; font-size: var(--t-lg); }
+
+.pstamp { display: inline-block; border: 3px solid var(--rise); color: var(--rise); font-weight: 800; font-size: var(--t-sm); padding: 2px 10px; letter-spacing: 0.08em; transform: rotate(-4deg); margin-right: 8px; }
+.pstamp--ink { border-color: var(--ink); color: var(--ink); }
+.proof-done { display: flex; align-items: center; gap: 6px; font-size: var(--t-sm); margin: 10px 0; }
+
+/* Jury: three signal stations on a short track */
+.jury { margin-top: 6px; font-size: var(--t-sm); }
+.jury summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 10px; color: var(--ink-2); font-weight: 600; padding: 3px 0; }
+.jury summary::-webkit-details-marker { display: none; }
+.track { position: relative; display: inline-flex; gap: 14px; padding: 0 2px; }
+.track::before { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 3px; margin-top: -1.5px; background: var(--ink); }
+.vd { position: relative; width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--ink); background: #fff; transition: transform 160ms var(--ease), opacity 160ms var(--ease); }
+.vd--pass { background: var(--ink); }
+.vd--fail { border-color: var(--fall); }
+.vd--none { border-style: dashed; border-color: var(--ink-3); }
+.tally b { color: var(--ink); font-weight: 800; font-variant-numeric: tabular-nums; }
+.jury ol { margin: 8px 0 0; padding: 0; border-top: 3px solid var(--ink); }
+.jury li { list-style: none; display: grid; grid-template-columns: 18px minmax(0, 9.5em) 1fr; gap: 8px; align-items: start; border-bottom: 1px solid var(--rule); padding: 6px 0; transition: opacity 160ms var(--ease); }
+.jury li b { font-weight: 700; }
+.jury ol:hover li { opacity: 0.4; }
+.jury ol li:hover { opacity: 1; }
+.jury:has(li:nth-child(1):hover) .vd:nth-child(1), .jury:has(li:nth-child(2):hover) .vd:nth-child(2), .jury:has(li:nth-child(3):hover) .vd:nth-child(3) { transform: scale(1.35); }
+.jury__note { color: var(--ink-3); font-size: var(--t-xs); margin-top: 6px; }
+.dispute summary { cursor: pointer; font-size: var(--t-sm); font-weight: 600; text-decoration: underline; margin-top: 4px; }
+
+/* Departures timetable */
+.deps { display: grid; }
+.dep { border-bottom: 1px solid var(--rule); }
+.dep > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 26px 64px 1fr; gap: 12px; align-items: start; padding: 12px 0; }
+.dep > summary::-webkit-details-marker { display: none; }
+.dep > summary:hover { background: var(--paper-2); }
+.dep > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.dep__gain { font-weight: 800; font-size: var(--t-lg); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.dep__gain small { display: block; font-size: var(--t-xs); font-weight: 500; color: var(--ink-3); }
+.dep__main { display: grid; gap: 6px; }
+.dep__main .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dep__body { padding: 0 0 14px 102px; }
+.dep__body .btn { margin-top: 12px; }
+.dep--cert { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: start; padding: 12px 0; }
+.dep__act { display: grid; gap: 6px; justify-items: end; }
+.cert-pass { display: flex; gap: 6px; }
+.cert-pass input { min-width: 220px; }
+.consent { border: 1px solid var(--ink); padding: 12px 14px; margin: 14px 0; font-size: var(--t-sm); }
+.consent .btn { margin-top: 10px; }
+.consent fieldset { border: 0; padding: 0; margin: 10px 0 0; display: grid; gap: 4px; }
+.consent legend { font-weight: 700; margin-bottom: 4px; }
+.proof-card--demo { border-style: dashed; }
+.proof-count { margin-top: 6px; }
+
+@media (max-width: 720px) {
+  .dep > summary { grid-template-columns: 22px 52px 1fr; gap: 8px; }
+  .dep__body { padding-left: 0; }
+  .dep--cert { grid-template-columns: 52px 1fr; }
+  .dep__act { grid-column: 1 / -1; justify-items: start; }
+  .cert-pass { flex-wrap: wrap; }
+  .cert-pass input { min-width: 0; }
+  .jury li { grid-template-columns: 18px 1fr; }
+  .jury li > span:last-child { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .proof__halo, .spin { animation: none; }
+  .vd, .jury li { transition: none; }
+}

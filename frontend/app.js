@@ -54,7 +54,7 @@ function currentScreen() {
   if (r === "" && location.hash.startsWith("#/")) return "home";
   if (r === "flow") return "how";  // old Flow map links
   if (SCREENS[r]) return needsSignIn(r) ? "home" : r;
-  return hasKey() ? DEFAULT_SCREEN : "home";
+  return hasKey() || ACCOUNT.signedIn ? DEFAULT_SCREEN : "home";  // signed in, no CV yet: the app, so the CV pop-up shows
 }
 
 /* With login on, the app screens need an account; the landing, How it works and the two evidence pages it links to
@@ -284,6 +284,7 @@ async function loadPlan() {
     applyPlan(null);
     STATE.planError = errText(e);
   }
+  await loadProof();  // Project and Cert stations follow the route
 }
 
 /* Keep / Revert a changed plan, or Add / Not now a trend skill (POST /api/pathway/decision). */

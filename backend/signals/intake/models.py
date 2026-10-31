@@ -15,9 +15,9 @@ SCHEMA_VERSION = 2
 
 Context = Literal["work", "project", "education", "certification", "skills_list", "interest"]
 EvidenceContext = Literal["work", "project", "education", "certification", "skills_list", "inferred", "user"]
-Source = Literal["cv", "form", "inferred", "imported", "pathway", "github"]
+Source = Literal["cv", "form", "inferred", "imported", "pathway", "github", "credly"]
 Method = Literal[
-    "llm", "keyword", "llm+keyword", "user_entry", "import", "task_done",
+    "llm", "keyword", "llm+keyword", "user_entry", "import", "task_done", "jury_pass", "badge_verified",
     "graph:requires", "graph:part_of", "graph:often_uses",
 ]
 Basis = Literal["stated", "self_reported", "implied", "suggested"]

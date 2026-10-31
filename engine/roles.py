@@ -583,9 +583,14 @@ def score_breakdown(r: Mapping, top: int = 3) -> dict:
     """The parts of one match_roles result, and what each of the top gap skills would add. Pure arithmetic."""
     total = sum(s["weight"] for s in r["have"]) + sum(s["weight"] for s in r["gap"])  # merge_synonyms already applied
     fut = r["future_score"]
-    gaps = sorted(r["gap"], key=lambda s: (-s["weight"], s["skill"]))[:top]
-    raise_ = [{"skill": s["skill"], "addMatch": add, "newRank": MATCH_WEIGHT * (r["match_score"] + add) + FUTURE_WEIGHT * fut}
-              for s in gaps for add in [s["weight"] / total if total > 0 else 0.0]]
+    # Learning a gap skill adds its whole weight; proving a half-credit skill (project or cert) adds the rest.
+    options = ([(s["skill"], s["weight"], "learn") for s in r["gap"]]
+               + [(s["skill"], s["weight"] * (1.0 - s.get("credit", 1.0)), "prove")
+                  for s in r["have"] if s.get("credit", 1.0) < 1.0])
+    options = sorted(options, key=lambda o: (-o[1], o[0]))[:top]
+    raise_ = [{"skill": skill, "kind": kind, "addMatch": add,
+               "newRank": MATCH_WEIGHT * (r["match_score"] + add) + FUTURE_WEIGHT * fut}
+              for skill, weight, kind in options for add in [weight / total if total > 0 else 0.0]]
     return {"match": r["match_score"], "outlook": fut, "matchWeight": MATCH_WEIGHT, "outlookWeight": FUTURE_WEIGHT,
             "rank": r["rank_score"], "raise": raise_}
 
@@ -631,6 +636,7 @@ def match_roles(
     exposure: Mapping[str, float] | None = None,
     k: float | None = None,
     low_match_below: float = LOW_MATCH_BELOW,
+    credit: Mapping[str, float] | None = None,
 ) -> dict:
     """Rank roles for one user. Nothing is written.
 
@@ -647,6 +653,8 @@ def match_roles(
 
     low_match_below: a role whose match_score is below this goes to "low_match" and is NOT ranked, so a
         role cannot rank on its outlook alone. Default 0.20 (team judgement). Use 0 to rank every role.
+    credit: skill -> 0..1, how much a held skill counts (advisor.mapping.skill_credit). Missing: 1.0.
+        match_score = sum(weight * credit) over held skills / total weight.
 
     Returns {"scenario", "formula", "roles", "low_match", "not_ranked", "unmatched"}. "roles" holds the
     roles with match_score >= low_match_below, sorted by rank_score (ties: higher match_score, then
@@ -659,9 +667,12 @@ def match_roles(
     score_list = _as_list(skill_scores, "skills")
     scores = {s["skill"]: s for s in score_list}
     have_set = set(names)
+    credit_of = dict(credit or {})
     for child, parent in SYNONYMS.items():
         if child in have_set:
             have_set.add(parent)
+            if parent not in names:
+                credit_of[parent] = credit_of.get(child, 1.0)
     unmatched = sorted(n for n in names if n not in scores)
 
     if k is None:
@@ -688,9 +699,10 @@ def match_roles(
             return {"skill": s["skill"], "weight": s["weight"], "status": rec.get("status"),
                     "trend_label": rec.get("trend_label"), "stance": rec.get("stance")}
 
-        have = [{**info(s), "years": years.get(s["skill"])} for s in skills if s["skill"] in have_set]
+        have = [{**info(s), "years": years.get(s["skill"]), "credit": credit_of.get(s["skill"], 1.0)}
+                for s in skills if s["skill"] in have_set]
         gap = [info(s) for s in skills if s["skill"] not in have_set]
-        match = sum(s["weight"] for s in have) / total if total > 0 else 0.0
+        match = sum(s["weight"] * s["credit"] for s in have) / total if total > 0 else 0.0
 
         by_stance: dict[str, float] = {}
         for s in skills:
