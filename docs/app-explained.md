@@ -145,6 +145,7 @@ This is pure arithmetic from numbers `match_roles` already returns (`engine/role
 
 ### 2.10 Signals (`#/signals`)
 - `GET /api/signals`. The top 10 AI and dev-tooling stories, ranked by impact, plus weekly skill momentum.
+- **Skill momentum table** (`renderSignals` in `frontend/screens-explore.js`; changed 31 Oct 2026). Columns: Skill, "This week", "Usual week" (the average of the 4 weeks before this one), and "Change" as a % of the usual week. Counts are news mentions. "New" shows when the usual week is under 1 mention, because a percentage would mislead. Rows are sorted by change.
 - Built by the "AI Trend Signal Layer" in `backend/signals/` (Sheng Kuan's part). It polls RSS feeds (OpenAI, DeepMind, Google AI, Hugging Face, Microsoft Research, NVIDIA, AWS, GitHub releases, Meta, arXiv, HF Daily Papers, Hacker News front page, Simon Willison, TechCrunch AI, The Verge AI and more; `backend/signals/config/sources.yaml`) every 15 minutes while the server runs with `--scheduler`.
 - Stories are cleaned, merged when they are duplicates (URL match, then TF-IDF), turned into a feature vector by code, and scored. **A deterministic formula ranks by default.** Jev (TypeSafe AI's decision model, via OpenRouter on Replit) can rank only if it beats the formula on a hand-labelled gold set (`backend/signals/ARCHITECTURE_JEV_RANKER.md`). Each row says who ranked it ("deterministic formula", "Jev", or mixed).
 - **Honest limit.** The Signals screen is evidence and context. It is **not** fed into the forecast. The link from news momentum to the forecast is a plan that must pass a backtest first (`docs/architecture.md` 3.17, 4.3).
@@ -296,7 +297,7 @@ Datasets used offline (not live APIs): Anthropic Economic Index release 2026-06-
 
 ### 3.7 Infrastructure and DevOps
 - **Hosting.** Replit. `.replit` sets `deploymentTarget = "cloudrun"`, which is Replit's **Autoscale** deployment. Build: `pip install -r requirements.txt`. Run: `cd backend/signals && python -m trendsignal serve --host 0.0.0.0 --port 8080 --scheduler`. Port 8080 maps to external port 80. The README says 2 vCPU / 4 GiB, region Asia. The live URL is https://verity--eezhan0805.replit.app/#/.
-  - Reserved VM would keep the scheduler alive all day; on Autoscale the in-process 06:30 job only runs if an instance is awake. That is why the plan uses a separate **Scheduled Deployment** (`python -m engine.scheduled`) (`docs/replit-schedule.md`).
+  - The deployed app is on Autoscale, not a Reserved VM. A Reserved VM would keep the scheduler alive all day. On Autoscale the in-process 06:30 job only runs if an instance is awake. That is why the plan uses a separate **Scheduled Deployment** (`python -m engine.scheduled`) (`docs/replit-schedule.md`). The Scheduled Deployment is not set up yet.
 - **Secrets.** In Replit Secrets, never in the code: `ANTHROPIC_API_KEY`, `SESSION_SECRET`, `DATABASE_URL`, `GOOGLE_CLIENT_ID` (`.env.example`).
 - **Source control.** GitHub `TayEeZhan/varity` (README and the submission files all use `varity`). 149 commits from 2026-10-21 to 2026-10-31 (`git log`). The brief warns that a pre-built-looking repo or one big late commit can disqualify a final-round team.
 - **Tests.** Root `pytest` collects **1,332 tests** (868 in `tests/`, 464 in `backend/signals/tests/`; I counted with `pytest --collect-only` on 31 Oct). Full run is about 8 minutes (`CLAUDE.md`). Backend only: `pytest -q` in `backend/signals/`. There are tests that the future cannot leak into a past forecast, that every chosen resource link exists in the resource list, that no committed data file holds an email, and the new fairness test (section 6). `HANDOFF.md` still says 975 (old). Use 1,332 only after you re-run the full suite and it passes. I did not run the full suite.
@@ -449,7 +450,8 @@ Two credit pools: Replit ($100, Claude through Replit AI Integrations, also pays
 - **KrackedDevs, bulk and background:** the one-off relabel of the 48,508 HN posts (`deepseek-v4-flash`, fall back `gpt-5.4-nano`), daily labelling of new posts, weekly new-title review (`gpt-5.4-mini`), and, as a proposal that needs Sheng Kuan's agreement, the Signals ranker steps.
 - **Stays as now:** Jev scoring through Replit OpenRouter.
 - **Safety:** code checks every quote, so a cheaper model can miss labels but cannot invent them. Only public HN text goes to KrackedDevs, never CVs.
-- **Status:** built, runs only when `KD_API_KEY` is set. `engine/llm_client.py` (stdlib HTTP, usage log `data/llm_usage.csv`, budget guard `KD_CAP_USD`, default $15). `llm_labels.py` and `role_discover.py` pick it automatically. **Not run yet** (no key used, no relabel done). Prices in the log are assumed list prices unless the gateway returns a cost header. The Signals ranker is unchanged (needs Sheng Kuan's approval). Do not say it is running.
+- **Status:** built, runs only when `KD_API_KEY` is set. `engine/llm_client.py` (stdlib HTTP, usage log `data/llm_usage.csv`, budget guard `KD_CAP_USD`, default $15). `llm_labels.py` and `role_discover.py` pick it automatically. **Not run yet** (no key used, no relabel done).
+  - **Details.** `engine/llm_client.py` is used by `engine/llm_labels.py` and `engine/role_discover.py` when `KD_API_KEY` is set. Models: `deepseek-v4-flash` for labels, `gpt-5.4-mini` for the title review. Every call is logged to `data/llm_usage.csv` (tokens and USD, never the key or any text). The per-job cap is `KD_CAP_USD`, default 15. `python -m engine.llm_labels backfill --limit N` is a dry run: it labels the first N posts, writes nothing and prints the real cost. Prices in the log are assumed list prices unless the gateway returns a cost header. The Signals ranker is unchanged (needs Sheng Kuan's approval). Do not say it is running.
 
 ### 5.4 Guardrails (say these)
 1. **Quote check.** The model must give an exact quote. Code looks for it in the text. No quote, no skill.
@@ -556,6 +558,9 @@ Forecast skill: 12-month demand is near flat, and 13 of 40 skills have too few p
 
 **19. "What if a source goes down?"**
 The app reads committed files, so a failed HN fetch cannot break it. The daily job never moves `latest.json` on failure. The page shows a dated offline snapshot if the server is unreachable.
+
+**Why doesn't the Job forecast use arXiv, GitHub, Hugging Face or X?**
+Those are news and talk sources, not job posts. GitHub Jobs closed in 2021. X needs a paid API, and scraping it breaks its terms. The forecast needs hiring data it can backtest: HN "Who is hiring?" gives 94 months. The Signals screen sits beside the forecast as an "AI boost" hint and a planner tie-break. It is never inside the forecast numbers. A future step is to test whether news rises lead hiring rises.
 
 **20. "What is built and what is only planned?"**
 Built: skills forecast, role forecast, replay and fetch, score breakdown, goal picker, HRD option (3 entries), privacy notice, fairness test, CV builder, Signals. Also built: the DOSM Malaysia check (sector level) and the Fairness block on the Method screen. Planned or waiting: KrackedDevs credits plan, Claude post labeller backfill (needs credits), Scheduled Deployment and App Storage set-up, impact counters, Bahasa Malaysia labels, Google two-way sync.
@@ -671,17 +676,23 @@ Job forecast shows posts so far this month. The nowcast weight comes from a back
 - **Replit AI Integrations.** The declaration no longer says it is unused: it says supported in code, used when enabled, Haiku 4.5 on Replit.
 - **DOSM.** Built (4.14) and listed in the declaration (4.4).
 
+- **Resolved 1 Nov 2026 (docs only, no code changed):**
+  - **Architecture doc.** `docs/architecture.md` now says replay (`?asOf=`), `POST /api/data/refresh` and the daily role update (`_update_roles`) exist. Emerging-role discovery is built (`engine/role_discover.py`) and not run on real data. The Team page is noted as removed.
+  - **Scenario names.** The pitch script, Q&A prep, demo checklist, video script and architecture doc now use "Expected (estimate)" and "If AI speeds up (estimate)". API values stay `moderate` and `fast`.
+  - **Team page.** `tasks/plan-final-round.md` now says built, then removed on 1 Nov.
+  - **Hosting.** Docs now say Autoscale (`.replit` `deploymentTarget = "cloudrun"`). The Scheduled Deployment is not set up yet.
+  - **Plan docs.** `tasks/plan-final-round.md` WP-MY and `tasks/plan-credits.md` now describe the sector-level DOSM check. `plan-credits.md` also says the KrackedDevs side is built and not run.
+  - **Signals footer.** `loadSignals()` in `frontend/app.js` replaces the "offline snapshot of 22 Oct" time and the run id with the live run when `/api/signals` answers with stories. The static text shows only when the API fails or has no ranked run, and it says so.
+
+### Resolved 1 Nov 2026 (second pass)
+- **Model naming.** One public rule, in the declaration (section 3): a direct Anthropic key gives Claude Haiku 5.5; Replit AI Integrations gives Claude Haiku 4.5. The deployed app uses the direct key.
+- **Licences reviewed:** DOSM (Government Open Data Terms of Use 1.0; the app now shows "Data source: Department of Statistics Malaysia" as DOSM requires), arXiv (metadata CC0 1.0, 1 request per 3 s), HN (no data licence; Y Combinator's terms forbid scraping, and we use only the APIs), Hugging Face, Bluesky, AIOE (cite the 2021 paper).
+- **Tech declaration `.docx`** regenerated from `tech-declaration.md`.
+
 ### Still open
-1. **Model naming.** README and the declaration lead with Claude Haiku 5.5. The code uses `claude-haiku-4-5` when it runs through Replit AI Integrations. Say both if asked. Pick one public wording.
-2. **`.docx` files not regenerated.** `docs/submission/SDC2026_HokkienMeeIsPurple_TechDeclaration.docx` and the Preliminary `.docx` still hold the old text. Regenerate them from the `.md` files before upload.
-3. **Licences and terms not reviewed:** DOSM (no terms-of-use page found; its home page footer gives only a copyright line), TypeSafe, Bluesky, arXiv, Hugging Face, publisher RSS terms, the Trainocate/HRD pages, MyCOL, HN (`tech-declaration.md` 4.4 says "not reviewed").
-4. **Architecture doc is partly old.** `docs/architecture.md` line 478 still says the Varity app has no as-of slider, and emerging-role discovery is called a design in places. The code has replay, `/api/data/refresh`, a daily role update and discovery code (built, **not run**).
-5. **Scenario names.** Docs say Moderate and Fast. The UI says "Expected (estimate)" and "If AI speeds up (estimate)". API values are still `moderate` and `fast`.
-6. **Team page.** Built and removed. `tasks/plan-final-round.md` still plans it.
-7. **Hosting.** The brief task note mentions Reserved VM. `.replit` uses `cloudrun` = Autoscale. The scheduled job is a plan.
-8. **Signals footer.** `frontend/index.html` still shows "Signals: offline snapshot of 22 Oct" and run id `20261022T050908-ab9c76` until the API answers.
-9. **`[TEAM TO FILL]` items** remain in the declaration (Replit plan, Replit Agent model, live CV-intake confirmation).
-10. **Plan docs not updated:** `tasks/plan-final-round.md` WP-MY and `tasks/plan-credits.md` (judges' feedback item 1) still describe DOSM as a plan with a per-role idea. The built version is sector level.
+1. **Licences still not reviewed:** TypeSafe (off by default), the 25 publisher RSS feeds, the Trainocate/HRD pages and MyCOL. The declaration says "not reviewed" for each.
+2. **The Preliminary `.docx`** is the submitted preliminary round. It is kept as it was.
+3. **`[TEAM TO FILL]` items** remain in the declaration (Replit plan, Replit Agent model, live CV-intake confirmation).
 
 ### What I did not check
 - I did not run the full test suite, `tests/test_my_dosm.py`, or the app in a browser. Numbers come from files, and Aina's results from running the engine code on 31 Oct.

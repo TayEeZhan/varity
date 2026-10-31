@@ -522,3 +522,52 @@ a.tag--mycol:hover { background: var(--paper-2); }
 }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* CV-first pop-up: Close sits top right of the sheet head (the sheet itself is styled in landing.css). */
+.sheet__head { position: relative; }
+.sheet__head h2 { padding-right: 96px; }
+
+/* ── Departure boards (Signals, Job forecast): the landing's board grammar on the app screens ── */
+.board { border: 2px solid var(--ink); }
+.board__title { background: var(--ink); color: #fff; padding: 10px 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.board__title h2 { font-size: var(--t-lg); font-weight: 800; letter-spacing: -0.01em; }
+.board__title small { color: #c9cac7; font-size: var(--t-xs); text-align: right; }
+.brow { display: grid; align-items: center; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--rule); }
+.brow--head { background: #2a2b2d; color: #e4e5e2; font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 7px 14px; border-top: 0; }
+.brow .t { font-weight: 700; line-height: 1.3; }
+.brow .t a { text-decoration: none; }
+.brow .t a:hover { text-decoration: underline; }
+.brow .m { font-size: var(--t-xs); color: var(--ink-3); margin-top: 3px; line-height: 1.45; }
+.brow .m b { color: var(--ink-2); }
+.brow .r { text-align: right; }
+.board .num, .flap, .score { font-variant-numeric: tabular-nums; }
+.board--skills .brow { grid-template-columns: minmax(0, 1fr) 44px 54px 92px; }
+.board--news .brow { grid-template-columns: 26px 22px minmax(0, 1fr) 58px; align-items: start; }
+.board--roles .brow { grid-template-columns: minmax(0, 1fr) 70px 150px 112px; align-items: start; }
+.board--roles .brow--head { align-items: center; }
+.flap { display: inline-block; min-width: 80px; text-align: center; padding: 3px 6px; color: #fff; font-weight: 800; border-radius: 3px; background: #5b5c60; background-image: linear-gradient(transparent 49%, rgba(255, 255, 255, 0.2) 50%, transparent 54%); }
+.flap--up { background-color: var(--rise); }
+.flap--down { background-color: var(--fall); }
+.plate { display: inline-block; min-width: 100px; padding: 3px 8px; border-radius: 3px; font-size: var(--t-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; text-align: center; background: #5b5c60; }
+.plate--up { background: var(--rise); }
+.plate--down { background: var(--fall); }
+.rank { font-weight: 800; font-size: var(--t-lg); line-height: 1.2; font-variant-numeric: tabular-nums; }
+.score { font-weight: 800; font-size: var(--t-lg); line-height: 1.2; }
+.score small { display: block; font-size: var(--t-xs); font-weight: 600; color: var(--ink-3); }
+.cat { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; font-weight: 800; font-size: 0.6875rem; font-style: normal; color: #fff; flex: none; }
+.cat--S { background: var(--guard); }
+.cat--R { background: #5b5c60; }
+.cat--P { background: var(--apps); }
+.cat--M { background: var(--serve); color: var(--ink); }
+.cat--A { background: var(--fall); }
+.cat-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0 0 10px; padding: 10px 12px; background: var(--paper-2); font-size: var(--t-sm); color: var(--ink-2); }
+.cat-key > b { color: var(--ink); }
+.cat-key span { display: inline-flex; align-items: center; gap: 6px; }
+.board-foot { margin-top: 10px; font-size: var(--t-sm); color: var(--ink-3); max-width: 80ch; }
+@media (max-width: 640px) {
+  .board--skills .brow { grid-template-columns: minmax(0, 1fr) 40px 84px; }
+  .board--skills .usual { display: none; }
+  .board--news .brow { grid-template-columns: 20px 22px minmax(0, 1fr) 44px; gap: 10px; }
+  .board--roles .brow { grid-template-columns: minmax(0, 1fr) 58px 100px; }
+  .board--roles .hide-sm { display: none; }
+}
