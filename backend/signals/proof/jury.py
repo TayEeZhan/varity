@@ -114,7 +114,9 @@ def _ask(juror: Juror, user: str, files: Mapping[str, str]) -> dict:
     try:
         answer = parse(juror.call(SYSTEM, user))
     except Exception as exc:  # noqa: BLE001 - a juror failure is a missing vote, never a crash
-        return {"model": juror.name, "vote": "none", "reason": f"No answer ({type(exc).__name__})", "cite": None, "citeOk": False}
+        # the cause, not the wrapper: LabellerUnavailable carries "NotFoundError: ..." (only the type is shown, never the text)
+        cause = type(exc.__cause__ or exc).__name__
+        return {"model": juror.name, "vote": "none", "reason": f"No answer ({cause})", "cite": None, "citeOk": False}
     if answer is None:
         return {"model": juror.name, "vote": "none", "reason": "Answer was not valid JSON", "cite": None, "citeOk": False}
     ok = cite_ok(answer, files)

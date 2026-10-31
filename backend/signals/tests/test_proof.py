@@ -429,3 +429,28 @@ def test_claude_juror_asks_anthropic_for_a_claude_model_when_krackeddevs_is_set(
     claude = next(j for j in jury.default_jurors() if j.name == "Claude Haiku")
     claude.call("s", "u")
     assert seen["model"].startswith("claude-")
+
+
+def test_a_silent_juror_shows_the_cause_and_allows_a_recheck_without_new_commits(client, token, wired, monkeypatch):
+    class NotFoundError(Exception):
+        pass
+
+    def broken(system, user):
+        try:
+            raise NotFoundError("model not found")
+        except NotFoundError as exc:
+            raise RuntimeError("wrapper") from exc
+
+    jurors = [first_line_juror("A", fail_on=("Dockerfile",)), first_line_juror("B", fail_on=("Dockerfile",)),
+              jury.Juror("Claude Haiku", broken)]
+    monkeypatch.setattr(jury, "default_jurors", lambda **k: jurors)
+    h = {"X-Profile-Token": token}
+    role = _role_id(client, token)
+    client.post("/api/proof/board", json={"projectId": "olist-warehouse", "roleId": role}, headers=h)
+    client.post("/api/proof/consent", headers=h)
+    out = client.post("/api/proof/submit", json={"projectId": "olist-warehouse", "repo": "aina/olist-dw"}, headers=h).json()["data"]
+    review = next(x for x in out["mine"] if x["id"] == "olist-warehouse")["reviews"][-1]
+    assert review["outcome"] == "not_yet"
+    assert review["items"][0]["votes"][2]["reason"] == "No answer (NotFoundError)"
+    again = client.post("/api/proof/recheck", json={"projectId": "olist-warehouse"}, headers=h).json()
+    assert again["error"] is None                                   # same commit, but a juror never voted
