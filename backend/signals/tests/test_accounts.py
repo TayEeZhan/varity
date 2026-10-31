@@ -46,8 +46,11 @@ def sign_in(client):
     return client.get("/api/callback", params={"code": "c", "state": query["state"][0]})
 
 
+from tests.test_cv_api import MINI_CV  # noqa: E402
+
+
 def anonymous_profile(client):
-    review = client.post("/api/cv/extract", json={"text": "Built REST APIs in Python.", "use_ai": False}).json()["data"]
+    review = client.post("/api/cv/extract", json={"text": MINI_CV, "use_ai": False}).json()["data"]
     return client.post("/api/profile/apply", json={"review_id": review["review_id"], "kept_ids": ["python"]}).json()["data"]["token"]
 
 
