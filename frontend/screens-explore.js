@@ -30,10 +30,12 @@ function noticesHTML() {
 
 function renderSignals() {
   const skills = SKILLS.slice().sort((a, b) => b.momentum - a.momentum);
-  const max = Math.max(...SKILLS.flatMap((s) => s.weekly));
+  // momentum = (this week − usual) ÷ usual, with usual floored at 1; under 1 mention a week a % would mislead, so say "New".
+  const change = (s, usual) => usual < 1 ? (s.weekly[4] ? "New" : "–")
+    : `${s.momentum >= 0 ? "+" : "−"}${Math.round(Math.abs(s.momentum) * 100).toLocaleString()}%`;
   const rows = skills.map((s) => {
-    const color = "#8a8b8e";
-    return `<tr><td>${esc(s.skill)}</td><td>${ridershipSVG(s.weekly, max, color)}</td><td class="num">${s.weekly[4]}</td><td class="num hide-sm">${s.momentum >= 0 ? "+" : ""}${s.momentum.toFixed(1)}</td></tr>`;
+    const usual = s.weekly.slice(0, 4).reduce((a, b) => a + b, 0) / 4;
+    return `<tr><td>${esc(s.skill)}</td><td class="num">${s.weekly[4]}</td><td class="num">${usual.toFixed(1)}</td><td class="num">${change(s, usual)}</td></tr>`;
   }).join("");
 
   const html = `
@@ -42,10 +44,10 @@ function renderSignals() {
       <section aria-labelledby="sm-h">
         <h2 class="sec" id="sm-h">Skill momentum <small>Mentions per week, last 5 weeks</small></h2>
         <table class="ridership">
-          <thead><tr><th scope="col">Skill</th><th scope="col">5 weeks →</th><th scope="col" class="num">This week</th><th scope="col" class="num hide-sm">Momentum</th></tr></thead>
+          <thead><tr><th scope="col">Skill</th><th scope="col" class="num">This week</th><th scope="col" class="num">Usual week</th><th scope="col" class="num">Change</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
-        <p class="method">Line thickness is mentions per week, on one shared scale (thickest = ${max}). Momentum = (this week − the earlier weekly average) ÷ that average, with the average floored at 1.</p>
+        <p class="method">Counts are news mentions. "Usual week" is the average of the 4 weeks before this one. "Change" compares this week with that average. "New" means the skill had under 1 mention a week before, so a percentage would mislead. Rows are sorted by change.</p>
       </section>
       <section aria-labelledby="sn-h">
         <h2 class="sec" id="sn-h">Service notices <small>Top 10 of ${SIGNAL_RUN.storyCount}</small></h2>
