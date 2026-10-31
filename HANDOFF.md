@@ -10,7 +10,8 @@ The "Update 29 Oct" section is the newest. The sections after it are the 24 Oct 
 ### Built (tests pass, checked in the browser on localhost)
 - **WP1 "change the trend data now":** Skills radar → "Trend data" bar.
   - Replay a real past month (2023-12 … 2026-10), Back to latest, Fetch latest HN now.
-  - The write routes need the header `X-Admin-Token` = Secret `VERITY_ADMIN_TOKEN`. Without the Secret they return 403.
+  - Replay is per viewer: the browser keeps the month in `sessionStorage` and sends `asOf=YYYY-MM` on the roles, pathway, radar and status calls. A bad month returns 422. No token and no server state.
+  - `POST /api/data/refresh` (no token) starts at most one fetch per 10 minutes for the whole server. Otherwise it returns 429 with `retryAfter`.
   - Aina's #2 route goes from AI/LLM App Engineer (39%) to Data Engineer (48%) in the 2025-06 replay.
   - Limit: the replay cuts only the scores and the role trends. The forecast chips stay at latest.
 - **WP2 "Why NN%?":** a panel on each route card. It shows 0.7 × match + 0.3 × outlook and the top 3 skills that would raise the score (Aina → Backend Engineer: 0.759; with Go, 0.843).
@@ -25,7 +26,7 @@ The "Update 29 Oct" section is the newest. The sections after it are the 24 Oct 
   - Accounts with no login for 365 days are deleted (at start-up and by a daily job at 06:45).
   - Fact found: the cleaned CV text is stored for the CV builder and deleted with the profile.
 - **Fairness:** `backend/signals/tests/test_fairness.py`. The same skills give the same routes, whatever the name, age or gender.
-- **Team (HR) view:** `#/team` and `POST /api/team`. A heatmap (have/gap) and a team plan. Nothing is stored.
+- **Team (HR) view:** removed on 1 Nov: does not fit a worker-facing site. (`#/team`, `POST /api/team` and `test_team.py` are gone.)
 
 ### Not built, on purpose
 - **HRD Corp list (WP3):** a person must check each programme. No entry is safer than an invented one.
@@ -34,8 +35,7 @@ The "Update 29 Oct" section is the newest. The sections after it are the 24 Oct 
 
 ### After the user pulls on Replit (no credits needed)
 1. Git pane → Pull. Then Republish.
-2. Secrets: add `VERITY_ADMIN_TOKEN` (any long random string). The team types it once when they first press Replay.
-3. Check: CV & routes (Why, goal), Skills radar (Replay 2025-06, then Back to latest), Team, Privacy notice.
+2. Check: CV & routes (Why, goal), Skills radar (Replay 2025-06, then Back to latest), Privacy notice. No Secret is needed for Replay.
 
 ### After the Replit AI credits arrive (on hold; the user will say when)
 1. Tools → Integrations → Anthropic → enable. Check that Secrets has `AI_INTEGRATIONS_ANTHROPIC_API_KEY` and `AI_INTEGRATIONS_ANTHROPIC_BASE_URL`.

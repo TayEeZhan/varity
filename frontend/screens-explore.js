@@ -139,12 +139,12 @@ function renderForecast() {
       </div>
       <div class="fc__val ${cls}">${pct(r.share_now.value)}</div>
       <div class="fc__drv"><b>${t.mentions_last12}</b> posts in the last 12 months vs <b>${t.mentions_prev12}</b> the 12 before
-        (${pct(t.share_last12)} vs ${pct(t.share_prev12)} of posts)${fast != null ? `<br><small>Fast AI scenario in 12 months: ${pct(fast)} (estimate)</small>` : ""}${moved}<br><small>HN threads: ${hnLinks(r) || "none"}</small></div>
+        (${pct(t.share_last12)} vs ${pct(t.share_prev12)} of posts)${fast != null ? `<br><small>If AI speeds up, in 12 months: ${pct(fast)} (estimate)</small>` : ""}${moved}<br><small>HN threads: ${hnLinks(r) || "none"}</small></div>
     </div>`;
   };
 
   const html = `
-    ${head("Job forecast", "How demand for tech roles may change over the next 12 months, from the share of Hacker News “Who is hiring?” posts that name each role. Ranges are estimates, not counts. Two scenarios exist for routes: the forecast here is the moderate one; the fast AI scenario is shown on CV &amp; routes, also as an estimate.")}
+    ${head("Job forecast", "How demand for tech roles may change over the next 12 months, from the share of Hacker News “Who is hiring?” posts that name each role. Ranges are estimates, not counts. Two scenarios exist for routes: the forecast here is the expected one; the “If AI speeds up” scenario is shown on CV &amp; routes, also as an estimate.")}
     <div class="fc-bar-head">
       ${(STATE.forecastLive ? real : snapshot)(`${STATE.forecastLive ? "Real data" : "Offline snapshot"} · HN hiring posts · as of ${(FORECAST.as_of || "?") + (FORECAST.partial_month ? " (month in progress)" : "")}${refreshedText()}`)}
       <div class="fc-key">

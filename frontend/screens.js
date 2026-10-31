@@ -38,10 +38,10 @@ const GOALS = [["climate_energy", "Climate and clean energy"], ["health", "Healt
 const goalPicker = () => `<p class="route-note"><label>I care about: <select data-goal aria-label="SDG goal">
   <option value="">Any goal</option>${GOALS.map(([id, n]) => `<option value="${id}"${STATE.goal === id ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></label></p>`;
 const scenarioToggle = () => `<div class="filters" role="group" aria-label="AI scenario">
-    ${[["moderate", "Moderate (estimate)"], ["fast", "Fast AI disruption (estimate)"]].map(([v, label]) =>
+    ${[["moderate", "Expected (estimate)"], ["fast", "If AI speeds up (estimate)"]].map(([v, label]) =>
       `<button class="filter" type="button" data-global="scenario" data-value="${v}" aria-pressed="${STATE.scenario === v}">${label}</button>`).join("")}
   </div>
-  <p class="route-note">Both scenarios are estimates. The scenario does not change how roles rank. Fast shows how much role demand may fall if AI exposure cuts skill demand, and puts future skills earlier in the pathway.</p>`;
+  <p class="route-note">Expected = our forecast from job posts. If AI speeds up = what changes if AI takes over tasks faster. Both are estimates.</p>`;
 
 const sdgAll = (tags) => tags.map((t) => `SDG ${t.target}: ${t.label}`).join(", ");
 const sdgTag = (t) => `<span class="tag" title="Source: ${esc(t.source)}">SDG ${esc(t.target)}: ${esc(t.label)}</span>`;
@@ -160,11 +160,12 @@ function renderToday() {
   const finished = STATE.plan.steps.filter(stepDone);
   const html = `
     ${head(esc(title), esc(lede), real("Your plan · computed from your profile"))}
+    <p class="route-note">${LEARNING_NOTE}</p>
     ${planBand()}
     <section class="route-strip" aria-label="Your route">
       <div class="route-strip__head">
         <h2><span class="bullets">${used.map((l) => bullet(l)).join("")}</span>To ${esc(TARGET.role)}</h2>
-        <div class="progress">${doneStops} of ${PATHWAY.length} stops done · ${tasksDone} of ${allTasks.length} tasks ticked <span class="progress__bar"><i style="width:${pct}%"></i></span>${Number(STATE.plan.matchPct)}% match now</div>
+        <div class="progress">${doneStops} of ${PATHWAY.length} starter courses done · ${tasksDone} of ${allTasks.length} tasks ticked <span class="progress__bar"><i style="width:${pct}%"></i></span>${Number(STATE.plan.matchPct)}% match now</div>
       </div>
       <p class="route-key">${used.map((l) => `<b>${esc(LINES[l].letter)}</b> ${esc(LINES[l].name)}: ${esc(LINES[l].skill)}`).join(" · ")}</p>
       <div class="diagram" data-strip>${stripSVG()}</div>
@@ -176,8 +177,8 @@ function renderToday() {
         ${allTasksHTML()}
       </section>
       <aside class="side">
-        ${finished.length ? `<section class="panel"><h2>Finished skills</h2>
-          <p>Mark a skill as learned to add it to your profile. It leaves your plan and your match goes up.</p>
+        ${finished.length ? `<section class="panel"><h2>Starter courses done</h2>
+          <p>Mark a skill as learned only when you can use it on real work. It then joins your profile, leaves your plan and your match goes up.</p>
           <ul class="next-list">${finished.map((s) => `<li><span>${esc(s.skill)}</span><button class="btn" type="button" data-act="learned" data-skill="${esc(s.skill)}">Mark as learned</button></li>`).join("")}</ul></section>` : ""}
         <section class="panel"><h2>Take it with you</h2>
           <p>Download the plan or add its tasks to your calendar.${gtasksOn ? " Google Tasks gets today's stops only when you press its button, straight from your browser." : " Nothing is sent anywhere."}</p>
@@ -215,7 +216,7 @@ function renderToday() {
       refreshStatus();
       rerender(`[data-id="${id}"]`);
       const step = STATE.plan.steps.find((s) => s.taskIds.includes(id));
-      if (step && STATE.done.has(id) && stepDone(step)) toast(`Every ${step.skill} task is done.`, "Mark as learned", () => markLearned(step.skill));
+      if (step && STATE.done.has(id) && stepDone(step)) toast(`Starter course for ${step.skill} done.`, "Mark as learned", () => markLearned(step.skill));
     });
   };
   return { html, bind };
@@ -360,28 +361,28 @@ function liveRouteRow(r, pinned = false) {
   const action = cur
     ? `<span class="current-tag"><i></i>Your current route</span>`
     : `<button class="btn" data-act="route" data-id="${esc(r.roleId)}">Switch to this route</button>`;
-  const outlook = r.outlook && r.outlook.label ? `Demand: ${esc(r.outlook.label)} (job forecast, ${esc(r.outlook.asOf || "")})` : "Demand: too few posts to tell";
   const fast = STATE.scenario === "fast" && r.fastShift != null
-    ? `<p class="route-note">Fast AI scenario (estimate): about ${r.fastShift >= 0 ? "+" : ""}${(r.fastShift * 100).toFixed(1)}% role demand vs moderate. Does not change the ranking.</p>` : "";
+    ? `<p class="route-note">If AI speeds up (estimate): about ${r.fastShift >= 0 ? "+" : ""}${(r.fastShift * 100).toFixed(1)}% role demand vs expected. Does not change the ranking.</p>` : "";
   return `<div class="route${cur ? " is-current" : ""}">
     <div class="route__row">
       <div class="route__match${low ? " route__match--low" : ""}">${Number(r.matchPct)}%<small>match now</small></div>
       <div><div class="route__role">${low ? "" : `#${Number(r.rank)} `}${esc(r.name)}${pinned ? ` <span class="plate">Destination</span>` : ""}</div>
-        <div class="route__role-sub"><b>${esc(r.fitLabel)}</b> · ${outlook}</div>
-        ${r.summary ? `<p class="route__summary">${esc(r.summary)}</p>` : ""}
+        <div class="route__role-sub"><b>${esc(r.fitLabel)}</b></div>
         ${low ? `<p class="route-note">Long ride: this role needs most of its skills still. Other routes below are closer.</p>` : ""}</div>
-      <div class="route__fact"><b>${r.gap.length} skills</b><span>to learn</span></div>
-      <div class="route__fact"><b>${r.have.length} of ${r.have.length + r.gap.length}</b><span>core skills held (match is weighted)</span></div>
       ${action}
     </div>
-    ${r.sdgReason ? `<p class="route-note">${esc(r.sdgReason)}</p>` : ""}${goalLine(r)}
-    <div class="route__why"><div class="chips">${r.reasons.map((c) => reasonChip(c)).join("")}${r.watchOut ? reasonChip(r.watchOut, " reason--watch") : ""}</div>
-      ${fast}${marksHTML(r.sdg.tags, r.mycol.length > 0)}</div>
-    ${whyPanel(r)}
     <div class="route__gap">
       <div><h3>You already have</h3><div class="chips">${r.have.map((h) => `<span class="chip">${esc(h)}</span>`).join("") || "<span>None yet</span>"}</div></div>
-      <div><h3>Skills gap</h3><div class="chips">${r.gap.map((g) => `<span class="chip chip--gap">${esc(g)}</span>`).join("") || "<span>No gap</span>"}</div></div>
+      <div><h3>Skills to learn</h3><div class="chips">${r.gap.map((g) => `<span class="chip chip--gap">${esc(g)}</span>`).join("") || "<span>No gap</span>"}</div></div>
     </div>
+    <details class="route__more"><summary>Details</summary>
+      ${r.summary ? `<p class="route__summary">${esc(r.summary)}</p>` : ""}
+      <p class="route-note">${r.have.length} of ${r.have.length + r.gap.length} core skills held (match is weighted). ${r.gap.length} to learn.</p>
+      ${r.sdgReason ? `<p class="route-note">${esc(r.sdgReason)}</p>` : ""}${goalLine(r)}
+      <div class="route__why"><div class="chips">${r.reasons.map((c) => reasonChip(c)).join("")}${r.watchOut ? reasonChip(r.watchOut, " reason--watch") : ""}</div>
+        ${fast}${marksHTML(r.sdg.tags, r.mycol.length > 0)}</div>
+      ${whyPanel(r)}
+    </details>
   </div>`;
 }
 
@@ -532,6 +533,7 @@ function renderProfile() {
           STATE.saved = data.profile;
           STATE.review = null;
           STATE.cv = "parsed";
+          STATE.suggest = null;  // routes belong to the old profile: hide them until the new ones load
           resetCvBuilder();  // a new CV was read: the builder loads the draft again
           const added = data.profile.skills.filter((s) => !before.has(s.skill_id)).length;
           let note = before.size ? `Added ${added} new skills to your profile (${data.profile.skills.length - added} already there).` : `Saved ${data.profile.skills.length} skills to your profile.`;
@@ -599,17 +601,23 @@ function costText(steps) {
   return `${costs.length - paid.length} of ${costs.length} resources are free; the others are ${[...new Set(paid)].join(" or ")}`;
 }
 
+/* The HRD Corp option under the free resource (data/hrd_programmes.json, checked by hand). */
+function employerLine(e) {
+  if (!e || !/^https?:\/\//.test(e.url)) return "";
+  return `<p class="pstop__why">Employer-funded option (HRD Corp): <a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a> by ${esc(e.provider)}, ${Number(e.days)} days, RM ${Number(e.feeMyr).toLocaleString("en-MY")}. ${esc(e.hrdStatus)} Checked ${esc(e.checkedOn || "–")}. Your employer must apply before the course starts.</p>`;
+}
+
 function renderPathway() {
   const blocked = gate("plan");
   if (blocked) return { html: head("Pathway", "The ordered stops from your skills to your route.") + blocked, bind: () => {} };
 
   // Weeks with a stop or a task: a stop's later parts can fall in a week where no stop starts.
   const weeks = [...new Set([...PATHWAY.map((p) => p.week), ...TODAY.all.map((t) => t.week)])].sort((a, b) => a - b);
-  const statusText = { done: "Done", current: "You are here", next: "Upcoming" };
+  const statusText = { done: "Starter course done", current: "You are here", next: "Upcoming" };
   const stopHTML = (p) => `<div class="pstop is-${p.status}" data-stop="${esc(p.id)}">
       ${bullet(p.line, true)}
       <div><div class="pstop__t">${esc(p.title)}<span>${Number(p.mins)} min</span></div>
-        <div class="pstop__r">${p.url ? ext(p.url, p.resource) : esc(p.resource)}</div>
+        <div class="pstop__r">${p.url ? ext(p.url, p.resource) : esc(p.resource)}</div>${employerLine(p.employer)}
         <div class="pstop__m">${p.status === "current" ? `<span class="here-tag">You are here</span>` : `<span>${statusText[p.status]}</span>`}${p.progress > 0 && p.progress < 1 ? `<span class="tag">${Math.round(p.progress * 100)}% done</span>` : ""}<span class="tag">${esc(p.cost)}</span>${p.goalLinked ? `<span class="tag">SDG goal</span>` : ""}${p.sdgTags.length ? `<span class="tag" title="${esc(p.sdgTags.length > 1 ? sdgAll(p.sdgTags) : `Source: ${p.sdgTags[0].source}`)}">SDG ${esc(p.sdgTags[0].target)}${p.sdgTags.length > 1 ? ` +${p.sdgTags.length - 1}` : ""}</span>` : ""}</div>
         ${p.sdgReason ? `<p class="pstop__why">${esc(p.sdgReason)}</p>` : ""}
         ${p.why ? `<p class="pstop__why">${esc(p.why)}</p>` : ""}
@@ -635,6 +643,7 @@ function renderPathway() {
 
   const html = `
     ${head(`Pathway to ${esc(TARGET.role)}`, lede, badge)}
+    <p class="route-note">${LEARNING_NOTE}</p>
     <p class="route-note">${esc(plan.scenarioLabel)}: ${Number(plan.hoursPerWeek)} h a week from ${esc(plan.startDate)}${plan.finishDate ? ` to ${esc(plan.finishDate)}` : ""}. Skills as of ${esc(plan.skillsAsOf || "–")}. ${esc(plan.notes[0] || "")} <a href="#/profile">Change route</a></p>
     ${scenarioToggle()}${goalPicker()}
     <section class="pathmap" aria-label="Route map">
@@ -642,7 +651,7 @@ function renderPathway() {
       <p class="swipe-hint" style="padding:0 12px">Swipe the map sideways to see every station.</p>
       <div class="legend">
         ${used.map((l) => `<span><i class="sw-line" style="background:var(--${l})"></i>${esc(LINES[l].name)} · ${esc(LINES[l].skill)}</span>`).join("")}
-        <span><i class="sw-dot sw-done"></i>Done</span>
+        <span><i class="sw-dot sw-done"></i>Starter course done</span>
         <span><i class="sw-dot sw-here"></i>You are here</span>
         <span><i class="sw-x"></i>Interchange: one stop on two lines</span>
       </div>

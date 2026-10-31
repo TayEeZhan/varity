@@ -36,7 +36,7 @@ def test_unknown_example_is_refused(client):
 def test_suggestions_carry_sdg_and_mycol(client):
     token = use_example(client, "ben")["data"]["token"]
     data = client.get("/api/roles/suggestions", headers={"X-Profile-Token": token}).json()["data"]
-    assert data["roles"] and data["scenarioLabel"] == "Moderate (estimate)"
+    assert data["roles"] and data["scenarioLabel"] == "Expected (estimate)"
     assert data["formulaWeights"]["match"] + data["formulaWeights"]["future"] == pytest.approx(1.0)
     for role in data["roles"]:
         b = role["breakdown"]
@@ -133,3 +133,19 @@ def test_goal_adds_reason_and_keeps_pathway_shape(client):
     assert [s["name"] for s in goal["stages"]] == [s["name"] for s in plain["stages"]]
     assert {s["skill"] for s in goal["steps"]} == {s["skill"] for s in plain["steps"]}
     assert goal["totals"]["minutes"] == plain["totals"]["minutes"]
+
+
+def test_python_gap_step_carries_an_employer_funded_option(client):
+    token = use_example(client, "ben")["data"]["token"]
+    headers = {"X-Profile-Token": token}
+    sug = client.get("/api/roles/suggestions", headers=headers).json()["data"]
+    steps = []
+    for role in sug["roles"] + sug["lowMatch"]:
+        client.post("/api/profile/target-role", json={"roleId": role["roleId"]}, headers=headers)
+        steps += client.get("/api/pathway", headers=headers).json()["data"]["steps"]
+    funded = [s for s in steps if s["employerFunded"]]
+    assert any(s["skill"] == "Python" for s in funded)
+    py = next(s for s in funded if s["skill"] == "Python")["employerFunded"]
+    assert py["url"].startswith("https://") and py["days"] > 0 and py["feeMyr"] > 0 and py["checkedOn"]
+    assert all(s["skill"] in {"Python", "AWS", "GCP"} for s in funded)
+    assert any(s["employerFunded"] is None for s in steps)

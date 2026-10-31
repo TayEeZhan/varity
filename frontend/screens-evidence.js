@@ -82,7 +82,7 @@ function detailHTML(d) {
       <dt>Change in share</dt><dd>${evSigned(p.change)} (last 12 months vs the 12 before)</dd>
       <dt>Trend label</dt><dd>${esc(p.trend_label)}${p.trend_p === null ? "" : `, p = ${evN(p.trend_p, 3)}`}</dd>
       <dt>AI stance</dt><dd>${esc(p.stance)}${p.contested ? " (contested across indices)" : ""}</dd>
-      ${scen("moderate", "12-month forecast, estimate")}${scen("fast", "Fast scenario, estimate")}
+      ${scen("moderate", "Expected, 12 months (estimate)")}${scen("fast", "If AI speeds up (estimate)")}
     </dl>
     <p class="ev-note">Estimate for ${esc(d.asOf || "?")} plus 12 months. The ${esc(band)} is a target, not a promise.</p></div>`;
 }
@@ -115,14 +115,7 @@ function radarBody(d) {
     <p class="method">Source: ${esc(d.source.file)} (${esc(d.source.text)}); stance cross-check: ${esc(d.source.robustness)}. As of ${esc(evAsOf(d))}, generated ${esc(d.generatedAt || "?")}.</p>`;
 }
 
-/* "Trend data" bar: replay an older real month, go back to latest, or fetch the newest HN thread. Needs the admin token. */
-function adminToken() {
-  let t = "";
-  try { t = sessionStorage.getItem("verity_admin") || ""; } catch (e) { /* no storage: ask each time */ }
-  if (!t) t = window.prompt("Admin token (to change the trend data for this server):") || "";
-  try { if (t) sessionStorage.setItem("verity_admin", t); } catch (e) { /* ignore */ }
-  return t;
-}
+/* "Trend data" bar: replay an older real month (this tab only), go back to latest, or fetch the newest HN thread. */
 async function loadDataStatus() { try { STATE.dataStatus = await api("/api/data/status"); } catch (e) { STATE.dataStatus = null; } }
 const replayLabel = () => STATE.dataStatus && STATE.dataStatus.mode === "replay" ? `Replay of real data as of ${STATE.dataStatus.asOf}` : "";
 function dataBar() {
@@ -132,16 +125,10 @@ function dataBar() {
   return `<section class="method" aria-label="Trend data"><p><b>Source: HN Who is hiring &middot; as of ${esc(d.asOf || "?")} &middot; fetched ${esc(d.fetchedAt || "n/a")}</b>
     ${d.mode === "replay" ? ` &middot; <b>${esc(replayLabel())}</b>` : ""}${d.mode === "refreshing" ? " &middot; refreshing&hellip;" : ""}${d.error ? ` &middot; last refresh failed: ${esc(d.error)}` : ""}</p>
     <p><label>Replay <select data-replay><option value="">Pick a month</option>${months}</select></label>
-    <button class="btn" data-latest>Back to latest</button> <button class="btn" data-fetch>Fetch latest HN now</button></p></section>`;
+    <button class="btn" data-latest>Back to latest</button> <button class="btn" data-fetch>Fetch latest HN now</button></p>
+    <p class="ev-note">Replay changes only what you see in this tab.</p></section>`;
 }
-async function changeData(method, path, body) {
-  const t = adminToken();
-  try {
-    await api(path, { method, body: body && JSON.stringify(body), headers: { "X-Admin-Token": t } });
-  } catch (e) {
-    try { if (e.status === 403) sessionStorage.removeItem("verity_admin"); } catch (e2) { /* ignore */ }
-    toast(errText(e));
-  }
+async function reloadData() {
   EV.radar = null;
   await Promise.all([loadDataStatus(), loadSignals(), loadForecast(), loadRoutes()]);
   if (STATE.saved) await loadPlan();
@@ -149,11 +136,18 @@ async function changeData(method, path, body) {
 }
 
 async function fetchLatest() {
-  await changeData("POST", "/api/admin/refresh");
+  try {
+    await api("/api/data/refresh", { method: "POST" });
+  } catch (e) {
+    toast(e.status === 429 ? "Data was fetched a moment ago. Please try again in a few minutes." : errText(e));
+    return;
+  }
+  await loadDataStatus();
+  rerender();
   for (let i = 0; i < 100 && STATE.dataStatus && STATE.dataStatus.mode === "refreshing"; i++) {
     await new Promise((r) => setTimeout(r, 3000));
     await loadDataStatus();
-    if (STATE.dataStatus && STATE.dataStatus.mode !== "refreshing") await changeData("GET", "/api/data/status");
+    if (STATE.dataStatus && STATE.dataStatus.mode !== "refreshing") await reloadData();
     else rerender();
   }
 }
@@ -166,9 +160,9 @@ function renderRadar() {
     const body = root.querySelector("#ev-body");
     const bar = root.querySelector("#ev-bar");
     loadDataStatus().then(() => { bar.innerHTML = dataBar(); });
-    bar.addEventListener("change", (e) => { if (e.target.dataset.replay !== undefined && e.target.value) changeData("POST", "/api/data/asof", { asOf: e.target.value }); });
+    bar.addEventListener("change", (e) => { if (e.target.dataset.replay !== undefined && e.target.value) { setAsOf(e.target.value); reloadData(); } });
     bar.addEventListener("click", (e) => {
-      if (e.target.closest("[data-latest]")) changeData("DELETE", "/api/data/asof");
+      if (e.target.closest("[data-latest]")) { setAsOf(""); reloadData(); }
       if (e.target.closest("[data-fetch]")) fetchLatest();
     });
     const draw = (d) => {

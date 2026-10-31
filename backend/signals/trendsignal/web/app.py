@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hmac
 import json
-import os
 import threading
 import time
 from collections import defaultdict, deque
@@ -13,12 +12,11 @@ from datetime import datetime
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
-from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Query, Request
 from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.routing import Match
 
@@ -29,10 +27,6 @@ from trendsignal.jobs import AppContext, load_context, run_pipeline_if_idle
 from trendsignal.output import latest_run_id, ranking_rows
 from trendsignal.queries import last_run, skill_momentum, source_health
 from trendsignal.timeutil import parse_iso
-
-class AsOfIn(BaseModel):
-    asOf: str
-
 
 BODY_PARTS = {"body", "query", "path", "header", "cookie"}  # leading entries of a pydantic error "loc"
 TIER_LABELS = {"must_know": "Must-know", "worth_a_look": "Worth a look", "emerging": "Emerging", "minor": "Minor"}
@@ -202,42 +196,23 @@ def create_app(ctx: AppContext | None = None) -> FastAPI:
         background.add_task(run_pipeline_if_idle, ctx)
         return envelope({"started": "pipeline"}, status=202)
 
-    def guard_data_admin(request: Request, token: str | None) -> None:
-        expected = os.environ.get("VERITY_ADMIN_TOKEN")
-        if not expected:
-            raise HTTPException(status_code=403, detail="Data changes are off: set VERITY_ADMIN_TOKEN on the server.")
-        if not admin_limiter.allow(request.client.host if request.client else "unknown"):
-            raise HTTPException(status_code=429, detail="too many admin requests")
-        if not token or not hmac.compare_digest(token.encode("utf-8"), expected.encode("utf-8")):
-            raise HTTPException(status_code=403, detail="Wrong or missing admin token.")
-
     @app.get("/api/data/status")
-    def api_data_status():
-        """Which trend data the app shows now: latest, a replay of an older month, or refreshing."""
-        return envelope(service.data_meta())
-
-    @app.post("/api/data/asof")
-    def api_data_asof(payload: AsOfIn, request: Request, x_admin_token: str | None = Header(default=None)):
-        """Replay real data as of an earlier profile month. In memory, 30 minutes."""
-        guard_data_admin(request, x_admin_token)
+    def api_data_status(asOf: str | None = Query(default=None, max_length=7)):
+        """Which trend data this viewer sees: latest, or a replay of the month in asOf. Also refresh state."""
         try:
-            service.set_replay(payload.asOf)
+            service.check_as_of(asOf)
         except ValueError as exc:
             return envelope(error=str(exc), status=422, meta={"code": "INVALID_REQUEST"})
-        return envelope(service.data_meta())
+        return envelope(service.data_meta(asOf))
 
-    @app.delete("/api/data/asof")
-    def api_data_asof_clear(request: Request, x_admin_token: str | None = Header(default=None)):
-        guard_data_admin(request, x_admin_token)
-        service.set_replay(None)
-        return envelope(service.data_meta())
-
-    @app.post("/api/admin/refresh", status_code=202)
-    def api_admin_refresh(request: Request, x_admin_token: str | None = Header(default=None)):
-        """Fetch the newest HN thread now and rebuild the data in a background thread."""
-        guard_data_admin(request, x_admin_token)
-        started = service.refresh_in_background()
-        return envelope({**service.data_meta(), "started": started}, status=202)
+    @app.post("/api/data/refresh", status_code=202)
+    def api_data_refresh():
+        """Fetch the newest HN thread now and rebuild the data in a background thread. One start per 10 minutes, server-wide."""
+        started, wait = service.refresh_in_background()
+        if not started:
+            return JSONResponse({"success": False, "data": {"retryAfter": wait}, "error": "Data was fetched a moment ago. Try again later.",
+                                 "meta": {"code": "RATE_LIMITED", "retryAfter": wait}}, status_code=429, headers={"Retry-After": str(wait)})
+        return envelope({**service.data_meta(), "started": True}, status=202)
 
     from trendsignal.web.cv_api import add_cv_routes  # imported here: cv_api uses envelope and RateLimiter from this module
     add_cv_routes(app, ctx.settings)
