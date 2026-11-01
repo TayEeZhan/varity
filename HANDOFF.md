@@ -3,7 +3,14 @@
 Read this first in any new chat. Then read `C:\Users\eezha\sdc-hackathon\BRIEF.md` (rules, rubric, deadlines) and `C:\Users\eezha\verity\docs\architecture.md` (every feature, with its status).
 The "Update 29 Oct" section is the newest. The sections after it are the 24 Oct state, kept for history.
 
-## Update 1 Nov 2026 (newest): Project and Cert stations built, not committed (`tasks/plan-projects-certs.md`)
+## Update 2 Nov 2026 (newest): personal details removed, history rewritten
+
+- The team did not win. Phone, emails, university and signature images are gone from every file and every commit on all 45 branches (git-filter-repo, then a force push). Commit emails are now GitHub noreply addresses. Names and GitHub handles stay as credits.
+- The signed copies exist only in the leader's `Downloads\SDC2026_submission`. The repo copies say the signed copy went to the organisers.
+- Still on GitHub: old commits by SHA and in closed pull requests (#1-#46) until GitHub Support purges them, or the repo is deleted and re-created from clean history.
+- Any old clone (Sheng Kuan, Replit) must re-clone; never push from an old clone.
+
+## Update 1 Nov 2026: Project and Cert stations built, not committed (`tasks/plan-projects-certs.md`)
 
 - **Built.** Evidence credit in the match score (Learned 0.5, Applied and Certified 1.0), the project catalog and review (hard checks, then a 3-model jury with checked citations), certs with Credly checks, re-plan bands, and the Pathway / Today / CV & routes UI. See `docs/architecture.md` 3.21.
 - **Scores change.** Users with ticked-only skills see a lower match %. Re-run the WP2 numbers below (Aina -> Backend Engineer 0.759) before quoting them.
@@ -266,7 +273,7 @@ Still needed for the daily job at all: App Storage bucket and Scheduled Deployme
 6. **Decisions still open:**
    - the AIOE licence (no licence file);
    - cloud_devops stance;
-   - Gmail in 20 old commits (rewriting needs a force push and the user's yes; new commits use `168839221+TayEeZhan@users.noreply.github.com`).
+   - Gmail in old commits: done 2 Nov (history rewritten, noreply emails).
 7. **Housekeeping:** old git worktrees exist at `C:\Users\eezha\verity-*` (safe to remove with `git worktree remove`).
 
 ## How we work (user preferences)
