@@ -18,7 +18,6 @@
 | **Team Domain**        | Domain 1 |
 | **SDG Track (1–17)**   | SDG 4 — Quality Education (target 4.4); supporting SDG 8 |
 | **Team Leader**        | Tay Ee Zhan |
-| **University**         | (university removed) |
 | **Number of Members**  | 2 |
 
 ## Links

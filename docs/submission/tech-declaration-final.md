@@ -11,8 +11,8 @@ Items marked [TEAM TO FILL] are for the team.
 | Team Name | Hokkien Mee Is Purple |
 | Project / Solution Name | Varity |
 | Name (Leader) | Tay Ee Zhan |
-| Email & Phone (Leader) | (email removed) · phone on the submitted copy |
-| University Affiliation(s) | (university removed) |
+| Email & Phone (Leader) | On the signed copy sent to the organisers |
+| University Affiliation(s) | On the signed copy sent to the organisers |
 | Live Prototype URL | https://verity--eezhan0805.replit.app |
 | Code Repository URL (public / access granted to judges) | https://github.com/TayEeZhan/varity (public) |
 

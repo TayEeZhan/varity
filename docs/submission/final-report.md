@@ -12,7 +12,7 @@ Items marked [TEAM TO FILL] are for the team. Every number comes from a file in 
 | Final Live Deployment URL | https://verity--eezhan0805.replit.app |
 | Codebase Repository URL | https://github.com/TayEeZhan/varity |
 | Name (Leader) | Tay Ee Zhan |
-| Email & phone (Leader) | (email removed) · phone on the submitted copy |
+| Email & phone (Leader) | On the signed copy sent to the organisers |
 
 ## 2. Project Description
 

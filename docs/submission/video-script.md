@@ -8,7 +8,7 @@ Deck: https://claude.ai/artifact/S2wLJMTcXwLLqC78ESTqTM (23 slides). **Bold** = 
 ## Part 1 · Problem and solution (0:00–0:55)
 
 **Slide 1 · Cover (0:00–0:12)**
-Hi, I'm Ee Zhan from team Hokkien Mee Is Purple, (university removed). This is Varity.
+Hi, I'm Ee Zhan from team Hokkien Mee Is Purple. This is Varity.
 
 **Slide 2 · Problem statement (0:12–0:35)**
 AI is advancing so fast that the skills you need keep piling up. In one year, AI went from solving 4.4% to 71.7% of real coding problems. By 2030, 39% of core skills will change, and AI skills are growing fastest. Computer science is hit hardest: AI could cover 94% of computer and maths tasks, more than any other field, and programmers are the most exposed job of all. People who can't keep up fall off track: employment of 22-to-25-year-olds in exposed jobs is already 19% below trend.

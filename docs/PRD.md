@@ -1,6 +1,6 @@
 # Varity: Product Requirements Document
 
-Team Hokkien Mee Is Purple (Tay Ee Zhan, Goh Sheng Kuan, (university removed)) · SDC Hackathon 2026, Domain 1
+Team Hokkien Mee Is Purple (Tay Ee Zhan, Goh Sheng Kuan) · SDC Hackathon 2026, Domain 1
 Version 1.1 · 25 Oct 2026 · Refined from v1.0 against `problem-statement.md` with a product diagnostic (who, pain, why now, MVP, anti-goals, metrics). Feature status checked in the code on `main`.
 
 > **Pitch line:** *Tell us the role you want. We show how close you are, which skills AI is making essential, a dated plan to close the gap, and a new CV that proves it.*

@@ -42,7 +42,7 @@ Confirm the file-name spacing rule in the organisers' submission video. The merm
 9. **Word limits.** Counts are in the documents (updated 24 Oct for the proposal 2.2 and 3.2 and the tech declaration 2.1). Re-count after any edit. Word counters differ by a few words.
 10. **Test count.** "Over 700 tests" dates from 22 Oct, before the Streamlit tests were removed. Re-run `pytest` and update the proposal 3.2, the tech declaration (2.2 and 4.3), `qa-prep.md` and the architecture if the count changed.
 11. **Library licences marked (PyPI) or [TEAM TO FILL].** jinja2, apscheduler and feedparser were not installed locally, so their licences come from memory of their PyPI pages. The `typesafe-sdk` licence is not known. Check them before you sign.
-12. **Leader's university.** Sheng Kuan's commit email is a (university removed) student address. Ee Zhan's university is not in any file.
+12. **Leader's university.** Sheng Kuan's commit email was a university student address (now rewritten). Ee Zhan's university is not in any file.
 
 ## If Sheng Kuan's AI-trend-signal-layer branch is merged
 
